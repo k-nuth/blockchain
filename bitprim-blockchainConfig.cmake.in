@@ -1,0 +1,19 @@
+# - Config file for the BITPRIM_BLOCKCHAIN package
+#
+#  BITPRIM_BLOCKCHAIN_INCLUDE_DIRS - include directories for BITPRIM_BLOCKCHAIN
+#  BITPRIM_BLOCKCHAIN_LIBRARIES    - libraries to link against
+
+get_filename_component(BITPRIM_BLOCKCHAIN_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+set(BITPRIM_BLOCKCHAIN_INCLUDE_DIRS "@CONF_INCLUDE_DIRS@")
+
+include("${BITPRIM_BLOCKCHAIN_CMAKE_DIR}/bitprim-blockchainTargets.cmake")
+set(BITPRIM_BLOCKCHAIN_LIBRARIES bitprim-blockchain)
+
+find_package(bitprim-database 3.0.0 REQUIRED)
+
+get_target_property(
+  _compile_definitions
+  bitprim-blockchain INTERFACE_COMPILE_DEFINITIONS)
+if ("WITH_CONSENSUS" IN_LIST _compile_definitions)
+  find_package(bitprim-consensus 2.0.0 REQUIRED)
+endif()

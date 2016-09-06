@@ -1,8 +1,8 @@
 cmake_policy(VERSION 3.4)
 
-# libbitcoin-blockchain
+# bitprim-blockchain
 #==============================================================================
-project(libbitcoin-blockchain
+project(bitprim-blockchain
   VERSION 3.0.0
   LANGUAGES CXX C)
 cmake_minimum_required(VERSION 3.4)
@@ -16,7 +16,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 #==============================================================================
 # Implement --with-consensus and define WITH_CONSENSUS.
 #------------------------------------------------------------------------------
-option(WITH_CONSENSUS "Link libbitcoin-consensus and use for consensus checks." ON)
+option(WITH_CONSENSUS "Link bitprim-consensus and use for consensus checks." ON)
 
 # Implement --with-tests and declare WITH_TESTS.
 #------------------------------------------------------------------------------
@@ -41,17 +41,17 @@ find_package(
   Boost 1.56.0 REQUIRED
   COMPONENTS unit_test_framework)
 
-# Require bitcoin-database of at least version 3.0.0 and output ${bitcoin_database_CPPFLAGS/LIBS/PKG}.
+# Require bitprim-database of at least version 3.0.0 and output ${bitprim_database_CPPFLAGS/LIBS/PKG}.
 #------------------------------------------------------------------------------
-if (NOT TARGET libbitcoin-database)
-  find_package(libbitcoin-database 3.0.0 REQUIRED)
+if (NOT TARGET bitprim-database)
+  find_package(bitprim-database 3.0.0 REQUIRED)
 endif()
 
-# Require bitcoin-consensus of at least version 2.0.0 and output ${bitcoin_consensus_CPPFLAGS/LIBS/PKG}.
+# Require bitprim-consensus of at least version 2.0.0 and output ${bitprim_consensus_CPPFLAGS/LIBS/PKG}.
 #------------------------------------------------------------------------------
 if (WITH_CONSENSUS)
-  if (NOT TARGET libbitcoin-consensus)
-    find_package(libbitcoin-consensus 2.0.0 REQUIRED)
+  if (NOT TARGET bitprim-consensus)
+    find_package(bitprim-consensus 2.0.0 REQUIRED)
   endif()
 endif()
 
@@ -134,14 +134,14 @@ _add_cxx_compile_flag(-fvisibility-inlines-hidden _has_visibility_inlines_hidden
 
 # Build
 #==============================================================================
-# src/libbitcoin-blockchain.la => ${libdir}
+# src/bitprim-blockchain.la => ${libdir}
 #------------------------------------------------------------------------------
 set(MODE STATIC)
 if (ENABLE_SHARED)
   set(MODE SHARED)
 endif()
 
-add_library(libbitcoin-blockchain ${MODE}
+add_library(bitprim-blockchain ${MODE}
   src/block.cpp
   src/block_chain_impl.cpp
   src/block_detail.cpp
@@ -154,27 +154,27 @@ add_library(libbitcoin-blockchain ${MODE}
   src/validate_block.cpp
   src/validate_block_impl.cpp
   src/validate_transaction.cpp)
-target_include_directories(libbitcoin-blockchain PUBLIC
+target_include_directories(bitprim-blockchain PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
 
-target_compile_definitions(libbitcoin-blockchain PUBLIC -DBCB_STATIC)
+target_compile_definitions(bitprim-blockchain PUBLIC -DBCB_STATIC)
 if (WITH_CONSENSUS)
-  target_compile_definitions(libbitcoin-blockchain PUBLIC -DWITH_CONSENSUS)
+  target_compile_definitions(bitprim-blockchain PUBLIC -DWITH_CONSENSUS)
 endif()
 
-target_link_libraries(libbitcoin-blockchain libbitcoin-database)
+target_link_libraries(bitprim-blockchain bitprim-database)
 if (WITH_CONSENSUS)
-  target_link_libraries(libbitcoin-blockchain libbitcoin-consensus)
+  target_link_libraries(bitprim-blockchain bitprim-consensus)
 endif()
 
 # Group sources
 file(GLOB_RECURSE headers
   RELATIVE ${CMAKE_CURRENT_LIST_DIR}
   include/*.h include/*.hpp)
-target_sources(libbitcoin-blockchain PRIVATE "${headers}")
+target_sources(bitprim-blockchain PRIVATE "${headers}")
 
-get_target_property(sources libbitcoin-blockchain SOURCES)
+get_target_property(sources bitprim-blockchain SOURCES)
 foreach (source ${sources})
   get_filename_component(group ${source} DIRECTORY)
   if (MSVC)
@@ -183,28 +183,28 @@ foreach (source ${sources})
   source_group("${group}" FILES ${source})
 endforeach()
 
-# local: test/libbitcoin_blockchain_test
+# local: test/bitprim_blockchain_test
 #------------------------------------------------------------------------------
 if (WITH_TESTS)
-  add_executable(libbitcoin_blockchain_test
+  add_executable(bitprim_blockchain_test
     test/main.cpp
     test/transaction_pool.cpp
     test/validate_block.cpp)
   if (ENABLE_SHARED)
-    target_compile_definitions(libbitcoin_blockchain_test PRIVATE -DBOOST_TEST_DYN_LINK)
+    target_compile_definitions(bitprim_blockchain_test PRIVATE -DBOOST_TEST_DYN_LINK)
   endif()
-  target_link_libraries(libbitcoin_blockchain_test libbitcoin-blockchain)
+  target_link_libraries(bitprim_blockchain_test bitprim-blockchain)
 
-  target_include_directories(libbitcoin_blockchain_test SYSTEM PUBLIC ${Boost_INCLUDE_DIR})
-  target_link_libraries(libbitcoin_blockchain_test
+  target_include_directories(bitprim_blockchain_test SYSTEM PUBLIC ${Boost_INCLUDE_DIR})
+  target_link_libraries(bitprim_blockchain_test
     ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 
   enable_testing()
-  set(_libbitcoin_tests transaction_pool_tests validate_block_tests)
-  foreach (_test_name ${_libbitcoin_tests})
+  set(_bitprim_tests transaction_pool_tests validate_block_tests)
+  foreach (_test_name ${_bitprim_tests})
     add_test(
       NAME test.${_test_name}
-      COMMAND libbitcoin_blockchain_test
+      COMMAND bitprim_blockchain_test
         --run_test=${_test_name}
         --show_progress=no
         --detect_memory_leak=0
@@ -218,16 +218,16 @@ endif()
 if (WITH_TOOLS)
   add_executable(tools.initchain
     tools/initchain/initchain.cpp)
-  target_link_libraries(tools.initchain libbitcoin-blockchain)
+  target_link_libraries(tools.initchain bitprim-blockchain)
 endif()
 
 # Install
 #==============================================================================
-install(TARGETS libbitcoin-blockchain
-  EXPORT libbitcoin-blockchain
+install(TARGETS bitprim-blockchain
+  EXPORT bitprim-blockchain
   ARCHIVE DESTINATION lib)
 
-set(_libbitcoin_headers
+set(_bitprim_headers
   # include_bitcoin_HEADERS =
   bitcoin/blockchain.hpp
   # include_bitcoin_blockchain_HEADERS =
@@ -247,7 +247,7 @@ set(_libbitcoin_headers
   bitcoin/blockchain/validate_block_impl.hpp
   bitcoin/blockchain/validate_transaction.hpp
   bitcoin/blockchain/version.hpp)
-foreach (_header ${_libbitcoin_headers})
+foreach (_header ${_bitprim_headers})
   get_filename_component(_directory "${_header}" DIRECTORY)
   install(FILES "include/${_header}" DESTINATION "include/${_directory}")
 endforeach()
@@ -256,9 +256,9 @@ endforeach()
 #==============================================================================
 include(CMakePackageConfigHelpers)
 
-export(EXPORT libbitcoin-blockchain
-  FILE "${CMAKE_CURRENT_BINARY_DIR}/libbitcoin-blockchainTargets.cmake")
-export(PACKAGE libbitcoin-blockchain)
+export(EXPORT bitprim-blockchain
+  FILE "${CMAKE_CURRENT_BINARY_DIR}/bitprim-blockchainTargets.cmake")
+export(PACKAGE bitprim-blockchain)
 
 if (UNIX)
   set(_config_package_location "lib/cmake")
@@ -266,21 +266,21 @@ elseif (WIN32)
   set(_config_package_location "cmake")
 endif()
 
-install(EXPORT libbitcoin-blockchain
-  FILE libbitcoin-blockchainTargets.cmake
+install(EXPORT bitprim-blockchain
+  FILE bitprim-blockchainTargets.cmake
   DESTINATION ${_config_package_location})
 
-configure_file(libbitcoin-blockchainConfig.cmake.in
-  "${CMAKE_CURRENT_BINARY_DIR}/libbitcoin-blockchainConfig.cmake"
+configure_file(bitprim-blockchainConfig.cmake.in
+  "${CMAKE_CURRENT_BINARY_DIR}/bitprim-blockchainConfig.cmake"
   @ONLY)
 
 write_basic_package_version_file(
-  "${CMAKE_CURRENT_BINARY_DIR}/libbitcoin-blockchainConfigVersion.cmake"
+  "${CMAKE_CURRENT_BINARY_DIR}/bitprim-blockchainConfigVersion.cmake"
   VERSION ${PROJECT_VERSION}
   COMPATIBILITY AnyNewerVersion)
 
 install(
   FILES
-    "${CMAKE_CURRENT_BINARY_DIR}/libbitcoin-blockchainConfig.cmake"
-    "${CMAKE_CURRENT_BINARY_DIR}/libbitcoin-blockchainConfigVersion.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/bitprim-blockchainConfig.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/bitprim-blockchainConfigVersion.cmake"
   DESTINATION ${_config_package_location})
