@@ -133,13 +133,15 @@ bool validate_block_impl::transaction_exists(const hash_digest& tx_hash) const
 bool validate_block_impl::is_output_spent(
     const chain::output_point& outpoint) const
 {
-    hash_digest out_hash;
-    const auto result = chain_.get_outpoint_transaction(out_hash, outpoint);
-    if (!result)
-        return false;
+    return !database_.unspends.contains(outpoint);
 
-    // Lookup block height. Is the spend after the fork point?
-    return transaction_exists(out_hash);
+    // hash_digest out_hash;
+    // const auto result = chain_.get_outpoint_transaction(out_hash, outpoint);
+    // if (!result)
+    //     return false;
+
+    // // Lookup block height. Is the spend after the fork point?
+    // return transaction_exists(out_hash);
 }
 
 bool validate_block_impl::fetch_transaction(chain::transaction& tx,
