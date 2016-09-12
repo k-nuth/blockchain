@@ -237,7 +237,7 @@ bool block_chain_impl::get_outpoint_transaction(hash_digest& out_transaction,
 
 bool block_chain_impl::contains_outpoint_transaction(output_point const& outpoint) const
 {
-    return database_.unspends.contains(outpoint);
+    return database_.unspents.contains(outpoint);
 }
 
 bool block_chain_impl::get_transaction(transaction& out_transaction,
