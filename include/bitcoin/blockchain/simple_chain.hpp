@@ -62,6 +62,9 @@ public:
     virtual bool get_outpoint_transaction(hash_digest& out_transaction,
         const chain::output_point& outpoint) const = 0;
 
+    /// TODO Fer
+    virtual bool contains_outpoint_transaction(const chain::output_point& outpoint) const = 0;
+
     /// Get the transaction of the given hash and its block height.
     virtual bool get_transaction(chain::transaction& out_transaction,
         uint64_t& out_block_height,
