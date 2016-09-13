@@ -133,7 +133,7 @@ bool validate_block_impl::transaction_exists(const hash_digest& tx_hash) const
 bool validate_block_impl::is_output_spent(
     const chain::output_point& outpoint) const
 {
-    return !chain_.contains_outpoint_transaction(outpoint);
+    return !chain_.contains_outpoint_in_utxo(outpoint);
     
     // hash_digest out_hash;
     // const auto result = chain_.get_outpoint_transaction(out_hash, outpoint);
