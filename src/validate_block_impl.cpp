@@ -150,31 +150,15 @@ bool validate_block_impl::fetch_orphan_transaction(chain::transaction& tx,
     return false;
 }
 
-// bool validate_block_impl::is_output_spent(
-//     const chain::output_point& outpoint) const
-// {
-//     return !chain_.contains_outpoint_in_utxo(outpoint);
-    
-//     // hash_digest out_hash;
-//     // const auto result = chain_.get_outpoint_transaction(out_hash, outpoint);
-//     // if (!result)
-//     //     return false;
-
-//     // // Lookup block height. Is the spend after the fork point?
-//     // return transaction_exists(out_hash);
-// }
-
 bool validate_block_impl::is_output_spent(
     const chain::output_point& outpoint) const
 {
-    return !chain_.contains_outpoint_in_utxo(outpoint);
-
-    // uint64_t tx_height;
-    // hash_digest tx_hash;
-    // return
-    //     chain_.get_outpoint_transaction(tx_hash, outpoint) &&
-    //     chain_.get_transaction_height(tx_height, tx_hash) &&
-    //     tx_height <= fork_index_;
+    uint64_t tx_height;
+    hash_digest tx_hash;
+    return
+        chain_.get_outpoint_transaction(tx_hash, outpoint) &&
+        chain_.get_transaction_height(tx_height, tx_hash) &&
+        tx_height <= fork_index_;
 }
 
 bool validate_block_impl::is_output_spent(

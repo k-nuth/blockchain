@@ -98,9 +98,6 @@ public:
     bool get_outpoint_transaction(hash_digest& out_transaction,
         const chain::output_point& outpoint) const;
 
-    /// TODO Fer
-    bool contains_outpoint_in_utxo(chain::output_point const& outpoint) const;
-
     /// Get the transaction of the given hash and its block height.
     bool get_transaction(chain::transaction& out_transaction,
         uint64_t& out_block_height, const hash_digest& transaction_hash) const;
