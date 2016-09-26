@@ -134,6 +134,27 @@ _add_cxx_compile_flag(-fvisibility-inlines-hidden _has_visibility_inlines_hidden
 
 # Build
 #==============================================================================
+function(_group_sources target sources_dir)
+  file(GLOB_RECURSE _headers
+    ${sources_dir}/include/*.h ${sources_dir}/include/*.hpp)
+  target_sources(${target} PRIVATE ${_headers})
+
+  get_target_property(sources ${target} SOURCES)
+  foreach (source ${sources})
+    get_filename_component(group ${source} ABSOLUTE)
+    get_filename_component(group ${group} DIRECTORY)
+    file(RELATIVE_PATH group "${sources_dir}" "${group}")
+    if (group)
+      if (MSVC)
+        string(REPLACE "/" "\\" group "${group}")
+      endif()
+      source_group("${group}" FILES "${source}")
+    endif()
+  endforeach()
+
+  set_target_properties(${target} PROPERTIES FOLDER "blockchain")
+endfunction()
+
 # src/bitprim-blockchain.la => ${libdir}
 #------------------------------------------------------------------------------
 set(MODE STATIC)
@@ -168,22 +189,7 @@ if (WITH_CONSENSUS)
   target_link_libraries(bitprim-blockchain bitprim-consensus)
 endif()
 
-set_target_properties(bitprim-blockchain PROPERTIES FOLDER "blockchain")
-
-# Group sources
-file(GLOB_RECURSE headers
-  RELATIVE ${CMAKE_CURRENT_LIST_DIR}
-  include/*.h include/*.hpp)
-target_sources(bitprim-blockchain PRIVATE "${headers}")
-
-get_target_property(sources bitprim-blockchain SOURCES)
-foreach (source ${sources})
-  get_filename_component(group ${source} DIRECTORY)
-  if (MSVC)
-    string(REPLACE "/" "\\" group ${group})
-  endif()
-  source_group("${group}" FILES ${source})
-endforeach()
+_group_sources(bitprim-blockchain "${CMAKE_CURRENT_LIST_DIR}")
 
 # Tests
 #==============================================================================
@@ -203,7 +209,7 @@ if (WITH_TESTS)
   target_link_libraries(bitprim_blockchain_test
     ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 
-  set_target_properties(bitprim_blockchain_test PROPERTIES FOLDER "blockchain")
+  _group_sources(bitprim_blockchain_test "${CMAKE_CURRENT_LIST_DIR}/test")
 
   enable_testing()
   set(_bitprim_tests transaction_pool_tests validate_block_tests)
@@ -227,7 +233,7 @@ if (WITH_TOOLS)
   add_executable(tools.initchain
     tools/initchain/initchain.cpp)
   target_link_libraries(tools.initchain bitprim-blockchain)
-  set_target_properties(tools.initchain PROPERTIES FOLDER "blockchain")
+  _group_sources(tools.initchain "${CMAKE_CURRENT_LIST_DIR}/tools/initchain")
 endif()
 
 # Install
