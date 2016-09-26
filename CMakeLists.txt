@@ -193,6 +193,29 @@ _group_sources(bitprim-blockchain "${CMAKE_CURRENT_LIST_DIR}")
 
 # Tests
 #==============================================================================
+function(_add_tests target)
+  if (ENABLE_SHARED)
+    target_compile_definitions(${target} PRIVATE -DBOOST_TEST_DYN_LINK)
+  endif()
+  target_include_directories(${target} SYSTEM PUBLIC ${Boost_INCLUDE_DIR})
+  target_link_libraries(${target} PUBLIC ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+
+  foreach (_test_name ${ARGN})
+    add_test(
+      NAME test.blockchain.${_test_name}
+      COMMAND ${target}
+        --run_test=${_test_name}
+        --show_progress=no
+        --detect_memory_leak=0
+        --report_level=no
+        --build_info=yes)
+  endforeach()
+endfunction()
+
+if (WITH_TESTS)
+  enable_testing()
+endif()
+
 # local: test/bitprim_blockchain_test
 #------------------------------------------------------------------------------
 if (WITH_TESTS)
@@ -200,29 +223,12 @@ if (WITH_TESTS)
     test/main.cpp
     test/transaction_pool.cpp
     test/validate_block.cpp)
-  if (ENABLE_SHARED)
-    target_compile_definitions(bitprim_blockchain_test PRIVATE -DBOOST_TEST_DYN_LINK)
-  endif()
-  target_link_libraries(bitprim_blockchain_test bitprim-blockchain)
-
-  target_include_directories(bitprim_blockchain_test SYSTEM PUBLIC ${Boost_INCLUDE_DIR})
-  target_link_libraries(bitprim_blockchain_test
-    ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-
+  target_link_libraries(bitprim_blockchain_test PUBLIC bitprim-blockchain)
   _group_sources(bitprim_blockchain_test "${CMAKE_CURRENT_LIST_DIR}/test")
 
-  enable_testing()
-  set(_bitprim_tests transaction_pool_tests validate_block_tests)
-  foreach (_test_name ${_bitprim_tests})
-    add_test(
-      NAME test.${_test_name}
-      COMMAND bitprim_blockchain_test
-        --run_test=${_test_name}
-        --show_progress=no
-        --detect_memory_leak=0
-        --report_level=no
-        --build_info=yes)
-  endforeach()
+  _add_tests(bitprim_blockchain_test
+    transaction_pool_tests)
+    # validate_block_tests # no test cases)
 endif()
 
 # Tools
