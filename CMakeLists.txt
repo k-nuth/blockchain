@@ -5,6 +5,7 @@ cmake_minimum_required(VERSION 3.4)
 project(bitprim-blockchain
   VERSION 3.0.0
   LANGUAGES CXX C)
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 # Check for baseline language coverage in the compiler for the C++11 standard.
 #------------------------------------------------------------------------------
@@ -167,6 +168,8 @@ if (WITH_CONSENSUS)
   target_link_libraries(bitprim-blockchain bitprim-consensus)
 endif()
 
+set_target_properties(bitprim-blockchain PROPERTIES FOLDER "blockchain")
+
 # Group sources
 file(GLOB_RECURSE headers
   RELATIVE ${CMAKE_CURRENT_LIST_DIR}
@@ -182,6 +185,8 @@ foreach (source ${sources})
   source_group("${group}" FILES ${source})
 endforeach()
 
+# Tests
+#==============================================================================
 # local: test/bitprim_blockchain_test
 #------------------------------------------------------------------------------
 if (WITH_TESTS)
@@ -198,6 +203,8 @@ if (WITH_TESTS)
   target_link_libraries(bitprim_blockchain_test
     ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 
+  set_target_properties(bitprim_blockchain_test PROPERTIES FOLDER "blockchain")
+
   enable_testing()
   set(_bitprim_tests transaction_pool_tests validate_block_tests)
   foreach (_test_name ${_bitprim_tests})
@@ -212,12 +219,15 @@ if (WITH_TESTS)
   endforeach()
 endif()
 
+# Tools
+#==============================================================================
 # local: tools/initchain/initchain
 #------------------------------------------------------------------------------
 if (WITH_TOOLS)
   add_executable(tools.initchain
     tools/initchain/initchain.cpp)
   target_link_libraries(tools.initchain bitprim-blockchain)
+  set_target_properties(tools.initchain PROPERTIES FOLDER "blockchain")
 endif()
 
 # Install
