@@ -38,7 +38,7 @@ if (NOT ENABLE_SHARED)
   set(Boost_USE_STATIC_LIBS ON)
 endif()
 find_package(
-  Boost 1.56.0 REQUIRED
+  Boost 1.54.0 REQUIRED
   COMPONENTS unit_test_framework)
 
 # Require bitprim-database of at least version 3.0.0 and output ${bitprim_database_CPPFLAGS/LIBS/PKG}.
