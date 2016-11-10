@@ -17,15 +17,13 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-#include <bitcoin/blockchain/transaction_pool_index.hpp>
+#include <bitcoin/blockchain/pools/transaction_pool_index.hpp>
 
 #include <algorithm>
-#include <atomic>
 #include <cstddef>
 #include <cstdint>
 #include <bitcoin/bitcoin.hpp>
-#include <bitcoin/blockchain/block.hpp>
-#include <bitcoin/blockchain/block_chain.hpp>
+#include <bitcoin/blockchain/interface/safe_chain.hpp>
 
 namespace libbitcoin {
 namespace blockchain {
@@ -39,11 +37,13 @@ using namespace std::placeholders;
 
 static constexpr uint64_t genesis_height = 0;
 
+// Database access is limited to: fetch_history.
+
 transaction_pool_index::transaction_pool_index(threadpool& pool,
-    block_chain& blockchain)
+    safe_chain& chain)
   : stopped_(true),
-    dispatch_(pool, NAME),
-    blockchain_(blockchain)
+    safe_chain_(chain),
+    dispatch_(pool, NAME)
 {
 }
 
@@ -73,11 +73,12 @@ void erase(const payment_address& key, const Point& value_point, Multimap& map)
 
     const auto range = map.equal_range(key);
     const auto it = std::find_if(range.first, range.second, match);
-    
+
     if (it != range.second)
         map.erase(it);
 }
 
+// This does not preserve order (std::transform).
 template <typename InfoList, typename Multimap>
 InfoList to_info_list(const payment_address& address, Multimap& map)
 {
@@ -96,7 +97,7 @@ InfoList to_info_list(const payment_address& address, Multimap& map)
 // Add sequence.
 // ----------------------------------------------------------------------------
 
-void transaction_pool_index::add(const transaction& tx,
+void transaction_pool_index::add(transaction_const_ptr tx,
     completion_handler handler)
 {
     dispatch_.ordered(
@@ -104,20 +105,20 @@ void transaction_pool_index::add(const transaction& tx,
             this, tx, handler));
 }
 
-void transaction_pool_index::do_add(const transaction& tx,
+void transaction_pool_index::do_add(transaction_const_ptr tx,
     completion_handler handler)
 {
     uint32_t index = 0;
-    const auto tx_hash = tx.hash();
+    const auto tx_hash = tx->hash();
 
-    for (const auto& input: tx.inputs)
+    for (const auto& input: tx->inputs())
     {
-        const auto address = payment_address::extract(input.script);
+        const auto address = payment_address::extract(input.script());
 
         if (address)
         {
             const input_point point{ tx_hash, index };
-            const spend_info info{ point, input.previous_output };
+            const spend_info info{ point, input.previous_output() };
             spends_map_.emplace(std::move(address), std::move(info));
         }
 
@@ -126,14 +127,14 @@ void transaction_pool_index::do_add(const transaction& tx,
 
     index = 0;
 
-    for (const auto& output: tx.outputs)
+    for (const auto& output: tx->outputs())
     {
-        const auto address = payment_address::extract(output.script);
+        const auto address = payment_address::extract(output.script());
 
         if (address)
         {
             const output_point point{ tx_hash, index };
-            const output_info info{ point, output.value };
+            const output_info info{ point, output.value() };
             outputs_map_.emplace(std::move(address), std::move(info));
         }
 
@@ -147,7 +148,7 @@ void transaction_pool_index::do_add(const transaction& tx,
 // Remove sequence.
 // ----------------------------------------------------------------------------
 
-void transaction_pool_index::remove(const transaction& tx,
+void transaction_pool_index::remove(transaction_const_ptr tx,
     completion_handler handler)
 {
     dispatch_.ordered(
@@ -155,15 +156,15 @@ void transaction_pool_index::remove(const transaction& tx,
             this, tx, handler));
 }
 
-void transaction_pool_index::do_remove(const transaction& tx,
+void transaction_pool_index::do_remove(transaction_const_ptr tx,
     completion_handler handler)
 {
     uint32_t index = 0;
-    const auto tx_hash = tx.hash();
+    const auto tx_hash = tx->hash();
 
-    for (const auto& input: tx.inputs)
+    for (const auto& input: tx->inputs())
     {
-        const auto address = payment_address::extract(input.script);
+        const auto address = payment_address::extract(input.script());
 
         if (address)
             erase(address, input_point{ tx_hash, index }, spends_map_);
@@ -173,9 +174,9 @@ void transaction_pool_index::do_remove(const transaction& tx,
 
     index = 0;
 
-    for (const auto& output: tx.outputs)
+    for (const auto& output: tx->outputs())
     {
-        const auto address = payment_address::extract(output.script);
+        const auto address = payment_address::extract(output.script());
 
         if (address)
             erase(address, output_point{ tx_hash, index }, outputs_map_);
@@ -192,16 +193,16 @@ void transaction_pool_index::do_remove(const transaction& tx,
 
 // Fetch the history first from the blockchain and then from the tx pool index.
 void transaction_pool_index::fetch_all_history(const payment_address& address,
-    size_t limit, size_t from_height, fetch_handler handler)
+    size_t limit, size_t from_height, fetch_handler handler) const
 {
-    blockchain_.fetch_history(address, limit, from_height,
+    safe_chain_.fetch_history(address, limit, from_height,
         std::bind(&transaction_pool_index::blockchain_history_fetched,
             this, _1, _2, address, handler));
 }
 
 void transaction_pool_index::blockchain_history_fetched(const code& ec,
     const history_list& history, const payment_address& address,
-    fetch_handler handler)
+    fetch_handler handler) const
 {
     if (ec)
     {
@@ -241,7 +242,7 @@ void transaction_pool_index::index_history_fetched(const code& ec,
 
 // Fetch history from the transaction pool index only.
 void transaction_pool_index::fetch_index_history(
-    const payment_address& address, query_handler handler)
+    const payment_address& address, query_handler handler) const
 {
     dispatch_.ordered(
         std::bind(&transaction_pool_index::do_fetch,
@@ -249,7 +250,7 @@ void transaction_pool_index::fetch_index_history(
 }
 
 void transaction_pool_index::do_fetch(const payment_address& address,
-    query_handler handler)
+    query_handler handler) const
 {
     // This is the end of the fetch_index_history sequence.
     handler(error::success,

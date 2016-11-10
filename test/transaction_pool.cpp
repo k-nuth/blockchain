@@ -33,9 +33,13 @@ class threadpool_fixture
 };
 
 class blockchain_fixture
-  : public block_chain
+  : public safe_chain
 {
 public:
+
+    // Start/Stop.
+    //-------------------------------------------------------------------------
+
     virtual bool start()
     {
         return false;
@@ -51,118 +55,148 @@ public:
         return false;
     }
 
-    virtual void store(message::block_message::ptr block,
-        block_store_handler handler)
-    {
-    }
+    // Fetch.
+    //-------------------------------------------------------------------------
 
     virtual void fetch_block(uint64_t height,
-        block_fetch_handler handler)
+        block_fetch_handler handler) const
     {
     }
 
     virtual void fetch_block(const hash_digest& hash,
-        block_fetch_handler handler)
+        block_fetch_handler handler) const
     {
     }
 
     virtual void fetch_block_header(uint64_t height,
-        block_header_fetch_handler handler)
+        block_header_fetch_handler handler) const
     {
     }
 
     virtual void fetch_block_header(const hash_digest& hash,
-        block_header_fetch_handler handler)
+        block_header_fetch_handler handler) const
     {
     }
 
-
     virtual void fetch_merkle_block(uint64_t height,
-        merkle_block_fetch_handler handler)
+        transaction_hashes_fetch_handler handler) const
     {
     }
 
     virtual void fetch_merkle_block(const hash_digest& hash,
-        merkle_block_fetch_handler handler)
-    {
-    }
-
-    virtual void fetch_block_transaction_hashes(uint64_t height,
-        transaction_hashes_fetch_handler handler)
-    {
-    }
-
-    virtual void fetch_block_transaction_hashes(const hash_digest& hash,
-        transaction_hashes_fetch_handler handler)
-    {
-    }
-
-    virtual void fetch_block_locator(block_locator_fetch_handler handle_fetch)
-    {
-    }
-
-    virtual void fetch_locator_block_hashes(const message::get_blocks& locator,
-        const hash_digest& threshold, size_t limit,
-        locator_block_hashes_fetch_handler handler)
-    {
-    }
-
-    virtual void fetch_locator_block_headers(
-        const message::get_headers& locator, const hash_digest& threshold,
-        size_t limit, locator_block_headers_fetch_handler handler)
+        transaction_hashes_fetch_handler handler) const
     {
     }
 
     virtual void fetch_block_height(const hash_digest& hash,
-        block_height_fetch_handler handler)
+        block_height_fetch_handler handler) const
     {
     }
 
-    virtual void fetch_last_height(last_height_fetch_handler handler)
+    virtual void fetch_last_height(last_height_fetch_handler handler) const
     {
     }
 
     virtual void fetch_transaction(const hash_digest& hash,
-        transaction_fetch_handler handler)
+        transaction_fetch_handler handler) const
     {
     }
 
-    virtual void fetch_transaction_index(const hash_digest& hash,
-        transaction_index_fetch_handler handler)
+    virtual void fetch_transaction_position(const hash_digest& hash,
+        transaction_index_fetch_handler handler) const
+    {
+    }
+
+    virtual void fetch_output(const output_point& outpoint,
+        output_fetch_handler handler) const
     {
     }
 
     virtual void fetch_spend(const output_point& outpoint,
-        spend_fetch_handler handler)
+        spend_fetch_handler handler) const
     {
     }
 
     virtual void fetch_history(const wallet::payment_address& address,
-        uint64_t limit, uint64_t from_height, history_fetch_handler handler)
+        uint64_t limit, uint64_t from_height,
+        history_fetch_handler handler) const
     {
     }
 
     virtual void fetch_stealth(const binary& prefix, uint64_t from_height,
-        stealth_fetch_handler handler)
+        stealth_fetch_handler handler) const
     {
     }
 
-    virtual void filter_blocks(message::get_data::ptr message,
-        result_handler handler)
+    virtual void fetch_block_locator(const block::indexes& heights,
+        block_locator_fetch_handler handle_fetch) const
     {
     }
 
-    virtual void filter_orphans(message::get_data::ptr message,
-        result_handler handler)
+    virtual void fetch_locator_block_hashes(get_blocks_const_ptr locator,
+        const hash_digest& threshold, size_t limit,
+        inventory_fetch_handler handler) const
     {
     }
 
-    virtual void filter_transactions(message::get_data::ptr message,
-        result_handler handler)
+    virtual void fetch_locator_block_headers(get_headers_const_ptr locator,
+        const hash_digest& threshold, size_t limit,
+        locator_block_headers_fetch_handler handler) const
     {
     }
 
-    virtual void subscribe_reorganize(organizer::reorganize_handler handler)
+    // Transaction Pool.
+    //-------------------------------------------------------------------------
+
+    virtual void fetch_floaters(size_t limit,
+        inventory_fetch_handler handler) const
+    {
+    }
+
+    // Filters.
+    //-------------------------------------------------------------------------
+
+    virtual void filter_blocks(get_data_ptr message,
+        result_handler handler) const
+    {
+    }
+
+    virtual void filter_transactions(get_data_ptr message,
+        result_handler handler) const
+    {
+    }
+
+    virtual void filter_orphans(get_data_ptr message,
+        result_handler handler) const
+    {
+    }
+
+    virtual void filter_floaters(get_data_ptr message,
+        result_handler handler) const
+    {
+    }
+
+    // Subscribers.
+    //-------------------------------------------------------------------------
+
+    virtual void subscribe_reorganize(
+        orphan_pool_manager::reorganize_handler handler)
+    {
+    }
+
+    virtual void subscribe_transaction(transaction_handler handler)
+    {
+    }
+
+    // Stores.
+    //-------------------------------------------------------------------------
+
+    virtual void organize(block_const_ptr block, result_handler handler)
+    {
+    }
+
+    virtual void organize(transaction_const_ptr block,
+        transaction_store_handler handler)
     {
     }
 };
@@ -171,7 +205,6 @@ class transaction_pool_fixture
   : public transaction_pool
 {
 public:
-    typedef transaction_pool::entry entry;
     typedef transaction_pool::buffer buffer;
 
     static blockchain::settings settings_factory(size_t capacity,
@@ -183,29 +216,30 @@ public:
         return value;
     }
 
-    transaction_pool_fixture(threadpool& pool, block_chain& chain,
+    transaction_pool_fixture(threadpool& pool, safe_chain& chain,
         const blockchain::settings& settings)
       : transaction_pool(pool, chain, settings)
     {
     }
 
-    transaction_pool_fixture(threadpool& pool, block_chain& chain, buffer& txs)
+    transaction_pool_fixture(threadpool& pool, safe_chain& chain, buffer& txs)
       : transaction_pool(pool, chain, settings_factory(txs.capacity(), true))
     {
         // Start by default, fill with our test buffer data.
         stopped_ = false;
-        for (const auto& entry: txs)
-            buffer_.push_back(entry);
+        for (const auto tx: txs)
+            buffer_.push_back(tx);
     }
 
     // Test accesors.
+    //-------------------------------------------------------------------------
 
-    void add(transaction_ptr tx, confirm_handler handler)
+    void add(transaction_const_ptr tx, result_handler handler)
     {
         transaction_pool::add(tx, handler);
     }
 
-    void remove(const block_list& blocks)
+    void remove(const block_const_ptr_list& blocks)
     {
         transaction_pool::remove(blocks);
     }
@@ -215,12 +249,12 @@ public:
         transaction_pool::clear(ec);
     }
 
-    void delete_spent_in_blocks(const block_list& blocks)
+    void delete_spent_in_blocks(const block_const_ptr_list& blocks)
     {
         transaction_pool::delete_spent_in_blocks(blocks);
     }
 
-    void delete_confirmed_in_blocks(const block_list& blocks)
+    void delete_confirmed_in_blocks(const block_const_ptr_list& blocks)
     {
         transaction_pool::delete_confirmed_in_blocks(blocks);
     }
@@ -245,7 +279,7 @@ public:
         transaction_pool::delete_package(ec);
     }
 
-    void delete_package(transaction_ptr tx, const code& ec)
+    void delete_package(transaction_const_ptr tx, const code& ec)
     {
         transaction_pool::delete_package(tx, ec);
     }
@@ -254,6 +288,9 @@ public:
     {
         transaction_pool::delete_single(tx_hash, ec);
     }
+
+    // Test
+    //-------------------------------------------------------------------------
 
     const buffer& transactions()
     {
@@ -268,36 +305,31 @@ public:
 
 #define DECLARE_TRANSACTION_POOL(pool, txs) \
     threadpool_fixture memory_pool_; \
-    blockchain_fixture block_chain_; \
-    transaction_pool_fixture pool(memory_pool_, block_chain_, txs)
+    blockchain_fixture safe_chain_; \
+    transaction_pool_fixture pool(memory_pool_, safe_chain_, txs)
 
 #define DECLARE_TRANSACTION(number, code_) \
     auto tx##number = std::make_shared<message::transaction_message>(); \
-    tx##number->locktime = number; \
+    tx##number->set_locktime(number); \
     auto hash##number = tx##number->hash(); \
     const size_t tx##number##_id = number; \
     code result##number(error::unknown); \
-    const auto handle_confirm##number = [&result##number] \
-        (const code& ec, message::transaction_message::ptr) \
+    const auto handle_confirm##number = [&result##number](const code& ec) \
     { \
         result##number = ec; \
         BOOST_CHECK_EQUAL(ec.value(), code_); \
     }; \
-    transaction_pool_fixture::entry entry##number \
-    { \
-        tx##number, handle_confirm##number \
-    }
+    tx##number->validation.confirm = handle_confirm##number;
 
 #define REQUIRE_CALLBACK(number, code) \
-    BOOST_REQUIRE_EQUAL(result##number, code)
+    BOOST_CHECK_EQUAL(result##number, code)
 
 #define TX_ID_AT_POSITION(pool, position) \
-    pool.transactions()[position].tx->locktime
+    pool.transactions()[position]->locktime()
 
 #define ADD_INPUT_TO_TX_NUMBER(number, prevout_hash, prevout_index) \
-    tx##number->inputs.push_back({ { prevout_hash, prevout_index }, {}, 0 }); \
-    hash##number = tx##number->hash(); \
-    entry##number = { tx##number, handle_confirm##number }
+    tx##number->inputs().push_back({ { prevout_hash, prevout_index }, {}, 0 }); \
+    hash##number = tx##number->hash();
 
 BOOST_AUTO_TEST_SUITE(transaction_pool__construct)
 
@@ -319,7 +351,7 @@ BOOST_AUTO_TEST_CASE(transaction_pool__construct2__one__one_destructor_callback)
 {
     DECLARE_TRANSACTION(0, error::service_stopped);
     transaction_pool_fixture::buffer buffer(2);
-    buffer.push_back(entry0);
+    buffer.push_back(tx0);
     DECLARE_TRANSACTION_POOL(mempool, buffer);
     BOOST_REQUIRE_EQUAL(mempool.transactions().size(), 1u);
 }
@@ -345,8 +377,8 @@ BOOST_AUTO_TEST_CASE(transaction_pool__add__empty__one)
 
 BOOST_AUTO_TEST_CASE(transaction_pool__add__overflow_two__oldest_two_removed_expected_callbacks)
 {
-    DECLARE_TRANSACTION(0, error::pool_filled);
-    DECLARE_TRANSACTION(1, error::pool_filled);
+    DECLARE_TRANSACTION(0, error::transaction_pool_filled);
+    DECLARE_TRANSACTION(1, error::transaction_pool_filled);
     DECLARE_TRANSACTION(2, error::service_stopped);
     transaction_pool_fixture::buffer buffer(1);
     DECLARE_TRANSACTION_POOL(mempool, buffer);
@@ -363,23 +395,23 @@ BOOST_AUTO_TEST_CASE(transaction_pool__add__overflow_two__oldest_two_removed_exp
 
 BOOST_AUTO_TEST_CASE(transaction_pool__add__overflow_with_dependencies__removes_oldest_and_dependencies)
 {
-    DECLARE_TRANSACTION(0, error::pool_filled);
-    DECLARE_TRANSACTION(1, error::pool_filled);
-    DECLARE_TRANSACTION(2, error::pool_filled);
+    DECLARE_TRANSACTION(0, error::transaction_pool_filled);
+    DECLARE_TRANSACTION(1, error::transaction_pool_filled);
+    DECLARE_TRANSACTION(2, error::transaction_pool_filled);
     DECLARE_TRANSACTION(3, error::service_stopped);
     ADD_INPUT_TO_TX_NUMBER(1, hash0, 42);
     ADD_INPUT_TO_TX_NUMBER(2, hash1, 24);
     transaction_pool_fixture::buffer buffer(3);
-    buffer.push_back(entry0);
-    buffer.push_back(entry1);
-    buffer.push_back(entry2);
+    buffer.push_back(tx0);
+    buffer.push_back(tx1);
+    buffer.push_back(tx2);
     DECLARE_TRANSACTION_POOL(mempool, buffer);
     mempool.add(tx3, handle_confirm3);
     BOOST_REQUIRE_EQUAL(mempool.transactions().size(), 1u);
     BOOST_REQUIRE_EQUAL(TX_ID_AT_POSITION(mempool, 0), tx3_id);
-    REQUIRE_CALLBACK(0, error::pool_filled);
-    REQUIRE_CALLBACK(1, error::pool_filled);
-    REQUIRE_CALLBACK(2, error::pool_filled);
+    REQUIRE_CALLBACK(0, error::transaction_pool_filled);
+    REQUIRE_CALLBACK(1, error::transaction_pool_filled);
+    REQUIRE_CALLBACK(2, error::transaction_pool_filled);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
@@ -398,8 +430,8 @@ BOOST_AUTO_TEST_CASE(transaction_pool__clear__two__empty_expected_callbacks)
     DECLARE_TRANSACTION(0, error::network_unreachable);
     DECLARE_TRANSACTION(1, error::network_unreachable);
     transaction_pool_fixture::buffer buffer(2);
-    buffer.push_back(entry0);
-    buffer.push_back(entry1);
+    buffer.push_back(tx0);
+    buffer.push_back(tx1);
     DECLARE_TRANSACTION_POOL(mempool, buffer);
     BOOST_REQUIRE_EQUAL(mempool.transactions().size(), 2u);
     mempool.clear(error::network_unreachable);
@@ -411,8 +443,8 @@ BOOST_AUTO_TEST_CASE(transaction_pool__clear__stopped_two__empty_expected_callba
     DECLARE_TRANSACTION(0, error::address_blocked);
     DECLARE_TRANSACTION(1, error::address_blocked);
     transaction_pool_fixture::buffer buffer(2);
-    buffer.push_back(entry0);
-    buffer.push_back(entry1);
+    buffer.push_back(tx0);
+    buffer.push_back(tx1);
     DECLARE_TRANSACTION_POOL(mempool, buffer);
     mempool.stopped(true);
     mempool.clear(error::address_blocked);
@@ -433,9 +465,9 @@ BOOST_AUTO_TEST_CASE(transaction_pool__delete_package1__three__oldest_removed_ex
     DECLARE_TRANSACTION(1, error::service_stopped);
     DECLARE_TRANSACTION(2, error::service_stopped);
     transaction_pool_fixture::buffer buffer(5);
-    buffer.push_back(entry0);
-    buffer.push_back(entry1);
-    buffer.push_back(entry2);
+    buffer.push_back(tx0);
+    buffer.push_back(tx1);
+    buffer.push_back(tx2);
     DECLARE_TRANSACTION_POOL(mempool, buffer);
     mempool.delete_package(error::futuristic_timestamp);
     BOOST_REQUIRE_EQUAL(mempool.transactions().size(), 2u);
@@ -446,7 +478,7 @@ BOOST_AUTO_TEST_CASE(transaction_pool__delete_package1__stopped__unchanged_expec
 {
     DECLARE_TRANSACTION(0, error::service_stopped);
     transaction_pool_fixture::buffer buffer(5);
-    buffer.push_back(entry0);
+    buffer.push_back(tx0);
     DECLARE_TRANSACTION_POOL(mempool, buffer);
     mempool.stopped(true);
     mempool.delete_package(error::futuristic_timestamp);
@@ -461,9 +493,9 @@ BOOST_AUTO_TEST_CASE(transaction_pool__delete_package1__dependencies__deletes_se
     ADD_INPUT_TO_TX_NUMBER(1, hash0, 42);
     ADD_INPUT_TO_TX_NUMBER(2, hash1, 24);
     transaction_pool_fixture::buffer buffer(5);
-    buffer.push_back(entry0);
-    buffer.push_back(entry1);
-    buffer.push_back(entry2);
+    buffer.push_back(tx0);
+    buffer.push_back(tx1);
+    buffer.push_back(tx2);
     DECLARE_TRANSACTION_POOL(mempool, buffer);
     mempool.delete_package(error::futuristic_timestamp);
     BOOST_REQUIRE(mempool.transactions().empty());
@@ -487,9 +519,9 @@ BOOST_AUTO_TEST_CASE(transaction_pool__delete_package2__three__match_removed_exp
     DECLARE_TRANSACTION(1, error::futuristic_timestamp);
     DECLARE_TRANSACTION(2, error::service_stopped);
     transaction_pool_fixture::buffer buffer(5);
-    buffer.push_back(entry0);
-    buffer.push_back(entry1);
-    buffer.push_back(entry2);
+    buffer.push_back(tx0);
+    buffer.push_back(tx1);
+    buffer.push_back(tx2);
     DECLARE_TRANSACTION_POOL(mempool, buffer);
     mempool.delete_package(tx1, error::futuristic_timestamp);
     BOOST_REQUIRE_EQUAL(mempool.transactions().size(), 2u);
@@ -504,9 +536,9 @@ BOOST_AUTO_TEST_CASE(transaction_pool__delete_package2__no_match__no_change_expe
     DECLARE_TRANSACTION(2, error::service_stopped);
     DECLARE_TRANSACTION(3, error::service_stopped);
     transaction_pool_fixture::buffer buffer(5);
-    buffer.push_back(entry0);
-    buffer.push_back(entry1);
-    buffer.push_back(entry2);
+    buffer.push_back(tx0);
+    buffer.push_back(tx1);
+    buffer.push_back(tx2);
     DECLARE_TRANSACTION_POOL(mempool, buffer);
     mempool.delete_package(tx3, error::futuristic_timestamp);
     BOOST_REQUIRE_EQUAL(mempool.transactions().size(), 3u);
@@ -519,7 +551,7 @@ BOOST_AUTO_TEST_CASE(transaction_pool__delete_package2__stopped__unchanged_expec
 {
     DECLARE_TRANSACTION(0, error::service_stopped);
     transaction_pool_fixture::buffer buffer(5);
-    buffer.push_back(entry0);
+    buffer.push_back(tx0);
     DECLARE_TRANSACTION_POOL(mempool, buffer);
     mempool.stopped(true);
     mempool.delete_package(tx0, error::futuristic_timestamp);
@@ -534,9 +566,9 @@ BOOST_AUTO_TEST_CASE(transaction_pool__delete_package2__dependencies__deletes_se
     ADD_INPUT_TO_TX_NUMBER(1, hash0, 42);
     ADD_INPUT_TO_TX_NUMBER(2, hash1, 24);
     transaction_pool_fixture::buffer buffer(5);
-    buffer.push_back(entry0);
-    buffer.push_back(entry1);
-    buffer.push_back(entry2);
+    buffer.push_back(tx0);
+    buffer.push_back(tx1);
+    buffer.push_back(tx2);
     DECLARE_TRANSACTION_POOL(mempool, buffer);
     mempool.delete_package(tx0, error::futuristic_timestamp);
     BOOST_REQUIRE(mempool.transactions().empty());
@@ -560,9 +592,9 @@ BOOST_AUTO_TEST_CASE(transaction_pool__delete_package3__three__match_removed_exp
     DECLARE_TRANSACTION(1, error::futuristic_timestamp);
     DECLARE_TRANSACTION(2, error::service_stopped);
     transaction_pool_fixture::buffer buffer(5);
-    buffer.push_back(entry0);
-    buffer.push_back(entry1);
-    buffer.push_back(entry2);
+    buffer.push_back(tx0);
+    buffer.push_back(tx1);
+    buffer.push_back(tx2);
     DECLARE_TRANSACTION_POOL(mempool, buffer);
     mempool.delete_package(tx1, error::futuristic_timestamp);
     BOOST_REQUIRE_EQUAL(mempool.transactions().size(), 2u);
@@ -578,9 +610,9 @@ BOOST_AUTO_TEST_CASE(transaction_pool__delete_package3__no_match__no_change_expe
     DECLARE_TRANSACTION(2, error::service_stopped);
     DECLARE_TRANSACTION(3, 42);
     transaction_pool_fixture::buffer buffer(5);
-    buffer.push_back(entry0);
-    buffer.push_back(entry1);
-    buffer.push_back(entry2);
+    buffer.push_back(tx0);
+    buffer.push_back(tx1);
+    buffer.push_back(tx2);
     DECLARE_TRANSACTION_POOL(mempool, buffer);
     mempool.delete_package(tx3, error::futuristic_timestamp);
     BOOST_REQUIRE_EQUAL(mempool.transactions().size(), 3u);
@@ -593,7 +625,7 @@ BOOST_AUTO_TEST_CASE(transaction_pool__delete_package3__stopped__unchanged_expec
 {
     DECLARE_TRANSACTION(0, error::service_stopped);
     transaction_pool_fixture::buffer buffer(5);
-    buffer.push_back(entry0);
+    buffer.push_back(tx0);
     DECLARE_TRANSACTION_POOL(mempool, buffer);
     mempool.stopped(true);
     mempool.delete_package(tx0, error::futuristic_timestamp);
@@ -608,9 +640,9 @@ BOOST_AUTO_TEST_CASE(transaction_pool__delete_package3__dependencies__deletes_se
     ADD_INPUT_TO_TX_NUMBER(1, hash0, 42);
     ADD_INPUT_TO_TX_NUMBER(2, hash1, 24);
     transaction_pool_fixture::buffer buffer(5);
-    buffer.push_back(entry0);
-    buffer.push_back(entry1);
-    buffer.push_back(entry2);
+    buffer.push_back(tx0);
+    buffer.push_back(tx1);
+    buffer.push_back(tx2);
     DECLARE_TRANSACTION_POOL(mempool, buffer);
     mempool.delete_package(tx0, error::futuristic_timestamp);
     BOOST_REQUIRE(mempool.transactions().empty());
@@ -637,9 +669,9 @@ BOOST_AUTO_TEST_CASE(transaction_pool__delete_single1__three__match_removed_expe
     DECLARE_TRANSACTION(1, error::futuristic_timestamp);
     DECLARE_TRANSACTION(2, error::service_stopped);
     transaction_pool_fixture::buffer buffer(5);
-    buffer.push_back(entry0);
-    buffer.push_back(entry1);
-    buffer.push_back(entry2);
+    buffer.push_back(tx0);
+    buffer.push_back(tx1);
+    buffer.push_back(tx2);
     DECLARE_TRANSACTION_POOL(mempool, buffer);
     mempool.delete_single(hash1, error::futuristic_timestamp);
     BOOST_REQUIRE_EQUAL(mempool.transactions().size(), 2u);
@@ -655,9 +687,9 @@ BOOST_AUTO_TEST_CASE(transaction_pool__delete_single__no_match__no_change_expect
     DECLARE_TRANSACTION(2, error::service_stopped);
     DECLARE_TRANSACTION(3, 42);
     transaction_pool_fixture::buffer buffer(5);
-    buffer.push_back(entry0);
-    buffer.push_back(entry1);
-    buffer.push_back(entry2);
+    buffer.push_back(tx0);
+    buffer.push_back(tx1);
+    buffer.push_back(tx2);
     DECLARE_TRANSACTION_POOL(mempool, buffer);
     mempool.delete_single(hash3, error::futuristic_timestamp);
     BOOST_REQUIRE_EQUAL(mempool.transactions().size(), 3u);
@@ -670,7 +702,7 @@ BOOST_AUTO_TEST_CASE(transaction_pool__delete_single__stopped__unchanged_expecte
 {
     DECLARE_TRANSACTION(0, error::service_stopped);
     transaction_pool_fixture::buffer buffer(5);
-    buffer.push_back(entry0);
+    buffer.push_back(tx0);
     DECLARE_TRANSACTION_POOL(mempool, buffer);
     mempool.stopped(true);
     mempool.delete_single(hash0, error::futuristic_timestamp);
@@ -685,9 +717,9 @@ BOOST_AUTO_TEST_CASE(transaction_pool__delete_single__dependencies__deletes_self
     ADD_INPUT_TO_TX_NUMBER(1, hash0, 42);
     ADD_INPUT_TO_TX_NUMBER(2, hash1, 24);
     transaction_pool_fixture::buffer buffer(5);
-    buffer.push_back(entry0);
-    buffer.push_back(entry1);
-    buffer.push_back(entry2);
+    buffer.push_back(tx0);
+    buffer.push_back(tx1);
+    buffer.push_back(tx2);
     DECLARE_TRANSACTION_POOL(mempool, buffer);
     mempool.delete_single(hash0, error::futuristic_timestamp);
     BOOST_REQUIRE_EQUAL(mempool.transactions().size(), 2u);
@@ -712,9 +744,9 @@ BOOST_AUTO_TEST_CASE(transaction_pool__delete_single__three__match_removed_expec
     DECLARE_TRANSACTION(2, error::service_stopped);
 
     transaction_pool_fixture::buffer buffer(5);
-    buffer.push_back(entry0);
-    buffer.push_back(entry1);
-    buffer.push_back(entry2);
+    buffer.push_back(tx0);
+    buffer.push_back(tx1);
+    buffer.push_back(tx2);
     DECLARE_TRANSACTION_POOL(mempool, buffer);
     mempool.delete_single(hash1, error::futuristic_timestamp);
     BOOST_REQUIRE_EQUAL(mempool.transactions().size(), 2u);
@@ -734,7 +766,7 @@ BOOST_AUTO_TEST_CASE(transaction_pool__delete_dependencies1__empty__empty)
     BOOST_REQUIRE(mempool.transactions().empty());
 }
 
-BOOST_AUTO_TEST_CASE(transaction_pool__delete_dependencies1__forward_full_chain__head_remains)
+BOOST_AUTO_TEST_CASE(transaction_pool__delete_dependencies1__forward_safe_chain__head_remains)
 {
     DECLARE_TRANSACTION(0, error::service_stopped);
     DECLARE_TRANSACTION(1, error::futuristic_timestamp);
@@ -742,9 +774,9 @@ BOOST_AUTO_TEST_CASE(transaction_pool__delete_dependencies1__forward_full_chain_
     ADD_INPUT_TO_TX_NUMBER(1, hash0, 42);
     ADD_INPUT_TO_TX_NUMBER(2, hash1, 24);
     transaction_pool_fixture::buffer buffer(5);
-    buffer.push_back(entry0);
-    buffer.push_back(entry1);
-    buffer.push_back(entry2);
+    buffer.push_back(tx0);
+    buffer.push_back(tx1);
+    buffer.push_back(tx2);
     DECLARE_TRANSACTION_POOL(mempool, buffer);
     mempool.delete_dependencies(output_point{ hash0, 42 }, error::futuristic_timestamp);
     BOOST_REQUIRE_EQUAL(mempool.transactions().size(), 1u);
@@ -753,7 +785,7 @@ BOOST_AUTO_TEST_CASE(transaction_pool__delete_dependencies1__forward_full_chain_
     REQUIRE_CALLBACK(2, error::futuristic_timestamp);
 }
 
-BOOST_AUTO_TEST_CASE(transaction_pool__delete_dependencies1__reverse_full_chain__head_remains)
+BOOST_AUTO_TEST_CASE(transaction_pool__delete_dependencies1__reverse_safe_chain__head_remains)
 {
     DECLARE_TRANSACTION(0, error::futuristic_timestamp);
     DECLARE_TRANSACTION(1, error::futuristic_timestamp);
@@ -761,9 +793,9 @@ BOOST_AUTO_TEST_CASE(transaction_pool__delete_dependencies1__reverse_full_chain_
     ADD_INPUT_TO_TX_NUMBER(1, hash2, 24);
     ADD_INPUT_TO_TX_NUMBER(0, hash1, 42);
     transaction_pool_fixture::buffer buffer(5);
-    buffer.push_back(entry0);
-    buffer.push_back(entry1);
-    buffer.push_back(entry2);
+    buffer.push_back(tx0);
+    buffer.push_back(tx1);
+    buffer.push_back(tx2);
     DECLARE_TRANSACTION_POOL(mempool, buffer);
     mempool.delete_dependencies(output_point{ hash2, 24 }, error::futuristic_timestamp);
     BOOST_REQUIRE_EQUAL(mempool.transactions().size(), 1u);
@@ -779,9 +811,9 @@ BOOST_AUTO_TEST_CASE(transaction_pool__delete_dependencies1__partial_chain__expe
     DECLARE_TRANSACTION(2, error::service_stopped);
     ADD_INPUT_TO_TX_NUMBER(1, hash2, 24);
     transaction_pool_fixture::buffer buffer(5);
-    buffer.push_back(entry0);
-    buffer.push_back(entry1);
-    buffer.push_back(entry2);
+    buffer.push_back(tx0);
+    buffer.push_back(tx1);
+    buffer.push_back(tx2);
     DECLARE_TRANSACTION_POOL(mempool, buffer);
     mempool.delete_dependencies(output_point{ hash2, 24 }, error::futuristic_timestamp);
     BOOST_REQUIRE_EQUAL(mempool.transactions().size(), 2u);
@@ -798,9 +830,9 @@ BOOST_AUTO_TEST_CASE(transaction_pool__delete_dependencies1__multiple_chlidren__
     ADD_INPUT_TO_TX_NUMBER(1, hash0, 24);
     ADD_INPUT_TO_TX_NUMBER(2, hash0, 42);
     transaction_pool_fixture::buffer buffer(5);
-    buffer.push_back(entry0);
-    buffer.push_back(entry1);
-    buffer.push_back(entry2);
+    buffer.push_back(tx0);
+    buffer.push_back(tx1);
+    buffer.push_back(tx2);
     DECLARE_TRANSACTION_POOL(mempool, buffer);
     mempool.delete_dependencies(output_point{ hash0, 24 }, error::futuristic_timestamp);
     BOOST_REQUIRE_EQUAL(mempool.transactions().size(), 2u);
@@ -809,7 +841,7 @@ BOOST_AUTO_TEST_CASE(transaction_pool__delete_dependencies1__multiple_chlidren__
     REQUIRE_CALLBACK(1, error::futuristic_timestamp);
 }
 
-BOOST_AUTO_TEST_CASE(transaction_pool__delete_dependencies1__stopped_full_chain__unchanged)
+BOOST_AUTO_TEST_CASE(transaction_pool__delete_dependencies1__stopped_safe_chain__unchanged)
 {
     DECLARE_TRANSACTION(0, error::service_stopped);
     DECLARE_TRANSACTION(1, error::service_stopped);
@@ -817,9 +849,9 @@ BOOST_AUTO_TEST_CASE(transaction_pool__delete_dependencies1__stopped_full_chain_
     ADD_INPUT_TO_TX_NUMBER(1, hash0, 42);
     ADD_INPUT_TO_TX_NUMBER(2, hash1, 24);
     transaction_pool_fixture::buffer buffer(5);
-    buffer.push_back(entry0);
-    buffer.push_back(entry1);
-    buffer.push_back(entry2);
+    buffer.push_back(tx0);
+    buffer.push_back(tx1);
+    buffer.push_back(tx2);
     DECLARE_TRANSACTION_POOL(mempool, buffer);
     mempool.stopped(true);
     mempool.delete_dependencies(output_point{ hash0, 42 }, error::unknown);
@@ -838,7 +870,7 @@ BOOST_AUTO_TEST_CASE(transaction_pool__delete_dependencies2__empty__empty)
     BOOST_REQUIRE(mempool.transactions().empty());
 }
 
-BOOST_AUTO_TEST_CASE(transaction_pool__delete_dependencies2__forward_full_chain__head_remains)
+BOOST_AUTO_TEST_CASE(transaction_pool__delete_dependencies2__forward_safe_chain__head_remains)
 {
     DECLARE_TRANSACTION(0, error::service_stopped);
     DECLARE_TRANSACTION(1, error::futuristic_timestamp);
@@ -846,9 +878,9 @@ BOOST_AUTO_TEST_CASE(transaction_pool__delete_dependencies2__forward_full_chain_
     ADD_INPUT_TO_TX_NUMBER(1, hash0, 42);
     ADD_INPUT_TO_TX_NUMBER(2, hash1, 24);
     transaction_pool_fixture::buffer buffer(5);
-    buffer.push_back(entry0);
-    buffer.push_back(entry1);
-    buffer.push_back(entry2);
+    buffer.push_back(tx0);
+    buffer.push_back(tx1);
+    buffer.push_back(tx2);
     DECLARE_TRANSACTION_POOL(mempool, buffer);
     mempool.delete_dependencies(hash0, error::futuristic_timestamp);
     BOOST_REQUIRE_EQUAL(mempool.transactions().size(), 1u);
@@ -857,7 +889,7 @@ BOOST_AUTO_TEST_CASE(transaction_pool__delete_dependencies2__forward_full_chain_
     REQUIRE_CALLBACK(2, error::futuristic_timestamp);
 }
 
-BOOST_AUTO_TEST_CASE(transaction_pool__delete_dependencies2__reverse_full_chain__head_remains)
+BOOST_AUTO_TEST_CASE(transaction_pool__delete_dependencies2__reverse_safe_chain__head_remains)
 {
     DECLARE_TRANSACTION(0, error::futuristic_timestamp);
     DECLARE_TRANSACTION(1, error::futuristic_timestamp);
@@ -865,9 +897,9 @@ BOOST_AUTO_TEST_CASE(transaction_pool__delete_dependencies2__reverse_full_chain_
     ADD_INPUT_TO_TX_NUMBER(1, hash2, 24);
     ADD_INPUT_TO_TX_NUMBER(0, hash1, 42);
     transaction_pool_fixture::buffer buffer(5);
-    buffer.push_back(entry0);
-    buffer.push_back(entry1);
-    buffer.push_back(entry2);
+    buffer.push_back(tx0);
+    buffer.push_back(tx1);
+    buffer.push_back(tx2);
     DECLARE_TRANSACTION_POOL(mempool, buffer);
     mempool.delete_dependencies(hash2, error::futuristic_timestamp);
     BOOST_REQUIRE_EQUAL(mempool.transactions().size(), 1u);
@@ -883,9 +915,9 @@ BOOST_AUTO_TEST_CASE(transaction_pool__delete_dependencies2__partial_chain__expe
     DECLARE_TRANSACTION(2, error::service_stopped);
     ADD_INPUT_TO_TX_NUMBER(1, hash2, 24);
     transaction_pool_fixture::buffer buffer(5);
-    buffer.push_back(entry0);
-    buffer.push_back(entry1);
-    buffer.push_back(entry2);
+    buffer.push_back(tx0);
+    buffer.push_back(tx1);
+    buffer.push_back(tx2);
     DECLARE_TRANSACTION_POOL(mempool, buffer);
     mempool.delete_dependencies(hash2, error::futuristic_timestamp);
     BOOST_REQUIRE_EQUAL(mempool.transactions().size(), 2u);
@@ -902,9 +934,9 @@ BOOST_AUTO_TEST_CASE(transaction_pool__delete_dependencies2__multiple_chlidren__
     ADD_INPUT_TO_TX_NUMBER(1, hash0, 24);
     ADD_INPUT_TO_TX_NUMBER(2, hash0, 42);
     transaction_pool_fixture::buffer buffer(5);
-    buffer.push_back(entry0);
-    buffer.push_back(entry1);
-    buffer.push_back(entry2);
+    buffer.push_back(tx0);
+    buffer.push_back(tx1);
+    buffer.push_back(tx2);
     DECLARE_TRANSACTION_POOL(mempool, buffer);
     mempool.delete_dependencies(hash0, error::futuristic_timestamp);
     BOOST_REQUIRE_EQUAL(mempool.transactions().size(), 1u);
@@ -912,7 +944,7 @@ BOOST_AUTO_TEST_CASE(transaction_pool__delete_dependencies2__multiple_chlidren__
     REQUIRE_CALLBACK(1, error::futuristic_timestamp);
 }
 
-BOOST_AUTO_TEST_CASE(transaction_pool__delete_dependencies2__stopped_full_chain__unchanged)
+BOOST_AUTO_TEST_CASE(transaction_pool__delete_dependencies2__stopped_safe_chain__unchanged)
 {
     DECLARE_TRANSACTION(0, error::service_stopped);
     DECLARE_TRANSACTION(1, error::service_stopped);
@@ -920,9 +952,9 @@ BOOST_AUTO_TEST_CASE(transaction_pool__delete_dependencies2__stopped_full_chain_
     ADD_INPUT_TO_TX_NUMBER(1, hash0, 42);
     ADD_INPUT_TO_TX_NUMBER(2, hash1, 24);
     transaction_pool_fixture::buffer buffer(5);
-    buffer.push_back(entry0);
-    buffer.push_back(entry1);
-    buffer.push_back(entry2);
+    buffer.push_back(tx0);
+    buffer.push_back(tx1);
+    buffer.push_back(tx2);
     DECLARE_TRANSACTION_POOL(mempool, buffer);
     mempool.stopped(true);
     mempool.delete_dependencies(hash0, error::unknown);
@@ -940,14 +972,14 @@ BOOST_AUTO_TEST_CASE(transaction_pool__delete_dependencies3__custom_comparison_p
     ADD_INPUT_TO_TX_NUMBER(2, hash0, 42);
     ADD_INPUT_TO_TX_NUMBER(1, hash2, 24);
     transaction_pool_fixture::buffer buffer(5);
-    buffer.push_back(entry0);
-    buffer.push_back(entry1);
-    buffer.push_back(entry2);
+    buffer.push_back(tx0);
+    buffer.push_back(tx1);
+    buffer.push_back(tx2);
 
-    // ONLY match hash1 (so entry2 will not be deleted).
+    // ONLY match hash1 (so tx2 will not be deleted).
     const auto comparison = [&hash1](const chain::input& input)
     {
-        return input.previous_output.hash == hash1;
+        return input.previous_output().hash() == hash1;
     };
 
     DECLARE_TRANSACTION_POOL(mempool, buffer);
@@ -963,12 +995,12 @@ BOOST_AUTO_TEST_SUITE(transaction_pool__delete_confirmed_in_blocks)
 
 BOOST_AUTO_TEST_CASE(transaction_pool__delete_confirmed_in_blocks__empty_block__expected)
 {
-    message::block_message::ptr_list blocks;
+    block_const_ptr_list blocks;
     block block1;
-    blocks.push_back(std::make_shared<message::block_message>(block1));
+    blocks.push_back(std::make_shared<const message::block_message>(block1));
     transaction_pool_fixture::buffer buffer(1);
     DECLARE_TRANSACTION(0, error::service_stopped);
-    buffer.push_back(entry0);
+    buffer.push_back(tx0);
     DECLARE_TRANSACTION_POOL(mempool, buffer);
     mempool.delete_confirmed_in_blocks(blocks);
     BOOST_REQUIRE_EQUAL(mempool.transactions().size(), 1u);
@@ -976,22 +1008,22 @@ BOOST_AUTO_TEST_CASE(transaction_pool__delete_confirmed_in_blocks__empty_block__
 
 BOOST_AUTO_TEST_CASE(transaction_pool__delete_confirmed_in_blocks__one_block_no_dependencies__expected)
 {
-    message::block_message::ptr_list blocks;
+    block_const_ptr_list blocks;
     block block1;
     DECLARE_TRANSACTION(0, error::service_stopped);
     DECLARE_TRANSACTION(1, error::success);
     DECLARE_TRANSACTION(2, error::success);
     DECLARE_TRANSACTION(3, error::service_stopped);
-    block1.transactions.push_back(*tx0);
-    block1.transactions.push_back(*tx1);
-    block1.transactions.push_back(*tx2);
-    block1.transactions.push_back(*tx3);
-    blocks.push_back(std::make_shared<message::block_message>(block1));
+    block1.transactions().push_back(*tx0);
+    block1.transactions().push_back(*tx1);
+    block1.transactions().push_back(*tx2);
+    block1.transactions().push_back(*tx3);
+    blocks.push_back(std::make_shared<const message::block_message>(block1));
     transaction_pool_fixture::buffer buffer(5);
     DECLARE_TRANSACTION(4, error::service_stopped);
-    buffer.push_back(entry2);
-    buffer.push_back(entry4);
-    buffer.push_back(entry1);
+    buffer.push_back(tx2);
+    buffer.push_back(tx4);
+    buffer.push_back(tx1);
     DECLARE_TRANSACTION_POOL(mempool, buffer);
     mempool.delete_confirmed_in_blocks(blocks);
     BOOST_REQUIRE_EQUAL(mempool.transactions().size(), 1u);
@@ -1002,17 +1034,17 @@ BOOST_AUTO_TEST_CASE(transaction_pool__delete_confirmed_in_blocks__one_block_no_
 
 BOOST_AUTO_TEST_CASE(transaction_pool__delete_confirmed_in_blocks__two_blocks_dependencies__expected)
 {
-    message::block_message::ptr_list blocks;
+    block_const_ptr_list blocks;
     block block1;
     block block2;
     DECLARE_TRANSACTION(0, error::service_stopped);
     DECLARE_TRANSACTION(1, error::success);
     DECLARE_TRANSACTION(2, error::success);
-    block1.transactions.push_back(*tx0);
-    block2.transactions.push_back(*tx1);
-    block2.transactions.push_back(*tx2);
-    blocks.push_back(std::make_shared<message::block_message>(block1));
-    blocks.push_back(std::make_shared<message::block_message>(block2));
+    block1.transactions().push_back(*tx0);
+    block2.transactions().push_back(*tx1);
+    block2.transactions().push_back(*tx2);
+    blocks.push_back(std::make_shared<const message::block_message>(block1));
+    blocks.push_back(std::make_shared<const message::block_message>(block2));
     transaction_pool_fixture::buffer buffer(8);
     DECLARE_TRANSACTION(3, error::service_stopped);
     DECLARE_TRANSACTION(4, error::service_stopped);
@@ -1023,13 +1055,13 @@ BOOST_AUTO_TEST_CASE(transaction_pool__delete_confirmed_in_blocks__two_blocks_de
     ADD_INPUT_TO_TX_NUMBER(4, hash3, 43);
     ADD_INPUT_TO_TX_NUMBER(5, hash4, 44);
     ADD_INPUT_TO_TX_NUMBER(6, hash4, 45);
-    buffer.push_back(entry1);
-    buffer.push_back(entry2);
-    buffer.push_back(entry3);
-    buffer.push_back(entry4);
-    buffer.push_back(entry5);
-    buffer.push_back(entry6);
-    buffer.push_back(entry7);
+    buffer.push_back(tx1);
+    buffer.push_back(tx2);
+    buffer.push_back(tx3);
+    buffer.push_back(tx4);
+    buffer.push_back(tx5);
+    buffer.push_back(tx6);
+    buffer.push_back(tx7);
     DECLARE_TRANSACTION_POOL(mempool, buffer);
     mempool.delete_confirmed_in_blocks(blocks);
     BOOST_CHECK_EQUAL(mempool.transactions().size(), 5u);
@@ -1047,12 +1079,12 @@ BOOST_AUTO_TEST_SUITE(transaction_pool__delete_spent_in_blocks)
 
 BOOST_AUTO_TEST_CASE(transaction_pool__delete_spent_in_blocks__empty_block__expected)
 {
-    message::block_message::ptr_list blocks;
+    block_const_ptr_list blocks;
     block block1;
     blocks.push_back(std::make_shared<message::block_message>(block1));
     transaction_pool_fixture::buffer buffer(1);
     DECLARE_TRANSACTION(0, error::service_stopped);
-    buffer.push_back(entry0);
+    buffer.push_back(tx0);
     DECLARE_TRANSACTION_POOL(mempool, buffer);
     mempool.delete_spent_in_blocks(blocks);
     BOOST_REQUIRE_EQUAL(mempool.transactions().size(), 1u);
@@ -1060,7 +1092,7 @@ BOOST_AUTO_TEST_CASE(transaction_pool__delete_spent_in_blocks__empty_block__expe
 
 BOOST_AUTO_TEST_CASE(transaction_pool__delete_spent_in_blocks__two_blocks_no_duplicates_or_dependencies__expected)
 {
-    message::block_message::ptr_list blocks;
+    block_const_ptr_list blocks;
     block block1;
     DECLARE_TRANSACTION(0, error::service_stopped);
     DECLARE_TRANSACTION(1, error::service_stopped);
@@ -1076,11 +1108,11 @@ BOOST_AUTO_TEST_CASE(transaction_pool__delete_spent_in_blocks__two_blocks_no_dup
     ADD_INPUT_TO_TX_NUMBER(3, hash0, 49);
     ADD_INPUT_TO_TX_NUMBER(3, hash1, 59);
     ADD_INPUT_TO_TX_NUMBER(3, hash2, 51);
-    block1.transactions.push_back(*tx0);
-    block1.transactions.push_back(*tx1);
-    block1.transactions.push_back(*tx2);
-    block1.transactions.push_back(*tx3);
-    blocks.push_back(std::make_shared<message::block_message>(block1));
+    block1.transactions().push_back(*tx0);
+    block1.transactions().push_back(*tx1);
+    block1.transactions().push_back(*tx2);
+    block1.transactions().push_back(*tx3);
+    blocks.push_back(std::make_shared<const message::block_message>(block1));
     transaction_pool_fixture::buffer buffer(5);
     DECLARE_TRANSACTION(4, error::double_spend);
     DECLARE_TRANSACTION(5, error::service_stopped);
@@ -1090,10 +1122,10 @@ BOOST_AUTO_TEST_CASE(transaction_pool__delete_spent_in_blocks__two_blocks_no_dup
     ADD_INPUT_TO_TX_NUMBER(5, hash1, 99);
     ADD_INPUT_TO_TX_NUMBER(6, hash2, 99);
     ADD_INPUT_TO_TX_NUMBER(7, hash2, 51);
-    buffer.push_back(entry4);
-    buffer.push_back(entry5);
-    buffer.push_back(entry6);
-    buffer.push_back(entry7);
+    buffer.push_back(tx4);
+    buffer.push_back(tx5);
+    buffer.push_back(tx6);
+    buffer.push_back(tx7);
     DECLARE_TRANSACTION_POOL(mempool, buffer);
     mempool.delete_spent_in_blocks(blocks);
     BOOST_REQUIRE_EQUAL(mempool.transactions().size(), 2u);
@@ -1108,26 +1140,26 @@ BOOST_AUTO_TEST_SUITE(transaction_pool__remove)
 
 BOOST_AUTO_TEST_CASE(transaction_pool__remove__one_block_duplicates_no_spends__removed_as_succeeded)
 {
-    message::block_message::ptr_list blocks;
+    block_const_ptr_list blocks;
     block block1;
     DECLARE_TRANSACTION(0, error::service_stopped);
     DECLARE_TRANSACTION(1, error::success);
     DECLARE_TRANSACTION(2, error::success);
     DECLARE_TRANSACTION(3, error::success);
-    block1.transactions.push_back(*tx0);
-    block1.transactions.push_back(*tx1);
-    block1.transactions.push_back(*tx2);
-    block1.transactions.push_back(*tx3);
-    blocks.push_back(std::make_shared<message::block_message>(block1));
+    block1.transactions().push_back(*tx0);
+    block1.transactions().push_back(*tx1);
+    block1.transactions().push_back(*tx2);
+    block1.transactions().push_back(*tx3);
+    blocks.push_back(std::make_shared<const message::block_message>(block1));
     transaction_pool_fixture::buffer buffer(5);
     DECLARE_TRANSACTION(4, error::service_stopped);
     DECLARE_TRANSACTION(5, error::service_stopped);
     ADD_INPUT_TO_TX_NUMBER(4, hash3, 42);
-    buffer.push_back(entry1);
-    buffer.push_back(entry2);
-    buffer.push_back(entry3);
-    buffer.push_back(entry4);
-    buffer.push_back(entry5);
+    buffer.push_back(tx1);
+    buffer.push_back(tx2);
+    buffer.push_back(tx3);
+    buffer.push_back(tx4);
+    buffer.push_back(tx5);
     DECLARE_TRANSACTION_POOL(mempool, buffer);
     mempool.remove(blocks);
     BOOST_REQUIRE_EQUAL(mempool.transactions().size(), 2u);
@@ -1138,9 +1170,9 @@ BOOST_AUTO_TEST_CASE(transaction_pool__remove__one_block_duplicates_no_spends__r
     REQUIRE_CALLBACK(3, error::success);
 }
 
-BOOST_AUTO_TEST_CASE(transaction_pool__dremove__two_blocks_spends_no_duplicates__removed_as_spent)
+BOOST_AUTO_TEST_CASE(transaction_pool__remove__two_blocks_spends_no_duplicates__removed_as_spent)
 {
-    message::block_message::ptr_list blocks;
+    block_const_ptr_list blocks;
     block block1;
     DECLARE_TRANSACTION(0, error::service_stopped);
     DECLARE_TRANSACTION(1, error::service_stopped);
@@ -1156,11 +1188,11 @@ BOOST_AUTO_TEST_CASE(transaction_pool__dremove__two_blocks_spends_no_duplicates_
     ADD_INPUT_TO_TX_NUMBER(3, hash0, 49);
     ADD_INPUT_TO_TX_NUMBER(3, hash1, 59);
     ADD_INPUT_TO_TX_NUMBER(3, hash2, 51);
-    block1.transactions.push_back(*tx0);
-    block1.transactions.push_back(*tx1);
-    block1.transactions.push_back(*tx2);
-    block1.transactions.push_back(*tx3);
-    blocks.push_back(std::make_shared<message::block_message>(block1));
+    block1.transactions().push_back(*tx0);
+    block1.transactions().push_back(*tx1);
+    block1.transactions().push_back(*tx2);
+    block1.transactions().push_back(*tx3);
+    blocks.push_back(std::make_shared<const message::block_message>(block1));
     transaction_pool_fixture::buffer buffer(5);
     DECLARE_TRANSACTION(4, error::double_spend);
     DECLARE_TRANSACTION(5, error::double_spend);
@@ -1170,10 +1202,10 @@ BOOST_AUTO_TEST_CASE(transaction_pool__dremove__two_blocks_spends_no_duplicates_
     ADD_INPUT_TO_TX_NUMBER(5, hash4, 99);
     ADD_INPUT_TO_TX_NUMBER(6, hash2, 99);
     ADD_INPUT_TO_TX_NUMBER(7, hash2, 51);
-    buffer.push_back(entry4);
-    buffer.push_back(entry5);
-    buffer.push_back(entry6);
-    buffer.push_back(entry7);
+    buffer.push_back(tx4);
+    buffer.push_back(tx5);
+    buffer.push_back(tx6);
+    buffer.push_back(tx7);
     DECLARE_TRANSACTION_POOL(mempool, buffer);
     mempool.remove(blocks);
     BOOST_REQUIRE_EQUAL(mempool.transactions().size(), 1u);
