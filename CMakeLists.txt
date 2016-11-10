@@ -37,6 +37,7 @@ option(ENABLE_SHARED "" OFF)
 if (NOT ENABLE_SHARED)
   set(Boost_USE_STATIC_LIBS ON)
 endif()
+
 find_package(
   Boost 1.54.0 REQUIRED
   COMPONENTS unit_test_framework)
@@ -162,19 +163,33 @@ if (ENABLE_SHARED)
   set(MODE SHARED)
 endif()
 
+#add_library(bitprim-blockchain ${MODE}
+#  src/block.cpp
+#  src/block_chain_impl.cpp
+#  src/block_detail.cpp
+#  src/block_fetcher.cpp
+#  src/organizer.cpp
+#  src/orphan_pool.cpp
+#  src/settings.cpp
+#  src/transaction_pool.cpp
+#  src/transaction_pool_index.cpp
+#  src/validate_block.cpp
+#  src/validate_block_impl.cpp
+#  src/validate_transaction.cpp)
+
 add_library(bitprim-blockchain ${MODE}
-  src/block.cpp
-  src/block_chain_impl.cpp
-  src/block_detail.cpp
-  src/block_fetcher.cpp
-  src/organizer.cpp
-  src/orphan_pool.cpp
-  src/settings.cpp
-  src/transaction_pool.cpp
-  src/transaction_pool_index.cpp
-  src/validate_block.cpp
-  src/validate_block_impl.cpp
-  src/validate_transaction.cpp)
+        src/interface/block_chain.cpp
+        src/interface/block_fetcher.cpp
+        src/pools/orphan_pool.cpp
+        src/pools/orphan_pool_manager.cpp
+        src/pools/transaction_pool.cpp
+        src/pools/transaction_pool_index.cpp
+        src/settings.cpp
+        src/validation/fork.cpp
+        src/validation/populate_block.cpp
+        src/validation/validate_block.cpp
+        src/validation/validate_input.cpp)
+
 target_include_directories(bitprim-blockchain PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
@@ -197,6 +212,7 @@ function(_add_tests target)
   if (ENABLE_SHARED)
     target_compile_definitions(${target} PRIVATE -DBOOST_TEST_DYN_LINK)
   endif()
+
   target_include_directories(${target} SYSTEM PUBLIC ${Boost_INCLUDE_DIR})
   target_link_libraries(${target} PUBLIC ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 
@@ -248,26 +264,46 @@ install(TARGETS bitprim-blockchain
   EXPORT bitprim-blockchain
   ARCHIVE DESTINATION lib)
 
+#set(_bitprim_headers
+#  # include_bitcoin_HEADERS =
+#  bitcoin/blockchain.hpp
+#  # include_bitcoin_blockchain_HEADERS =
+#  bitcoin/blockchain/block.hpp
+#  bitcoin/blockchain/block_chain.hpp
+#  bitcoin/blockchain/block_chain_impl.hpp
+#  bitcoin/blockchain/block_detail.hpp
+#  bitcoin/blockchain/block_fetcher.hpp
+#  bitcoin/blockchain/define.hpp
+#  bitcoin/blockchain/organizer.hpp
+#  bitcoin/blockchain/orphan_pool.hpp
+#  bitcoin/blockchain/settings.hpp
+#  bitcoin/blockchain/simple_chain.hpp
+#  bitcoin/blockchain/transaction_pool.hpp
+#  bitcoin/blockchain/transaction_pool_index.hpp
+#  bitcoin/blockchain/validate_block.hpp
+#  bitcoin/blockchain/validate_block_impl.hpp
+#  bitcoin/blockchain/validate_transaction.hpp
+#  bitcoin/blockchain/version.hpp)
+
 set(_bitprim_headers
-  # include_bitcoin_HEADERS =
-  bitcoin/blockchain.hpp
-  # include_bitcoin_blockchain_HEADERS =
-  bitcoin/blockchain/block.hpp
-  bitcoin/blockchain/block_chain.hpp
-  bitcoin/blockchain/block_chain_impl.hpp
-  bitcoin/blockchain/block_detail.hpp
-  bitcoin/blockchain/block_fetcher.hpp
-  bitcoin/blockchain/define.hpp
-  bitcoin/blockchain/organizer.hpp
-  bitcoin/blockchain/orphan_pool.hpp
-  bitcoin/blockchain/settings.hpp
-  bitcoin/blockchain/simple_chain.hpp
-  bitcoin/blockchain/transaction_pool.hpp
-  bitcoin/blockchain/transaction_pool_index.hpp
-  bitcoin/blockchain/validate_block.hpp
-  bitcoin/blockchain/validate_block_impl.hpp
-  bitcoin/blockchain/validate_transaction.hpp
-  bitcoin/blockchain/version.hpp)
+    bitcoin/blockchain/define.hpp
+    bitcoin/blockchain/interface/block_chain.hpp
+    bitcoin/blockchain/interface/block_fetcher.hpp
+    bitcoin/blockchain/interface/fast_chain.hpp
+    bitcoin/blockchain/interface/safe_chain.hpp
+    bitcoin/blockchain/pools/orphan_pool.hpp
+    bitcoin/blockchain/pools/orphan_pool_manager.hpp
+    bitcoin/blockchain/pools/transaction_pool.hpp
+    bitcoin/blockchain/pools/transaction_pool_index.hpp
+    bitcoin/blockchain/settings.hpp
+    bitcoin/blockchain/validation/fork.hpp
+    bitcoin/blockchain/validation/populate_block.hpp
+    bitcoin/blockchain/validation/validate_block.hpp
+    bitcoin/blockchain/validation/validate_input.hpp
+    bitcoin/blockchain/version.hpp
+    bitcoin/blockchain.hpp)
+
+
 foreach (_header ${_bitprim_headers})
   get_filename_component(_directory "${_header}" DIRECTORY)
   install(FILES "include/${_header}" DESTINATION "include/${_directory}")
