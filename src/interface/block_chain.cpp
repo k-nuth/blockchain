@@ -549,14 +549,14 @@ void block_chain::fetch_spend(const chain::output_point& outpoint,
         return;
     }
 
-    const auto do_fetch = [&](size_t slock)
-    {
-        const auto point = database_.spends().get(outpoint);
-        return point.hash() != null_hash ?
-            finish_read(slock, handler, error::success, point) :
-            finish_read(slock, handler, error::not_found, point);
-    };
-    read_serial(do_fetch);
+    // const auto do_fetch = [&](size_t slock)
+    // {
+    //     const auto point = database_.spends().get(outpoint);
+    //     return point.hash() != null_hash ?
+    //         finish_read(slock, handler, error::success, point) :
+    //         finish_read(slock, handler, error::not_found, point);
+    // };
+    // read_serial(do_fetch);
 }
 
 void block_chain::fetch_history(const wallet::payment_address& address,
