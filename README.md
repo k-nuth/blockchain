@@ -1,12 +1,10 @@
-[![Build Status](https://travis-ci.org/libbitcoin/libbitcoin-blockchain.svg?branch=master)](https://travis-ci.org/libbitcoin/libbitcoin-blockchain)
+[![Build Status](https://travis-ci.org/bitprim/bitprim-blockchain.svg?branch=master)](https://travis-ci.org/bitprim/bitprim-blockchain)
 
-[![Coverage Status](https://coveralls.io/repos/libbitcoin/libbitcoin-blockchain/badge.svg)](https://coveralls.io/r/libbitcoin/libbitcoin-blockchain)
-
-# Libbitcoin Blockchain
+# Bitprim Blockchain
 
 *Bitcoin blockchain library*
 
-Make sure you have installed [libbitcoin-database](https://github.com/libbitcoin/libbitcoin-database) and [libbitcoin-consensus](https://github.com/libbitcoin/libbitcoin-consensus) (optional) beforehand according to their respective build instructions.
+Make sure you have installed [bitprim-database](https://github.com/bitprim/bitprim-database) and [bitprim-consensus](https://github.com/bitprim/bitprim-consensus) (optional) beforehand according to their respective build instructions.
 
 ```sh
 $ ./autogen.sh
@@ -16,8 +14,8 @@ $ sudo make install
 $ sudo ldconfig
 ```
 
-libbitcoin-blockchain is now installed in `/usr/local/`.
+bitprim-blockchain is now installed in `/usr/local/`.
 
 ## Configure Options
 
-The default configuration requires `libbitcoin-consensus`. This ensures consensus parity with the Satoshi client. To eliminate the `libbitcoin-consensus` dependency use the `--without-consensus` option. This results in use of `libbitcoin` consensus checks.
+The default configuration requires `bitprim-consensus`. This ensures consensus parity with the Satoshi client. To eliminate the `bitprim-consensus` dependency use the `--without-consensus` option. This results in use of `bitprim-core` consensus checks.
