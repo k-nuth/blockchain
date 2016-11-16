@@ -376,7 +376,7 @@ before_script:
 script:
 
   - make -j2 
-  - make install
+  - sudo make install
   # - make tests -k
 
   # ############################################################################
