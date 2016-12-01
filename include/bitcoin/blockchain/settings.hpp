@@ -23,6 +23,7 @@
 #include <cstdint>
 #include <boost/filesystem.hpp>
 #include <bitcoin/bitcoin.hpp>
+#include <bitcoin/bitcoin/config/endpoint.hpp>
 #include <bitcoin/blockchain/define.hpp>
 
 namespace libbitcoin {
@@ -45,6 +46,7 @@ public:
     uint32_t transaction_pool_capacity;
     uint32_t block_pool_capacity;
     config::checkpoint::list checkpoints;
+    config::endpoint replier;
 };
 
 } // namespace blockchain

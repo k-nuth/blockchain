@@ -19,13 +19,50 @@
  */
 #include <memory>
 #include <boost/test/unit_test.hpp>
+#include <bitcoin/consensus.hpp>
 #include <bitcoin/blockchain.hpp>
 
 using namespace bc;
 using namespace bc::chain;
 using namespace bc::blockchain;
 
-BOOST_AUTO_TEST_SUITE(transaction_pool_tests)
+#ifdef WITH_BLOCKCHAIN_REPLIER
+#include <process.hpp>
+
+struct fixture
+{
+#ifdef WITH_CONSENSUS_REPLIER
+    ::process consensus;
+#endif
+    ::process replier;
+
+    fixture()
+#ifdef WITH_CONSENSUS_REPLIER
+      : consensus(::process::exec(WITH_CONSENSUS_REPLIER)),
+        replier(::process::exec(WITH_BLOCKCHAIN_REPLIER))
+#else
+      : replier(::process::exec(WITH_BLOCKCHAIN_REPLIER))
+#endif
+    {
+#ifdef WITH_CONSENSUS_REPLIER
+        libbitcoin::consensus::requester.connect({ "tcp://localhost:5501" });
+#endif
+    }
+
+    ~fixture()
+    {
+        replier.terminate();
+        replier.join();
+
+        consensus.terminate();
+        consensus.join();
+    }
+};
+#else
+struct fixture {};
+#endif
+
+BOOST_FIXTURE_TEST_SUITE(transaction_pool_tests, ::fixture)
 
 class threadpool_fixture
   : public threadpool

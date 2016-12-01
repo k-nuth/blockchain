@@ -35,6 +35,10 @@
 #include <bitcoin/blockchain/pools/transaction_pool.hpp>
 #include <bitcoin/blockchain/settings.hpp>
 
+#if WITH_BLOCKCHAIN_REQUESTER
+#include <bitcoin/protocol/requester.hpp>
+#endif
+
 namespace libbitcoin {
 namespace blockchain {
 
@@ -161,7 +165,7 @@ public:
     // Thread safe.
 
     /// fetch a block by height.
-    virtual void fetch_block(uint64_t height,
+    virtual void fetch_block(size_t height,
         block_fetch_handler handler) const;
 
     /// fetch a block by hash.
@@ -169,7 +173,7 @@ public:
         block_fetch_handler handler) const;
 
     /// fetch block header by height.
-    virtual void fetch_block_header(uint64_t height,
+    virtual void fetch_block_header(size_t height,
         block_header_fetch_handler handler) const;
 
     /// fetch block header by hash.
@@ -177,7 +181,7 @@ public:
         block_header_fetch_handler handler) const;
 
     /// fetch hashes of transactions for a block, by block height.
-    virtual void fetch_merkle_block(uint64_t height,
+    virtual void fetch_merkle_block(size_t height,
         transaction_hashes_fetch_handler handler) const;
 
     /// fetch hashes of transactions for a block, by block hash.
@@ -287,6 +291,12 @@ protected:
     bool stopped() const;
 
 private:
+#if WITH_BLOCKCHAIN_REQUESTER
+    const settings& settings_;
+    mutable protocol::requester requester_;
+
+    blockchain::transaction_pool transaction_pool_;
+#else
     typedef database::data_base::handle handle;
 
     // Sequential locking helpers.
@@ -318,6 +328,7 @@ private:
     orphan_pool_manager orphan_manager_;
     transaction_pool transaction_pool_;
     database::data_base database_;
+#endif
 };
 
 } // namespace blockchain
