@@ -54,6 +54,7 @@ struct fixture
         replier.terminate();
         replier.join();
 
+        libbitcoin::consensus::requester.disconnect();
         consensus.terminate();
         consensus.join();
     }

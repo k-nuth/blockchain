@@ -465,19 +465,19 @@ void block_chain::fetch_block(size_t height,
     protocol::blockchain::request request;
     auto* fetch_block = request.mutable_fetch_block();
     fetch_block->set_height(height);
-    //fetch_block->set_handler(
-    //    requester_.make_handler<protocol::blockchain::fetch_block_handler>(
-    //        std::move(handler),
-    //        [] (block_fetch_handler handler,
-    //            protocol::blockchain::fetch_block_handler const& reply)
-    //        {
-    //            const code error = error::error_code_t(reply.error());
-    //            chain::block::ptr block = std::make_shared<chain::block>();
-    //            converter{}.from_protocol(&reply.block(), *block);
-    //            const size_t height = reply.height();
-    //
-    //            handler(error, block, height);
-    //        });
+    fetch_block->set_handler(
+        requester_.make_handler<protocol::blockchain::fetch_block_handler>(
+            std::move(handler),
+            [] (block_fetch_handler handler,
+                protocol::blockchain::fetch_block_handler const& reply)
+            {
+                const code error = error::error_code_t(reply.error());
+                block_ptr block = std::make_shared<message::block_message>();
+                converter{}.from_protocol(&reply.block(), *block);
+                const size_t height = reply.height();
+
+                handler(error, block, height);
+            }));
 
     protocol::void_reply reply;
     auto ec = requester_.send(request, reply);
@@ -490,19 +490,19 @@ void block_chain::fetch_block(const hash_digest& hash,
     protocol::blockchain::request request;
     auto* fetch_block = request.mutable_fetch_block();
     converter{}.to_protocol(hash, *fetch_block->mutable_hash());
-    //fetch_block->set_handler(
-    //    requester_.make_handler<protocol::blockchain::fetch_block_handler>(
-    //        std::move(handler),
-    //        [] (block_fetch_handler handler,
-    //            protocol::blockchain::fetch_block_handler const& reply)
-    //        {
-    //            const code error = error::error_code_t(reply.error());
-    //            chain::block::ptr block = std::make_shared<chain::block>();
-    //            converter{}.from_protocol(&reply.block(), *block);
-    //            const size_t height = reply.height();
-    //
-    //            handler(error, block, height);
-    //        });
+    fetch_block->set_handler(
+        requester_.make_handler<protocol::blockchain::fetch_block_handler>(
+            std::move(handler),
+            [] (block_fetch_handler handler,
+                protocol::blockchain::fetch_block_handler const& reply)
+            {
+                const code error = error::error_code_t(reply.error());
+                block_ptr block = std::make_shared<message::block_message>();
+                converter{}.from_protocol(&reply.block(), *block);
+                const size_t height = reply.height();
+
+                handler(error, block, height);
+            }));
 
     protocol::void_reply reply;
     auto ec = requester_.send(request, reply);
@@ -515,19 +515,19 @@ void block_chain::fetch_block_header(size_t height,
     protocol::blockchain::request request;
     auto* fetch_block_header = request.mutable_fetch_block_header();
     fetch_block_header->set_height(height);
-    //fetch_block_header->set_handler(
-    //    requester_.make_handler<protocol::blockchain::fetch_block_header_handler>(
-    //        std::move(handler),
-    //        [] (block_header_fetch_handler handler,
-    //            protocol::blockchain::fetch_block_header_handler const& reply)
-    //        {
-    //            const code error = error::error_code_t(reply.error());
-    //            chain::header header;
-    //            converter{}.from_protocol(&reply.header(), header);
-    //            const size_t height = reply.height();
-    //
-    //            handler(error, header, height);
-    //        });
+    fetch_block_header->set_handler(
+        requester_.make_handler<protocol::blockchain::fetch_block_header_handler>(
+            std::move(handler),
+            [] (block_header_fetch_handler handler,
+                protocol::blockchain::fetch_block_header_handler const& reply)
+            {
+                const code error = error::error_code_t(reply.error());
+                header_ptr header = std::make_shared<message::header_message>();
+                converter{}.from_protocol(&reply.header(), *header);
+                const size_t height = reply.height();
+
+                handler(error, header, height);
+            }));
 
     protocol::void_reply reply;
     auto ec = requester_.send(request, reply);
@@ -540,19 +540,19 @@ void block_chain::fetch_block_header(const hash_digest& hash,
     protocol::blockchain::request request;
     auto* fetch_block_header = request.mutable_fetch_block_header();
     converter{}.to_protocol(hash, *fetch_block_header->mutable_hash());
-    //fetch_block_header->set_handler(
-    //    requester_.make_handler<protocol::blockchain::fetch_block_header_handler>(
-    //        std::move(handler),
-    //        [] (block_header_fetch_handler handler,
-    //            protocol::blockchain::fetch_block_header_handler const& reply)
-    //        {
-    //            const code error = error::error_code_t(reply.error());
-    //            chain::header header;
-    //            converter{}.from_protocol(&reply.header(), header);
-    //            const size_t height = reply.height();
-    //
-    //            handler(error, header, height);
-    //        });
+    fetch_block_header->set_handler(
+        requester_.make_handler<protocol::blockchain::fetch_block_header_handler>(
+            std::move(handler),
+            [] (block_header_fetch_handler handler,
+                protocol::blockchain::fetch_block_header_handler const& reply)
+            {
+                const code error = error::error_code_t(reply.error());
+                header_ptr header = std::make_shared<message::header_message>();
+                converter{}.from_protocol(&reply.header(), *header);
+                const size_t height = reply.height();
+
+                handler(error, header, height);
+            }));
 
     protocol::void_reply reply;
     auto ec = requester_.send(request, reply);
@@ -565,31 +565,31 @@ void block_chain::fetch_merkle_block(size_t height,
     protocol::blockchain::request request;
     auto* fetch_merkle_block= request.mutable_fetch_merkle_block();
     fetch_merkle_block->set_height(height);
-    //fetch_merkle_block->set_handler(
-    //    requester_.make_handler<protocol::blockchain::fetch_merkle_block_handler>(
-    //        std::move(handler),
-    //        [] (merkle_block_fetch_handler handler,
-    //            protocol::blockchain::fetch_merkle_block_handler const& reply)
-    //        {
-    //            const code error = error::error_code_t(reply.error());
-    //            message::merkle_block::ptr merkle_block = std::make_shared<message::merkle_block>();
-    //            const auto& block = reply.block();
-    //            converter{}.from_protocol(&block.header(), merkle_block->header);
-    //            merkle_block->hashes.reserve(block.hashes_size());
-    //            for (auto const& entry : block.hashes())
-    //            {
-    //                hash_digest hash;
-    //                converter{}.from_protocol(&entry, hash);
-    //
-    //                merkle_block->hashes.push_back(std::move(hash));
-    //            }
-    //            const auto& flags = block.flags();
-    //            merkle_block->flags.resize(flags.size());
-    //            std::copy(flags.begin(), flags.end(), merkle_block->flags.begin());
-    //            const size_t height = reply.height();
-    //
-    //            handler(error, merkle_block, height);
-    //        });
+    fetch_merkle_block->set_handler(
+        requester_.make_handler<protocol::blockchain::fetch_merkle_block_handler>(
+            std::move(handler),
+            [] (transaction_hashes_fetch_handler handler,
+                protocol::blockchain::fetch_merkle_block_handler const& reply)
+            {
+                const code error = error::error_code_t(reply.error());
+                message::merkle_block::ptr merkle_block = std::make_shared<message::merkle_block>();
+                const auto& block = reply.block();
+                converter{}.from_protocol(&block.header(), merkle_block->header());
+                merkle_block->hashes().reserve(block.hashes_size());
+                for (auto const& entry : block.hashes())
+                {
+                    hash_digest hash;
+                    converter{}.from_protocol(&entry, hash);
+
+                    merkle_block->hashes().push_back(std::move(hash));
+                }
+                const auto& flags = block.flags();
+                merkle_block->flags().resize(flags.size());
+                std::copy(flags.begin(), flags.end(), merkle_block->flags().begin());
+                const size_t height = reply.height();
+
+                handler(error, merkle_block, height);
+            }));
 
     protocol::void_reply reply;
     auto ec = requester_.send(request, reply);
@@ -602,31 +602,31 @@ void block_chain::fetch_merkle_block(const hash_digest& hash,
     protocol::blockchain::request request;
     auto* fetch_merkle_block= request.mutable_fetch_merkle_block();
     converter{}.to_protocol(hash, *fetch_merkle_block->mutable_hash());
-    //fetch_merkle_block->set_handler(
-    //    requester_.make_handler<protocol::blockchain::fetch_merkle_block_handler>(
-    //        std::move(handler),
-    //        [] (merkle_block_fetch_handler handler,
-    //            protocol::blockchain::fetch_merkle_block_handler const& reply)
-    //        {
-    //            const code error = error::error_code_t(reply.error());
-    //            message::merkle_block::ptr merkle_block = std::make_shared<message::merkle_block>();
-    //            const auto& block = reply.block();
-    //            converter{}.from_protocol(&block.header(), merkle_block->header);
-    //            merkle_block->hashes.reserve(block.hashes_size());
-    //            for (auto const& entry : block.hashes())
-    //            {
-    //                hash_digest hash;
-    //                converter{}.from_protocol(&entry, hash);
-    //
-    //                merkle_block->hashes.push_back(std::move(hash));
-    //            }
-    //            const auto& flags = block.flags();
-    //            merkle_block->flags.resize(flags.size());
-    //            std::copy(flags.begin(), flags.end(), merkle_block->flags.begin());
-    //            const size_t height = reply.height();
-    //
-    //            handler(error, merkle_block, height);
-    //        });
+    fetch_merkle_block->set_handler(
+        requester_.make_handler<protocol::blockchain::fetch_merkle_block_handler>(
+            std::move(handler),
+            [] (transaction_hashes_fetch_handler handler,
+                protocol::blockchain::fetch_merkle_block_handler const& reply)
+            {
+                const code error = error::error_code_t(reply.error());
+                message::merkle_block::ptr merkle_block = std::make_shared<message::merkle_block>();
+                const auto& block = reply.block();
+                converter{}.from_protocol(&block.header(), merkle_block->header());
+                merkle_block->hashes().reserve(block.hashes_size());
+                for (auto const& entry : block.hashes())
+                {
+                    hash_digest hash;
+                    converter{}.from_protocol(&entry, hash);
+
+                    merkle_block->hashes().push_back(std::move(hash));
+                }
+                const auto& flags = block.flags();
+                merkle_block->flags().resize(flags.size());
+                std::copy(flags.begin(), flags.end(), merkle_block->flags().begin());
+                const size_t height = reply.height();
+
+                handler(error, merkle_block, height);
+            }));
 
     protocol::void_reply reply;
     auto ec = requester_.send(request, reply);
@@ -639,17 +639,17 @@ void block_chain::fetch_block_height(const hash_digest& hash,
     protocol::blockchain::request request;
     auto* fetch_block_height = request.mutable_fetch_block_height();
     converter{}.to_protocol(hash, *fetch_block_height->mutable_hash());
-    //fetch_block_height->set_handler(
-    //    requester_.make_handler<protocol::blockchain::fetch_block_height_handler>(
-    //        std::move(handler),
-    //        [] (block_height_fetch_handler handler,
-    //            protocol::blockchain::fetch_block_height_handler const& reply)
-    //        {
-    //            const code error = error::error_code_t(reply.error());
-    //            const size_t height = reply.height();
-    //
-    //            handler(error, height);
-    //        });
+    fetch_block_height->set_handler(
+        requester_.make_handler<protocol::blockchain::fetch_block_height_handler>(
+            std::move(handler),
+            [] (block_height_fetch_handler handler,
+                protocol::blockchain::fetch_block_height_handler const& reply)
+            {
+                const code error = error::error_code_t(reply.error());
+                const size_t height = reply.height();
+
+                handler(error, height);
+            }));
 
     protocol::void_reply reply;
     auto ec = requester_.send(request, reply);
@@ -660,17 +660,17 @@ void block_chain::fetch_last_height(last_height_fetch_handler handler) const
 {
     protocol::blockchain::request request;
     auto* fetch_last_height = request.mutable_fetch_last_height();
-    //fetch_last_height->set_handler(
-    //    requester_.make_handler<protocol::blockchain::fetch_last_height_handler>(
-    //        std::move(handler),
-    //        [] (last_height_fetch_handler handler,
-    //            protocol::blockchain::fetch_last_height_handler const& reply)
-    //        {
-    //            const code error = error::error_code_t(reply.error());
-    //            const size_t height = reply.height();
-    //
-    //            handler(error, height);
-    //        });
+    fetch_last_height->set_handler(
+        requester_.make_handler<protocol::blockchain::fetch_last_height_handler>(
+            std::move(handler),
+            [] (last_height_fetch_handler handler,
+                protocol::blockchain::fetch_last_height_handler const& reply)
+            {
+                const code error = error::error_code_t(reply.error());
+                const size_t height = reply.height();
+
+                handler(error, height);
+            }));
 
     protocol::void_reply reply;
     auto ec = requester_.send(request, reply);
@@ -683,18 +683,20 @@ void block_chain::fetch_transaction(const hash_digest& hash,
     protocol::blockchain::request request;
     auto* fetch_transaction = request.mutable_fetch_transaction();
     converter{}.to_protocol(hash, *fetch_transaction->mutable_hash());
-    //fetch_transaction->set_handler(
-    //    requester_.make_handler<protocol::blockchain::fetch_transaction_handler>(
-    //        std::move(handler),
-    //        [] (transaction_fetch_handler handler,
-    //            protocol::blockchain::fetch_transaction_handler const& reply)
-    //        {
-    //            const code error = error::error_code_t(reply.error());
-    //            chain::transaction tx;
-    //            converter{}.from_protocol(&reply.transaction(), tx);
-    //
-    //            handler(error, tx);
-    //        });
+    fetch_transaction->set_handler(
+        requester_.make_handler<protocol::blockchain::fetch_transaction_handler>(
+            std::move(handler),
+            [] (transaction_fetch_handler handler,
+                protocol::blockchain::fetch_transaction_handler const& reply)
+            {
+                const code error = error::error_code_t(reply.error());
+                chain::transaction tx;
+                converter{}.from_protocol(&reply.transaction(), tx);
+                transaction_ptr tx_ptr = std::make_shared<message::transaction_message>(std::move(tx));
+                const size_t height = reply.height();
+
+                handler(error, tx_ptr, height);
+            }));
 
     protocol::void_reply reply;
     auto ec = requester_.send(request, reply);
@@ -707,18 +709,18 @@ void block_chain::fetch_transaction_position(const hash_digest& hash,
     protocol::blockchain::request request;
     auto* fetch_transaction_position = request.mutable_fetch_transaction_position();
     converter{}.to_protocol(hash, *fetch_transaction_position->mutable_hash());
-    //fetch_transaction_position->set_handler(
-    //    requester_.make_handler<protocol::blockchain::fetch_transaction_position_handler>(
-    //        std::move(handler),
-    //        [] (transaction_index_fetch_handler handler,
-    //            protocol::blockchain::fetch_transaction_position_handler const& reply)
-    //        {
-    //            const code error = error::error_code_t(reply.error());
-    //            const size_t height = reply.height();
-    //            const uint64_t index = reply.index();
-    //
-    //            handler(error, height, index);
-    //        });
+    fetch_transaction_position->set_handler(
+        requester_.make_handler<protocol::blockchain::fetch_transaction_position_handler>(
+            std::move(handler),
+            [] (transaction_index_fetch_handler handler,
+                protocol::blockchain::fetch_transaction_position_handler const& reply)
+            {
+                const code error = error::error_code_t(reply.error());
+                const uint64_t position = reply.position();
+                const size_t height = reply.height();
+
+                handler(error, position, height);
+            }));
 
     protocol::void_reply reply;
     auto ec = requester_.send(request, reply);
@@ -731,18 +733,18 @@ void block_chain::fetch_output(const chain::output_point& outpoint,
     protocol::blockchain::request request;
     auto* fetch_output = request.mutable_fetch_output();
     converter{}.to_protocol(outpoint, *fetch_output->mutable_outpoint());
-    //fetch_output->set_handler(
-    //    requester_.make_handler<protocol::blockchain::fetch_output_handler>(
-    //        std::move(handler),
-    //        [] (spend_fetch_handler handler,
-    //            protocol::blockchain::fetch_output_handler const& reply)
-    //        {
-    //            const code error = error::error_code_t(reply.error());
-    //            chain::input_point point;
-    //            converter{}.from_protocol(&reply.point(), point);
-    //
-    //            handler(error, point);
-    //        });
+    fetch_output->set_handler(
+        requester_.make_handler<protocol::blockchain::fetch_output_handler>(
+            std::move(handler),
+            [] (output_fetch_handler handler,
+                protocol::blockchain::fetch_output_handler const& reply)
+            {
+                const code error = error::error_code_t(reply.error());
+                chain::output output;
+                converter{}.from_protocol(&reply.output(), output);
+
+                handler(error, output);
+            }));
 
     protocol::void_reply reply;
     auto ec = requester_.send(request, reply);
@@ -755,18 +757,18 @@ void block_chain::fetch_spend(const chain::output_point& outpoint,
     protocol::blockchain::request request;
     auto* fetch_spend = request.mutable_fetch_spend();
     converter{}.to_protocol(outpoint, *fetch_spend->mutable_outpoint());
-    //fetch_spend->set_handler(
-    //    requester_.make_handler<protocol::blockchain::fetch_spend_handler>(
-    //        std::move(handler),
-    //        [] (spend_fetch_handler handler,
-    //            protocol::blockchain::fetch_spend_handler const& reply)
-    //        {
-    //            const code error = error::error_code_t(reply.error());
-    //            chain::input_point point;
-    //            converter{}.from_protocol(&reply.point(), point);
-    //
-    //            handler(error, point);
-    //        });
+    fetch_spend->set_handler(
+        requester_.make_handler<protocol::blockchain::fetch_spend_handler>(
+            std::move(handler),
+            [] (spend_fetch_handler handler,
+                protocol::blockchain::fetch_spend_handler const& reply)
+            {
+                const code error = error::error_code_t(reply.error());
+                chain::input_point point;
+                converter{}.from_protocol(&reply.point(), point);
+
+                handler(error, point);
+            }));
 
     protocol::void_reply reply;
     auto ec = requester_.send(request, reply);
@@ -785,28 +787,28 @@ void block_chain::fetch_history(const wallet::payment_address& address,
     converter{}.to_protocol(address.hash(), *fetch_address->mutable_hash());
     fetch_history->set_limit(limit);
     fetch_history->set_from_height(from_height);
-    //fetch_history->set_handler(
-    //    requester_.make_handler<protocol::blockchain::fetch_history_handler>(
-    //        std::move(handler),
-    //        [] (history_fetch_handler handler,
-    //            protocol::blockchain::fetch_history_handler const& reply)
-    //        {
-    //            const code error = error::error_code_t(reply.error());
-    //            chain::history_compact::list history;
-    //            history.reserve(reply.history_size());
-    //            for (auto const& entry : reply.history())
-    //            {
-    //                chain::history_compact history_compact;
-    //                history_compact.kind = static_cast<chain::point_kind>(entry.kind());
-    //                converter{}.from_protocol(&entry.point(), history_compact.point);
-    //                history_compact.height = entry.height();
-    //                history_compact.value = entry.value();
-    //
-    //                history.push_back(std::move(history_compact));
-    //            }
-    //
-    //            handler(error, history);
-    //        });
+    fetch_history->set_handler(
+        requester_.make_handler<protocol::blockchain::fetch_history_handler>(
+            std::move(handler),
+            [] (history_fetch_handler handler,
+                protocol::blockchain::fetch_history_handler const& reply)
+            {
+                const code error = error::error_code_t(reply.error());
+                chain::history_compact::list history;
+                history.reserve(reply.history_size());
+                for (auto const& entry : reply.history())
+                {
+                    chain::history_compact history_compact;
+                    history_compact.kind = static_cast<chain::point_kind>(entry.kind());
+                    converter{}.from_protocol(&entry.point(), history_compact.point);
+                    history_compact.height = entry.height();
+                    history_compact.value = entry.value();
+
+                    history.push_back(std::move(history_compact));
+                }
+
+                handler(error, history);
+            }));
 
     protocol::void_reply reply;
     auto ec = requester_.send(request, reply);
@@ -821,27 +823,27 @@ void block_chain::fetch_stealth(const binary& filter, uint64_t from_height,
     fetch_stealth->set_filter_size(filter.size());
     fetch_stealth->set_filter_blocks(filter.blocks().data(), filter.blocks().size());
     fetch_stealth->set_from_height(from_height);
-    //fetch_stealth->set_handler(
-    //    requester_.make_handler<protocol::blockchain::fetch_stealth_handler>(
-    //        std::move(handler),
-    //        [] (stealth_fetch_handler handler,
-    //            protocol::blockchain::fetch_stealth_handler const& reply)
-    //        {
-    //            const code error = error::error_code_t(reply.error());
-    //            chain::stealth_compact::list stealth;
-    //            stealth.reserve(reply.stealth_size());
-    //            for (auto const& entry : reply.stealth())
-    //            {
-    //                chain::stealth_compact stealth_compact;
-    //                converter{}.from_protocol(&entry.ephemeral_public_key_hash(), stealth_compact.ephemeral_public_key_hash);
-    //                converter{}.from_protocol(&entry.public_key_hash(), stealth_compact.public_key_hash);
-    //                converter{}.from_protocol(&entry.transaction_hash(), stealth_compact.transaction_hash);
-    //
-    //                stealth.push_back(std::move(stealth_compact));
-    //            }
-    //
-    //            handler(error, stealth);
-    //        });
+    fetch_stealth->set_handler(
+        requester_.make_handler<protocol::blockchain::fetch_stealth_handler>(
+            std::move(handler),
+            [] (stealth_fetch_handler handler,
+                protocol::blockchain::fetch_stealth_handler const& reply)
+            {
+                const code error = error::error_code_t(reply.error());
+                chain::stealth_compact::list stealth;
+                stealth.reserve(reply.stealth_size());
+                for (auto const& entry : reply.stealth())
+                {
+                    chain::stealth_compact stealth_compact;
+                    converter{}.from_protocol(&entry.ephemeral_public_key_hash(), stealth_compact.ephemeral_public_key_hash);
+                    converter{}.from_protocol(&entry.public_key_hash(), stealth_compact.public_key_hash);
+                    converter{}.from_protocol(&entry.transaction_hash(), stealth_compact.transaction_hash);
+
+                    stealth.push_back(std::move(stealth_compact));
+                }
+
+                handler(error, stealth);
+            }));
 
     protocol::void_reply reply;
     auto ec = requester_.send(request, reply);
@@ -853,25 +855,26 @@ void block_chain::fetch_block_locator(const chain::block::indexes& heights,
 {
     protocol::blockchain::request request;
     auto* fetch_block_locator = request.mutable_fetch_block_locator();
-    //fetch_block_locator->set_handler(
-    //    requester_.make_handler<protocol::blockchain::fetch_block_locator_handler>(
-    //        std::move(handler),
-    //        [] (block_locator_fetch_handler handler,
-    //            protocol::blockchain::fetch_block_locator_handler const& reply)
-    //        {
-    //            const code error = error::error_code_t(reply.error());
-    //            hash_list locator;
-    //            locator.reserve(reply.locator_size());
-    //            for (auto const& entry : reply.locator())
-    //            {
-    //                hash_digest hash;
-    //                converter{}.from_protocol(&entry, hash);
-    //
-    //                locator.push_back(std::move(hash));
-    //            }
-    //
-    //            handler(error, locator);
-    //        });
+    fetch_block_locator->set_handler(
+        requester_.make_handler<protocol::blockchain::fetch_block_locator_handler>(
+            std::move(handler),
+            [] (block_locator_fetch_handler handler,
+                protocol::blockchain::fetch_block_locator_handler const& reply)
+            {
+                const code error = error::error_code_t(reply.error());
+                get_blocks_ptr locator =  std::make_shared<message::get_blocks>();
+                locator->start_hashes().reserve(reply.locator().start_hashes_size());
+                for (auto const& entry : reply.locator().start_hashes())
+                {
+                    hash_digest hash;
+                    converter{}.from_protocol(&entry, hash);
+
+                    locator->start_hashes().push_back(std::move(hash));
+                }
+                converter{}.from_protocol(&reply.locator().stop_hash(), locator->stop_hash());
+
+                handler(error, locator);
+            }));
 
     protocol::void_reply reply;
     auto ec = requester_.send(request, reply);
@@ -892,25 +895,26 @@ void block_chain::fetch_locator_block_hashes(get_blocks_const_ptr locator,
     converter{}.to_protocol(locator->stop_hash(), *get_blocks->mutable_stop_hash());
     converter{}.to_protocol(threshold, *fetch_locator_block_hashes->mutable_threshold());
     fetch_locator_block_hashes->set_limit(limit);
-    //fetch_locator_block_hashes->set_handler(
-    //    requester_.make_handler<protocol::blockchain::fetch_locator_block_hashes_handler>(
-    //        std::move(handler),
-    //        [] (inventory_fetch_handler handler,
-    //            protocol::blockchain::fetch_locator_block_hashes_handler const& reply)
-    //        {
-    //            const code error = error::error_code_t(reply.error());
-    //            hash_list hashes;
-    //            hashes.reserve(reply.hashes_size());
-    //            for (auto const& entry : reply.hashes())
-    //            {
-    //                hash_digest hash;
-    //                converter{}.from_protocol(&entry, hash);
-    //
-    //                hashes.push_back(std::move(hash));
-    //            }
-    //
-    //            handler(error, hashes);
-    //        });
+    fetch_locator_block_hashes->set_handler(
+        requester_.make_handler<protocol::blockchain::fetch_locator_block_hashes_handler>(
+            std::move(handler),
+            [] (inventory_fetch_handler handler,
+                protocol::blockchain::fetch_locator_block_hashes_handler const& reply)
+            {
+                const code error = error::error_code_t(reply.error());
+                inventory_ptr inventory = std::make_shared<message::inventory>();
+                inventory->inventories().reserve(reply.inventories_size());
+                for (auto const& entry : reply.inventories())
+                {
+                    auto type = static_cast<message::inventory_vector::type_id>(entry.type());
+                    hash_digest hash;
+                    converter{}.from_protocol(&entry.hash(), hash);
+
+                    inventory->inventories().emplace_back(type, std::move(hash));
+                }
+
+                handler(error, inventory);
+            }));
 
     protocol::void_reply reply;
     auto ec = requester_.send(request, reply);
@@ -931,25 +935,25 @@ void block_chain::fetch_locator_block_headers(get_headers_const_ptr locator,
     converter{}.to_protocol(locator->stop_hash(), *get_blocks->mutable_stop_hash());
     converter{}.to_protocol(threshold, *fetch_locator_block_headers->mutable_threshold());
     fetch_locator_block_headers->set_limit(limit);
-    //fetch_locator_block_headers->set_handler(
-    //    requester_.make_handler<protocol::blockchain::fetch_locator_block_headers_handler>(
-    //        std::move(handler),
-    //        [] (locator_block_headers_fetch_handler handler,
-    //            protocol::blockchain::fetch_locator_block_headers_handler const& reply)
-    //        {
-    //            const code error = error::error_code_t(reply.error());
-    //            chain::header::list headers;
-    //            headers.reserve(reply.headers_size());
-    //            for (auto const& entry : reply.headers())
-    //            {
-    //                chain::header header;
-    //                converter{}.from_protocol(&entry, header);
-    //
-    //                headers.push_back(std::move(header));
-    //            }
-    //
-    //            handler(error, headers);
-    //        });
+    fetch_locator_block_headers->set_handler(
+        requester_.make_handler<protocol::blockchain::fetch_locator_block_headers_handler>(
+            std::move(handler),
+            [] (locator_block_headers_fetch_handler handler,
+                protocol::blockchain::fetch_locator_block_headers_handler const& reply)
+            {
+                const code error = error::error_code_t(reply.error());
+                headers_ptr headers = std::make_shared<message::headers>();
+                headers->elements().reserve(reply.headers_size());
+                for (auto const& entry : reply.headers())
+                {
+                    chain::header header;
+                    converter{}.from_protocol(&entry, header);
+
+                    headers->elements().push_back(std::move(header));
+                }
+
+                handler(error, headers);
+            }));
 
     protocol::void_reply reply;
     auto ec = requester_.send(request, reply);
@@ -962,25 +966,26 @@ void block_chain::fetch_floaters(size_t limit,
     protocol::blockchain::request request;
     auto* fetch_floaters = request.mutable_fetch_floaters();
     fetch_floaters->set_limit(limit);
-    //fetch_floaters->set_handler(
-    //    requester_.make_handler<protocol::blockchain::fetch_floaters_handler>(
-    //        std::move(handler),
-    //        [] (inventory_fetch_handler handler,
-    //            protocol::blockchain::fetch_floaters_handler const& reply)
-    //        {
-    //            const code error = error::error_code_t(reply.error());
-    //            hash_list hashes;
-    //            hashes.reserve(reply.hashes_size());
-    //            for (auto const& entry : reply.hashes())
-    //            {
-    //                hash_digest hash;
-    //                converter{}.from_protocol(&entry, hash);
-    //
-    //                hashes.push_back(std::move(hash));
-    //            }
-    //
-    //            handler(error, hashes);
-    //        });
+    fetch_floaters->set_handler(
+        requester_.make_handler<protocol::blockchain::fetch_floaters_handler>(
+            std::move(handler),
+            [] (inventory_fetch_handler handler,
+                protocol::blockchain::fetch_floaters_handler const& reply)
+            {
+                const code error = error::error_code_t(reply.error());
+                inventory_ptr hashes = std::make_shared<message::inventory>();
+                hashes->inventories().reserve(reply.inventories_size());
+                for (auto const& entry : reply.inventories())
+                {
+                    auto type = static_cast<message::inventory_vector::type_id>(entry.type());
+                    hash_digest hash;
+                    converter{}.from_protocol(&entry.hash(), hash);
+
+                    hashes->inventories().emplace_back(type, std::move(hash));
+                }
+
+                handler(error, hashes);
+            }));
 
     protocol::void_reply reply;
     auto ec = requester_.send(request, reply);
@@ -1001,16 +1006,16 @@ void block_chain::filter_blocks(get_data_ptr message,
         message->set_type(static_cast<int>(inventory.type()));
         converter{}.to_protocol(inventory.hash(), *message->mutable_hash());
     }
-    //filter_blocks->set_handler(
-    //    requester_.make_handler<protocol::blockchain::filter_blocks_handler>(
-    //        std::move(handler),
-    //        [] (result_handler handler,
-    //            protocol::blockchain::filter_blocks_handler const& reply)
-    //        {
-    //            const code error = error::error_code_t(reply.error());
-    //
-    //            handler(error);
-    //        });
+    filter_blocks->set_handler(
+        requester_.make_handler<protocol::blockchain::filter_blocks_handler>(
+            std::move(handler),
+            [] (result_handler handler,
+                protocol::blockchain::filter_blocks_handler const& reply)
+            {
+                const code error = error::error_code_t(reply.error());
+
+                handler(error);
+            }));
 
     protocol::void_reply reply;
     auto ec = requester_.send(request, reply);
@@ -1028,16 +1033,16 @@ void block_chain::filter_transactions(get_data_ptr message,
         message->set_type(static_cast<int>(inventory.type()));
         converter{}.to_protocol(inventory.hash(), *message->mutable_hash());
     }
-    //filter_transactions->set_handler(
-    //    requester_.make_handler<protocol::blockchain::filter_transactions_handler>(
-    //        std::move(handler),
-    //        [] (result_handler handler,
-    //            protocol::blockchain::filter_transactions_handler const& reply)
-    //        {
-    //            const code error = error::error_code_t(reply.error());
-    //
-    //            handler(error);
-    //        });
+    filter_transactions->set_handler(
+        requester_.make_handler<protocol::blockchain::filter_transactions_handler>(
+            std::move(handler),
+            [] (result_handler handler,
+                protocol::blockchain::filter_transactions_handler const& reply)
+            {
+                const code error = error::error_code_t(reply.error());
+
+                handler(error);
+            }));
 
     protocol::void_reply reply;
     auto ec = requester_.send(request, reply);
@@ -1055,16 +1060,16 @@ void block_chain::filter_orphans(get_data_ptr message,
         message->set_type(static_cast<int>(inventory.type()));
         converter{}.to_protocol(inventory.hash(), *message->mutable_hash());
     }
-    //filter_orphans->set_handler(
-    //    requester_.make_handler<protocol::blockchain::filter_orphans_handler>(
-    //        std::move(handler),
-    //        [] (result_handler handler,
-    //            protocol::blockchain::filter_orphans_handler const& reply)
-    //        {
-    //            const code error = error::error_code_t(reply.error());
-    //
-    //            handler(error);
-    //        });
+    filter_orphans->set_handler(
+        requester_.make_handler<protocol::blockchain::filter_orphans_handler>(
+            std::move(handler),
+            [] (result_handler handler,
+                protocol::blockchain::filter_orphans_handler const& reply)
+            {
+                const code error = error::error_code_t(reply.error());
+
+                handler(error);
+            }));
 
     protocol::void_reply reply;
     auto ec = requester_.send(request, reply);
@@ -1082,16 +1087,16 @@ void block_chain::filter_floaters(get_data_ptr message,
         message->set_type(static_cast<int>(inventory.type()));
         converter{}.to_protocol(inventory.hash(), *message->mutable_hash());
     }
-    //filter_floaters->set_handler(
-    //    requester_.make_handler<protocol::blockchain::filter_floaters_handler>(
-    //        std::move(handler),
-    //        [] (result_handler handler,
-    //            protocol::blockchain::filter_floaters_handler const& reply)
-    //        {
-    //            const code error = error::error_code_t(reply.error());
-    //
-    //            handler(error);
-    //        });
+    filter_floaters->set_handler(
+        requester_.make_handler<protocol::blockchain::filter_floaters_handler>(
+            std::move(handler),
+            [] (result_handler handler,
+                protocol::blockchain::filter_floaters_handler const& reply)
+            {
+                const code error = error::error_code_t(reply.error());
+
+                handler(error);
+            }));
 
     protocol::void_reply reply;
     auto ec = requester_.send(request, reply);
@@ -1139,7 +1144,7 @@ void block_chain::subscribe_reorganize(reorganize_handler handler)
     //            }
 
     //            handler(error, fork_point, new_blocks, replaced_blocks);
-    //        });
+    //        }));
 
     protocol::void_reply reply;
     auto ec = requester_.send(request, reply);
@@ -1166,9 +1171,9 @@ void block_chain::subscribe_transaction(transaction_handler handler)
     //            chain::transaction tx;
     //            converter{}.from_protocol(&reply.transaction(), tx);
     //            transaction_ptr tx_ptr = std::make_shared<message::transaction_message>(std::move(tx));
-    //
+
     //            handler(error, indexes, tx_ptr);
-    //        });
+    //        }));
 
     protocol::void_reply reply;
     auto ec = requester_.send(request, reply);
@@ -1184,16 +1189,16 @@ void block_chain::organize(block_const_ptr block, result_handler handler)
     protocol::blockchain::request request;
     auto* organize_block = request.mutable_organize_block();
     converter{}.to_protocol(*block, *organize_block->mutable_block());
-    //organize_block->set_handler(
-    //    requester_.make_handler<protocol::blockchain::organize_block_handler>(
-    //        std::move(handler),
-    //        [] (result_handler handler,
-    //            protocol::blockchain::organize_block_handler const& reply)
-    //        {
-    //            const code error = error::error_code_t(reply.error());
-    //
-    //            handler(error);
-    //        });
+    organize_block->set_handler(
+        requester_.make_handler<protocol::blockchain::organize_block_handler>(
+            std::move(handler),
+            [] (result_handler handler,
+                protocol::blockchain::organize_block_handler const& reply)
+            {
+                const code error = error::error_code_t(reply.error());
+
+                handler(error);
+            }));
 
     protocol::void_reply reply;
     auto ec = requester_.send(request, reply);
@@ -1207,22 +1212,22 @@ void block_chain::organize(transaction_const_ptr transaction,
     protocol::blockchain::request request;
     auto* organize_transaction = request.mutable_organize_transaction();
     converter{}.to_protocol(*transaction, *organize_transaction->mutable_transaction());
-    //organize_transaction->set_handler(
-    //    requester_.make_handler<protocol::blockchain::organize_transaction_handler>(
-    //        std::move(handler),
-    //        [] (transaction_store_handler handler,
-    //            protocol::blockchain::organize_transaction_handler const& reply)
-    //        {
-    //            const code error = error::error_code_t(reply.error());
-    //            chain::point::indexes indexes;
-    //            indexes.reserve(reply.indexes_size());
-    //            for (auto const& entry : reply.indexes())
-    //            {
-    //                indexes.push_back(entry);
-    //            }
-    //
-    //            handler(error, indexes);
-    //        });
+    organize_transaction->set_handler(
+        requester_.make_handler<protocol::blockchain::organize_transaction_handler>(
+            std::move(handler),
+            [] (transaction_store_handler handler,
+                protocol::blockchain::organize_transaction_handler const& reply)
+            {
+                const code error = error::error_code_t(reply.error());
+                chain::point::indexes indexes;
+                indexes.reserve(reply.indexes_size());
+                for (auto const& entry : reply.indexes())
+                {
+                    indexes.push_back(entry);
+                }
+
+                handler(error, indexes);
+            }));
 
     protocol::void_reply reply;
     auto ec = requester_.send(request, reply);

@@ -2,6 +2,7 @@
 #include "blockchain.hpp"
 
 #include <memory>
+#include <boost/optional.hpp>
 #include <bitcoin/blockchain.hpp>
 #include <bitcoin/blockchain/define.hpp>
 #include <bitcoin/protocol/blockchain.pb.h>
@@ -13,7 +14,7 @@ using namespace libbitcoin::protocol;
 namespace libbitcoin {
 namespace blockchain {
 
-std::unique_ptr<block_chain> blockchain_;
+boost::optional<block_chain> blockchain_;
 
 //# Startup and shutdown.
 // ----------------------------------------------------------------------------
@@ -441,18 +442,18 @@ static protocol::void_reply dispatch_fetch_block(
     BITCOIN_ASSERT(blockchain_);
 
     auto const& handler =
-        [] (const code& error, block_ptr block, size_t height) -> void {};
-    //    blockchain_->make_handler<protocol::blockchain::fetch_block_handler>(
-    //        [] (const code& error, block_ptr block, size_t height,
-    //            protocol::blockchain::fetch_block_handler& handler) -> void
-    //        {
-    //            handler.set_error(error.value());
-    //            if (block)
-    //            {
-    //                converter{}.to_protocol(*block, *handler.mutable_block());
-    //                handler.set_height(height_);
-    //            }
-    //        }));
+        replier_.make_handler<protocol::blockchain::fetch_block_handler>(
+            request.handler(),
+            [] (const code& error, block_ptr block, size_t height,
+                protocol::blockchain::fetch_block_handler& handler) -> void
+            {
+                handler.set_error(error.value());
+                if (block)
+                {
+                    converter{}.to_protocol(*block, *handler.mutable_block());
+                    handler.set_height(height);
+                }
+            });
     if (request.hash().empty())
     {
         size_t height = request.height();
@@ -477,18 +478,18 @@ static protocol::void_reply dispatch_fetch_block_header(
     BITCOIN_ASSERT(blockchain_);
 
     auto const& handler =
-        [] (const code& error, header_ptr header, size_t height) -> void {};
-    //    blockchain_->make_handler<protocol::blockchain::fetch_block_header_handler>(
-    //        [] (const code& error, header_ptr header, size_t height,
-    //            protocol::blockchain::fetch_block_header_handler& handler) -> void
-    //        {
-    //            handler.set_error(error.value());
-    //            if (header_ptr)
-    //            {
-    //                converter{}.to_protocol(*header, *handler.mutable_header());
-    //                handler.set_height(height);
-    //            }
-    //        }));
+        replier_.make_handler<protocol::blockchain::fetch_block_header_handler>(
+            request.handler(),
+            [] (const code& error, header_ptr header, size_t height,
+                protocol::blockchain::fetch_block_header_handler& handler) -> void
+            {
+                handler.set_error(error.value());
+                if (header)
+                {
+                    converter{}.to_protocol(*header, *handler.mutable_header());
+                    handler.set_height(height);
+                }
+            });
     if (request.hash().empty())
     {
         size_t height = request.height();
@@ -513,24 +514,24 @@ static protocol::void_reply dispatch_fetch_merkle_block(
     BITCOIN_ASSERT(blockchain_);
 
     auto const& handler =
-        [] (const code& error, merkle_block_ptr block, size_t height) -> void {};
-    //    blockchain_->make_handler<protocol::blockchain::fetch_merkle_block_handler>(
-    //        [] (const code& error, merkle_block_ptr block, size_t height,
-    //            protocol::blockchain::fetch_merkle_block_handler& handler) -> void
-    //        {
-    //            handler.set_error(error.value());
-    //            if (block)
-    //            {
-    //                auto* merkle_block = handler.mutable_block();
-    //                converter{}.to_protocol(block->header, *merkle_block->mutable_header());
-    //                for (auto const& entry : block->hashes)
-    //                {
-    //                    converter{}.to_protocol(entry, *merkle_block->add_hashes());
-    //                }
-    //                merkle_block->set_flags(block->flags.data(), block->flags.size());
-    //                merkle_block->set_height(height);
-    //            }
-    //        }));
+        replier_.make_handler<protocol::blockchain::fetch_merkle_block_handler>(
+            request.handler(),
+            [] (const code& error, merkle_block_ptr block, size_t height,
+                protocol::blockchain::fetch_merkle_block_handler& handler) -> void
+            {
+                handler.set_error(error.value());
+                if (block)
+                {
+                    auto* merkle_block = handler.mutable_block();
+                    converter{}.to_protocol(block->header(), *merkle_block->mutable_header());
+                    for (auto const& entry : block->hashes())
+                    {
+                        converter{}.to_protocol(entry, *merkle_block->add_hashes());
+                    }
+                    merkle_block->set_flags(block->flags().data(), block->flags().size());
+                }
+                handler.set_height(height);
+            });
     if (request.hash().empty())
     {
         size_t height = request.height();
@@ -555,15 +556,14 @@ static protocol::void_reply dispatch_fetch_block_height(
     hash_digest hash;
     converter{}.from_protocol(&request.hash(), hash);
     blockchain_->fetch_block_height(hash,
-    //    blockchain_->make_handler<protocol::blockchain::fetch_block_height_handler>(
-    //        request.handler(),
-            [] (const code& error, size_t height) -> void {});
-    //        [] (const code& error, size_t height,
-    //            protocol::blockchain::fetch_block_height_handler& handler) -> void
-    //        {
-    //            handler.set_error(error.value());
-    //            handler.set_height(height);
-    //        }));
+        replier_.make_handler<protocol::blockchain::fetch_block_height_handler>(
+            request.handler(),
+            [] (const code& error, size_t height,
+                protocol::blockchain::fetch_block_height_handler& handler) -> void
+            {
+                handler.set_error(error.value());
+                handler.set_height(height);
+            }));
 
     protocol::void_reply reply;
     return reply;
@@ -576,15 +576,14 @@ static protocol::void_reply dispatch_fetch_last_height(
     BITCOIN_ASSERT(blockchain_);
 
     blockchain_->fetch_last_height(
-    //    blockchain_->make_handler<protocol::blockchain::fetch_last_height_handler>(
-    //        request.handler(),
-            [] (const code& error, size_t height) -> void {});
-    //        [] (const code& error, size_t height,
-    //            protocol::blockchain::fetch_last_height_handler& handler) -> void
-    //        {
-    //            handler.set_error(error.value());
-    //            handler.set_height(height);
-    //        }));
+        replier_.make_handler<protocol::blockchain::fetch_last_height_handler>(
+            request.handler(),
+            [] (const code& error, size_t height,
+                protocol::blockchain::fetch_last_height_handler& handler) -> void
+            {
+                handler.set_error(error.value());
+                handler.set_height(height);
+            }));
 
     protocol::void_reply reply;
     return reply;
@@ -600,19 +599,18 @@ static protocol::void_reply dispatch_fetch_transaction(
     hash_digest hash;
     converter{}.from_protocol(&request.hash(), hash);
     blockchain_->fetch_transaction(hash,
-    //    blockchain_->make_handler<protocol::blockchain::fetch_transaction_handler>(
-    //        request.handler(),
-            [] (const code& error, transaction_ptr tx, size_t height) -> void {});
-    //        [] (const code& error, transaction_ptr tx, size_t height,
-    //            protocol::blockchain::fetch_transaction_handler& handler) -> void
-    //        {
-    //            handler.set_error(error.value());
-    //            if (tx)
-    //            {
-    //                converter{}.to_protocol(tx, *handler.mutable_transaction());
-    //                handler.set_height(height);
-    //            }
-    //        }));
+        replier_.make_handler<protocol::blockchain::fetch_transaction_handler>(
+            request.handler(),
+            [] (const code& error, transaction_ptr tx, size_t height,
+                protocol::blockchain::fetch_transaction_handler& handler) -> void
+            {
+                handler.set_error(error.value());
+                if (tx)
+                {
+                    converter{}.to_protocol(*tx, *handler.mutable_transaction());
+                    handler.set_height(height);
+                }
+            }));
 
     protocol::void_reply reply;
     return reply;
@@ -628,16 +626,15 @@ static protocol::void_reply dispatch_fetch_transaction_position(
     hash_digest hash;
     converter{}.from_protocol(&request.hash(), hash);
     blockchain_->fetch_transaction_position(hash,
-    //    blockchain_->make_handler<protocol::blockchain::fetch_transaction_position_handler>(
-    //        request.handler(),
-            [] (const code& error, size_t height, uint64_t index) -> void {});
-    //        [] (const code& error, size_t height, uint64_t index,
-    //            protocol::blockchain::fetch_transaction_position_handler& handler) -> void
-    //        {
-    //            handler.set_error(error.value());
-    //            handler.set_height(height);
-    //            handler.set_index(index);
-    //        }));
+        replier_.make_handler<protocol::blockchain::fetch_transaction_position_handler>(
+            request.handler(),
+            [] (const code& error, uint64_t position, uint64_t height,
+                protocol::blockchain::fetch_transaction_position_handler& handler) -> void
+            {
+                handler.set_error(error.value());
+                handler.set_position(position);
+                handler.set_height(height);
+            }));
 
     protocol::void_reply reply;
     return reply;
@@ -653,15 +650,14 @@ static protocol::void_reply dispatch_fetch_output(
     chain::output_point outpoint;
     converter{}.from_protocol(&request.outpoint(), outpoint);
     blockchain_->fetch_output(outpoint,
-    //    blockchain_->make_handler<protocol::blockchain::fetch_output_handler>(
-    //        request.handler(),
-            [] (const code& error, chain::output const& point) -> void {});
-    //        [] (const code& error, chain::output const& point,
-    //            protocol::blockchain::fetch_output_handler& handler) -> void
-    //        {
-    //            handler.set_error(error.value());
-    //            converter{}.to_protocol(point, *handler.mutable_output());
-    //        }));
+        replier_.make_handler<protocol::blockchain::fetch_output_handler>(
+            request.handler(),
+            [] (const code& error, chain::output const& point,
+                protocol::blockchain::fetch_output_handler& handler) -> void
+            {
+                handler.set_error(error.value());
+                converter{}.to_protocol(point, *handler.mutable_output());
+            }));
 
     protocol::void_reply reply;
     return reply;
@@ -677,15 +673,14 @@ static protocol::void_reply dispatch_fetch_spend(
     chain::output_point outpoint;
     converter{}.from_protocol(&request.outpoint(), outpoint);
     blockchain_->fetch_spend(outpoint,
-    //    blockchain_->make_handler<protocol::blockchain::fetch_spend_handler>(
-    //        request.handler(),
-            [] (const code& error, chain::input_point const& point) -> void {});
-    //        [] (const code& error, chain::input_point const& point,
-    //            protocol::blockchain::fetch_spend_handler& handler) -> void
-    //        {
-    //            handler.set_error(error.value());
-    //            converter{}.to_protocol(point, *handler.mutable_point());
-    //        }));
+        replier_.make_handler<protocol::blockchain::fetch_spend_handler>(
+            request.handler(),
+            [] (const code& error, chain::input_point const& point,
+                protocol::blockchain::fetch_spend_handler& handler) -> void
+            {
+                handler.set_error(error.value());
+                converter{}.to_protocol(point, *handler.mutable_point());
+            }));
 
     protocol::void_reply reply;
     return reply;
@@ -709,22 +704,21 @@ static protocol::void_reply dispatch_fetch_history(
     const uint64_t limit = request.limit();
     const size_t from_height = request.from_height();
     blockchain_->fetch_history(address, limit, from_height,
-    //    blockchain_->make_handler<protocol::blockchain::fetch_history_handler>(
-    //        request.handler(),
-            [] (const code& error, chain::history_compact::list const& history) -> void {});
-    //        [] (const code& error, chain::history_compact::list const& history,
-    //            protocol::blockchain::fetch_history_handler& handler) -> void
-    //        {
-    //            handler.set_error(error.value());
-    //            for (auto const& entry : history)
-    //            {
-    //                auto* history_compact = handler.add_history();
-    //                history_compact->set_kind(static_cast<int>(entry.kind));
-    //                converter{}.to_protocol(entry.point, *history_compact->mutable_point());
-    //                history_compact->set_height(entry.height);
-    //                history_compact->set_value(entry.value);
-    //            }
-    //        }));
+        replier_.make_handler<protocol::blockchain::fetch_history_handler>(
+            request.handler(),
+            [] (const code& error, chain::history_compact::list const& history,
+                protocol::blockchain::fetch_history_handler& handler) -> void
+            {
+                handler.set_error(error.value());
+                for (auto const& entry : history)
+                {
+                    auto* history_compact = handler.add_history();
+                    history_compact->set_kind(static_cast<int>(entry.kind));
+                    converter{}.to_protocol(entry.point, *history_compact->mutable_point());
+                    history_compact->set_height(entry.height);
+                    history_compact->set_value(entry.value);
+                }
+            }));
 
     protocol::void_reply reply;
     return reply;
@@ -745,21 +739,20 @@ static protocol::void_reply dispatch_fetch_stealth(
     binary filter(filter_size, filter_slice);
     const size_t from_height = request.from_height();
     blockchain_->fetch_stealth(filter, from_height,
-    //    blockchain_->make_handler<protocol::blockchain::fetch_stealth_handler>(
-    //        request.handler(),
-            [] (const code& error, chain::stealth_compact::list const& stealth) -> void {});
-    //        [] (const code& error, chain::stealth_compact::list const& stealth,
-    //            protocol::blockchain::fetch_stealth_handler& handler) -> void
-    //        {
-    //            handler.set_error(error.value());
-    //            for (auto const& entry : stealth)
-    //            {
-    //                auto* stealth_compact = handler.add_stealth();
-    //                converter{}.to_protocol(entry.ephemeral_public_key_hash, *stealth_compact->mutable_ephemeral_public_key_hash());
-    //                converter{}.to_protocol(entry.public_key_hash, *stealth_compact->mutable_public_key_hash());
-    //                converter{}.to_protocol(entry.transaction_hash, *stealth_compact->mutable_transaction_hash());
-    //            }
-    //        }));
+        replier_.make_handler<protocol::blockchain::fetch_stealth_handler>(
+            request.handler(),
+            [] (const code& error, chain::stealth_compact::list const& stealth,
+                protocol::blockchain::fetch_stealth_handler& handler) -> void
+            {
+                handler.set_error(error.value());
+                for (auto const& entry : stealth)
+                {
+                    auto* stealth_compact = handler.add_stealth();
+                    converter{}.to_protocol(entry.ephemeral_public_key_hash, *stealth_compact->mutable_ephemeral_public_key_hash());
+                    converter{}.to_protocol(entry.public_key_hash, *stealth_compact->mutable_public_key_hash());
+                    converter{}.to_protocol(entry.transaction_hash, *stealth_compact->mutable_transaction_hash());
+                }
+            }));
 
     protocol::void_reply reply;
     return reply;
@@ -778,22 +771,21 @@ static protocol::void_reply dispatch_fetch_block_locator(
         heights.push_back(entry);
     }
     blockchain_->fetch_block_locator(heights,
-    //    blockchain_->make_handler<protocol::blockchain::fetch_block_locator_handler>(
-    //        request.handler(),
-            [] (const code& error, get_blocks_ptr locator) -> void {});
-    //        [] (const code& error, get_blocks_ptr locator,
-    //            protocol::blockchain::fetch_block_locator_handler& handler) -> void
-    //        {
-    //            handler.set_error(error.value());
-    //            if (locator)
-    //            {
-    //                for (auto const& entry : locator->start_hashes())
-    //                {
-    //                    converter{}.to_protocol(entry, *handler.locator().add_start_hashes());
-    //                }
-    //                converter{}.to_protocol(locator->stop_hash(), *handler.locator().mutable_stop_hash());
-    //            }
-    //        }));
+        replier_.make_handler<protocol::blockchain::fetch_block_locator_handler>(
+            request.handler(),
+            [] (const code& error, get_blocks_ptr locator,
+                protocol::blockchain::fetch_block_locator_handler& handler) -> void
+            {
+                handler.set_error(error.value());
+                if (locator)
+                {
+                    for (auto const& entry : locator->start_hashes())
+                    {
+                        converter{}.to_protocol(entry, *handler.mutable_locator()->add_start_hashes());
+                    }
+                    converter{}.to_protocol(locator->stop_hash(), *handler.mutable_locator()->mutable_stop_hash());
+                }
+            }));
 
     protocol::void_reply reply;
     return reply;
@@ -821,21 +813,22 @@ static protocol::void_reply dispatch_fetch_locator_block_hashes(
     converter{}.from_protocol(&request.threshold(), threshold);
     const size_t limit = request.limit();
     blockchain_->fetch_locator_block_hashes(locator, threshold, limit,
-    //    blockchain_->make_handler<protocol::blockchain::fetch_locator_block_hashes_handler>(
-    //        request.handler(),
-            [] (const code& error, inventory_ptr inventory) -> void {});
-    //        [] (const code& error, inventory_ptr inventory,
-    //            protocol::blockchain::fetch_locator_block_hashes_handler& handler) -> void
-    //        {
-    //            handler.set_error(error.value());
-    //            if (inventory_ptr)
-    //            {
-    //                for (auto const& entry : inventory_ptr->inventories())
-    //                {
-    //                    converter{}.to_protocol(entry, *handler.add_hashes());
-    //                }
-    //            }
-    //        }));
+        replier_.make_handler<protocol::blockchain::fetch_locator_block_hashes_handler>(
+            request.handler(),
+            [] (const code& error, inventory_ptr inventory,
+                protocol::blockchain::fetch_locator_block_hashes_handler& handler) -> void
+            {
+                handler.set_error(error.value());
+                if (inventory)
+                {
+                    for (auto const& entry : inventory->inventories())
+                    {
+                        auto* inventory_vector = handler.add_inventories();
+                        inventory_vector->set_type(static_cast<int>(entry.type()));
+                        converter{}.to_protocol(entry.hash(), *inventory_vector->mutable_hash());
+                    }
+                }
+            }));
 
     protocol::void_reply reply;
     return reply;
@@ -863,21 +856,20 @@ static protocol::void_reply dispatch_fetch_locator_block_headers(
     converter{}.from_protocol(&request.threshold(), threshold);
     const size_t limit = request.limit();
     blockchain_->fetch_locator_block_headers(locator, threshold, limit,
-    //    blockchain_->make_handler<protocol::blockchain::fetch_locator_block_headers_handler>(
-    //        request.handler(),
-            [] (const code& error, headers_ptr headers) -> void {});
-    //        [] (const code& error, headers_ptr headers,
-    //            protocol::blockchain::fetch_locator_block_headers_handler& handler) -> void
-    //        {
-    //            handler.set_error(error.value());
-    //            if (headers)
-    //            {
-    //                for (auto const& entry : headers->elements())
-    //                {
-    //                    converter{}.to_protocol(entry, *handler.add_headers());
-    //                }
-    //            }
-    //        }));
+        replier_.make_handler<protocol::blockchain::fetch_locator_block_headers_handler>(
+            request.handler(),
+            [] (const code& error, headers_ptr headers,
+                protocol::blockchain::fetch_locator_block_headers_handler& handler) -> void
+            {
+                handler.set_error(error.value());
+                if (headers)
+                {
+                    for (auto const& entry : headers->elements())
+                    {
+                        converter{}.to_protocol(entry, *handler.add_headers());
+                    }
+                }
+            }));
 
     protocol::void_reply reply;
     return reply;
@@ -892,21 +884,22 @@ static protocol::void_reply dispatch_fetch_floaters(
 
     const size_t limit = request.limit();
     blockchain_->fetch_floaters(limit,
-    //    blockchain_->make_handler<protocol::blockchain::fetch_floaters_handler>(
-    //        request.handler(),
-            [] (const code& error, inventory_ptr inventory) -> void {});
-    //        [] (const code& error, inventory_ptr inventory,
-    //            protocol::blockchain::fetch_floaters_handler& handler) -> void
-    //        {
-    //            handler.set_error(error.value());
-    //            if (inventory_ptr)
-    //            {
-    //                for (auto const& entry : inventory_ptr->inventories())
-    //                {
-    //                    converter{}.to_protocol(entry, *handler.add_hashes());
-    //                }
-    //            }
-    //        }));
+        replier_.make_handler<protocol::blockchain::fetch_floaters_handler>(
+            request.handler(),
+            [] (const code& error, inventory_ptr inventory,
+                protocol::blockchain::fetch_floaters_handler& handler) -> void
+            {
+                handler.set_error(error.value());
+                if (inventory)
+                {
+                    for (auto const& entry : inventory->inventories())
+                    {
+                        auto* inventory_vector = handler.add_inventories();
+                        inventory_vector->set_type(static_cast<int>(entry.type()));
+                        converter{}.to_protocol(entry.hash(), *inventory_vector->mutable_hash());
+                    }
+                }
+            }));
 
     protocol::void_reply reply;
     return reply;
@@ -933,14 +926,13 @@ static protocol::void_reply dispatch_filter_blocks(
         message->inventories().push_back(std::move(inventory_vector));
     }
     blockchain_->filter_blocks(message,
-    //    blockchain_->make_handler<protocol::blockchain::filter_blocks_handler>(
-    //        request.handler(),
-            [] (const code& error) -> void {});
-    //        [] (const code& error,
-    //            protocol::blockchain::filter_blocks_handler& handler) -> void
-    //        {
-    //            handler.set_error(error.value());
-    //        }));
+        replier_.make_handler<protocol::blockchain::filter_blocks_handler>(
+            request.handler(),
+            [] (const code& error,
+                protocol::blockchain::filter_blocks_handler& handler) -> void
+            {
+                handler.set_error(error.value());
+            }));
 
     protocol::void_reply reply;
     return reply;
@@ -964,14 +956,13 @@ static protocol::void_reply dispatch_filter_transactions(
         message->inventories().push_back(std::move(inventory_vector));
     }
     blockchain_->filter_transactions(message,
-    //    blockchain_->make_handler<protocol::blockchain::filter_transactions_handler>(
-    //        request.handler(),
-            [] (const code& error) -> void {});
-    //        [] (const code& error,
-    //            protocol::blockchain::filter_transactions_handler& handler) -> void
-    //        {
-    //            handler.set_error(error.value());
-    //        }));
+        replier_.make_handler<protocol::blockchain::filter_transactions_handler>(
+            request.handler(),
+            [] (const code& error,
+                protocol::blockchain::filter_transactions_handler& handler) -> void
+            {
+                handler.set_error(error.value());
+            }));
 
     protocol::void_reply reply;
     return reply;
@@ -995,14 +986,13 @@ static protocol::void_reply dispatch_filter_orphans(
         message->inventories().push_back(std::move(inventory_vector));
     }
     blockchain_->filter_orphans(message,
-    //    blockchain_->make_handler<protocol::blockchain::filter_orphans_handler>(
-    //        request.handler(),
-            [] (const code& error) -> void {});
-    //        [] (const code& error,
-    //            protocol::blockchain::filter_orphans_handler& handler) -> void
-    //        {
-    //            handler.set_error(error.value());
-    //        }));
+        replier_.make_handler<protocol::blockchain::filter_orphans_handler>(
+            request.handler(),
+            [] (const code& error,
+                protocol::blockchain::filter_orphans_handler& handler) -> void
+            {
+                handler.set_error(error.value());
+            }));
 
     protocol::void_reply reply;
     return reply;
@@ -1026,14 +1016,13 @@ static protocol::void_reply dispatch_filter_floaters(
         message->inventories().push_back(std::move(inventory_vector));
     }
     blockchain_->filter_floaters(message,
-    //    blockchain_->make_handler<protocol::blockchain::filter_floaters_handler>(
-    //        request.handler(),
-            [] (const code& error) -> void {});
-    //        [] (const code& error,
-    //            protocol::blockchain::filter_floaters_handler& handler) -> void
-    //        {
-    //            handler.set_error(error.value());
-    //        }));
+        replier_.make_handler<protocol::blockchain::filter_floaters_handler>(
+            request.handler(),
+            [] (const code& error,
+                protocol::blockchain::filter_floaters_handler& handler) -> void
+            {
+                handler.set_error(error.value());
+            }));
 
     protocol::void_reply reply;
     return reply;
@@ -1049,7 +1038,7 @@ static protocol::void_reply dispatch_subscribe_reorganize(
     BITCOIN_ASSERT(blockchain_);
 
     blockchain_->subscribe_reorganize(
-    //    blockchain_->make_handler<protocol::blockchain::subscribe_reorganize_handler>(
+    //    replier_.make_handler<protocol::blockchain::subscribe_reorganize_handler>(
     //        request.handler(),
             [] (const code& error, size_t fork_point,
                 const block_const_ptr_list& new_blocks,
@@ -1086,7 +1075,7 @@ static protocol::void_reply dispatch_subscribe_transaction(
     BITCOIN_ASSERT(blockchain_);
 
     blockchain_->subscribe_transaction(
-    //    blockchain_->make_handler<protocol::blockchain::subscribe_transaction_handler>(
+    //    replier_.make_handler<protocol::blockchain::subscribe_transaction_handler>(
     //        request.handler(),
             [] (const code& error, const chain::point::indexes& indexes,
                 transaction_const_ptr tx) -> bool { return true; });
@@ -1120,14 +1109,13 @@ static protocol::void_reply dispatch_organize_block(
     message::block_message::ptr const block =
         std::make_shared<message::block_message>(std::move(actual));
     blockchain_->organize(block,
-    //    blockchain_->make_handler<protocol::blockchain::organize_block_handler>(
-    //        request.handler(),
-            [] (const code& error) -> void {});
-    //        [] (const code& error,
-    //            protocol::blockchain::organize_block_handler& handler) -> void
-    //        {
-    //            handler.set_error(error.value());
-    //        }));
+        replier_.make_handler<protocol::blockchain::organize_block_handler>(
+            request.handler(),
+            [] (const code& error,
+                protocol::blockchain::organize_block_handler& handler) -> void
+            {
+                handler.set_error(error.value());
+            }));
 
     protocol::void_reply reply;
     return reply;
@@ -1143,18 +1131,17 @@ static protocol::void_reply dispatch_organize_transaction(
     transaction_ptr tx =std::make_shared<message::transaction_message>();
     converter{}.from_protocol(&request.transaction(), *tx);
     blockchain_->organize(tx,
-    //    blockchain_->make_handler<protocol::blockchain::organize_transaction_handler>(
-    //        request.handler(),
-            [] (const code& error, const chain::point::indexes& indexes) -> void {});
-    //        [] (const code& error, const chain::point::indexes& indexes
-    //            protocol::blockchain::organize_transaction_handler& handler) -> void
-    //        {
-    //            handler.set_error(error.value());
-    //            for (auto const& entry : indexes)
-    //            {
-    //                converter{}.to_protocol(*entry, *handler.add_indexes());
-    //            }
-    //        }));
+        replier_.make_handler<protocol::blockchain::organize_transaction_handler>(
+            request.handler(),
+            [] (const code& error, const chain::point::indexes& indexes,
+                protocol::blockchain::organize_transaction_handler& handler) -> void
+            {
+                handler.set_error(error.value());
+                for (auto const& entry : indexes)
+                {
+                    handler.add_indexes(entry);
+                }
+            }));
 
     protocol::void_reply reply;
     return reply;

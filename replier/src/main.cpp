@@ -1,13 +1,17 @@
 
 #include "blockchain.hpp"
 
+#include <functional>
 #include <memory>
+#include <boost/optional.hpp>
+#include <boost/utility/in_place_factory.hpp>
 #include <bitcoin/blockchain.hpp>
 #include <bitcoin/blockchain/configuration.hpp>
 #include <bitcoin/blockchain/define.hpp>
 #include <bitcoin/blockchain/parser.hpp>
 #include <bitcoin/blockchain/settings.hpp>
 #include <bitcoin/protocol/blockchain.pb.h>
+#include <bitcoin/protocol/replier.hpp>
 #include <bitcoin/protocol/zmq/context.hpp>
 #include <bitcoin/protocol/zmq/message.hpp>
 #include <bitcoin/protocol/zmq/socket.hpp>
@@ -17,31 +21,26 @@ using namespace libbitcoin::protocol;
 namespace libbitcoin {
 namespace blockchain {
 
+static zmq::context context;
+replier replier_(context);
+
 static int main(parser& metadata)
 {
     threadpool thread_pool;
-    blockchain_.reset(new block_chain(
-        thread_pool, metadata.configured.chain, metadata.configured.database));
-    //transaction_pool_.reset(new transaction_pool(
-    //    thread_pool, *blockchain_, metadata.configured.chain));
+    blockchain_ = boost::in_place(
+        std::ref(thread_pool), metadata.configured.chain, metadata.configured.database);
 
-    zmq::context context;
-    zmq::socket socket(context, zmq::socket::role::replier);
-    auto ec = socket.bind(metadata.configured.chain.replier);
+    auto ec = replier_.bind(metadata.configured.chain.replier);
     assert(!ec);
 
     while (true)
     {
-        zmq::message message;
-        ec = socket.receive(message);
+        protocol::blockchain::request request;
+        ec = replier_.receive(request);
         assert(!ec);
 
-        protocol::blockchain::request request;
-        if (!message.dequeue(request))
-            break;
-
         zmq::message reply = dispatch(request);
-        ec = socket.send(reply);
+        ec = replier_.send(reply);
         assert(!ec);
     }
 
