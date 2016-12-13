@@ -295,7 +295,8 @@ private:
     const settings& settings_;
     mutable protocol::requester requester_;
 
-    blockchain::transaction_pool transaction_pool_;
+    std::string reorganize_subscription;
+    std::string reorganize_transaction;
 #else
     typedef database::data_base::handle handle;
 

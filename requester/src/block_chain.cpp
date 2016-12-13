@@ -41,8 +41,7 @@ block_chain::block_chain(threadpool& pool,
     const blockchain::settings& chain_settings,
     const database::settings& database_settings)
   : requester_(context, chain_settings.replier),
-    settings_(chain_settings),
-    transaction_pool_(pool, *this, chain_settings)
+    settings_(chain_settings)
 {
 }
 
@@ -1110,41 +1109,41 @@ void block_chain::subscribe_reorganize(reorganize_handler handler)
 {
     protocol::blockchain::request request;
     auto* subscribe_reorganize = request.mutable_subscribe_reorganize();
-    //subscribe_reorganize->set_handler(
-    //    requester_.make_handler<protocol::blockchain::subscribe_reorganize_handler>(
-    //        std::move(handler),
-    //        [] (reorganize_handler handler,
-    //            protocol::blockchain::subscribe_reorganize_handler const& reply)
-    //        {
-    //            const code error = error::error_code_t(reply.error());
-    //            const uint64_t fork_point = reply.fork_point();
-    //            message::block_message::ptr_list new_blocks;
-    //            new_blocks.reserve(reply.new_blocks_size());
-    //            for (auto const& entry : reply.new_blocks())
-    //            {
-    //                chain::block actual;
-    //                converter{}.from_protocol(&entry.actual(), actual);
-    //                message::block_message::ptr block =
-    //                    std::make_shared<message::block_message>(std::move(actual));
-    //                block->set_originator(entry.originator());
+    subscribe_reorganize->set_handler(
+        requester_.make_handler<protocol::blockchain::subscribe_reorganize_handler>(
+            std::move(handler),
+            [] (reorganize_handler handler,
+                protocol::blockchain::subscribe_reorganize_handler const& reply)
+            {
+                const code error = error::error_code_t(reply.error());
+                const uint64_t fork_point = reply.fork_point();
+                block_const_ptr_list new_blocks;
+                new_blocks.reserve(reply.new_blocks_size());
+                for (auto const& entry : reply.new_blocks())
+                {
+                    chain::block actual;
+                    converter{}.from_protocol(&entry.actual(), actual);
+                    message::block_message::ptr block =
+                        std::make_shared<message::block_message>(std::move(actual));
+                    block->set_originator(entry.originator());
 
-    //                new_blocks.push_back(std::move(block));
-    //            }
-    //            message::block_message::ptr_list replaced_blocks;
-    //            replaced_blocks.reserve(reply.replaced_blocks_size());
-    //            for (auto const& entry : reply.replaced_blocks())
-    //            {
-    //                chain::block actual;
-    //                converter{}.from_protocol(&entry.actual(), actual);
-    //                message::block_message::ptr block =
-    //                    std::make_shared<message::block_message>(std::move(actual));
-    //                block->set_originator(entry.originator());
+                    new_blocks.push_back(std::move(block));
+                }
+                block_const_ptr_list replaced_blocks;
+                replaced_blocks.reserve(reply.replaced_blocks_size());
+                for (auto const& entry : reply.replaced_blocks())
+                {
+                    chain::block actual;
+                    converter{}.from_protocol(&entry.actual(), actual);
+                    message::block_message::ptr block =
+                        std::make_shared<message::block_message>(std::move(actual));
+                    block->set_originator(entry.originator());
 
-    //                replaced_blocks.push_back(std::move(block));
-    //            }
+                    replaced_blocks.push_back(std::move(block));
+                }
 
-    //            handler(error, fork_point, new_blocks, replaced_blocks);
-    //        }));
+                handler(error, fork_point, new_blocks, replaced_blocks);
+            }));
 
     protocol::void_reply reply;
     auto ec = requester_.send(request, reply);
@@ -1155,25 +1154,25 @@ void block_chain::subscribe_transaction(transaction_handler handler)
 {
     protocol::blockchain::request request;
     auto* subscribe_transaction = request.mutable_subscribe_transaction();
-    //subscribe_transaction->set_handler(
-    //    requester_.make_handler<protocol::blockchain::subscribe_transaction_handler>(
-    //        std::move(handler),
-    //        [] (transaction_handler handler,
-    //            protocol::blockchain::subscribe_transaction_handler const& reply)
-    //        {
-    //            const code error = error::error_code_t(reply.error());
-    //            chain::point::indexes indexes;
-    //            indexes.reserve(reply.indexes_size());
-    //            for (auto const& entry : reply.indexes())
-    //            {
-    //                indexes.push_back(entry);
-    //            }
-    //            chain::transaction tx;
-    //            converter{}.from_protocol(&reply.transaction(), tx);
-    //            transaction_ptr tx_ptr = std::make_shared<message::transaction_message>(std::move(tx));
+    subscribe_transaction->set_handler(
+        requester_.make_handler<protocol::blockchain::subscribe_transaction_handler>(
+            std::move(handler),
+            [] (transaction_handler handler,
+                protocol::blockchain::subscribe_transaction_handler const& reply)
+            {
+                const code error = error::error_code_t(reply.error());
+                chain::point::indexes indexes;
+                indexes.reserve(reply.indexes_size());
+                for (auto const& entry : reply.indexes())
+                {
+                    indexes.push_back(entry);
+                }
+                chain::transaction tx;
+                converter{}.from_protocol(&reply.transaction(), tx);
+                transaction_ptr tx_ptr = std::make_shared<message::transaction_message>(std::move(tx));
 
-    //            handler(error, indexes, tx_ptr);
-    //        }));
+                handler(error, indexes, tx_ptr);
+            }));
 
     protocol::void_reply reply;
     auto ec = requester_.send(request, reply);

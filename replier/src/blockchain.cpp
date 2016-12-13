@@ -1038,31 +1038,28 @@ static protocol::void_reply dispatch_subscribe_reorganize(
     BITCOIN_ASSERT(blockchain_);
 
     blockchain_->subscribe_reorganize(
-    //    replier_.make_handler<protocol::blockchain::subscribe_reorganize_handler>(
-    //        request.handler(),
+        replier_.make_subscription<protocol::blockchain::subscribe_reorganize_handler>(
+            request.handler(),
             [] (const code& error, size_t fork_point,
                 const block_const_ptr_list& new_blocks,
-                const block_const_ptr_list& replaced_blocks) -> bool { return true; });
-    //        [] (const code& error, size_t fork_point,
-    //            const block_const_ptr_list& new_blocks,
-    //            const block_const_ptr_list& replaced_blocks,
-    //            protocol::blockchain::subscribe_reorganize_handler& handler) -> void
-    //        {
-    //            handler.set_error(error.value());
-    //            handler.set_fork_point(fork_point);
-    //            for (auto const& entry : new_blocks)
-    //            {
-    //                auto* new_block = handler.add_new_blocks();
-    //                converter{}.to_protocol(*entry, *new_block->mutable_actual());
-    //                new_block->set_originator(entry->originator());
-    //            }
-    //            for (auto const& entry : replaced_blocks)
-    //            {
-    //                auto* replaced_block = handler.add_replaced_blocks();
-    //                converter{}.to_protocol(*entry, *replaced_block->mutable_actual());
-    //                replaced_block->set_originator(entry->originator());
-    //            }
-    //        }));
+                const block_const_ptr_list& replaced_blocks,
+                protocol::blockchain::subscribe_reorganize_handler& handler) -> void
+            {
+                handler.set_error(error.value());
+                handler.set_fork_point(fork_point);
+                for (auto const& entry : new_blocks)
+                {
+                    auto* new_block = handler.add_new_blocks();
+                    converter{}.to_protocol(*entry, *new_block->mutable_actual());
+                    new_block->set_originator(entry->originator());
+                }
+                for (auto const& entry : replaced_blocks)
+                {
+                    auto* replaced_block = handler.add_replaced_blocks();
+                    converter{}.to_protocol(*entry, *replaced_block->mutable_actual());
+                    replaced_block->set_originator(entry->originator());
+                }
+            }));
 
     protocol::void_reply reply;
     return reply;
@@ -1075,21 +1072,19 @@ static protocol::void_reply dispatch_subscribe_transaction(
     BITCOIN_ASSERT(blockchain_);
 
     blockchain_->subscribe_transaction(
-    //    replier_.make_handler<protocol::blockchain::subscribe_transaction_handler>(
-    //        request.handler(),
+        replier_.make_subscription<protocol::blockchain::subscribe_transaction_handler>(
+            request.handler(),
             [] (const code& error, const chain::point::indexes& indexes,
-                transaction_const_ptr tx) -> bool { return true; });
-    //        [] (const code& error, const chain::point::indexes& indexes,
-    //            transaction_const_ptr tx,
-    //            protocol::blockchain::subscribe_transaction_handler& handler) -> void
-    //        {
-    //            handler.set_error(error.value());
-    //            for (auto const& entry : indexes)
-    //            {
-    //                converter{}.to_protocol(*entry, *handler.add_indexes());
-    //            }
-    //            converter{}.to_protocol(*tx, *organize_transaction->mutable_transaction());
-    //        }));
+                transaction_const_ptr tx,
+                protocol::blockchain::subscribe_transaction_handler& handler) -> void
+            {
+                handler.set_error(error.value());
+                for (auto const& entry : indexes)
+                {
+                    handler.add_indexes(entry);
+                }
+                converter{}.to_protocol(*tx, *handler.mutable_transaction());
+            }));
 
     protocol::void_reply reply;
     return reply;
