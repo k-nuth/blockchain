@@ -211,6 +211,9 @@ add_executable(bitprim-blockchain-replier
   replier/src/configuration.cpp
   replier/src/main.cpp
   replier/src/parser.cpp)
+if (NOT MSVC)
+  target_compile_definitions(bitprim-blockchain-replier PUBLIC -DSYSCONFDIR=\"${SYSCONFDIR}\")
+endif()
 target_link_libraries(bitprim-blockchain-replier bitprim-protocol bitprim-blockchain)
 target_include_directories(bitprim-blockchain-replier PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/replier/include)
