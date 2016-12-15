@@ -76,6 +76,20 @@ bool block_chain::start()
     return reply.result();
 }
 
+// Start the orphan pool and the transaction pool.
+bool block_chain::start_pools()
+{
+    protocol::blockchain::request request;
+    auto* start_pools = request.mutable_start_pools();
+    (void)start_pools;
+
+    protocol::blockchain::start_pools_reply reply;
+    auto ec = requester_.send(request, reply);
+    BITCOIN_ASSERT(!ec);
+
+    return reply.result();
+}
+
 // Stop is not required, speeds work shutdown with multiple threads.
 bool block_chain::stop()
 {
