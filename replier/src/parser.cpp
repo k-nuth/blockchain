@@ -53,6 +53,12 @@ options_metadata parser::load_options()
         "Display command line options."
     )
     (
+        "initchain,i",
+        value<bool>(&configured.initchain)->
+            default_value(false)->zero_tokens(),
+        "Initialize blockchain in the configured directory."
+    )
+    (
         BB_SETTINGS_VARIABLE ",s",
         value<bool>(&configured.settings)->
             default_value(false)->zero_tokens(),
@@ -101,6 +107,43 @@ options_metadata parser::load_settings()
         "consensus.replier",
         value<config::endpoint>(&configured.consensus.replier),
         "The endpoint for the consensus replier."
+    )
+
+    /* [log] */
+    (
+        "log.debug_file",
+        value<path>(&configured.network.debug_file),
+        "The debug log file path, defaults to 'debug.log'."
+    )
+    (
+        "log.error_file",
+        value<path>(&configured.network.error_file),
+        "The error log file path, defaults to 'error.log'."
+    )
+    (
+        "log.archive_directory",
+        value<path>(&configured.network.archive_directory),
+        "The log archive directory, defaults to 'archive'."
+    )
+    (
+        "log.rotation_size",
+        value<size_t>(&configured.network.rotation_size),
+        "The size at which a log is archived, defaults to 0 (disabled)."
+    )
+    (
+        "log.maximum_archive_size",
+        value<size_t>(&configured.network.maximum_archive_size),
+        "The maximum combined size of archived logs, defaults to 4294967296."
+    )
+    (
+        "log.minimum_free_space",
+        value<size_t>(&configured.network.minimum_free_space),
+        "The minimum free space required in the archive directory, defaults to 0."
+    )
+    (
+        "log.maximum_archive_files",
+        value<size_t>(&configured.network.maximum_archive_files),
+        "The maximum number of logs to persist, defaults to 'maximum'."
     )
 
     /* [database] */

@@ -7,6 +7,7 @@
 #include <bitcoin/blockchain/settings.hpp>
 #include <bitcoin/consensus/settings.hpp>
 #include <bitcoin/database/settings.hpp>
+#include <bitcoin/network.hpp>
 
 namespace libbitcoin {
 namespace blockchain {
@@ -31,6 +32,7 @@ public:
 
     /// Options.
     bool help;
+    bool initchain;
     bool settings;
     bool version;
 
@@ -41,6 +43,7 @@ public:
     consensus::settings consensus;
     blockchain::settings chain;
     database::settings database;
+    network::settings network;
 };
 
 } // namespace blockchain

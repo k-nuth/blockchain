@@ -48,6 +48,12 @@ if (NOT TARGET bitprim-database)
   find_package(bitprim-database 3.0.0 REQUIRED)
 endif()
 
+# Require bitprim-network of at least version 3.0.0 and output ${bitprim_network_CPPFLAGS/LIBS/PKG}.
+#------------------------------------------------------------------------------
+if (NOT TARGET bitprim-network)
+  find_package(bitprim-network 3.0.0 REQUIRED)
+endif()
+
 # Require bitprim-protocol of at least version 3.0.0 and output ${bitprim_protocol_CPPFLAGS/LIBS/PKG}.
 #------------------------------------------------------------------------------
 if (NOT TARGET bitprim-protocol)
@@ -214,7 +220,7 @@ add_executable(bitprim-blockchain-replier
 if (NOT MSVC)
   target_compile_definitions(bitprim-blockchain-replier PUBLIC -DSYSCONFDIR=\"${SYSCONFDIR}\")
 endif()
-target_link_libraries(bitprim-blockchain-replier bitprim-protocol bitprim-blockchain)
+target_link_libraries(bitprim-blockchain-replier bitprim-network bitprim-protocol bitprim-blockchain)
 target_include_directories(bitprim-blockchain-replier PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/replier/include)
 
