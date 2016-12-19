@@ -33,6 +33,9 @@ parser::parser(const config::settings& context)
     // Default endpoint for consensus replier.
     configured.consensus.replier = { "tcp://*:5501" };
 
+    // A node doesn't require history, and history is expensive.
+    configured.database.index_start_height = max_uint32;
+
     // Default endpoint for blockchain replier.
     configured.chain.replier = { "tcp://*:5502" };
 }
