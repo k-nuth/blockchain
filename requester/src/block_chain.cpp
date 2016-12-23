@@ -868,6 +868,10 @@ void block_chain::fetch_block_locator(const chain::block::indexes& heights,
 {
     protocol::blockchain::request request;
     auto* fetch_block_locator = request.mutable_fetch_block_locator();
+    for (auto const& entry : heights)
+    {
+        fetch_block_locator->add_heights(entry);
+    }
     fetch_block_locator->set_handler(
         requester_.make_handler<protocol::blockchain::fetch_block_locator_handler>(
             std::move(handler),
