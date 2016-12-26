@@ -1128,7 +1128,7 @@ void block_chain::subscribe_reorganize(reorganize_handler handler)
     protocol::blockchain::request request;
     auto* subscribe_reorganize = request.mutable_subscribe_reorganize();
     subscribe_reorganize->set_handler(
-        requester_.make_handler<protocol::blockchain::subscribe_reorganize_handler>(
+        requester_.make_subscription<protocol::blockchain::subscribe_reorganize_handler>(
             std::move(handler),
             [] (reorganize_handler handler,
                 protocol::blockchain::subscribe_reorganize_handler const& reply)
@@ -1173,7 +1173,7 @@ void block_chain::subscribe_transaction(transaction_handler handler)
     protocol::blockchain::request request;
     auto* subscribe_transaction = request.mutable_subscribe_transaction();
     subscribe_transaction->set_handler(
-        requester_.make_handler<protocol::blockchain::subscribe_transaction_handler>(
+        requester_.make_subscription<protocol::blockchain::subscribe_transaction_handler>(
             std::move(handler),
             [] (transaction_handler handler,
                 protocol::blockchain::subscribe_transaction_handler const& reply)
