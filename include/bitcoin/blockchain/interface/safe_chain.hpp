@@ -86,19 +86,19 @@ public:
     // Queries.
     // ------------------------------------------------------------------------
 
-    virtual void fetch_block(uint64_t height,
+    virtual void fetch_block(size_t height,
         block_fetch_handler handler) const = 0;
 
     virtual void fetch_block(const hash_digest& hash,
         block_fetch_handler handler) const = 0;
 
-    virtual void fetch_block_header(uint64_t height,
+    virtual void fetch_block_header(size_t height,
         block_header_fetch_handler handler) const = 0;
 
     virtual void fetch_block_header(const hash_digest& hash,
         block_header_fetch_handler handler) const = 0;
 
-    virtual void fetch_merkle_block(uint64_t height,
+    virtual void fetch_merkle_block(size_t height,
         transaction_hashes_fetch_handler handler) const = 0;
 
     virtual void fetch_merkle_block(const hash_digest& hash,

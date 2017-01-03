@@ -318,7 +318,7 @@ block_chain::~block_chain()
 // Queries.
 // ----------------------------------------------------------------------------
 
-void block_chain::fetch_block(uint64_t height,
+void block_chain::fetch_block(size_t height,
     block_fetch_handler handler) const
 {
     // This is big so it is implemented in a helper class.
@@ -332,7 +332,7 @@ void block_chain::fetch_block(const hash_digest& hash,
     blockchain::fetch_block(*this, hash, handler);
 }
 
-void block_chain::fetch_block_header(uint64_t height,
+void block_chain::fetch_block_header(size_t height,
     block_header_fetch_handler handler) const
 {
     if (stopped())
@@ -380,7 +380,7 @@ void block_chain::fetch_block_header(const hash_digest& hash,
     read_serial(do_fetch);
 }
 
-void block_chain::fetch_merkle_block(uint64_t height,
+void block_chain::fetch_merkle_block(size_t height,
     transaction_hashes_fetch_handler handler) const
 {
     if (stopped())
