@@ -145,7 +145,7 @@ bool block_chain::get_block_exists(const hash_digest& block_hash) const
 {
     protocol::blockchain::request request;
     auto* get_block_exists = request.mutable_get_block_exists();
-    (void)get_block_exists;
+    converter{}.to_protocol(block_hash, *get_block_exists->mutable_block_hash());
 
     protocol::blockchain::get_block_exists_reply reply;
     auto ec = requester_.send(request, reply);
