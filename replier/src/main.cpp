@@ -148,7 +148,7 @@ static int main(parser& metadata)
         return do_initchain(metadata);
     }
 
-    threadpool thread_pool;
+    threadpool thread_pool(1);
     blockchain_ = boost::in_place(
         std::ref(thread_pool), metadata.configured.chain, metadata.configured.database);
 
