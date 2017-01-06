@@ -1205,7 +1205,8 @@ void block_chain::organize(block_const_ptr block, result_handler handler)
 {
     protocol::blockchain::request request;
     auto* organize_block = request.mutable_organize_block();
-    converter{}.to_protocol(*block, *organize_block->mutable_block());
+    converter{}.to_protocol(*block, *organize_block->mutable_actual());
+    organize_block->set_originator(block->originator());
     organize_block->set_handler(
         requester_.make_handler<protocol::blockchain::organize_block_handler>(
             std::move(handler),

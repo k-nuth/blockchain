@@ -1100,9 +1100,10 @@ static protocol::void_reply dispatch_organize_block(
     BITCOIN_ASSERT(blockchain_);
 
     chain::block actual;
-    converter{}.from_protocol(&request.block(), actual);
+    converter{}.from_protocol(&request.actual(), actual);
     message::block_message::ptr const block =
         std::make_shared<message::block_message>(std::move(actual));
+    block->set_originator(request.originator());
     blockchain_->organize(block,
         replier_.make_handler<protocol::blockchain::organize_block_handler>(
             request.handler(),
