@@ -19,6 +19,13 @@ matrix:
       os: linux
       sudo: required
       dist: trusty
+      cache:
+        ccache: true
+        timeout: 1000
+        directories:
+          - $HOME/boost
+          - $HOME/protobuf
+          - $HOME/zeromq
       addons: &clang36
         apt:
           packages:
@@ -32,6 +39,13 @@ matrix:
       os: linux
       sudo: required
       dist: trusty
+      cache:
+        ccache: true
+        timeout: 1000
+        directories:
+          - $HOME/boost
+          - $HOME/protobuf
+          - $HOME/zeromq
       addons: &clang36
         apt:
           packages:
@@ -45,6 +59,13 @@ matrix:
       os: linux
       sudo: required
       dist: trusty
+      cache:
+        ccache: true
+        timeout: 1000
+        directories:
+          - $HOME/boost
+          - $HOME/protobuf
+          - $HOME/zeromq
       addons: &clang37
         apt:
           packages:
@@ -58,6 +79,13 @@ matrix:
       os: linux
       sudo: required
       dist: trusty
+      cache:
+        ccache: true
+        timeout: 1000
+        directories:
+          - $HOME/boost
+          - $HOME/protobuf
+          - $HOME/zeromq
       addons: &clang37
         apt:
           packages:
@@ -71,6 +99,13 @@ matrix:
       os: linux
       sudo: required
       dist: trusty
+      cache:
+        ccache: true
+        timeout: 1000
+        directories:
+          - $HOME/boost
+          - $HOME/protobuf
+          - $HOME/zeromq
       addons: &clang38
         apt:
           packages:
@@ -84,6 +119,13 @@ matrix:
       os: linux
       sudo: required
       dist: trusty
+      cache:
+        ccache: true
+        timeout: 1000
+        directories:
+          - $HOME/boost
+          - $HOME/protobuf
+          - $HOME/zeromq
       addons: &clang38
         apt:
           packages:
@@ -97,6 +139,13 @@ matrix:
       os: linux
       sudo: required
       dist: trusty
+      cache:
+        ccache: true
+        timeout: 1000
+        directories:
+          - $HOME/boost
+          - $HOME/protobuf
+          - $HOME/zeromq
       addons: &gcc49
         apt:
           packages:
@@ -110,6 +159,13 @@ matrix:
       os: linux
       sudo: required
       dist: trusty
+      cache:
+        ccache: true
+        timeout: 1000
+        directories:
+          - $HOME/boost
+          - $HOME/protobuf
+          - $HOME/zeromq
       addons: &gcc49
         apt:
           packages:
@@ -118,77 +174,128 @@ matrix:
             - ubuntu-toolchain-r-test
             - llvm-toolchain-precise-3.6
 
+    # gcc-5
+    - env: GCC_VERSION=5 CXX_FLAGS="-std=c++11" BUILD_TYPE=Debug
+      os: linux
+      sudo: required
+      dist: trusty
+      cache:
+        ccache: true
+        timeout: 1000
+        directories:
+          - $HOME/boost
+          - $HOME/protobuf
+          - $HOME/zeromq
+      addons: &gcc5
+        apt:
+          packages:
+            - cmake
+            - g++-5
+          sources:
+            - ubuntu-toolchain-r-test
+
+    - env: GCC_VERSION=5 CXX_FLAGS="-std=c++11" BUILD_TYPE=Release
+      os: linux
+      sudo: required
+      dist: trusty
+      cache:
+        ccache: true
+        timeout: 1000
+        directories:
+          - $HOME/boost
+          - $HOME/protobuf
+          - $HOME/zeromq
+      addons: &gcc5
+        apt:
+          packages:
+            - cmake
+            - g++-5
+          sources:
+            - ubuntu-toolchain-r-test
+            
+    # gcc-6
+    - env: GCC_VERSION=6 CXX_FLAGS="-std=c++11" BUILD_TYPE=Debug
+      os: linux
+      sudo: required
+      dist: trusty
+      cache:
+        ccache: true
+        timeout: 1000
+        directories:
+          - $HOME/boost
+          - $HOME/protobuf
+          - $HOME/zeromq
+      addons: &gcc6
+        apt:
+          packages:
+            - cmake
+            - g++-6
+          sources:
+            - ubuntu-toolchain-r-test
+    
+    - env: GCC_VERSION=6 CXX_FLAGS="-std=c++11" BUILD_TYPE=Release
+      os: linux
+      sudo: required
+      dist: trusty
+      cache:
+        ccache: true
+        timeout: 1000
+        directories:
+          - $HOME/boost
+          - $HOME/protobuf
+          - $HOME/zeromq
+      addons: &gcc6
+        apt:
+          packages:
+            - cmake
+            - g++-6
+          sources:
+            - ubuntu-toolchain-r-test
+
     # OSX
 
     # Xcode 7 Debug
-    - env: CXX_FLAGS="-std=c++11" BUILD_TYPE=Debug
-      os: osx
-      osx_image: xcode7
-      addons: &xcode7
+#    - env: CXX_FLAGS="-std=c++11" BUILD_TYPE=Debug
+#      os: osx
+#      osx_image: xcode73
+#      addons: &xcode73
+#      sudo: required
 
     # Xcode 7 Release
-    - env: CXX_FLAGS="-std=c++11" BUILD_TYPE=Release
-      os: osx
-      osx_image: xcode7
-      addons: &xcode7
-
-    # ZeroMQ NOT WORKING
-    ## Xcode 8 Debug 
-    #- env: CXX_FLAGS="-std=c++11" BUILD_TYPE=Debug
-    #  os: osx
-    #  osx_image: xcode8
-    #  addons: &xcode8
-
-    ## Xcode 8 Release
-    #- env: CXX_FLAGS="-std=c++11" BUILD_TYPE=Release
-    #  os: osx
-    #  osx_image: xcode8
-    #  addons: &xcode8
-
-
-    ##########################################################################
-    # Benchmarks
-    ##########################################################################
-    # - env: BENCHMARKS=true COMPILER=clang++-3.6 CXX_FLAGS="-std=c++14" CMAKE_OPTIONS="-DCMAKE_BUILD_TYPE=Release"
-    # - env: BENCHMARKS=true COMPILER=clang++-3.7 CXX_FLAGS="-std=c++14" CMAKE_OPTIONS="-DCMAKE_BUILD_TYPE=Release"
-    # - env: BENCHMARKS=true COMPILER=clang++-3.8 CXX_FLAGS="-std=c++14" CMAKE_OPTIONS="-DCMAKE_BUILD_TYPE=Release"
-
-
-    #- env: BENCHMARKS=true CLANG_VERSION=3.6 CXX_FLAGS="-std=c++14" BUILD_TYPE=Release
-    #  os: linux
-    #  addons: *clang36
-
+#    - env: CXX_FLAGS="-std=c++11" BUILD_TYPE=Release
+#      os: osx
+#      osx_image: xcode73
+#      addons: &xcode73
+#      sudo: required
+      
+    # Xcode 8 Release
+#    - env: CXX_FLAGS="-std=c++11" BUILD_TYPE=Debug
+#      os: osx
+#      osx_image: xcode8
+#      addons: &xcode8
+#      sudo: required
+      
+    # Xcode 8 Release
+#    - env: CXX_FLAGS="-std=c++11" BUILD_TYPE=Release
+#      os: osx
+#      osx_image: xcode8
+#      addons: &xcode8
+#      sudo: required
 
 branches:
   only:
     - master
-    #- develop
 
 before_install:
 
   # Update submodules 
   - git submodule update --init --recursive
 
-  # Update apt lists (in order to install boost 1.58+)
-  - |
-    if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
-      cat /etc/apt/sources.list
-      cp /etc/apt/sources.list /tmp/sources.list
-      echo 'deb http://archive.ubuntu.com/ubuntu xenial main restricted universe multiverse' >> /tmp/sources.list
-      echo 'deb-src http://archive.ubuntu.com/ubuntu xenial main restricted universe multiverse' >> /tmp/sources.list
-      sudo mv /tmp/sources.list /etc/apt/sources.list
-    fi
-  
-  # protobuf prerequisites
-  - |
-    if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
-      sudo apt-get install -y autoconf automake libtool curl make unzip
-    fi
-
   - if [ -n "$GCC_VERSION" ]; then export CXX="g++-${GCC_VERSION}" CC="gcc-${GCC_VERSION}"; fi
   - if [ -n "$CLANG_VERSION" ]; then export CXX="clang++-${CLANG_VERSION}" CC="clang-${CLANG_VERSION}"; fi
+  - if [ -n "$GCC_VERSION" ]; then export CXX_FLAGS="${CXX_FLAGS} -Wall -Wextra"; fi
+  - if [ -n "$CLANG_VERSION" ]; then export CXX_FLAGS="${CXX_FLAGS} -Wall -Wextra"; fi
   
-  # - if [[ "${TRAVIS_OS_NAME}" == "osx" ]]; then brew install cmake; fi
 
 install:
   ############################################################################
@@ -205,139 +312,47 @@ install:
       CMAKE_URL="https://cmake.org/files/v3.7/cmake-3.7.0-rc3-Linux-x86_64.tar.gz"
       mkdir cmake && travis_retry wget --no-check-certificate --quiet -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
       export PATH=${DEPS_DIR}/cmake/bin:${PATH}
-    fi
-    
-  - |
-    if [[ "${TRAVIS_OS_NAME}" == "osx" ]]; then
-      #osx>7 already has cmake 3.6
+    else 
       brew unlink cmake
       brew install cmake
     fi
-    
-
-  # Install boost 1.58+
-  - |
-    if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
-      sudo apt-get -qq update
-      sudo apt-get install -y libboost-all-dev
-    fi
-    #boost 1.60 already installed in osx
-    #brew install boost
-
+ 
   ############################################################################
+  # Custom script for external dependences
+  ############################################################################
+  - cd ${DEPS_DIR}
+  - wget -O build_deps.sh  https://raw.githubusercontent.com/hanchon/travis_complete_cache/master/build_deps.sh
+  - sudo chmod 777 build_deps.sh  
   # Install Boost
-  ############################################################################  
-  
-  #- sudo apt-get -y install libboost-{chrono,program-options,date-time,thread,system,filesystem,regex,serialization,iostreams,locale}1.58{-dev,.0}
-    
-  ############################################################################
-  # Install ZeroMQ
-  ############################################################################    
-  - wget https://github.com/zeromq/libzmq/releases/download/v4.2.0/zeromq-4.2.0.tar.gz
-  - tar -xzvf zeromq-4.2.0.tar.gz
-  - cd zeromq-4.2.0 && ./autogen.sh && ./configure --prefix=/usr && make --silent && sudo make install --silent
-  - cd ..
-  ############################################################################
-  # Install protobuf
-  ############################################################################
-  - wget https://github.com/google/protobuf/releases/download/v3.1.0/protobuf-cpp-3.1.0.tar.gz
-  - tar -xzvf protobuf-cpp-3.1.0.tar.gz
-  - cd protobuf-3.1.0 && ./configure --prefix=/usr && make --silent && sudo make install --silent
-  - cd ..
-  ############################################################################
-  # Ldconfig only in linux
-  ############################################################################
+  - ./build_deps.sh boost "${TRAVIS_OS_NAME}"
+
+  #Set linux variables:
   - |
     if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
-      sudo ldconfig      
-    fi
-  
-  # ############################################################################
-  # # Install and use a more recent Ruby and install the gems for the benchmarks
-  # ############################################################################
-  # - rvm use 2.1 --install --binary --fuzzy
-  # - gem install ruby-progressbar tilt
-
-# install:
-#   - mkdir build
-#   - cd build
-#   - export CXX_FLAGS="${CXX_FLAGS} -Wall -Wextra -Werror"
-#   - cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_CXX_FLAGS="${CXX_FLAGS}" ..
+      export BOOST_OPTS="-DBOOST_ROOT=/home/travis/boost -DBOOST_INCLUDEDIR=/home/travis/boost/include -DBOOST_LIBRARYDIR=/home/travis/boost/lib"    
+      export ZEROMQ=" -DZeroMQ_ROOT_DIR=/home/travis/zeromq "  
+      export PROTOBUF=" -DProtobuf_ROOT_DIR=/home/travis/protobuf "
+      export PATH=/home/travis/protobuf/bin:${PATH}
+      sudo ldconfig
+    else
+      export BOOST_OPTS=" "    
+      export ZEROMQ=" "  
+      export PROTOBUF=" "
+    fi  
 
   ############################################################################
-  # secp256k1
+  # Custom script for internal dependences
   ############################################################################
-  - git clone https://github.com/bitprim/secp256k1.git
-  - cd secp256k1
-  - mkdir build
-  - cd build
-  - cmake ..
-  - make -j2 --silent
-  - sudo make install --silent
-  - cd ..
-  - cd ..
-
-  ############################################################################
-  # set libraries
-  ############################################################################
-  - |
-    if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
-      sudo ldconfig      
-    fi
-
-  ############################################################################
-  # bitprim-core
-  ############################################################################
-  - git clone https://github.com/bitprim/bitprim-core.git
-  - cd bitprim-core
-  - mkdir build
-  - cd build
-  - cmake .. -DENABLE_TESTS=OFF -DWITH_TESTS=OFF -DWITH_EXAMPLES=OFF -DENABLE_MODULE_RECOVERY=ON -DWITH_TOOLS=OFF -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_CXX_FLAGS="${CXX_FLAGS}"
-  - make -j2 --silent
-  - sudo make install --silent
-  - cd ../..
-
-  ############################################################################
-  # set libraries
-  ############################################################################
-  - |
-    if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
-      sudo ldconfig      
-    fi
-
-  ############################################################################
-  # bitprim-consensus
-  ############################################################################
-  - git clone https://github.com/bitprim/bitprim-consensus.git
-  - cd bitprim-consensus
-  - mkdir build
-  - cd build
-  - cmake .. -DWITH_TESTS=OFF -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_CXX_FLAGS="${CXX_FLAGS}"
-  - make -j2 --silent
-  - sudo make install --silent
-  - cd ..
-  - cd ..
-  
-  ############################################################################
-  # set libraries
-  ############################################################################
-  - |
-    if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
-      sudo ldconfig      
-    fi
-
-  ############################################################################
-  # bitprim-database
-  ############################################################################
-  - git clone https://github.com/bitprim/bitprim-database.git
-  - cd bitprim-database
-  - mkdir build
-  - cd build
-  - cmake .. -DENABLE_TESTS=OFF -DWITH_TESTS=OFF -DWITH_EXAMPLES=OFF -DWITH_TOOLS=OFF -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_CXX_FLAGS="${CXX_FLAGS}"
-  - make -j2 --silent
-  - sudo make install --silent
-  - cd ..
-  - cd ..
+  - wget -O build_bitprim.sh  https://raw.githubusercontent.com/hanchon/travis_complete_cache/master/build_bitprim.sh
+  - sudo chmod 777 build_bitprim.sh
+  #Install bitprim-secp256k1
+  - ./build_bitprim.sh secp256k1 "${TRAVIS_OS_NAME}"
+  #Install bitprim-core
+  - ./build_bitprim.sh core "${TRAVIS_OS_NAME}"
+  #Install bitprim-consensus
+  - ./build_bitprim.sh consensus "${TRAVIS_OS_NAME}"
+  #Install bitprim-database
+  - ./build_bitprim.sh database "${TRAVIS_OS_NAME}"
 
 
 before_script:
@@ -347,109 +362,18 @@ before_script:
   - git config --global user.name "Travis bot"
   - git config --global user.email travis-bot@travis-ci.org
 
-  ############################################################################
-  # Go back to the root of the project and setup the build directory
-  ############################################################################
-
-  # - export CXX_FLAGS="${CXX_FLAGS} -Wall -Wextra -Werror"
-  # - export CXX_FLAGS="${CXX_FLAGS} -Wall -Wextra"
-
-  # - if [ -n "$GCC_VERSION" ]; then export CXX_FLAGS="${CXX_FLAGS} -Wall -Wextra -Weffc++ -pedantic"; fi
-  # - if [ -n "$CLANG_VERSION" ]; then export CXX_FLAGS="${CXX_FLAGS} -Weverything -pedantic"; fi
-
-  # - if [ -n "$GCC_VERSION" ]; then export CXX_FLAGS="${CXX_FLAGS} -Wall -Wextra -Weffc++ -Wpedantic"; fi
-  # - if [ -n "$CLANG_VERSION" ]; then export CXX_FLAGS="${CXX_FLAGS} -Weverything -Wpedantic"; fi
-
   - if [ -n "$GCC_VERSION" ]; then export CXX_FLAGS="${CXX_FLAGS} -Wall -Wextra"; fi
   - if [ -n "$CLANG_VERSION" ]; then export CXX_FLAGS="${CXX_FLAGS} -Wall -Wextra"; fi
 
-
   - cd ${TRAVIS_BUILD_DIR}
-  # - (mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_CXX_FLAGS="${CXX_FLAGS}" ..)
-  # - (mkdir build &&
-  # - cd build
-  # - cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_CXX_FLAGS="${CXX_FLAGS}" ..
   - mkdir build 
   - cd build 
-  - cmake .. -DENABLE_TESTS=OFF -DWITH_TESTS=OFF -DWITH_EXAMPLES=OFF -DWITH_TOOLS=OFF -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_CXX_FLAGS="${CXX_FLAGS}"
+  - cmake .. -DWITH_TESTS=OFF -DWITH_TOOLS=OFF -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_CXX_FLAGS="${CXX_FLAGS}" ${BOOST_OPTS}
 
 script:
 
   - make -j2 
   - sudo make install
-  # - make tests -k
-
-  # ############################################################################
-  # # We only run the full benchmarks on `master` when we're not in a pull
-  # # request, because otherwise it takes too much Travis resources. Otherwise,
-  # # we only run partial benchmarks to make sure they compile and run properly.
-  # #
-  # # Note: The benchmarks associated to a version of the documentation are
-  # #       stored in `doc/html/benchmarks/`.
-  # ############################################################################
-  # - |
-  #   if [[ "${BENCHMARKS}" == "true" ]]; then
-  #     if [[ "${TRAVIS_PULL_REQUEST}" == "false" && "${TRAVIS_BRANCH}" == "master" ]]; then
-  #       (cd build && make benchmarks) || exit 1
-  #       # pwd
-  #       # ls
-  #       # ls build
-  #       # ls build/benchmark
-
-  #       # uname -a
-  #       # pwd
-  #       # uname -i
-  #       # pwd
-  #       # uname -m
-  #       # pwd
-  #       # getconf LONG_BIT
-  #       # pwd
-  #       # cat /proc/cpuinfo
-
-  #       pwd 
-  #       python --version
-  #       pwd 
-
-
-  #       compiler_slug=$(cd build && make travis_compiler_slug | grep 'travis_compiler_slug:' | cut -d ' ' -f 2)
-  #       config_slug=$(cd build && make travis_config_slug | grep 'travis_config_slug:' | cut -d ' ' -f 2)
-  #       cpu_arch=$(uname -m)
-
-  #       # os_name=$(uname -s)
-  #       os_name=$(echo "$(uname -s)" | tr '[:upper:]' '[:lower:]') 
-
-
-
-  #       # Suppress output to avoid leaking the token when the command fails
-  #       git clone https://fpelliccioni:${GITHUB_TOKEN}@github.com/tao-cpp/algorithm --depth 1 --branch=gh-pages doc/html &>/dev/null
-  #       rm -rf doc/html/benchmarks/${config_slug}/${os_name}-${cpu_arch}/${compiler_slug}/
-  #       mkdir -p doc/html/benchmarks/${config_slug}/${os_name}-${cpu_arch}/${compiler_slug}/
-
-  #       ls doc/html/benchmarks/${config_slug}/${os_name}-${cpu_arch}/${compiler_slug}/
-
-  #       # for benchmark in $(ls build/benchmark/*.exe | grep -v ".erb"); do
-  #       for benchmark in $(ls build/benchmark/bench.*); do
-  #         cp ${benchmark} doc/html/benchmarks/${config_slug}/${os_name}-${cpu_arch}/${compiler_slug}/
-  #       done
-
-  #       ls doc/html/benchmarks/${config_slug}/${os_name}-${cpu_arch}/${compiler_slug}/
-
-  #       pushd doc/html
-  #       git add --all .
-  #       git commit --allow-empty -m "Update benchmarks to ${TRAVIS_COMMIT:0:7} for build type '${config_slug}' and compiler '${compiler_slug}'"
-
-  #       # Suppress output to avoid leaking the token
-  #       travis_retry git push origin gh-pages &>/dev/null
-  #       # travis_retry git push origin gh-pages
-
-  #       popd
-  #     else
-  #       export BOOST_HANA_JUST_CHECK_BENCHMARKS=true
-  #       (cd build && make benchmarks -j2)
-  #     fi
-  #   fi
-
-  # # - make benchmarks -k
 
 
 notifications:
@@ -458,4 +382,3 @@ notifications:
     urls: https://webhooks.gitter.im/e/a19dd2b03bf676d2b622
     on_success: change
     on_failure: always
-
