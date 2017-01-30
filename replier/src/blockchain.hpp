@@ -15,11 +15,11 @@ using namespace libbitcoin::protocol;
 namespace libbitcoin {
 namespace blockchain {
 
-extern BCB_INTERNAL replier replier_;
+extern BCB_INTERNAL libbitcoin::protocol::replier replier_;
 
 extern BCB_INTERNAL boost::optional<block_chain> blockchain_;
 
-zmq::message BCB_INTERNAL dispatch(
+libbitcoin::protocol::zmq::message BCB_INTERNAL dispatch(
     const protocol::blockchain::request& request);
 
 } // namespace blockchain

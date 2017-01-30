@@ -44,8 +44,8 @@ find_package(
 
 # Require bitprim-database of at least version 3.0.0 and output ${bitprim_database_CPPFLAGS/LIBS/PKG}.
 #------------------------------------------------------------------------------
-if (NOT TARGET bitprim-database)
-  find_package(bitprim-database 3.0.0 REQUIRED)
+if (NOT TARGET bitprim-database-interface)
+  find_package(bitprim-database-interface 3.0.0 REQUIRED)
 endif()
 
 # Require bitprim-network of at least version 3.0.0 and output ${bitprim_network_CPPFLAGS/LIBS/PKG}.
@@ -203,7 +203,7 @@ if (WITH_CONSENSUS)
   target_compile_definitions(bitprim-blockchain PUBLIC -DWITH_CONSENSUS)
 endif()
 
-target_link_libraries(bitprim-blockchain bitprim-database)
+target_link_libraries(bitprim-blockchain bitprim-database-interface)
 if (WITH_CONSENSUS)
   target_link_libraries(bitprim-blockchain bitprim-consensus)
 endif()
@@ -252,7 +252,7 @@ target_compile_definitions(bitprim-blockchain-requester PUBLIC
   -DWITH_BLOCKCHAIN_REQUESTER)
 add_dependencies(bitprim-blockchain-requester bitprim-blockchain-replier)
 
-target_link_libraries(bitprim-blockchain-requester bitprim-database bitprim-protocol)
+target_link_libraries(bitprim-blockchain-requester bitprim-database-interface bitprim-protocol)
 if (WITH_CONSENSUS)
   target_link_libraries(bitprim-blockchain-requester bitprim-consensus-requester)
 endif()

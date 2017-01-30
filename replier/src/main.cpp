@@ -31,8 +31,8 @@ using namespace std::placeholders;
 namespace libbitcoin {
 namespace blockchain {
 
-static zmq::context context;
-replier replier_(context);
+static libbitcoin::protocol::zmq::context contexto;
+replier replier_(contexto);
 
 #define BB_UNINITIALIZED_CHAIN \
     "The %1% directory is not initialized, run: bn --initchain"
@@ -161,7 +161,7 @@ static int main(parser& metadata)
         ec = replier_.receive(request);
         assert(!ec);
 
-        zmq::message reply = dispatch(request);
+        libbitcoin::protocol::zmq::message reply = dispatch(request);
         ec = replier_.send(reply);
         assert(!ec);
     }

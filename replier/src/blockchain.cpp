@@ -1144,10 +1144,10 @@ static protocol::void_reply dispatch_organize_transaction(
 }
 
 // ----------------------------------------------------------------------------
-zmq::message dispatch(
+libbitcoin::protocol::zmq::message dispatch(
     const protocol::blockchain::request& request)
 {
-    zmq::message reply;
+    libbitcoin::protocol::zmq::message reply;
     switch (request.request_type_case())
     {
     // Startup and shutdown.

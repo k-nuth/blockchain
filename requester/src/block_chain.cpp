@@ -35,7 +35,7 @@ using namespace libbitcoin::protocol;
 namespace libbitcoin {
 namespace blockchain {
 
-static zmq::context context;
+static libbitcoin::protocol::zmq::context context;
 
 block_chain::block_chain(threadpool& pool,
     const blockchain::settings& chain_settings,
