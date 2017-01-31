@@ -44,8 +44,8 @@ find_package(
 
 # Require bitprim-database of at least version 3.0.0 and output ${bitprim_database_CPPFLAGS/LIBS/PKG}.
 #------------------------------------------------------------------------------
-if (NOT TARGET bitprim-database-interface)
-  find_package(bitprim-database-interface 3.0.0 REQUIRED)
+if (NOT TARGET bitprim-database)
+  find_package(bitprim-database 3.0.0 REQUIRED)
 endif()
 
 # Require bitprim-network of at least version 3.0.0 and output ${bitprim_network_CPPFLAGS/LIBS/PKG}.
@@ -203,61 +203,61 @@ if (WITH_CONSENSUS)
   target_compile_definitions(bitprim-blockchain PUBLIC -DWITH_CONSENSUS)
 endif()
 
-target_link_libraries(bitprim-blockchain bitprim-database-interface)
+target_link_libraries(bitprim-blockchain bitprim-database)
 if (WITH_CONSENSUS)
   target_link_libraries(bitprim-blockchain bitprim-consensus)
 endif()
 
 _group_sources(bitprim-blockchain "${CMAKE_CURRENT_LIST_DIR}")
 
-# src/bitprim-blockchain-replier => ${bindir}
-#------------------------------------------------------------------------------
-add_executable(bitprim-blockchain-replier
-  replier/src/blockchain.cpp
-  replier/src/configuration.cpp
-  replier/src/main.cpp
-  replier/src/parser.cpp)
-if (NOT MSVC)
-  target_compile_definitions(bitprim-blockchain-replier PUBLIC -DSYSCONFDIR=\"${SYSCONFDIR}\")
-endif()
-target_link_libraries(bitprim-blockchain-replier bitprim-network bitprim-protocol bitprim-blockchain)
-target_include_directories(bitprim-blockchain-replier PRIVATE
-  ${CMAKE_CURRENT_SOURCE_DIR}/replier/include)
+# # src/bitprim-blockchain-replier => ${bindir}
+# #------------------------------------------------------------------------------
+# add_executable(bitprim-blockchain-replier
+#   replier/src/blockchain.cpp
+#   replier/src/configuration.cpp
+#   replier/src/main.cpp
+#   replier/src/parser.cpp)
+# if (NOT MSVC)
+#   target_compile_definitions(bitprim-blockchain-replier PUBLIC -DSYSCONFDIR=\"${SYSCONFDIR}\")
+# endif()
+# target_link_libraries(bitprim-blockchain-replier bitprim-network bitprim-protocol bitprim-blockchain)
+# target_include_directories(bitprim-blockchain-replier PRIVATE
+#   ${CMAKE_CURRENT_SOURCE_DIR}/replier/include)
 
-_group_sources(bitprim-blockchain-replier "${CMAKE_CURRENT_LIST_DIR}/replier")
+# _group_sources(bitprim-blockchain-replier "${CMAKE_CURRENT_LIST_DIR}/replier")
 
-# src/bitprim-blockchain-requester.la => ${libdir}
-#------------------------------------------------------------------------------
-add_library(bitprim-blockchain-requester ${MODE}
-  requester/src/block_chain.cpp
-  src/interface/block_fetcher.cpp
-  src/pools/orphan_pool.cpp
-  src/pools/orphan_pool_manager.cpp
-  src/pools/transaction_pool.cpp
-  src/pools/transaction_pool_index.cpp
-  src/settings.cpp
-  src/validation/fork.cpp
-  src/validation/populate_block.cpp
-  src/validation/validate_block.cpp
-  src/validation/validate_input.cpp)
-target_include_directories(bitprim-blockchain-requester PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>)
+# # src/bitprim-blockchain-requester.la => ${libdir}
+# #------------------------------------------------------------------------------
+# add_library(bitprim-blockchain-requester ${MODE}
+#   requester/src/block_chain.cpp
+#   src/interface/block_fetcher.cpp
+#   src/pools/orphan_pool.cpp
+#   src/pools/orphan_pool_manager.cpp
+#   src/pools/transaction_pool.cpp
+#   src/pools/transaction_pool_index.cpp
+#   src/settings.cpp
+#   src/validation/fork.cpp
+#   src/validation/populate_block.cpp
+#   src/validation/validate_block.cpp
+#   src/validation/validate_input.cpp)
+# target_include_directories(bitprim-blockchain-requester PUBLIC
+#   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+#   $<INSTALL_INTERFACE:include>)
+# 
+# target_compile_definitions(bitprim-blockchain-requester PUBLIC -DBCB_STATIC)
+# target_include_directories(bitprim-blockchain-requester PRIVATE
+#   ${CMAKE_CURRENT_SOURCE_DIR}/src/clone)
 
-target_compile_definitions(bitprim-blockchain-requester PUBLIC -DBCB_STATIC)
-target_include_directories(bitprim-blockchain-requester PRIVATE
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/clone)
+# target_compile_definitions(bitprim-blockchain-requester PUBLIC
+#   -DWITH_BLOCKCHAIN_REQUESTER)
+# add_dependencies(bitprim-blockchain-requester bitprim-blockchain-replier)
+# 
+# target_link_libraries(bitprim-blockchain-requester bitprim-database bitprim-protocol)
+# if (WITH_CONSENSUS)
+#   target_link_libraries(bitprim-blockchain-requester bitprim-consensus-requester)
+# endif()
 
-target_compile_definitions(bitprim-blockchain-requester PUBLIC
-  -DWITH_BLOCKCHAIN_REQUESTER)
-add_dependencies(bitprim-blockchain-requester bitprim-blockchain-replier)
-
-target_link_libraries(bitprim-blockchain-requester bitprim-database-interface bitprim-protocol)
-if (WITH_CONSENSUS)
-  target_link_libraries(bitprim-blockchain-requester bitprim-consensus-requester)
-endif()
-
-_group_sources(bitprim-blockchain-requester "${CMAKE_CURRENT_LIST_DIR}/requester")
+# _group_sources(bitprim-blockchain-requester "${CMAKE_CURRENT_LIST_DIR}/requester")
 
 # Tests
 #==============================================================================
@@ -300,29 +300,29 @@ if (WITH_TESTS)
     # validate_block_tests) # no test cases
 endif()
 
-# local: test/bitprim_blockchain_requester_test
-#------------------------------------------------------------------------------
-if (WITH_TESTS)
-  add_executable(bitprim_blockchain_requester_test
-    test/main.cpp
-    test/transaction_pool.cpp
-    test/validate_block.cpp)
-  target_compile_definitions(bitprim_blockchain_requester_test PRIVATE
-    -DWITH_BLOCKCHAIN_REPLIER="$<TARGET_FILE:bitprim-blockchain-replier>")
-  target_include_directories(bitprim_blockchain_requester_test PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/requester/test)
-  target_link_libraries(bitprim_blockchain_requester_test PUBLIC bitprim-blockchain-requester)
-  if (WITH_CONSENSUS)
-    target_compile_definitions(bitprim_blockchain_requester_test PRIVATE
-      -DWITH_CONSENSUS_REPLIER="$<TARGET_FILE:bitprim-consensus-replier>")
-  endif()
+# # local: test/bitprim_blockchain_requester_test
+# #------------------------------------------------------------------------------
+# if (WITH_TESTS)
+#   add_executable(bitprim_blockchain_requester_test
+#     test/main.cpp
+#     test/transaction_pool.cpp
+#     test/validate_block.cpp)
+#   target_compile_definitions(bitprim_blockchain_requester_test PRIVATE
+#     -DWITH_BLOCKCHAIN_REPLIER="$<TARGET_FILE:bitprim-blockchain-replier>")
+#   target_include_directories(bitprim_blockchain_requester_test PRIVATE
+#     ${CMAKE_CURRENT_SOURCE_DIR}/requester/test)
+#   target_link_libraries(bitprim_blockchain_requester_test PUBLIC bitprim-blockchain-requester)
+#   if (WITH_CONSENSUS)
+#     target_compile_definitions(bitprim_blockchain_requester_test PRIVATE
+#       -DWITH_CONSENSUS_REPLIER="$<TARGET_FILE:bitprim-consensus-replier>")
+#   endif()
 
-  _add_tests(bitprim_blockchain_requester_test "blockchain-requester"
-    transaction_pool_tests)
-    # validate_block_tests) # no test cases
+#   _add_tests(bitprim_blockchain_requester_test "blockchain-requester"
+#     transaction_pool_tests)
+#     # validate_block_tests) # no test cases
 
-  _group_sources(bitprim_blockchain_requester_test "${CMAKE_CURRENT_LIST_DIR}/test")
-endif()
+#   _group_sources(bitprim_blockchain_requester_test "${CMAKE_CURRENT_LIST_DIR}/test")
+# endif()
 
 # Tools
 #==============================================================================
@@ -337,7 +337,8 @@ endif()
 
 # Install
 #==============================================================================
-install(TARGETS bitprim-blockchain bitprim-blockchain-requester bitprim-blockchain-replier
+# install(TARGETS bitprim-blockchain bitprim-blockchain-requester bitprim-blockchain-replier
+install(TARGETS bitprim-blockchain
   EXPORT bitprim-blockchain
   ARCHIVE DESTINATION lib
   RUNTIME DESTINATION bin)
