@@ -26,6 +26,12 @@ option(WITH_TESTS "Compile with unit tests." ON)
 #------------------------------------------------------------------------------
 option(WITH_TOOLS "Compile with tools." ON)
 
+
+# Implement --with-remote-database and declare WITH_REMOTE_DATABASE.
+#------------------------------------------------------------------------------
+option(WITH_REMOTE_DATABASE "Compile with remote bitprim-database (aka. bitprim-database-requester)." ON)
+
+
 # Inherit --enable-shared and define BOOST_TEST_DYN_LINK.
 #------------------------------------------------------------------------------
 option(ENABLE_SHARED "" OFF)
@@ -42,11 +48,20 @@ find_package(
   Boost 1.56.0 REQUIRED
   COMPONENTS unit_test_framework)
 
-# Require bitprim-database of at least version 3.0.0 and output ${bitprim_database_CPPFLAGS/LIBS/PKG}.
+# Require bitprim-database (or bitprim-database-requester) of at least version 3.0.0 and output ${bitprim_database_CPPFLAGS/LIBS/PKG}.
 #------------------------------------------------------------------------------
-if (NOT TARGET bitprim-database)
-  find_package(bitprim-database 3.0.0 REQUIRED)
+
+if (WITH_REMOTE_DATABASE)
+  if (NOT TARGET bitprim-database-requester)
+    find_package(bitprim-database-requester 3.0.0 REQUIRED)
+  endif()
+else()
+  if (NOT TARGET bitprim-database)
+    find_package(bitprim-database 3.0.0 REQUIRED)
+  endif()
 endif()
+
+
 
 # Require bitprim-network of at least version 3.0.0 and output ${bitprim_network_CPPFLAGS/LIBS/PKG}.
 #------------------------------------------------------------------------------
@@ -203,7 +218,14 @@ if (WITH_CONSENSUS)
   target_compile_definitions(bitprim-blockchain PUBLIC -DWITH_CONSENSUS)
 endif()
 
-target_link_libraries(bitprim-blockchain bitprim-database)
+if (WITH_REMOTE_DATABASE)
+  target_link_libraries(bitprim-blockchain bitprim-database-requester)
+  target_compile_definitions(bitprim-blockchain PUBLIC -DWITH_REMOTE_DATABASE)
+else()
+  target_link_libraries(bitprim-blockchain bitprim-database)
+endif()
+
+
 if (WITH_CONSENSUS)
   target_link_libraries(bitprim-blockchain bitprim-consensus)
 endif()
