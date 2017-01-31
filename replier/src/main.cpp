@@ -31,8 +31,8 @@ using namespace std::placeholders;
 namespace libbitcoin {
 namespace blockchain {
 
-static libbitcoin::protocol::zmq::context contexto;
-replier replier_(contexto);
+static libbitcoin::protocol::zmq::context context;
+replier replier_(context);
 
 #define BB_UNINITIALIZED_CHAIN \
     "The %1% directory is not initialized, run: bn --initchain"
