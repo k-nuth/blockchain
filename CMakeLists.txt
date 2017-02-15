@@ -26,6 +26,13 @@ option(WITH_TESTS "Compile with unit tests." ON)
 #------------------------------------------------------------------------------
 option(WITH_TOOLS "Compile with tools." ON)
 
+# Implement --with-litecoin.
+#------------------------------------------------------------------------------
+option(WITH_LITECOIN "Compile with Litecoin support." OFF)
+if (WITH_LITECOIN)
+  add_definitions(-DLITECOIN)
+endif()
+
 
 # Implement --with-remote-database and declare WITH_REMOTE_DATABASE.
 #------------------------------------------------------------------------------

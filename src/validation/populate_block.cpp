@@ -148,9 +148,22 @@ bool populate_block::populate_timestamps(chain_state::data& data,
     if (!get_timestamp(data.timestamp.self, map.timestamp_self, fork))
         return false;
 
+
+    #ifdef LITECOIN
+    bool res_get_timestamp = false;
+
+    if (chain_state::is_retarget_height(map.timestamp_self)) {
+        res_get_timestamp = get_timestamp(data.timestamp.retarget,
+                        map.timestamp_retarget != 0 ? map.timestamp_retarget - 1 : 0, 
+                        fork);
+    }
+    return map.timestamp_retarget == 0 || res_get_timestamp;
+    #else
+
     // Retarget not required if timestamp_retarget is zero.
     return map.timestamp_retarget == 0 ||
         get_timestamp(data.timestamp.retarget, map.timestamp_retarget, fork);
+    #endif
 }
 
 // TODO: populate data.activated by caching full activation height.
