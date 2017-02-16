@@ -1,13 +1,12 @@
 /**
- * Copyright (c) 2011-2015 libbitcoin developers (see AUTHORS)
+ * Copyright (c) 2011-2017 libbitcoin developers (see AUTHORS)
  *
  * This file is part of libbitcoin.
  *
- * libbitcoin is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License with
- * additional permissions to the one published by the Free Software
- * Foundation, either version 3 of the License, or (at your option)
- * any later version. For more information see LICENSE.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -15,7 +14,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #ifndef LIBBITCOIN_BLOCKCHAIN_FAST_CHAIN_HPP
 #define LIBBITCOIN_BLOCKCHAIN_FAST_CHAIN_HPP
@@ -23,6 +22,7 @@
 #include <cstddef>
 #include <bitcoin/database.hpp>
 #include <bitcoin/blockchain/define.hpp>
+#include <bitcoin/blockchain/pools/branch.hpp>
 
 namespace libbitcoin {
 namespace blockchain {
@@ -34,6 +34,9 @@ namespace blockchain {
 class BCB_API fast_chain
 {
 public:
+    // This avoids conflict with the result_handler in safe_chain.
+    typedef handle0 complete_handler;
+
     // Readers.
     // ------------------------------------------------------------------------
 
@@ -44,9 +47,13 @@ public:
     /// Get a determination of whether the block hash exists in the store.
     virtual bool get_block_exists(const hash_digest& block_hash) const = 0;
 
-    /// Get the difficulty of the fork starting at the given height.
-    virtual bool get_fork_difficulty(hash_number& out_difficulty,
-        size_t from_height) const = 0;
+    /// Get the hash of the block if it exists.
+    virtual bool get_block_hash(hash_digest& out_hash,
+        size_t height) const = 0;
+
+    /// Get the work of the branch starting at the given height.
+    virtual bool get_branch_work(uint256_t& out_work,
+        const uint256_t& maximum, size_t from_height) const = 0;
 
     /// Get the header of the block at the given height.
     virtual bool get_header(chain::header& out_header,
@@ -72,41 +79,53 @@ public:
 
     /// Get the output that is referenced by the outpoint.
     virtual bool get_output(chain::output& out_output, size_t& out_height,
-        size_t& out_position, const chain::output_point& outpoint,
-        size_t fork_height) const = 0;
+        bool& out_coinbase, const chain::output_point& outpoint,
+        size_t branch_height, bool require_confirmed) const = 0;
 
     /// Determine if an unspent transaction exists with the given hash.
     virtual bool get_is_unspent_transaction(const hash_digest& hash,
-        size_t fork_height) const = 0;
+        size_t branch_height, bool require_confirmed) const = 0;
+
+    /// Get position data for a transaction.
+    virtual bool get_transaction_position(size_t& out_height,
+        size_t& out_position, const hash_digest& hash,
+        bool require_confirmed) const = 0;
 
     /// Get the transaction of the given hash and its block height.
     virtual transaction_ptr get_transaction(size_t& out_block_height,
-        const hash_digest& hash) const = 0;
+        const hash_digest& hash, bool require_confirmed) const = 0;
 
     // Writers.
-    // ------------------------------------------------------------------------ 
+    // ------------------------------------------------------------------------
 
-    /// Set the flush lock scope (for use only with insert).
-    virtual bool begin_writes() = 0;
+    /// Create flush lock if flush_writes is true, and set sequential lock.
+    virtual bool begin_insert() const = 0;
 
-    /// Reset the flush lock scope (for use only with insert).
-    virtual bool end_writes() = 0;
+    /// Clear flush lock if flush_writes is true, and clear sequential lock.
+    virtual bool end_insert() const = 0;
 
     /// Insert a block to the blockchain, height is checked for existence.
-    virtual bool insert(block_const_ptr block, size_t height, bool flush) = 0;
+    virtual bool insert(block_const_ptr block, size_t height) = 0;
 
-    /// Append the blocks to the top of the chain, height is validated.
-    virtual bool push(const block_const_ptr_list& blocks, size_t height,
-        bool flush) = 0;
-
-    /// Remove blocks from above the given hash, returning them in order.
-    virtual bool pop(block_const_ptr_list& out_blocks,
-        const hash_digest& fork_hash, bool flush) = 0;
+    /// Push an unconfirmed transaction to the tx table and index outputs.
+    virtual void push(transaction_const_ptr tx, dispatcher& dispatch,
+        complete_handler handler) = 0;
 
     /// Swap incoming and outgoing blocks, height is validated.
-    virtual bool swap(block_const_ptr_list& out_blocks,
-        const block_const_ptr_list& in_blocks, size_t fork_height,
-        const hash_digest& fork_hash, bool flush) = 0;
+    virtual void reorganize(const config::checkpoint& fork_point,
+        block_const_ptr_list_const_ptr incoming_blocks,
+        block_const_ptr_list_ptr outgoing_blocks, dispatcher& dispatch,
+        complete_handler handler) = 0;
+
+    // Properties
+    // ------------------------------------------------------------------------
+
+    /// Get a reference to the chain state relative to the next block.
+    virtual chain::chain_state::ptr chain_state() const = 0;
+
+    /// Get a reference to the chain state relative to the next block.
+    virtual chain::chain_state::ptr chain_state(
+        branch::const_ptr branch) const = 0;
 };
 
 } // namespace blockchain

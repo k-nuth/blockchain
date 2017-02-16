@@ -1,13 +1,12 @@
 /**
- * Copyright (c) 2011-2015 libbitcoin developers (see AUTHORS)
+ * Copyright (c) 2011-2017 libbitcoin developers (see AUTHORS)
  *
  * This file is part of libbitcoin.
  *
- * libbitcoin is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License with
- * additional permissions to the one published by the Free Software
- * Foundation, either version 3 of the License, or (at your option)
- * any later version. For more information see LICENSE.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -15,24 +14,46 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <bitcoin/blockchain/settings.hpp>
+
+#include <cstdint>
 
 namespace libbitcoin {
 namespace blockchain {
 
-// TODO: default threads to number of cores.
 settings::settings()
-  : threads(8),
+  : cores(0),
     priority(true),
     use_libconsensus(false),
-    use_testnet_rules(false),
-    flush_reorganizations(false),
-    transaction_pool_consistency(false),
-    transaction_pool_capacity(1000),
-    block_pool_capacity(50)
+    reject_conflicts(true),
+    minimum_byte_fee_satoshis(1),
+    reorganization_limit(256),
+    block_version(4),
+    easy_blocks(false),
+    bip16(true),
+    bip30(true),
+    bip34(true),
+    bip66(true),
+    bip65(true),
+    bip90(true)
 {
+}
+
+uint32_t settings::enabled_forks() const
+{
+    using namespace machine;
+
+    uint32_t forks = no_rules;
+    forks |= (easy_blocks ? rule_fork::easy_blocks : 0);
+    forks |= (bip16 ? rule_fork::bip16_rule : 0);
+    forks |= (bip30 ? rule_fork::bip30_rule : 0);
+    forks |= (bip34 ? rule_fork::bip34_rule : 0);
+    forks |= (bip66 ? rule_fork::bip66_rule : 0);
+    forks |= (bip65 ? rule_fork::bip65_rule : 0);
+    forks |= (bip90 ? rule_fork::bip90_rule : 0);
+    return forks;
 }
 
 // Use push_back due to initializer_list bug:
@@ -63,16 +84,12 @@ settings::settings(config::settings context)
             checkpoints.push_back({ "000000000000003887df1f29024b06fc2200b55f8af8f35453d7be294df2d214", 250000 });
             checkpoints.push_back({ "0000000000000001ae8c72a0b0c301f67e3afca10e819efa9041e458e9bd7e40", 279000 });
             checkpoints.push_back({ "00000000000000004d9b4ef50f0f9d686fd69db2e03af35a100370c64632a983", 295000 });
-            checkpoints.push_back({ "000000000000000017a4b176294583519076f06cd2b5e4ef139dada8d44838d8", 330791 });
-            checkpoints.push_back({ "000000000000000017522241d7afd686bb2315930fc1121861c9abf52e8c37f1", 337459 });
-            checkpoints.push_back({ "0000000000000000086672a8c97ad666f89cf04736951791150015419810d586", 368991 });
-            checkpoints.push_back({ "000000000000000004ec466ce4732fe6f1ed1cddc2ed4b328fff5224276e3f6f", 400000 });
             break;
         }
 
         case config::settings::testnet:
         {
-            use_testnet_rules = true;
+            easy_blocks = true;
 
             checkpoints.reserve(7);
             checkpoints.push_back({ "000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943", 0 });

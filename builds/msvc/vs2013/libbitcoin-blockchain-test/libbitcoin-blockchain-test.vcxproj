@@ -90,14 +90,19 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseSEXE|x64'">
     <PostBuildEvent>
-      <Command>"$(TargetPath)" --run_test=fork_tests --show_progress=no --result_code=no --detect_memory_leak=0 --report_level=no --build_info=yes</Command>
+      <Command>"$(TargetPath)" --run_test=* --show_progress=no --result_code=no --detect_memory_leak=0 --report_level=no --build_info=yes</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\test\fork.cpp" />
+    <ClCompile Include="..\..\..\..\test\block_chain.cpp" />
+    <ClCompile Include="..\..\..\..\test\block_entry.cpp" />
+    <ClCompile Include="..\..\..\..\test\block_pool.cpp" />
+    <ClCompile Include="..\..\..\..\test\branch.cpp" />
     <ClCompile Include="..\..\..\..\test\main.cpp" />
+    <ClCompile Include="..\..\..\..\test\transaction_entry.cpp" />
     <ClCompile Include="..\..\..\..\test\transaction_pool.cpp" />
     <ClCompile Include="..\..\..\..\test\validate_block.cpp" />
+    <ClCompile Include="..\..\..\..\test\validate_transaction.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -116,7 +121,7 @@
     <Import Project="..\..\..\..\..\..\nuget\boost_system-vc120.1.57.0.0\build\native\boost_system-vc120.targets" Condition="Exists('..\..\..\..\..\..\nuget\boost_system-vc120.1.57.0.0\build\native\boost_system-vc120.targets')" />
     <Import Project="..\..\..\..\..\..\nuget\boost_thread-vc120.1.57.0.0\build\native\boost_thread-vc120.targets" Condition="Exists('..\..\..\..\..\..\nuget\boost_thread-vc120.1.57.0.0\build\native\boost_thread-vc120.targets')" />
     <Import Project="..\..\..\..\..\..\nuget\boost_unit_test_framework-vc120.1.57.0.0\build\native\boost_unit_test_framework-vc120.targets" Condition="Exists('..\..\..\..\..\..\nuget\boost_unit_test_framework-vc120.1.57.0.0\build\native\boost_unit_test_framework-vc120.targets')" />
-    <Import Project="..\..\..\..\..\..\nuget\secp256k1_vc120.0.1.0.13\build\native\secp256k1_vc120.targets" Condition="Exists('..\..\..\..\..\..\nuget\secp256k1_vc120.0.1.0.13\build\native\secp256k1_vc120.targets')" />
+    <Import Project="..\..\..\..\..\..\nuget\secp256k1_vc120.0.1.0.14\build\native\secp256k1_vc120.targets" Condition="Exists('..\..\..\..\..\..\nuget\secp256k1_vc120.0.1.0.14\build\native\secp256k1_vc120.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
@@ -133,7 +138,7 @@
     <Error Condition="!Exists('..\..\..\..\..\..\nuget\boost_system-vc120.1.57.0.0\build\native\boost_system-vc120.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\..\..\..\nuget\boost_system-vc120.1.57.0.0\build\native\boost_system-vc120.targets'))" />
     <Error Condition="!Exists('..\..\..\..\..\..\nuget\boost_thread-vc120.1.57.0.0\build\native\boost_thread-vc120.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\..\..\..\nuget\boost_thread-vc120.1.57.0.0\build\native\boost_thread-vc120.targets'))" />
     <Error Condition="!Exists('..\..\..\..\..\..\nuget\boost_unit_test_framework-vc120.1.57.0.0\build\native\boost_unit_test_framework-vc120.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\..\..\..\nuget\boost_unit_test_framework-vc120.1.57.0.0\build\native\boost_unit_test_framework-vc120.targets'))" />
-    <Error Condition="!Exists('..\..\..\..\..\..\nuget\secp256k1_vc120.0.1.0.13\build\native\secp256k1_vc120.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\..\..\..\nuget\secp256k1_vc120.0.1.0.13\build\native\secp256k1_vc120.targets'))" />
+    <Error Condition="!Exists('..\..\..\..\..\..\nuget\secp256k1_vc120.0.1.0.14\build\native\secp256k1_vc120.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\..\..\..\nuget\secp256k1_vc120.0.1.0.14\build\native\secp256k1_vc120.targets'))" />
   </Target>
   <ItemGroup>
     <ProjectReference Include="..\libbitcoin-blockchain\libbitcoin-blockchain.vcxproj">

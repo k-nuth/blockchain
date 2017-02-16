@@ -100,32 +100,42 @@
     <ClInclude Include="..\..\..\..\include\bitcoin\blockchain.hpp" />
     <ClInclude Include="..\..\..\..\include\bitcoin\blockchain\define.hpp" />
     <ClInclude Include="..\..\..\..\include\bitcoin\blockchain\interface\block_chain.hpp" />
-    <ClInclude Include="..\..\..\..\include\bitcoin\blockchain\interface\block_fetcher.hpp" />
     <ClInclude Include="..\..\..\..\include\bitcoin\blockchain\interface\safe_chain.hpp" />
     <ClInclude Include="..\..\..\..\include\bitcoin\blockchain\interface\fast_chain.hpp" />
-    <ClInclude Include="..\..\..\..\include\bitcoin\blockchain\pools\orphan_pool.hpp" />
-    <ClInclude Include="..\..\..\..\include\bitcoin\blockchain\pools\orphan_pool_manager.hpp" />
+    <ClInclude Include="..\..\..\..\include\bitcoin\blockchain\pools\block_entry.hpp" />
+    <ClInclude Include="..\..\..\..\include\bitcoin\blockchain\pools\block_pool.hpp" />
+    <ClInclude Include="..\..\..\..\include\bitcoin\blockchain\pools\branch.hpp" />
+    <ClInclude Include="..\..\..\..\include\bitcoin\blockchain\pools\block_organizer.hpp" />
+    <ClInclude Include="..\..\..\..\include\bitcoin\blockchain\pools\transaction_entry.hpp" />
+    <ClInclude Include="..\..\..\..\include\bitcoin\blockchain\pools\transaction_organizer.hpp" />
     <ClInclude Include="..\..\..\..\include\bitcoin\blockchain\pools\transaction_pool.hpp" />
-    <ClInclude Include="..\..\..\..\include\bitcoin\blockchain\pools\transaction_pool_index.hpp" />
+    <ClInclude Include="..\..\..\..\include\bitcoin\blockchain\populate\populate_base.hpp" />
+    <ClInclude Include="..\..\..\..\include\bitcoin\blockchain\populate\populate_block.hpp" />
+    <ClInclude Include="..\..\..\..\include\bitcoin\blockchain\populate\populate_chain_state.hpp" />
+    <ClInclude Include="..\..\..\..\include\bitcoin\blockchain\populate\populate_transaction.hpp" />
     <ClInclude Include="..\..\..\..\include\bitcoin\blockchain\settings.hpp" />
-    <ClInclude Include="..\..\..\..\include\bitcoin\blockchain\validation\fork.hpp" />
-    <ClInclude Include="..\..\..\..\include\bitcoin\blockchain\validation\populate_block.hpp" />
-    <ClInclude Include="..\..\..\..\include\bitcoin\blockchain\validation\validate_block.hpp" />
-    <ClInclude Include="..\..\..\..\include\bitcoin\blockchain\validation\validate_input.hpp" />
+    <ClInclude Include="..\..\..\..\include\bitcoin\blockchain\validate\validate_block.hpp" />
+    <ClInclude Include="..\..\..\..\include\bitcoin\blockchain\validate\validate_input.hpp" />
+    <ClInclude Include="..\..\..\..\include\bitcoin\blockchain\validate\validate_transaction.hpp" />
     <ClInclude Include="..\..\..\..\include\bitcoin\blockchain\version.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\src\interface\block_chain.cpp" />
-    <ClCompile Include="..\..\..\..\src\interface\block_fetcher.cpp" />
-    <ClCompile Include="..\..\..\..\src\pools\orphan_pool.cpp" />
-    <ClCompile Include="..\..\..\..\src\pools\orphan_pool_manager.cpp" />
+    <ClCompile Include="..\..\..\..\src\pools\block_entry.cpp" />
+    <ClCompile Include="..\..\..\..\src\pools\block_pool.cpp" />
+    <ClCompile Include="..\..\..\..\src\pools\branch.cpp" />
+    <ClCompile Include="..\..\..\..\src\pools\block_organizer.cpp" />
+    <ClCompile Include="..\..\..\..\src\pools\transaction_entry.cpp" />
+    <ClCompile Include="..\..\..\..\src\pools\transaction_organizer.cpp" />
     <ClCompile Include="..\..\..\..\src\pools\transaction_pool.cpp" />
-    <ClCompile Include="..\..\..\..\src\pools\transaction_pool_index.cpp" />
+    <ClCompile Include="..\..\..\..\src\populate\populate_base.cpp" />
+    <ClCompile Include="..\..\..\..\src\populate\populate_block.cpp" />
+    <ClCompile Include="..\..\..\..\src\populate\populate_chain_state.cpp" />
+    <ClCompile Include="..\..\..\..\src\populate\populate_transaction.cpp" />
     <ClCompile Include="..\..\..\..\src\settings.cpp" />
-    <ClCompile Include="..\..\..\..\src\validation\fork.cpp" />
-    <ClCompile Include="..\..\..\..\src\validation\populate_block.cpp" />
-    <ClCompile Include="..\..\..\..\src\validation\validate_block.cpp" />
-    <ClCompile Include="..\..\..\..\src\validation\validate_input.cpp" />
+    <ClCompile Include="..\..\..\..\src\validate\validate_block.cpp" />
+    <ClCompile Include="..\..\..\..\src\validate\validate_input.cpp" />
+    <ClCompile Include="..\..\..\..\src\validate\validate_transaction.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionSettings">
@@ -139,7 +149,7 @@
     <Import Project="..\..\..\..\..\..\nuget\boost_regex-vc120.1.57.0.0\build\native\boost_regex-vc120.targets" Condition="Exists('..\..\..\..\..\..\nuget\boost_regex-vc120.1.57.0.0\build\native\boost_regex-vc120.targets')" />
     <Import Project="..\..\..\..\..\..\nuget\boost_system-vc120.1.57.0.0\build\native\boost_system-vc120.targets" Condition="Exists('..\..\..\..\..\..\nuget\boost_system-vc120.1.57.0.0\build\native\boost_system-vc120.targets')" />
     <Import Project="..\..\..\..\..\..\nuget\boost_thread-vc120.1.57.0.0\build\native\boost_thread-vc120.targets" Condition="Exists('..\..\..\..\..\..\nuget\boost_thread-vc120.1.57.0.0\build\native\boost_thread-vc120.targets')" />
-    <Import Project="..\..\..\..\..\..\nuget\secp256k1_vc120.0.1.0.13\build\native\secp256k1_vc120.targets" Condition="Exists('..\..\..\..\..\..\nuget\secp256k1_vc120.0.1.0.13\build\native\secp256k1_vc120.targets')" />
+    <Import Project="..\..\..\..\..\..\nuget\secp256k1_vc120.0.1.0.14\build\native\secp256k1_vc120.targets" Condition="Exists('..\..\..\..\..\..\nuget\secp256k1_vc120.0.1.0.14\build\native\secp256k1_vc120.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
@@ -155,6 +165,6 @@
     <Error Condition="!Exists('..\..\..\..\..\..\nuget\boost_regex-vc120.1.57.0.0\build\native\boost_regex-vc120.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\..\..\..\nuget\boost_regex-vc120.1.57.0.0\build\native\boost_regex-vc120.targets'))" />
     <Error Condition="!Exists('..\..\..\..\..\..\nuget\boost_system-vc120.1.57.0.0\build\native\boost_system-vc120.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\..\..\..\nuget\boost_system-vc120.1.57.0.0\build\native\boost_system-vc120.targets'))" />
     <Error Condition="!Exists('..\..\..\..\..\..\nuget\boost_thread-vc120.1.57.0.0\build\native\boost_thread-vc120.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\..\..\..\nuget\boost_thread-vc120.1.57.0.0\build\native\boost_thread-vc120.targets'))" />
-    <Error Condition="!Exists('..\..\..\..\..\..\nuget\secp256k1_vc120.0.1.0.13\build\native\secp256k1_vc120.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\..\..\..\nuget\secp256k1_vc120.0.1.0.13\build\native\secp256k1_vc120.targets'))" />
+    <Error Condition="!Exists('..\..\..\..\..\..\nuget\secp256k1_vc120.0.1.0.14\build\native\secp256k1_vc120.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\..\..\..\nuget\secp256k1_vc120.0.1.0.14\build\native\secp256k1_vc120.targets'))" />
   </Target>
 </Project>

@@ -152,11 +152,11 @@ AC_SUBST([bitcoin_database_CPPFLAGS], [${bitcoin_database_CFLAGS}])
 AC_MSG_NOTICE([bitcoin_database_CPPFLAGS : ${bitcoin_database_CPPFLAGS}])
 AC_MSG_NOTICE([bitcoin_database_LIBS : ${bitcoin_database_LIBS}])
 
-# Require bitcoin-consensus of at least version 2.0.0 and output ${bitcoin_consensus_CPPFLAGS/LIBS/PKG}.
+# Require bitcoin-consensus of at least version 3.0.0 and output ${bitcoin_consensus_CPPFLAGS/LIBS/PKG}.
 #------------------------------------------------------------------------------
 AS_CASE([${with_consensus}], [yes],
-    [PKG_CHECK_MODULES([bitcoin_consensus], [libbitcoin-consensus >= 2.0.0])
-     AC_SUBST([bitcoin_consensus_PKG], ['libbitcoin-consensus >= 2.0.0'])
+    [PKG_CHECK_MODULES([bitcoin_consensus], [libbitcoin-consensus >= 3.0.0])
+     AC_SUBST([bitcoin_consensus_PKG], ['libbitcoin-consensus >= 3.0.0'])
      AC_SUBST([bitcoin_consensus_CPPFLAGS], [${bitcoin_consensus_CFLAGS}])
      AC_MSG_NOTICE([bitcoin_consensus_CPPFLAGS : ${bitcoin_consensus_CPPFLAGS}])
      AC_MSG_NOTICE([bitcoin_consensus_LIBS : ${bitcoin_consensus_LIBS}])],
@@ -208,6 +208,12 @@ AS_CASE([${CC}], [*clang*],
 AS_CASE([${CC}], [*gcc*],
     [AX_CHECK_COMPILE_FLAG([-Wno-deprecated-declarations],
         [CXXFLAGS="$CXXFLAGS -Wno-deprecated-declarations"])])
+
+# Clean up boost 1.55 headers. Enabled in clang only.
+#------------------------------------------------------------------------------
+AS_CASE([${CC}], [*clang*],
+    [AX_CHECK_COMPILE_FLAG([-Wno-redeclared-class-member],
+        [CXXFLAGS="$CXXFLAGS -Wno-redeclared-class-member"])])
 
 # Protect stack.
 #------------------------------------------------------------------------------

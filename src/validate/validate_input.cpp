@@ -1,13 +1,12 @@
 /**
- * Copyright (c) 2011-2015 libbitcoin developers (see AUTHORS)
+ * Copyright (c) 2011-2017 libbitcoin developers (see AUTHORS)
  *
  * This file is part of libbitcoin.
  *
- * libbitcoin is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License with
- * additional permissions to the one published by the Free Software
- * Foundation, either version 3 of the License, or (at your option)
- * any later version. For more information see LICENSE.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -15,9 +14,9 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <bitcoin/blockchain/validation/validate_input.hpp>
+#include <bitcoin/blockchain/validate/validate_input.hpp>
 
 #include <cstdint>
 #include <bitcoin/bitcoin.hpp>
@@ -30,6 +29,7 @@ namespace libbitcoin {
 namespace blockchain {
 
 using namespace bc::chain;
+using namespace bc::machine;
 
 #ifdef WITH_CONSENSUS
 
@@ -88,7 +88,7 @@ code validate_input::convert_result(verify_result_type result)
         case verify_result_type::verify_result_unbalanced_conditional:
             return error::invalid_script;
 
-        // Softfork safeness (should not see).
+        // Softbranch safeness (should not see).
         case verify_result_type::verify_result_discourage_upgradable_nops:
             return error::operation_failed;
 
@@ -125,28 +125,44 @@ code validate_input::convert_result(verify_result_type result)
 }
 
 code validate_input::verify_script(const transaction& tx, uint32_t input_index,
-    uint32_t flags, bool use_libconsensus)
+    uint32_t branches, bool use_libconsensus)
 {
     if (!use_libconsensus)
-        return script::verify(tx, input_index, flags);
+    {
+        ////// Simulate the inefficiency of calling libconsensus.
+        ////BITCOIN_ASSERT(input_index < tx.inputs().size());
+        ////const auto& prevout = tx.inputs()[input_index].previous_output().validation;
+        ////const auto script_data = prevout.cache.script().to_data(false);
+        ////const auto tx_data = tx.to_data();
+        ////auto clone = transaction::factory_from_data(tx_data);
+        ////const auto input = clone.inputs()[input_index].script();
+        ////const auto prevout = script::factory_from_data(script_data, false);
+        ////return script::verify(clone, input_index, branches, input, prevout);
+        return script::verify(tx, input_index, branches);
+    }
 
     BITCOIN_ASSERT(input_index < tx.inputs().size());
     const auto& prevout = tx.inputs()[input_index].previous_output().validation;
     const auto script_data = prevout.cache.script().to_data(false);
+
+    // Wire serialization is cached in support of large numbers of inputs.
     const auto tx_data = tx.to_data();
 
     // libconsensus
     return convert_result(consensus::verify_script(tx_data.data(),
         tx_data.size(), script_data.data(), script_data.size(), input_index,
-        convert_flags(flags)));
+        convert_flags(branches)));
 }
 
 #else
 
 code validate_input::verify_script(const transaction& tx,
-    uint32_t input_index, uint32_t flags, bool)
+    uint32_t input_index, uint32_t branches, bool use_libconsensus)
 {
-    return script::verify(tx, input_index, flags);
+    if (use_libconsensus)
+        return error::operation_failed;
+
+    return script::verify(tx, input_index, branches);
 }
 
 #endif
