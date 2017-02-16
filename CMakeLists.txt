@@ -205,16 +205,17 @@ endif()
 
 add_library(bitprim-blockchain ${MODE}
   src/interface/block_chain.cpp
-  src/interface/block_fetcher.cpp
-  src/pools/orphan_pool.cpp
-  src/pools/orphan_pool_manager.cpp
+  # src/interface/block_fetcher.cpp
+  # src/pools/orphan_pool.cpp
+  # src/pools/orphan_pool_manager.cpp
   src/pools/transaction_pool.cpp
-  src/pools/transaction_pool_index.cpp
+  # src/pools/transaction_pool_index.cpp
   src/settings.cpp
-  src/validation/fork.cpp
-  src/validation/populate_block.cpp
-  src/validation/validate_block.cpp
-  src/validation/validate_input.cpp)
+  # src/validation/fork.cpp
+  # src/validation/populate_block.cpp
+  # src/validation/validate_block.cpp
+  # src/validation/validate_input.cpp
+  )
 
 target_include_directories(bitprim-blockchain PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
