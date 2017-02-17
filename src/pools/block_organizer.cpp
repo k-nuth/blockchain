@@ -296,8 +296,9 @@ void block_organizer::notify_reorganize(size_t branch_height,
     block_const_ptr_list_const_ptr branch,
     block_const_ptr_list_const_ptr original)
 {
-    // Using relay can create big backlog but this is a criticial section.
-    subscriber_->relay(error::success, branch_height, branch, original);
+    // Using invoke slows down catch-up sync and is a deadlock risk, but
+    // relay can create big backlog that can easily bring down the server.
+    subscriber_->invoke(error::success, branch_height, branch, original);
 }
 
 void block_organizer::subscribe_reorganize(reorganize_handler&& handler)

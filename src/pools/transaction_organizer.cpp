@@ -242,8 +242,9 @@ void transaction_organizer::handle_pushed(const code& ec,
 // private
 void transaction_organizer::notify_transaction(transaction_const_ptr tx)
 {
-    // Using relay can create big backlog but this is a criticial section.
-    subscriber_->relay(error::success, tx);
+    // Using invoke slows down catch-up sync and is a deadlock risk, but
+    // relay can create big backlog that can easily bring down the server.
+    subscriber_->invoke(error::success, tx);
 }
 
 void transaction_organizer::subscribe_transaction(
