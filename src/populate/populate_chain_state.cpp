@@ -166,6 +166,12 @@ bool populate_chain_state::populate_checkpoint(chain_state::data& data,
         return true;
     }
 
+    if (is_transaction_pool(branch))
+    {
+        data.allow_collisions_hash = null_hash;
+        return true;
+    }
+
     return get_block_hash(data.allow_collisions_hash,
         map.allow_collisions_height, branch);
 }
@@ -213,7 +219,7 @@ chain_state::ptr populate_chain_state::populate(chain_state::ptr pool,
     BITCOIN_ASSERT(block);
 
     // If this is not a reorganization we can just promote the pool state.
-    if (pool->height() == branch->top_height())
+    if (branch->size() == 1 && branch->top_height() == pool->height())
         return std::make_shared<chain_state>(*pool, *block);
 
     chain_state::data data;
