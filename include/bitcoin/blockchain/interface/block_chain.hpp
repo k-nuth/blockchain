@@ -213,6 +213,9 @@ public:
     void fetch_transaction(const hash_digest& hash, bool require_confirmed,
         transaction_fetch_handler handler) const;
 
+    /// fetch_mempool_all()
+    std::pair<hash_digest, std::vector<chain::transaction>> fetch_mempool_all() const;
+
     /// fetch position and height within block of transaction by hash.
     void fetch_transaction_position(const hash_digest& hash,
         bool require_confirmed, transaction_index_fetch_handler handler) const;

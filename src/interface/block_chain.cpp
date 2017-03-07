@@ -615,7 +615,7 @@ void block_chain::fetch_transaction(const hash_digest& hash,
 }
 
 
-hash_digest generate_merkle_root(std::vector<chain::transaction> transactions) const {
+hash_digest generate_merkle_root(std::vector<chain::transaction> transactions) {
     if (transactions.empty())
         return null_hash;
 
@@ -662,7 +662,7 @@ std::pair<hash_digest, std::vector<chain::transaction>> block_chain::fetch_mempo
 
     mempool.reserve(max);
 
-    database_.transactions_unconfirmed().for_each([](chain::transaction const& tx) {
+    database_.transactions_unconfirmed().for_each([&](chain::transaction const& tx) {
         mempool.push_back(tx);
         ++n;
         return n < max;
