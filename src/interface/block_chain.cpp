@@ -614,18 +614,64 @@ void block_chain::fetch_transaction(const hash_digest& hash,
     read_serial(do_fetch);
 }
 
-std::vector<chain::transaction> block_chain::fetch_mempool_all() const
+
+hash_digest generate_merkle_root(std::vector<chain::transaction> transactions) const {
+    if (transactions.empty())
+        return null_hash;
+
+    hash_list merkle, update;
+
+    auto hasher = [&merkle](const transaction& tx)
+    {
+        merkle.push_back(tx.hash());
+    };
+
+    // Hash ordering matters, don't use std::transform here.
+    std::for_each(transactions.begin(), transactions.end(), hasher);
+
+    // Initial capacity is half of the original list (clear doesn't reset).
+    update.reserve((merkle.size() + 1) / 2);
+
+    while (merkle.size() > 1)
+    {
+        // If number of hashes is odd, duplicate last hash in the list.
+        if (merkle.size() % 2 != 0)
+            merkle.push_back(merkle.back());
+
+        for (auto it = merkle.begin(); it != merkle.end(); it += 2)
+            update.push_back(bitcoin_hash(build_chunk({ it[0], it[1] })));
+
+        std::swap(merkle, update);
+        update.clear();
+    }
+
+    // There is now only one item in the list.
+    return merkle.front();
+}
+
+std::pair<hash_digest, std::vector<chain::transaction>> block_chain::fetch_mempool_all() const
 {
     std::vector<chain::transaction> mempool;
 
     if (stopped()) {
-        return mempool;
+        return std::make_pair(null_hash, mempool);
     }
-    //mempool.reserve(?????);
+
+    size_t n = 0;
+    size_t max = 500;
+
+    mempool.reserve(max);
+
     database_.transactions_unconfirmed().for_each([](chain::transaction const& tx) {
         mempool.push_back(tx);
-        return true;
+        ++n;
+        return n < max;
     });
+
+
+    auto merkle_root = generate_merkle_root(mempool);
+
+    return std::make_pair(merkle_root, mempool);
 }
 
 
