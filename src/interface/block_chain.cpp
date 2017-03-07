@@ -614,6 +614,21 @@ void block_chain::fetch_transaction(const hash_digest& hash,
     read_serial(do_fetch);
 }
 
+std::vector<chain::transaction> block_chain::fetch_mempool_all() const
+{
+    std::vector<chain::transaction> mempool;
+
+    if (stopped()) {
+        return mempool;
+    }
+    //mempool.reserve(?????);
+    database_.transactions_unconfirmed().for_each([](chain::transaction const& tx) {
+        mempool.push_back(tx);
+        return true;
+    });
+}
+
+
 // This is only used for the server API, need to document sentinel/forks.
 // This is same as fetch_transaction but skips the tx payload.
 void block_chain::fetch_transaction_position(const hash_digest& hash,
