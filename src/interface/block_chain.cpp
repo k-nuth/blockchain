@@ -649,12 +649,34 @@ hash_digest generate_merkle_root(std::vector<chain::transaction> transactions) {
     return merkle.front();
 }
 
-std::pair<hash_digest, std::vector<chain::transaction>> block_chain::fetch_mempool_all() const
+uint64_t block_chain::total_input_value(libbitcoin::chain::transaction const& tx) const{
+    auto const sum = [&](uint64_t total, libbitcoin::chain::input const& input) {
+        libbitcoin::chain::output out_output;
+        size_t out_height;
+        bool out_coinbase;
+        if (database_.transactions().get_output(out_output, out_height, out_coinbase, input.previous_output(), libbitcoin::max_size_t, false)){
+            std::cout << "Output found \n";
+        }else {
+            std::cout << "Output not found\n";
+        }
+
+        const bool missing = !out_output.is_valid();
+        return ceiling_add(total, missing ? 0 : out_output.value());
+    };
+    return std::accumulate(tx.inputs().begin(), tx.inputs().end(), uint64_t(0), sum);
+}
+
+uint64_t block_chain::fees(libbitcoin::chain::transaction const& tx) const {
+    return floor_subtract(total_input_value(tx), tx.total_output_value());
+}
+
+std::pair<std::vector<uint64_t>, std::vector<chain::transaction>> block_chain::fetch_mempool_all() const
 {
     std::vector<chain::transaction> mempool;
+    std::vector<uint64_t> fees;
 
     if (stopped()) {
-        return std::make_pair(null_hash, mempool);
+        return std::make_pair(fees, mempool);
     }
 
     size_t n = 0;
@@ -664,14 +686,17 @@ std::pair<hash_digest, std::vector<chain::transaction>> block_chain::fetch_mempo
 
     database_.transactions_unconfirmed().for_each([&](chain::transaction const& tx) {
         mempool.push_back(tx);
+        auto temp = block_chain::fees(tx);
+        fees.push_back(temp);
+        std::cout << "el valor de la fee en blockchain es: " << temp << "\n";
         ++n;
         return n < max;
     });
 
 
-    auto merkle_root = generate_merkle_root(mempool);
+//    auto merkle_root = generate_merkle_root(mempool);
 
-    return std::make_pair(merkle_root, mempool);
+    return std::make_pair(fees, mempool);
 }
 
 

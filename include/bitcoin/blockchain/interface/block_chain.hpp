@@ -213,8 +213,12 @@ public:
     void fetch_transaction(const hash_digest& hash, bool require_confirmed,
         transaction_fetch_handler handler) const;
 
+    /// Generate fees for mining
+    uint64_t total_input_value(libbitcoin::chain::transaction const& tx) const;
+    uint64_t fees(libbitcoin::chain::transaction const& tx) const;
+
     /// fetch_mempool_all()
-    std::pair<hash_digest, std::vector<chain::transaction>> fetch_mempool_all() const;
+    std::pair<std::vector<uint64_t>, std::vector<chain::transaction>> fetch_mempool_all() const;
 
     /// fetch position and height within block of transaction by hash.
     void fetch_transaction_position(const hash_digest& hash,
