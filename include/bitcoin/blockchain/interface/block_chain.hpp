@@ -214,8 +214,8 @@ public:
         transaction_fetch_handler handler) const;
 
     /// Generate fees for mining
-    uint64_t total_input_value(libbitcoin::chain::transaction const& tx) const;
-    uint64_t fees(libbitcoin::chain::transaction const& tx) const;
+    std::pair<bool, uint64_t> total_input_value(libbitcoin::chain::transaction const& tx) const;
+    std::pair<bool, uint64_t> fees(libbitcoin::chain::transaction const& tx) const;
 
     /// fetch_mempool_all()
     std::pair<std::vector<uint64_t>, std::vector<chain::transaction>> fetch_mempool_all() const;

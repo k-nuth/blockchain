@@ -649,26 +649,50 @@ hash_digest generate_merkle_root(std::vector<chain::transaction> transactions) {
     return merkle.front();
 }
 
-uint64_t block_chain::total_input_value(libbitcoin::chain::transaction const& tx) const{
-    auto const sum = [&](uint64_t total, libbitcoin::chain::input const& input) {
+std::pair<bool, uint64_t> block_chain::total_input_value(libbitcoin::chain::transaction const& tx) const{
+
+//    auto const sum = [&](uint64_t total, libbitcoin::chain::input const& input) {
+//        libbitcoin::chain::output out_output;
+//        size_t out_height;
+//        bool out_coinbase;
+//        if (!database_.transactions().get_output(out_output, out_height, out_coinbase, input.previous_output(), libbitcoin::max_size_t, false)){
+//            std::cout << "Output not found. Hash = " << libbitcoin::encode_hash(tx.hash())
+//                      << ".\nOutput hash = " << encode_hash(input.previous_output().hash())
+//                      << ".\nOutput index = " << input.previous_output().index() << "\n";
+//        }
+//        const bool missing = !out_output.is_valid();
+//        return ceiling_add(total, missing ? 0 : out_output.value());
+//    };
+//    return std::accumulate(tx.inputs().begin(), tx.inputs().end(), uint64_t(0), sum);
+
+
+    uint64_t total = 0;
+
+    for (auto const& input : tx.inputs()) {
         libbitcoin::chain::output out_output;
         size_t out_height;
         bool out_coinbase;
-        if (database_.transactions().get_output(out_output, out_height, out_coinbase, input.previous_output(), libbitcoin::max_size_t, false)){
-            std::cout << "Output found \n";
-        }else {
-            std::cout << "Output not found\n";
+        if (!database_.transactions().get_output(out_output, out_height, out_coinbase, input.previous_output(), libbitcoin::max_size_t, false)){
+            std::cout << "Output not found. Hash = " << libbitcoin::encode_hash(tx.hash())
+                      << ".\nOutput hash = " << encode_hash(input.previous_output().hash())
+                      << ".\nOutput index = " << input.previous_output().index() << "\n";
+            return std::make_pair(false, 0);
         }
-
         const bool missing = !out_output.is_valid();
-        return ceiling_add(total, missing ? 0 : out_output.value());
-    };
-    return std::accumulate(tx.inputs().begin(), tx.inputs().end(), uint64_t(0), sum);
+        total = ceiling_add(total, missing ? 0 : out_output.value());
+    }
+
+    return std::make_pair(true, total);
 }
 
-uint64_t block_chain::fees(libbitcoin::chain::transaction const& tx) const {
-    return floor_subtract(total_input_value(tx), tx.total_output_value());
+std::pair<bool, uint64_t> block_chain::fees(libbitcoin::chain::transaction const& tx) const {
+    auto input_value = total_input_value(tx);
+    if (input_value.first){
+        return std::make_pair(true, floor_subtract(input_value.second, tx.total_output_value()));
+    }
+    return std::make_pair(false, 0);
 }
+
 
 std::pair<std::vector<uint64_t>, std::vector<chain::transaction>> block_chain::fetch_mempool_all() const
 {
@@ -685,16 +709,15 @@ std::pair<std::vector<uint64_t>, std::vector<chain::transaction>> block_chain::f
     mempool.reserve(max);
 
     database_.transactions_unconfirmed().for_each([&](chain::transaction const& tx) {
-        mempool.push_back(tx);
-        auto temp = block_chain::fees(tx);
-        fees.push_back(temp);
-        std::cout << "el valor de la fee en blockchain es: " << temp << "\n";
+        std::cout << "TX hash value == " << encode_hash(tx.hash()) << "\n";
+        auto fee = block_chain::fees(tx);
+        if (fee.first){
+            mempool.push_back(tx);
+            fees.push_back(fee.second);
+        }
         ++n;
         return n < max;
     });
-
-
-//    auto merkle_root = generate_merkle_root(mempool);
 
     return std::make_pair(fees, mempool);
 }
