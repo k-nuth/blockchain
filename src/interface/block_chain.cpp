@@ -672,7 +672,7 @@ std::pair<bool, uint64_t> block_chain::total_input_value(libbitcoin::chain::tran
         libbitcoin::chain::output out_output;
         size_t out_height;
         bool out_coinbase;
-        if (!database_.transactions().get_output(out_output, out_height, out_coinbase, input.previous_output(), libbitcoin::max_size_t, false)){
+        if (!get_output(out_output, out_height, out_coinbase, input.previous_output(), libbitcoin::max_size_t, false)){
             std::cout << "Output not found. Hash = " << libbitcoin::encode_hash(tx.hash())
                       << ".\nOutput hash = " << encode_hash(input.previous_output().hash())
                       << ".\nOutput index = " << input.previous_output().index() << "\n";
@@ -694,10 +694,158 @@ std::pair<bool, uint64_t> block_chain::fees(libbitcoin::chain::transaction const
 }
 
 
+/*
+bool transaction::is_missing_previous_outputs() const
+{
+    const auto missing = [](const input& input)
+    {
+        const auto& prevout = input.previous_output();
+        const auto coinbase = prevout.is_null();
+        const auto missing = !prevout.validation.cache.is_valid();
+        return missing && !coinbase;
+    };
+
+    // This is an optimization of !missing_inputs().empty();
+    return std::any_of(inputs_.begin(), inputs_.end(), missing);
+}
+*/
+//
+//bool block_chain::is_missing_previous_outputs(chain::transaction const& tx) const {
+//
+//    if (tx.is_missing_previous_outputs()) {
+//        std::cout << "IF tx.is_missing_previous_outputs() \n";
+//        std::cout << "Hash = " << libbitcoin::encode_hash(tx.hash()) << "\n";
+//
+//    } else {
+//        std::cout << "ELSE tx.is_missing_previous_outputs() \n";
+//    }
+//
+//    for (auto const& input : tx.inputs()) {
+//        libbitcoin::chain::output out_output;
+//        size_t out_height;
+//        bool out_coinbase;
+//        if (!get_output(out_output, out_height, out_coinbase, input.previous_output(), libbitcoin::max_size_t, false)){
+//            std::cout << "get_output Output not found. Hash = " << libbitcoin::encode_hash(tx.hash())
+//                      << ".\nOutput hash = " << encode_hash(input.previous_output().hash())
+//                      << ".\nOutput index = " << input.previous_output().index() << "\n";
+//        } else {
+//            const bool missing = !out_output.is_valid();
+//            if (missing) {
+//                std::cout << "get_output Output missing. Hash = " << libbitcoin::encode_hash(tx.hash())
+//                          << ".\nOutput hash = " << encode_hash(input.previous_output().hash())
+//                          << ".\nOutput index = " << input.previous_output().index() << "\n";
+//            }
+//        }
+//    }
+//    std::cout << "get_output OK?\n";
+//}
+//
+//
+
+
+
+
+bool block_chain::is_double_spent(chain::transaction const& tx) const {
+
+    auto const is_double_spent_input = [this](chain::input const& input) {
+
+        auto const& outpoint = input.previous_output();
+        auto& prevout = outpoint.validation;
+
+        prevout.cache = chain::output{};
+
+        // If the input is a coinbase there is no prevout to populate.
+        if (outpoint.is_null())
+            return false;
+
+        size_t output_height;
+        bool output_coinbase;
+
+        if (!get_output(prevout.cache, output_height, output_coinbase, outpoint, max_size_t, true))
+            return true; //it is not double spent, but it is an error (there is nothing to spend)
+
+        if (output_height == 0)
+            return true; //it is not double spent, but it is an error
+
+        const auto spend_height = prevout.cache.validation.spender_height;
+
+        if (
+            //(spend_height <= branch_height) &&
+                (spend_height != chain::output::validation::not_spent))
+        {
+            return true;
+        }
+
+        return false;
+
+    };
+
+    return std::any_of(tx.inputs().begin(), tx.inputs().end(), is_double_spent_input);
+}
+
+bool block_chain::validate_tx (chain::transaction const& tx) const{
+    auto tx_result = database_.transactions().get(tx.hash(),libbitcoin::max_size_t,false);
+
+
+    if (!tx_result) {
+        //TX NOT FOUND
+        std::cout << "TX RESULT NOT FOUND \n";
+        return false;
+    }else {
+        auto tx_generated = tx_result.transaction();
+//        if (tx_generated.is_missing_previous_outputs() ||
+//                tx_generated.is_double_spend(true) ||
+//                tx_generated.signature_operations(true) > max_block_sigops) {
+
+
+        bool dp1 = tx_generated.is_double_spend(true); //NO GASTADO -- SIEMPRE FALSE
+        bool dp2 = is_double_spent(tx_generated); //50% GASTADO Y NO GASTADO - X% TRUE
+
+        if (dp1 != dp2) {
+            std::cout << "NO ME COINCIDEN LOS CHEQUEOS DE DOUBLE SPENT!!!!!!!! ****** !!!! *****\n";
+        }
+
+        if (dp2 ||
+            tx_generated.signature_operations(true) > max_block_sigops) {
+
+            //TX ERROR, TODO DELETE THIS TX
+            std::cout << "TX ERROR IS DOUBLE SPEND OR TOTAL SIGNATURE OPERATIONS ERROR\n";
+
+//            is_missing_previous_outputs(tx_generated);
+
+            return false;
+        }
+    }
+    return true;
+}
+
+using spent_value_type = std::pair<hash_digest, uint32_t>;
+using spent_container = std::vector<spent_value_type>;
+
+void append_spend (chain::transaction const& tx, spent_container & result) {
+    for (auto const& input : tx.inputs()) {
+        auto const& output_point = input.previous_output();
+        result.emplace_back(output_point.hash(), output_point.index());
+    }
+}
+
+bool is_double_spend_mempool (chain::transaction const& tx, spent_container const& result) {
+    for (auto const& input : tx.inputs()) {
+        auto const& output_point = input.previous_output();
+
+        auto res = std::find_if(result.begin(), result.end(), [output_point](spent_value_type const& x){
+            return (x.first == output_point.hash() && x.second == output_point.index());
+        });
+
+        return res != result.end();
+    }
+}
+
 std::pair<std::vector<uint64_t>, std::vector<chain::transaction>> block_chain::fetch_mempool_all() const
 {
     std::vector<chain::transaction> mempool;
     std::vector<uint64_t> fees;
+    spent_container spent;
 
     if (stopped()) {
         return std::make_pair(fees, mempool);
@@ -710,10 +858,15 @@ std::pair<std::vector<uint64_t>, std::vector<chain::transaction>> block_chain::f
 
     database_.transactions_unconfirmed().for_each([&](chain::transaction const& tx) {
         std::cout << "TX hash value == " << encode_hash(tx.hash()) << "\n";
-        auto fee = block_chain::fees(tx);
-        if (fee.first){
-            mempool.push_back(tx);
-            fees.push_back(fee.second);
+        if (validate_tx(tx) && !(is_double_spend_mempool(tx, spent))) {
+            append_spend(tx, spent);
+            auto fee = block_chain::fees(tx);
+            if (fee.first){
+                mempool.push_back(tx);
+                fees.push_back(fee.second);
+            }
+        } else {
+            std::cout << "TX NOT VALID OR DOUBLE SPENT\n";
         }
         ++n;
         return n < max;

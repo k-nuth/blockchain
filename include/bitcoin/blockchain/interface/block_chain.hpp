@@ -216,8 +216,11 @@ public:
     /// Generate fees for mining
     std::pair<bool, uint64_t> total_input_value(libbitcoin::chain::transaction const& tx) const;
     std::pair<bool, uint64_t> fees(libbitcoin::chain::transaction const& tx) const;
+    bool is_missing_previous_outputs(chain::transaction const& tx) const;
+    bool is_double_spent(chain::transaction const& tx) const;
 
     /// fetch_mempool_all()
+    bool validate_tx (chain::transaction const& tx) const;
     std::pair<std::vector<uint64_t>, std::vector<chain::transaction>> fetch_mempool_all() const;
 
     /// fetch position and height within block of transaction by hash.
