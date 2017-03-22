@@ -165,6 +165,33 @@ bool block_chain::get_last_height(size_t& out_height) const
     return database_.blocks().top(out_height);
 }
 
+
+
+
+//        bool transaction_database::get_output(output& out_output, size_t& out_height,
+//                                              bool& out_coinbase, const output_point& point, size_t fork_height,
+//                                              bool require_confirmed) const
+//        {
+//            if (cache_.get(out_output, out_height, out_coinbase, point, fork_height,
+//                           require_confirmed))
+//                return true;
+//
+//            const auto hash = point.hash();
+//            const auto slab = find(hash, fork_height, require_confirmed);
+//
+//            // The transaction does not exist at/below fork with matching confirmation.
+//            if (!slab)
+//                return false;
+//
+//            transaction_result result (slab, hash);
+//            out_height = result.height();
+//            out_coinbase = result.position() == 0;
+//            out_output = result.output(point.index());
+//            return true;
+//        }
+
+
+
 bool block_chain::get_output(chain::output& out_output, size_t& out_height,
     bool& out_coinbase, const chain::output_point& outpoint,
     size_t branch_height, bool require_confirmed) const
@@ -651,21 +678,6 @@ hash_digest generate_merkle_root(std::vector<chain::transaction> transactions) {
 
 std::pair<bool, uint64_t> block_chain::total_input_value(libbitcoin::chain::transaction const& tx) const{
 
-//    auto const sum = [&](uint64_t total, libbitcoin::chain::input const& input) {
-//        libbitcoin::chain::output out_output;
-//        size_t out_height;
-//        bool out_coinbase;
-//        if (!database_.transactions().get_output(out_output, out_height, out_coinbase, input.previous_output(), libbitcoin::max_size_t, false)){
-//            std::cout << "Output not found. Hash = " << libbitcoin::encode_hash(tx.hash())
-//                      << ".\nOutput hash = " << encode_hash(input.previous_output().hash())
-//                      << ".\nOutput index = " << input.previous_output().index() << "\n";
-//        }
-//        const bool missing = !out_output.is_valid();
-//        return ceiling_add(total, missing ? 0 : out_output.value());
-//    };
-//    return std::accumulate(tx.inputs().begin(), tx.inputs().end(), uint64_t(0), sum);
-
-
     uint64_t total = 0;
 
     for (auto const& input : tx.inputs()) {
@@ -673,9 +685,9 @@ std::pair<bool, uint64_t> block_chain::total_input_value(libbitcoin::chain::tran
         size_t out_height;
         bool out_coinbase;
         if (!get_output(out_output, out_height, out_coinbase, input.previous_output(), libbitcoin::max_size_t, false)){
-            std::cout << "Output not found. Hash = " << libbitcoin::encode_hash(tx.hash())
-                      << ".\nOutput hash = " << encode_hash(input.previous_output().hash())
-                      << ".\nOutput index = " << input.previous_output().index() << "\n";
+//            std::cout << "Output not found. Hash = " << libbitcoin::encode_hash(tx.hash())
+//                      << ".\nOutput hash = " << encode_hash(input.previous_output().hash())
+//                      << ".\nOutput index = " << input.previous_output().index() << "\n";
             return std::make_pair(false, 0);
         }
         const bool missing = !out_output.is_valid();
@@ -709,6 +721,8 @@ bool transaction::is_missing_previous_outputs() const
     return std::any_of(inputs_.begin(), inputs_.end(), missing);
 }
 */
+
+
 //
 //bool block_chain::is_missing_previous_outputs(chain::transaction const& tx) const {
 //
@@ -744,28 +758,66 @@ bool transaction::is_missing_previous_outputs() const
 
 
 
+//
+//bool block_chain::is_double_spent(chain::transaction const& tx) const {
+//
+//    auto const is_double_spent_input = [this](chain::input const& input) {
+//
+//        auto const& outpoint = input.previous_output();
+//        auto& prevout = outpoint.validation;
+//
+//        prevout.cache = chain::output{};
+//
+//        // If the input is a coinbase there is no prevout to populate.
+//        if (outpoint.is_null())
+//            return false;
+//
+//        size_t output_height;
+//        bool output_coinbase;
+//
+//        if (!get_output(prevout.cache, output_height, output_coinbase, outpoint, max_size_t, true))
+//            return true; //it is not double spent, but it is an error (there is nothing to spend)
+//
+//        if (output_height == 0)
+//            return true; //it is not double spent, but it is an error
+//
+//        const auto spend_height = prevout.cache.validation.spender_height;
+//
+//        if (
+//            //(spend_height <= branch_height) &&
+//                (spend_height != chain::output::validation::not_spent))
+//        {
+//            return true;
+//        }
+//
+//        return false;
+//
+//    };
+//
+//    return std::any_of(tx.inputs().begin(), tx.inputs().end(), is_double_spent_input);
+//}
 
-bool block_chain::is_double_spent(chain::transaction const& tx) const {
 
-    auto const is_double_spent_input = [this](chain::input const& input) {
+std::pair<bool, size_t> block_chain::is_double_spent_and_sigops(chain::transaction const& tx, bool bip16_active) const {
 
+    size_t inputs_sigops = 0;
+
+    for (auto const& input : tx.inputs()) {
         auto const& outpoint = input.previous_output();
         auto& prevout = outpoint.validation;
 
         prevout.cache = chain::output{};
 
         // If the input is a coinbase there is no prevout to populate.
-        if (outpoint.is_null())
-            return false;
+        if (outpoint.is_null()) return std::make_pair(true, 0);
 
         size_t output_height;
         bool output_coinbase;
 
-        if (!get_output(prevout.cache, output_height, output_coinbase, outpoint, max_size_t, true))
-            return true; //it is not double spent, but it is an error (there is nothing to spend)
+        if (! get_output(prevout.cache, output_height, output_coinbase, outpoint, max_size_t, true))
+            return std::make_pair(true, 0);
 
-        if (output_height == 0)
-            return true; //it is not double spent, but it is an error
+        if ( output_height == 0)  return std::make_pair(true, 0);
 
         const auto spend_height = prevout.cache.validation.spender_height;
 
@@ -773,48 +825,51 @@ bool block_chain::is_double_spent(chain::transaction const& tx) const {
             //(spend_height <= branch_height) &&
                 (spend_height != chain::output::validation::not_spent))
         {
-            return true;
+            return std::make_pair(true, 0);
         }
 
-        return false;
+        inputs_sigops += input.script().sigops(false);
 
+        if (bip16_active) {
+            // This cannot overflow because each total is limited by max ops.
+            const auto& cache = prevout.cache.script();
+            inputs_sigops += input.script().embedded_sigops(cache);
+        }
+    }
+
+    const auto out = [](size_t total, const chain::output& output) {
+        return ceiling_add(total, output.signature_operations());
     };
 
-    return std::any_of(tx.inputs().begin(), tx.inputs().end(), is_double_spent_input);
+    return std::make_pair(false,
+           inputs_sigops + std::accumulate(tx.outputs().begin(), tx.outputs().end(), size_t{0}, out));
+
 }
 
-bool block_chain::validate_tx (chain::transaction const& tx) const{
+bool block_chain::validate_tx(chain::transaction const& tx) const {
     auto tx_result = database_.transactions().get(tx.hash(),libbitcoin::max_size_t,false);
-
 
     if (!tx_result) {
         //TX NOT FOUND
         std::cout << "TX RESULT NOT FOUND \n";
         return false;
-    }else {
-        auto tx_generated = tx_result.transaction();
+    }
+
+    auto tx_generated = tx_result.transaction();
 //        if (tx_generated.is_missing_previous_outputs() ||
 //                tx_generated.is_double_spend(true) ||
 //                tx_generated.signature_operations(true) > max_block_sigops) {
 
+    auto res = is_double_spent_and_sigops(tx_generated, true);
 
-        bool dp1 = tx_generated.is_double_spend(true); //NO GASTADO -- SIEMPRE FALSE
-        bool dp2 = is_double_spent(tx_generated); //50% GASTADO Y NO GASTADO - X% TRUE
+    if (res.first || res.second > max_block_sigops) {
 
-        if (dp1 != dp2) {
-            std::cout << "NO ME COINCIDEN LOS CHEQUEOS DE DOUBLE SPENT!!!!!!!! ****** !!!! *****\n";
-        }
-
-        if (dp2 ||
-            tx_generated.signature_operations(true) > max_block_sigops) {
-
-            //TX ERROR, TODO DELETE THIS TX
-            std::cout << "TX ERROR IS DOUBLE SPEND OR TOTAL SIGNATURE OPERATIONS ERROR\n";
+        //TX ERROR, TODO DELETE THIS TX
+//            std::cout << "TX ERROR IS DOUBLE SPEND OR TOTAL SIGNATURE OPERATIONS ERROR\n";
 
 //            is_missing_previous_outputs(tx_generated);
 
-            return false;
-        }
+        return false;
     }
     return true;
 }
@@ -841,39 +896,176 @@ bool is_double_spend_mempool (chain::transaction const& tx, spent_container cons
     }
 }
 
-std::pair<std::vector<uint64_t>, std::vector<chain::transaction>> block_chain::fetch_mempool_all() const
-{
-    std::vector<chain::transaction> mempool;
-    std::vector<uint64_t> fees;
-    spent_container spent;
+bool is_pay_to_witness_script_hash (chain::transaction const& tx){
+    //TODO: currently filtering more than just witness script hash, everything that starts with OP_RETURN is filtered
+    for (auto const & oup : tx.outputs()) {
+        auto temp = encode_base16(oup.script().to_data(false));
+//        if (temp.size() == 68) {
+            if (temp.substr(0, 2) == "6a") {
+                std::cout << "TX hash value == " << encode_hash(tx.hash()) << "\n";
+                std::cout << "Script value: " << temp << "\n";
+                std::cout << "PROBABLY SEGWIT!!!!!!!!!!!!" << "\n";
+                return true;
+            }
+//        }
+    }
+    return false;
+}
 
+
+
+std::vector<block_chain::tx_mempool> block_chain::fetch_mempool_all(size_t max_bytes) const
+{
     if (stopped()) {
-        return std::make_pair(fees, mempool);
+        return std::vector<block_chain::tx_mempool>();
     }
 
-    size_t n = 0;
-    size_t max = 500;
+    std::vector<tx_mempool> mempool;
+    spent_container spent;
 
-    mempool.reserve(max);
+//    mempool.reserve(max); //TODO: reserve a "useful?" amount of data
 
     database_.transactions_unconfirmed().for_each([&](chain::transaction const& tx) {
         std::cout << "TX hash value == " << encode_hash(tx.hash()) << "\n";
         if (validate_tx(tx) && !(is_double_spend_mempool(tx, spent))) {
             append_spend(tx, spent);
-            auto fee = block_chain::fees(tx);
-            if (fee.first){
-                mempool.push_back(tx);
-                fees.push_back(fee.second);
+            auto fee_result = block_chain::fees(tx);
+
+            if (fee_result.first && !is_pay_to_witness_script_hash(tx)){
+                auto fee = fee_result.second;
+                uint64_t sigops = 0; //TODO...
+                std::string dependencies = ""; //TODO: see what to do with the final algorithm
+                size_t tx_weight = tx.to_data(true).size();
+                mempool.emplace_back(tx, fee, sigops, dependencies, tx_weight);
             }
+
         } else {
             std::cout << "TX NOT VALID OR DOUBLE SPENT\n";
         }
-        ++n;
-        return n < max;
+        return true;
     });
 
-    return std::make_pair(fees, mempool);
+
+
+    //TODO: chequeo temporal de dependencias, ELIMINAR!
+    for (auto const& tx : mempool) {
+        for (auto const& input : std::get<0>(tx).inputs()) {
+            auto const &output_point = input.previous_output();
+
+            auto res = std::find_if(mempool.begin(), mempool.end(), [output_point](tx_mempool const &x) {
+                return (std::get<0>(x).hash() == output_point.hash());
+            });
+
+            if (res != mempool.end()) {
+                std::cout << "******************* HAY UNA DEPENDENCIA ******************** \n";
+                std::cout << "tx.hash(): " << encode_hash(std::get<0>(tx).hash()) << "\n";
+                std::cout << "res.hash(): " << encode_hash(std::get<0>(*res).hash()) << "\n";
+                std::cout << "************************************************************ \n";
+            }
+        }
+    }
+
+
+
+    //postcondition: SIN DEPENDENCIAS
+
+
+    auto const fee_per_weight = [](tx_mempool const& a, tx_mempool const& b){
+        auto const fpw_a = double(std::get<1>(a)) / std::get<4>(a);
+        auto const fpw_b = double(std::get<1>(b)) / std::get<4>(b);
+        return fpw_a < fpw_b;
+    };
+
+    std::sort(mempool.begin(), mempool.end(), fee_per_weight);
+
+
+
+    std::vector<tx_mempool> mempool_final;
+//    size_t max_bytes = 900 * 1024;
+
+    size_t i = 0;
+    while (i < mempool.size() && max_bytes > 0) {
+        auto const& tx = mempool[i];
+        auto w = std::get<4>(tx); //tx.to_data(true).size();
+
+        if (max_bytes >= w) {
+            mempool_final.push_back(tx);
+            max_bytes -= w;
+        } else {
+            cout << "skip weight: " << w << std::endl;
+        }
+
+        ++i;
+    }
+
+
+    return mempool_final;
 }
+
+
+//std::pair<std::vector<uint64_t>, std::vector<chain::transaction>> block_chain::fetch_mempool_all() const
+//{
+//    std::vector<chain::transaction> mempool;
+//    std::vector<uint64_t> fees;
+//    spent_container spent;
+//
+//    if (stopped()) {
+//        return std::make_pair(fees, mempool);
+//    }
+//
+////    size_t n = 0;
+////    size_t max = 500;
+//
+////    mempool.reserve(max);
+//
+//    database_.transactions_unconfirmed().for_each([&](chain::transaction const& tx) {
+//        std::cout << "TX hash value == " << encode_hash(tx.hash()) << "\n";
+//        if (validate_tx(tx) && !(is_double_spend_mempool(tx, spent))) {
+//            append_spend(tx, spent);
+//            auto fee = block_chain::fees(tx);
+//            if (fee.first && !is_pay_to_witness_script_hash(tx)){
+//                mempool.push_back(tx);
+//                fees.push_back(fee.second);
+//            }
+//        } else {
+//            std::cout << "TX NOT VALID OR DOUBLE SPENT\n";
+//        }
+////        ++n;
+////        return n < max;
+//        return true;
+//    });
+//
+////    return std::make_pair(fees, mempool);
+//
+//    //postcondition: SIN DEPENDENCIAS
+//
+//    std::vector<chain::transaction> mempool_final;
+//    std::vector<uint64_t> fees_final;
+//
+//    //sort fee/bytes
+//
+//    size_t max_bytes = 900 * 1024;
+//
+//    size_t i = 0;
+//    while (i < mempool.size() && max_bytes > 0) {
+//        auto const& tx = mempool[i];
+//        auto w = tx.to_data(true).size();
+//
+//        if (max_bytes >= w) {
+//            mempool_final.push_back(tx);
+//            fees_final.push_back(fees[i]);
+//            max_bytes -= w;
+//        } else {
+//            cout << "skip weight: " << w << std::endl;
+//
+//        }
+//
+//        ++i;
+//    }
+//
+//
+//    return std::make_pair(fees_final, mempool_final);
+//}
 
 
 // This is only used for the server API, need to document sentinel/forks.
