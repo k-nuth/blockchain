@@ -896,21 +896,21 @@ bool is_double_spend_mempool (chain::transaction const& tx, spent_container cons
     }
 }
 
-bool is_pay_to_witness_script_hash (chain::transaction const& tx){
-    //TODO: currently filtering more than just witness script hash, everything that starts with OP_RETURN is filtered
-    for (auto const & oup : tx.outputs()) {
-        auto temp = encode_base16(oup.script().to_data(false));
-//        if (temp.size() == 68) {
-            if (temp.substr(0, 2) == "6a") {
-                std::cout << "TX hash value == " << encode_hash(tx.hash()) << "\n";
-                std::cout << "Script value: " << temp << "\n";
-                std::cout << "PROBABLY SEGWIT!!!!!!!!!!!!" << "\n";
-                return true;
-            }
-//        }
-    }
-    return false;
-}
+//bool is_pay_to_witness_script_hash (chain::transaction const& tx){
+//    //TODO: currently filtering more than just witness script hash, everything that starts with OP_RETURN is filtered
+//    for (auto const & oup : tx.outputs()) {
+//        auto temp = encode_base16(oup.script().to_data(false));
+////        if (temp.size() == 68) {
+//            if (temp.substr(0, 2) == "6a") {
+//                std::cout << "TX hash value == " << encode_hash(tx.hash()) << "\n";
+//                std::cout << "Script value: " << temp << "\n";
+//                std::cout << "PROBABLY SEGWIT!!!!!!!!!!!!" << "\n";
+//                return true;
+//            }
+////        }
+//    }
+//    return false;
+//}
 
 
 
@@ -931,7 +931,7 @@ std::vector<block_chain::tx_mempool> block_chain::fetch_mempool_all(size_t max_b
             append_spend(tx, spent);
             auto fee_result = block_chain::fees(tx);
 
-            if (fee_result.first && !is_pay_to_witness_script_hash(tx)){
+            if (fee_result.first){
                 auto fee = fee_result.second;
                 uint64_t sigops = 0; //TODO...
                 std::string dependencies = ""; //TODO: see what to do with the final algorithm
@@ -957,7 +957,7 @@ std::vector<block_chain::tx_mempool> block_chain::fetch_mempool_all(size_t max_b
             });
 
             if (res != mempool.end()) {
-                std::cout << "******************* HAY UNA DEPENDENCIA ******************** \n";
+                std::cout << "***************** MEMPOOL TX DEPENDENCIES ****************** \n";
                 std::cout << "tx.hash(): " << encode_hash(std::get<0>(tx).hash()) << "\n";
                 std::cout << "res.hash(): " << encode_hash(std::get<0>(*res).hash()) << "\n";
                 std::cout << "************************************************************ \n";
