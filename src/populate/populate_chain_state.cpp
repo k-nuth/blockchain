@@ -143,7 +143,11 @@ bool populate_chain_state::populate_timestamps(chain_state::data& data,
 
     // Retarget is required if timestamp_retarget is not unrequested.
     if (map.timestamp_retarget != chain_state::map::unrequested &&
+    #ifdef LITECOIN
+        !get_timestamp(data.timestamp.retarget, map.timestamp_retarget != 0 ? map.timestamp_retarget - 1 : 0, branch))
+    #else
         !get_timestamp(data.timestamp.retarget, map.timestamp_retarget, branch))
+    #endif
     {
         return false;
     }
