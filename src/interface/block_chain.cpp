@@ -862,6 +862,8 @@ bool block_chain::validate_tx(chain::transaction const& tx) const {
 
     auto res = is_double_spent_and_sigops(tx_generated, true);
 
+	
+
     if (res.first || res.second > max_block_sigops) {
 
         //TX ERROR, TODO DELETE THIS TX
@@ -870,6 +872,22 @@ bool block_chain::validate_tx(chain::transaction const& tx) const {
 //            is_missing_previous_outputs(tx_generated);
 
         return false;
+    }
+
+    for(auto in : tx_generated.inputs()){
+      if ( in.script().pattern() == libbitcoin::machine::script_pattern::non_standard){
+        std::cout<<" #####  Script input non standard  ";
+        return false;
+      } else std::cout<<"Script input standard ";
+      std::cout<< in.script().to_string(libbitcoin::max_uint32) <<std::endl;
+    }
+
+    for(auto out : tx_generated.outputs()){
+      if ( out.script().pattern() == libbitcoin::machine::script_pattern::non_standard){
+        std::cout<<"Script output non standard  ";
+        return false;
+      } else std::cout<<"Script output standard ";
+      std::cout << out.script().to_string(libbitcoin::max_uint32) <<std::endl;
     }
     return true;
 }
