@@ -851,7 +851,7 @@ bool block_chain::validate_tx(chain::transaction const& tx) const {
 
     if (!tx_result) {
         //TX NOT FOUND
-        std::cout << "TX RESULT NOT FOUND \n";
+        //std::cout << "TX RESULT NOT FOUND \n";
         return false;
     }
 
@@ -876,18 +876,14 @@ bool block_chain::validate_tx(chain::transaction const& tx) const {
 
     for(auto in : tx_generated.inputs()){
       if ( in.script().pattern() == libbitcoin::machine::script_pattern::non_standard){
-        std::cout<<" #####  Script input non standard  ";
         return false;
-      } else std::cout<<"Script input standard ";
-      std::cout<< in.script().to_string(libbitcoin::max_uint32) <<std::endl;
+      }
     }
 
     for(auto out : tx_generated.outputs()){
       if ( out.script().pattern() == libbitcoin::machine::script_pattern::non_standard){
-        std::cout<<"Script output non standard  ";
         return false;
-      } else std::cout<<"Script output standard ";
-      std::cout << out.script().to_string(libbitcoin::max_uint32) <<std::endl;
+      } 
     }
     return true;
 }
@@ -944,7 +940,6 @@ std::vector<block_chain::tx_mempool> block_chain::fetch_mempool_all(size_t max_b
 //    mempool.reserve(max); //TODO: reserve a "useful?" amount of data
 
     database_.transactions_unconfirmed().for_each([&](chain::transaction const& tx) {
-        std::cout << "TX hash value == " << encode_hash(tx.hash()) << "\n";
         if (validate_tx(tx) && !(is_double_spend_mempool(tx, spent))) {
             append_spend(tx, spent);
             auto fee_result = block_chain::fees(tx);
@@ -957,8 +952,6 @@ std::vector<block_chain::tx_mempool> block_chain::fetch_mempool_all(size_t max_b
                 mempool.emplace_back(tx, fee, sigops, dependencies, tx_weight);
             }
 
-        } else {
-            std::cout << "TX NOT VALID OR DOUBLE SPENT\n";
         }
         return true;
     });
