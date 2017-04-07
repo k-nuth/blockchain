@@ -854,6 +854,15 @@ bool block_chain::validate_tx(chain::transaction const& tx) const {
         //std::cout << "TX RESULT NOT FOUND \n";
         return false;
     }
+    size_t height;
+    if (database_.blocks().top(height)){
+        //TODO: create a new function to get current time
+        auto const now = std::chrono::high_resolution_clock::now();
+        auto time = static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count());
+        if (!tx_result.transaction().is_final(height+1, time)){
+            return false;
+        }
+    }
 
     auto tx_generated = tx_result.transaction();
 //        if (tx_generated.is_missing_previous_outputs() ||
