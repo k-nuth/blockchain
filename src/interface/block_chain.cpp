@@ -935,7 +935,12 @@ bool is_double_spend_mempool (chain::transaction const& tx, spent_container cons
 //    return false;
 //}
 
-
+std::chrono::time_point<std::chrono::high_resolution_clock> print_time(std::string const& str, std::chrono::time_point<std::chrono::high_resolution_clock> const& prev) {
+    auto now = std::chrono::high_resolution_clock::now();
+    //std::cout << "t1 - t0: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << " ns" << std::endl;
+    std::cout << str << ": " << std::chrono::duration_cast<std::chrono::nanoseconds>(now - prev).count() << " ns" << std::endl;
+    return now;
+}
 
 std::vector<block_chain::tx_mempool> block_chain::fetch_mempool_all(size_t max_bytes) const
 {
@@ -944,16 +949,79 @@ std::vector<block_chain::tx_mempool> block_chain::fetch_mempool_all(size_t max_b
     }
 
     std::vector<tx_mempool> mempool;
+    std::vector<tx_mempool> mempool_test_0;
+    std::vector<tx_mempool> mempool_test_1;
     spent_container spent;
 
 //    mempool.reserve(max); //TODO: reserve a "useful?" amount of data
 
+
+    auto t0 = std::chrono::high_resolution_clock::now();  // t0
+    auto now = t0;
+
+    // ------------------------------------------------------------------------------------
+    //Recorrida vacia
+    database_.transactions_unconfirmed().for_each([&](chain::transaction const& tx) {
+        return true;
+    });
+
+    // auto t1 = std::chrono::high_resolution_clock::now();
+    // std::cout << "t1 - t0: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << " ns" << std::endl;
+    now = print_time("t1 - t0", now);   // t1
+
+    // ------------------------------------------------------------------------------------
+    //Recorrida vacia (segunda)
+    database_.transactions_unconfirmed().for_each([&](chain::transaction const& tx) {
+        return true;
+    });
+
+    now = print_time("t2 - t1", now);   // t2
+
+    // ------------------------------------------------------------------------------------
+    //Recorrida, insertando en mempool_test_0, pero sin chequeos
+    database_.transactions_unconfirmed().for_each([&](chain::transaction const& tx) {
+        auto fee_result = block_chain::fees(tx);
+
+        if (fee_result.first) {
+            auto fee = fee_result.second;
+            uint64_t sigops = 0; //TODO...
+            std::string dependencies = ""; //TODO: see what to do with the final algorithm
+            size_t tx_weight = tx.to_data(true).size();
+            mempool_test_0.emplace_back(tx, fee, sigops, dependencies, tx_weight);
+        }
+        return true;
+    });
+
+    now = print_time("t3 - t2", now);   // t3
+
+
+    // ------------------------------------------------------------------------------------
+    //Recorrida (segunda), insertando en mempool_test_0, pero sin chequeos
+    database_.transactions_unconfirmed().for_each([&](chain::transaction const& tx) {
+        auto fee_result = block_chain::fees(tx);
+
+        if (fee_result.first) {
+            auto fee = fee_result.second;
+            uint64_t sigops = 0; //TODO...
+            std::string dependencies = ""; //TODO: see what to do with the final algorithm
+            size_t tx_weight = tx.to_data(true).size();
+            mempool_test_0.emplace_back(tx, fee, sigops, dependencies, tx_weight);
+        }
+        return true;
+    });
+
+    now = print_time("t4 - t3", now);   // t4
+
+
+    // ------------------------------------------------------------------------------------
+    //Recorrida "normal"
+    
     database_.transactions_unconfirmed().for_each([&](chain::transaction const& tx) {
         if (validate_tx(tx) && !(is_double_spend_mempool(tx, spent))) {
             append_spend(tx, spent);
             auto fee_result = block_chain::fees(tx);
 
-            if (fee_result.first){
+            if (fee_result.first) {
                 auto fee = fee_result.second;
                 uint64_t sigops = 0; //TODO...
                 std::string dependencies = ""; //TODO: see what to do with the final algorithm
@@ -965,12 +1033,42 @@ std::vector<block_chain::tx_mempool> block_chain::fetch_mempool_all(size_t max_b
         return true;
     });
 
+    now = print_time("t5 - t4", now);   // t5
 
 
+
+    // ------------------------------------------------------------------------------------
+    //Recorrida (segunda) "normal", pero insertando en mempool_test_1, con reserve para 7000 Tx
+    
+    mempool_test_1.reserve(7000);
+
+    database_.transactions_unconfirmed().for_each([&](chain::transaction const& tx) {
+        if (validate_tx(tx) && !(is_double_spend_mempool(tx, spent))) {
+            append_spend(tx, spent);
+            auto fee_result = block_chain::fees(tx);
+
+            if (fee_result.first) {
+                auto fee = fee_result.second;
+                uint64_t sigops = 0; //TODO...
+                std::string dependencies = ""; //TODO: see what to do with the final algorithm
+                size_t tx_weight = tx.to_data(true).size();
+                mempool_test_1.emplace_back(tx, fee, sigops, dependencies, tx_weight);
+            }
+
+        }
+        return true;
+    });
+
+    now = print_time("t6 - t5", now);   // t6
+
+
+
+
+    // ------------------------------------------------------------------------------------
     //TODO: chequeo temporal de dependencias, ELIMINAR!
     for (auto const& tx : mempool) {
         for (auto const& input : std::get<0>(tx).inputs()) {
-            auto const &output_point = input.previous_output();
+            auto const& output_point = input.previous_output();
 
             auto res = std::find_if(mempool.begin(), mempool.end(), [output_point](tx_mempool const &x) {
                 return (std::get<0>(x).hash() == output_point.hash());
@@ -984,12 +1082,13 @@ std::vector<block_chain::tx_mempool> block_chain::fetch_mempool_all(size_t max_b
             }
         }
     }
+    now = print_time("t7 - t6", now);   // t7
 
 
 
     //postcondition: SIN DEPENDENCIAS
 
-
+    // ------------------------------------------------------------------------------------
     auto const fee_per_weight = [](tx_mempool const& a, tx_mempool const& b){
         auto const fpw_a = double(std::get<1>(a)) / std::get<4>(a);
         auto const fpw_b = double(std::get<1>(b)) / std::get<4>(b);
@@ -997,9 +1096,9 @@ std::vector<block_chain::tx_mempool> block_chain::fetch_mempool_all(size_t max_b
     };
 
     std::sort(mempool.begin(), mempool.end(), fee_per_weight);
+    now = print_time("t8 - t7", now);   // t8
 
-
-
+    // ------------------------------------------------------------------------------------
     std::vector<tx_mempool> mempool_final;
 //    size_t max_bytes = 900 * 1024;
 
@@ -1017,6 +1116,7 @@ std::vector<block_chain::tx_mempool> block_chain::fetch_mempool_all(size_t max_b
 
         ++i;
     }
+    now = print_time("t9 - t8", now);   // t9
 
 
     return mempool_final;
