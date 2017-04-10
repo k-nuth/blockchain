@@ -100,6 +100,10 @@ public:
         bool& out_coinbase, const chain::output_point& outpoint,
         size_t branch_height, bool require_confirmed) const;
 
+    bool get_output_is_confirmed(chain::output& out_output, size_t& out_height,
+        bool& out_coinbase, bool& out_is_confirmed, const chain::output_point& outpoint,
+        size_t branch_height, bool require_confirmed) const;
+
     /// Determine if an unspent transaction exists with the given hash.
     bool get_is_unspent_transaction(const hash_digest& hash,
         size_t branch_height, bool require_confirmed) const;
@@ -225,6 +229,8 @@ public:
     bool validate_tx (chain::transaction const& tx) const;
     std::vector<tx_mempool> fetch_mempool_all(size_t max_bytes) const;
     std::pair<bool, size_t> is_double_spent_and_sigops(chain::transaction const& tx, bool bip16_active) const;
+    std::tuple<bool, size_t, uint64_t> is_double_spent_sigops_and_fees(chain::transaction const& tx, bool bip16_active) const;
+    std::tuple<bool, size_t, uint64_t> validate_tx_2(chain::transaction const& tx, size_t height) const;
 
     /// fetch position and height within block of transaction by hash.
     void fetch_transaction_position(const hash_digest& hash,
