@@ -189,33 +189,6 @@ bool block_chain::get_last_height(size_t& out_height) const
     return database_.blocks().top(out_height);
 }
 
-
-
-
-//        bool transaction_database::get_output(output& out_output, size_t& out_height,
-//                                              bool& out_coinbase, const output_point& point, size_t fork_height,
-//                                              bool require_confirmed) const
-//        {
-//            if (cache_.get(out_output, out_height, out_coinbase, point, fork_height,
-//                           require_confirmed))
-//                return true;
-//
-//            const auto hash = point.hash();
-//            const auto slab = find(hash, fork_height, require_confirmed);
-//
-//            // The transaction does not exist at/below fork with matching confirmation.
-//            if (!slab)
-//                return false;
-//
-//            transaction_result result (slab, hash);
-//            out_height = result.height();
-//            out_coinbase = result.position() == 0;
-//            out_output = result.output(point.index());
-//            return true;
-//        }
-
-
-
 bool block_chain::get_output(chain::output& out_output, size_t& out_height,
     bool& out_coinbase, const chain::output_point& outpoint,
     size_t branch_height, bool require_confirmed) const
@@ -739,30 +712,13 @@ std::pair<bool, uint64_t> block_chain::fees(libbitcoin::chain::transaction const
     return std::make_pair(false, 0);
 }
 
-
-
-double time_d1 = 0.0;
-double time_d2 = 0.0;
-double time_d3 = 0.0;
-double time_d4 = 0.0;
-double time_d5 = 0.0;
-
 std::pair<bool, size_t> block_chain::is_double_spent_and_sigops(chain::transaction const& tx, bool bip16_active) const {
-
-
-//    auto t0_d1 = std::chrono::high_resolution_clock::now();  // t0
-//
-//    auto t1_d1 = std::chrono::high_resolution_clock::now();  // t0
-//    time_d1 += std::chrono::duration_cast<std::chrono::nanoseconds>(t1_d2 - t0_d2).count();
 
     size_t inputs_sigops = 0;
 
     for (auto const& input : tx.inputs()) {
-        auto t0_d1 = std::chrono::high_resolution_clock::now();  // t0
-
         auto const& outpoint = input.previous_output();
         auto& prevout = outpoint.validation;
-
         prevout.cache = chain::output{};
 
         // If the input is a coinbase there is no prevout to populate.
@@ -771,15 +727,7 @@ std::pair<bool, size_t> block_chain::is_double_spent_and_sigops(chain::transacti
         size_t output_height;
         bool output_coinbase;
 
-        auto t1_d1 = std::chrono::high_resolution_clock::now();  // t0
-        time_d1 += std::chrono::duration_cast<std::chrono::nanoseconds>(t1_d1 - t0_d1).count();
-
-        auto t0_d2 = std::chrono::high_resolution_clock::now();  // t0
         auto res_output = get_output(prevout.cache, output_height, output_coinbase, outpoint, max_size_t, true);
-        auto t1_d2 = std::chrono::high_resolution_clock::now();  // t0
-        time_d2 += std::chrono::duration_cast<std::chrono::nanoseconds>(t1_d2 - t0_d2).count();
-
-        auto t0_d3 = std::chrono::high_resolution_clock::now();  // t0
         if (! res_output) return std::make_pair(true, 0);
 
 
@@ -793,10 +741,7 @@ std::pair<bool, size_t> block_chain::is_double_spent_and_sigops(chain::transacti
         {
             return std::make_pair(true, 0);
         }
-        auto t1_d3 = std::chrono::high_resolution_clock::now();  // t0
-        time_d3 += std::chrono::duration_cast<std::chrono::nanoseconds>(t1_d3 - t0_d3).count();
 
-        auto t0_d4 = std::chrono::high_resolution_clock::now();  // t0
         inputs_sigops += input.script().sigops(false);
 
         if (bip16_active) {
@@ -807,76 +752,31 @@ std::pair<bool, size_t> block_chain::is_double_spent_and_sigops(chain::transacti
             inputs_sigops += input.script().embedded_sigops(cache);
         }
 
-        std::cout << "input: " << libbitcoin::encode_base16(input.script().to_data(false)) << std::endl;
-        /*
-        auto sigops = script_.sigops(false);
-
-        if (bip16_active)
-        {
-            // Breaks debug build unit testing.
-            ////BITCOIN_ASSERT(previous_output_.is_valid());
-
-            // This cannot overflow because each total is limited by max ops.
-            const auto& cache = previous_output_.validation.cache.script();
-            sigops += script_.embedded_sigops(cache);
-        }
-         */
-
-
-
-
-        std::cout << "inputs_sigops: " << inputs_sigops << std::endl;
-        auto t1_d4 = std::chrono::high_resolution_clock::now();  // t0
-        time_d4 += std::chrono::duration_cast<std::chrono::nanoseconds>(t1_d4 - t0_d4).count();
-
-
     }
 
     const auto out = [](size_t total, const chain::output& output) {
-        std::cout << "output: " << libbitcoin::encode_base16(output.script().to_data(true)) << std::endl;
-        std::cout << "output_sigops: " << output.script().sigops(false) << std::endl;
+//        std::cout << "output: " << libbitcoin::encode_base16(output.script().to_data(true)) << std::endl;
+//        std::cout << "output_sigops: " << output.script().sigops(false) << std::endl;
         return ceiling_add(total, output.signature_operations());
     };
-    auto t0_d5 = std::chrono::high_resolution_clock::now();  // t0
     auto sigops_total = inputs_sigops + std::accumulate(tx.outputs().begin(), tx.outputs().end(), size_t{0}, out);
-    auto t1_d5 = std::chrono::high_resolution_clock::now();  // t0
-    time_d5 += std::chrono::duration_cast<std::chrono::nanoseconds>(t1_d5 - t0_d5).count();
-
-    std::cout << "sigops_total: " << inputs_sigops << std::endl;
+    std::cout << "sigops_total: " << sigops_total << std::endl;
 
     return std::make_pair(false, sigops_total);
-
 }
 
-double time_get = 0.0;
-double time_v1 = 0.0;
-double time_txg = 0.0;
-double time_v2 = 0.0;
-double time_v3 = 0.0;
 bool block_chain::validate_tx(chain::transaction const& tx) const {
-
-
-    auto t0_get = std::chrono::high_resolution_clock::now();  // t0
     auto tx_result = database_.transactions().get(tx.hash(),libbitcoin::max_size_t,false);
-    auto t1_get = std::chrono::high_resolution_clock::now();  // t0
-    time_get += std::chrono::duration_cast<std::chrono::nanoseconds>(t1_get - t0_get).count();
-
-
     if (!tx_result) {
         //TX NOT FOUND
         //std::cout << "TX RESULT NOT FOUND \n";
         return false;
     }
 
-    auto t0_txg = std::chrono::high_resolution_clock::now();  // t0
     auto tx_generated = tx_result.transaction();
 //        if (tx_generated.is_missing_previous_outputs() ||
 //                tx_generated.is_double_spend(true) ||
 //                tx_generated.signature_operations(true) > max_block_sigops) {
-    auto t1_txg = std::chrono::high_resolution_clock::now();  // t0
-    time_txg += std::chrono::duration_cast<std::chrono::nanoseconds>(t1_txg - t0_txg).count();
-
-    auto t0_v1 = std::chrono::high_resolution_clock::now();  // t0
 
     size_t height;
     if (database_.blocks().top(height)){
@@ -888,17 +788,7 @@ bool block_chain::validate_tx(chain::transaction const& tx) const {
         }
     }
 
-    auto t1_v1 = std::chrono::high_resolution_clock::now();  // t0
-    time_v1 += std::chrono::duration_cast<std::chrono::nanoseconds>(t1_v1 - t0_v1).count();
-
-
-    auto t0_v2 = std::chrono::high_resolution_clock::now();  // t0
     auto res = is_double_spent_and_sigops(tx_generated, true);
-    auto t1_v2 = std::chrono::high_resolution_clock::now();  // t0
-    time_v2 += std::chrono::duration_cast<std::chrono::nanoseconds>(t1_v2 - t0_v2).count();
-
-
-    // si es unconfirmed ... res.first = true
     if (res.first || res.second > max_block_sigops) {
 
         //TX ERROR, TODO DELETE THIS TX
@@ -906,10 +796,8 @@ bool block_chain::validate_tx(chain::transaction const& tx) const {
 
 //            is_missing_previous_outputs(tx_generated);
 
-        return false; //unconfirmed
+        return false;
     }
-
-    auto t0_v3 = std::chrono::high_resolution_clock::now();  // t0
     for (auto const& in : tx_generated.inputs()) {
         if ( in.script().pattern() == libbitcoin::machine::script_pattern::non_standard){
             return false;
@@ -922,136 +810,100 @@ bool block_chain::validate_tx(chain::transaction const& tx) const {
         }
     }
 
-    auto t1_v3 = std::chrono::high_resolution_clock::now();  // t0
-    time_v3 += std::chrono::duration_cast<std::chrono::nanoseconds>(t1_v3 - t0_v3).count();
-
     return true;
 }
 
-
-std::tuple<bool, size_t, uint64_t> block_chain::is_double_spent_sigops_and_fees(chain::transaction const& tx, bool bip16_active) const {
-
-    size_t inputs_sigops = 0;
-    uint64_t total = 0;
-
-    for (auto const& input : tx.inputs()) {
-
-        if (input.script().pattern() == libbitcoin::machine::script_pattern::non_standard) {
-            return std::make_tuple(true, 0, 0);
-        }
-
-        auto const& outpoint = input.previous_output();
-        auto& prevout = outpoint.validation;
-        prevout.cache = chain::output{};
-
-        // If the input is a coinbase there is no prevout to populate.
-        if (outpoint.is_null()) return std::make_tuple(true, 0, 0);
-
-
-        size_t output_height;
-        bool output_coinbase;
-
-        if (!get_output(prevout.cache, output_height, output_coinbase, outpoint, max_size_t, true)) {
-            return std::make_tuple(true, 0, 0);
-        }
-
-        if ( output_height == 0)  return std::make_tuple(true, 0, 0);
-
-        const auto spend_height = prevout.cache.validation.spender_height;
-
-        if (
-            //(spend_height <= branch_height) &&
-                (spend_height != chain::output::validation::not_spent))
-        {
-            return std::make_tuple(true, 0, 0);
-        }
-
-        inputs_sigops += input.script().sigops(false);
-
-        if (bip16_active) {
-            // This cannot overflow because each total is limited by max ops.
-            const auto& cache = prevout.cache.script();
-            inputs_sigops += input.script().embedded_sigops(cache);
-        }
-
-        const bool missing = !prevout.cache.is_valid();
-        total = ceiling_add(total, missing ? 0 : prevout.cache.value());
-    }
-
-    for (auto const& out : tx.outputs()) {
-        if (out.script().pattern() == libbitcoin::machine::script_pattern::non_standard) {
-            std::make_tuple(true, 0, 0);
-        }
-    }
-
-    const auto out = [](size_t total, const chain::output& output) {
-        return ceiling_add(total, output.signature_operations());
-    };
-
-    return std::make_tuple(false,
-           inputs_sigops + std::accumulate(tx.outputs().begin(), tx.outputs().end(), size_t{0}, out),
-           floor_subtract(total, tx.total_output_value()));
-
-}
-
-
-std::tuple<bool, size_t, uint64_t> block_chain::validate_tx_2(chain::transaction const& tx, size_t height) const {
-
-
-    auto tx_result = database_.transactions().get(tx.hash(),libbitcoin::max_size_t, false);
-
-    if (!tx_result) {
-        std::make_tuple(false, 0, 0);
-    }
-
-    //TODO: create a new function to get current time
-    auto const now = std::chrono::high_resolution_clock::now();
-    auto time = static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count());
-    if (!tx_result.transaction().is_final(height+1, time)){
-        std::make_tuple(false, 0, 0);
-    }
-
-    auto tx_generated = tx_result.transaction();
-//        if (tx_generated.is_missing_previous_outputs() ||
-//                tx_generated.is_double_spend(true) ||
-//                tx_generated.signature_operations(true) > max_block_sigops) {
-
-    auto res = is_double_spent_sigops_and_fees(tx_generated, true);
-
-    if (std::get<0>(res) || std::get<1>(res) > max_block_sigops) {
-
-        //TX ERROR, TODO DELETE THIS TX
-//            std::cout << "TX ERROR IS DOUBLE SPEND OR TOTAL SIGNATURE OPERATIONS ERROR\n";
-
-//            is_missing_previous_outputs(tx_generated);
-
-        std::make_tuple(false, 0, 0);
-    }
-
-    std::make_tuple(true, std::get<1>(res), std::get<2>(res));
-}
-
-
+////TODO: verify if it's ok. this fuction reduce the get_outputs call to 1
+//std::tuple<bool, size_t, uint64_t> block_chain::is_double_spent_sigops_and_fees(chain::transaction const& tx, bool bip16_active) const {
 //
-//void append_spend (chain::transaction const& tx, spent_container & result) {
+//    size_t inputs_sigops = 0;
+//    uint64_t total = 0;
+//
 //    for (auto const& input : tx.inputs()) {
-//        auto const& output_point = input.previous_output();
-//        result.emplace_back(output_point.hash(), output_point.index());
+//
+//        if (input.script().pattern() == libbitcoin::machine::script_pattern::non_standard) {
+//            return std::make_tuple(true, 0, 0);
+//        }
+//
+//        auto const& outpoint = input.previous_output();
+//        auto& prevout = outpoint.validation;
+//        prevout.cache = chain::output{};
+//
+//        // If the input is a coinbase there is no prevout to populate.
+//        if (outpoint.is_null()) return std::make_tuple(true, 0, 0);
+//
+//
+//        size_t output_height;
+//        bool output_coinbase;
+//
+//        if (!get_output(prevout.cache, output_height, output_coinbase, outpoint, max_size_t, true)) {
+//            return std::make_tuple(true, 0, 0);
+//        }
+//
+//        if ( output_height == 0)  return std::make_tuple(true, 0, 0);
+//
+//        const auto spend_height = prevout.cache.validation.spender_height;
+//
+//        if (
+//            //(spend_height <= branch_height) &&
+//                (spend_height != chain::output::validation::not_spent))
+//        {
+//            return std::make_tuple(true, 0, 0);
+//        }
+//
+//        inputs_sigops += input.script().sigops(false);
+//
+//        if (bip16_active) {
+//            // This cannot overflow because each total is limited by max ops.
+//            const auto& cache = prevout.cache.script();
+//            inputs_sigops += input.script().embedded_sigops(cache);
+//        }
+//
+//        const bool missing = !prevout.cache.is_valid();
+//        total = ceiling_add(total, missing ? 0 : prevout.cache.value());
 //    }
+//
+//    for (auto const& out : tx.outputs()) {
+//        if (out.script().pattern() == libbitcoin::machine::script_pattern::non_standard) {
+//            std::make_tuple(true, 0, 0);
+//        }
+//    }
+//
+//    const auto out = [](size_t total, const chain::output& output) {
+//        return ceiling_add(total, output.signature_operations());
+//    };
+//
+//    return std::make_tuple(false,
+//           inputs_sigops + std::accumulate(tx.outputs().begin(), tx.outputs().end(), size_t{0}, out),
+//           floor_subtract(total, tx.total_output_value()));
+//
 //}
 //
-//bool is_double_spend_mempool (chain::transaction const& tx, spent_container const& result) {
-//    for (auto const& input : tx.inputs()) {
-//        auto const& output_point = input.previous_output();
+//std::tuple<bool, size_t, uint64_t> block_chain::validate_tx_2(chain::transaction const& tx, size_t height) const {
 //
-//        auto res = std::find_if(result.begin(), result.end(), [output_point](spent_value_type const& x){
-//            return (x.first == output_point.hash() && x.second == output_point.index());
-//        });
 //
-//        return res != result.end();
+//    auto tx_result = database_.transactions().get(tx.hash(),libbitcoin::max_size_t, false);
+//
+//    if (!tx_result) {
+//        std::make_tuple(false, 0, 0);
 //    }
+//
+//    //TODO: create a new function to get current time
+//    auto const now = std::chrono::high_resolution_clock::now();
+//    auto time = static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count());
+//    if (!tx_result.transaction().is_final(height+1, time)){
+//        std::make_tuple(false, 0, 0);
+//    }
+//
+//    auto tx_generated = tx_result.transaction();
+//    auto res = is_double_spent_sigops_and_fees(tx_generated, true);
+//    if (std::get<0>(res) || std::get<1>(res) > max_block_sigops) {
+//
+//        std::make_tuple(false, 0, 0);
+//    }
+//
+//    std::make_tuple(true, std::get<1>(res), std::get<2>(res));
 //}
-
 
 void append_spend(chain::transaction const& tx, spent_container & result) {
     for (auto const& input : tx.inputs()) {
@@ -1063,38 +915,9 @@ void append_spend(chain::transaction const& tx, spent_container & result) {
 bool is_double_spend_mempool(chain::transaction const& tx, spent_container const& result) {
     for (auto const& input : tx.inputs()) {
         auto const& output_point = input.previous_output();
-
         auto res = result.find(std::make_pair(output_point.hash(), output_point.index()));
-
-//        auto res = std::find_if(result.begin(), result.end(), [output_point](spent_value_type const& x){
-//            return (x.first == output_point.hash() && x.second == output_point.index());
-//        });
-
         return res != result.end();
     }
-}
-
-//bool is_pay_to_witness_script_hash (chain::transaction const& tx){
-//    //TODO: currently filtering more than just witness script hash, everything that starts with OP_RETURN is filtered
-//    for (auto const & oup : tx.outputs()) {
-//        auto temp = encode_base16(oup.script().to_data(false));
-////        if (temp.size() == 68) {
-//            if (temp.substr(0, 2) == "6a") {
-//                std::cout << "TX hash value == " << encode_hash(tx.hash()) << "\n";
-//                std::cout << "Script value: " << temp << "\n";
-//                std::cout << "PROBABLY SEGWIT!!!!!!!!!!!!" << "\n";
-//                return true;
-//            }
-////        }
-//    }
-//    return false;
-//}
-
-std::chrono::time_point<std::chrono::high_resolution_clock> print_time(std::string const& str, std::chrono::time_point<std::chrono::high_resolution_clock> const& prev) {
-    auto now = std::chrono::high_resolution_clock::now();
-    //std::cout << "t1 - t0: " << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << " ns" << std::endl;
-    std::cout << str << ": " << std::chrono::duration_cast<std::chrono::nanoseconds>(now - prev).count() << " ns" << std::endl;
-    return now;
 }
 
 std::vector<block_chain::tx_mempool> block_chain::fetch_mempool_all(size_t max_bytes) const
@@ -1108,64 +931,19 @@ std::vector<block_chain::tx_mempool> block_chain::fetch_mempool_all(size_t max_b
         return std::vector<block_chain::tx_mempool>();
     }
 
-
     std::vector<tx_mempool> mempool;
-    std::vector<tx_mempool> mempool_test_0;
     spent_container spent;
-    spent_container spent_2;
-
-//    mempool.reserve(max); //TODO: reserve a "useful?" amount of data
-
-
-    auto t0 = std::chrono::high_resolution_clock::now();  // t0
-    auto now = t0;
-
-
-    // ------------------------------------------------------------------------------------
-    //Recorrida "normal"
     mempool.reserve(7000);
-    double time_validate = 0.0;
-    double time_ds = 0.0;
-    double time_fees = 0.0;
-    double time_if = 0.0;
-
-    time_get = 0.0;
-    time_v1 = 0.0;
-    time_txg = 0.0;
-    time_v2 = 0.0;
-    time_v3 = 0.0;
-
-    time_d1 = 0.0;
-    time_d2 = 0.0;
-    time_d3 = 0.0;
-    time_d4 = 0.0;
-    time_d5 = 0.0;
 
     database_.transactions_unconfirmed().for_each([&](chain::transaction const& tx) {
-        auto t0_validate = std::chrono::high_resolution_clock::now();  // t0
+        if (mempool.size() > 7000){
+            return false;
+        }
         auto res_validate = validate_tx(tx);
-        auto t1_validate = std::chrono::high_resolution_clock::now();  // t0
-
-        time_validate += std::chrono::duration_cast<std::chrono::nanoseconds>(t1_validate - t0_validate).count();
-
-        auto t0_ds = std::chrono::high_resolution_clock::now();  // t0
         auto res_ds = is_double_spend_mempool(tx, spent);
-        auto t1_ds = std::chrono::high_resolution_clock::now();  // t0
-
-        time_ds += std::chrono::duration_cast<std::chrono::nanoseconds>(t1_ds - t0_ds).count();
-
         if (res_validate && !res_ds) {
             append_spend(tx, spent);
-            //siempre voy a tener una TX confirmed
-            auto t0_fees = std::chrono::high_resolution_clock::now();  // t0
             auto fee_result = block_chain::fees(tx);
-            auto t1_fees = std::chrono::high_resolution_clock::now();  // t0
-
-            time_fees += std::chrono::duration_cast<std::chrono::nanoseconds>(t1_fees - t0_fees).count();
-//            auto fee_result = block_chain::fees(tx);
-
-            auto t0_if = std::chrono::high_resolution_clock::now();  // t0
-
             if (fee_result.first) {
                 auto fee = fee_result.second;
                 uint64_t sigops = 0; //TODO...
@@ -1173,64 +951,9 @@ std::vector<block_chain::tx_mempool> block_chain::fetch_mempool_all(size_t max_b
                 size_t tx_weight = tx.to_data(true).size();
                 mempool.emplace_back(tx, fee, sigops, dependencies, tx_weight);
             }
-
-            auto t1_if = std::chrono::high_resolution_clock::now();  // t0
-
-            time_if += std::chrono::duration_cast<std::chrono::nanoseconds>(t1_if - t0_if).count();
-
-        } // unconfirmed sale por el "else"
-
-        //mempool.size(())
+        }
         return true;
     });
-
-    now = print_time("t1 - t0", now);   // t1
-    std::cout << "time_validate: " << time_validate << " ns" << std::endl;
-    std::cout << "time_ds:       " << time_ds <<  " ns" << std::endl;
-    std::cout << "time_fees:     " << time_fees <<  " ns" << std::endl;
-    std::cout << "time_if:       " << time_if <<  " ns\n" << std::endl;
-
-    std::cout << "time_get:      " << time_get <<  " ns" << std::endl;
-    std::cout << "time_v1:       " << time_v1 <<  " ns" << std::endl;
-    std::cout << "time_txg:      " << time_txg <<  " ns" << std::endl;
-    std::cout << "time_v2:       " << time_v2 <<  " ns" << std::endl;
-    std::cout << "time_v3:       " << time_v3 <<  " ns" << std::endl;
-
-    std::cout << "time_d1:       " << time_d1 <<  " ns" << std::endl;
-    std::cout << "time_d2:       " << time_d2 <<  " ns" << std::endl;
-    std::cout << "time_d3:       " << time_d3 <<  " ns" << std::endl;
-    std::cout << "time_d4:       " << time_d4 <<  " ns" << std::endl;
-    std::cout << "time_d5:       " << time_d5 <<  " ns" << std::endl;
-
-
-
-//
-//    // ------------------------------------------------------------------------------------
-//    //Recorrida "normal" mempool_test_0
-//    mempool_test_0.reserve(7000);
-//
-//    database_.transactions_unconfirmed().for_each([&](chain::transaction const& tx) {
-//        auto res = validate_tx_2(tx, height);
-//        if (std::get<0>(res) && !(is_double_spend_mempool(tx, spent_2))) {
-//            append_spend(tx, spent_2);
-//            //siempre voy a tener una TX confirmed
-//            auto fee = std::get<2>(res); //block_chain::fees(tx);
-//
-//            uint64_t sigops = std::get<1>(res); //0; //TODO...
-//            std::string dependencies = ""; //TODO: see what to do with the final algorithm
-//            size_t tx_weight = tx.to_data(true).size();
-//            mempool_test_0.emplace_back(tx, fee, sigops, dependencies, tx_weight);
-//
-//        } // unconfirmed sale por el "else"
-//
-//        //mempool.size(())
-//        return true;
-//    });
-//
-//    now = print_time("t2 - t1", now);   // t2
-
-
-
 
 //    // ------------------------------------------------------------------------------------
 //    //TODO: chequeo temporal de dependencias, ELIMINAR!
@@ -1251,10 +974,6 @@ std::vector<block_chain::tx_mempool> block_chain::fetch_mempool_all(size_t max_b
 //        }
 //    }
 
-
-
-    //postcondition: SIN DEPENDENCIAS
-
     // ------------------------------------------------------------------------------------
     auto const fee_per_weight = [](tx_mempool const& a, tx_mempool const& b){
         auto const fpw_a = double(std::get<1>(a)) / std::get<4>(a);
@@ -1267,91 +986,20 @@ std::vector<block_chain::tx_mempool> block_chain::fetch_mempool_all(size_t max_b
     // ------------------------------------------------------------------------------------
     std::vector<tx_mempool> mempool_final;
 //    size_t max_bytes = 900 * 1024;
-
     size_t i = 0;
     while (i < mempool.size() && max_bytes > 0) {
         auto const& tx = mempool[i];
         auto w = std::get<4>(tx); //tx.to_data(true).size();
-
         if (max_bytes >= w) {
             mempool_final.push_back(tx);
             max_bytes -= w;
         } else {
 //            cout << "skip weight: " << w << std::endl;
         }
-
         ++i;
     }
-
-
     return mempool_final;
 }
-
-
-//std::pair<std::vector<uint64_t>, std::vector<chain::transaction>> block_chain::fetch_mempool_all() const
-//{
-//    std::vector<chain::transaction> mempool;
-//    std::vector<uint64_t> fees;
-//    spent_container spent;
-//
-//    if (stopped()) {
-//        return std::make_pair(fees, mempool);
-//    }
-//
-////    size_t n = 0;
-////    size_t max = 500;
-//
-////    mempool.reserve(max);
-//
-//    database_.transactions_unconfirmed().for_each([&](chain::transaction const& tx) {
-//        std::cout << "TX hash value == " << encode_hash(tx.hash()) << "\n";
-//        if (validate_tx(tx) && !(is_double_spend_mempool(tx, spent))) {
-//            append_spend(tx, spent);
-//            auto fee = block_chain::fees(tx);
-//            if (fee.first && !is_pay_to_witness_script_hash(tx)){
-//                mempool.push_back(tx);
-//                fees.push_back(fee.second);
-//            }
-//        } else {
-//            std::cout << "TX NOT VALID OR DOUBLE SPENT\n";
-//        }
-////        ++n;
-////        return n < max;
-//        return true;
-//    });
-//
-////    return std::make_pair(fees, mempool);
-//
-//    //postcondition: SIN DEPENDENCIAS
-//
-//    std::vector<chain::transaction> mempool_final;
-//    std::vector<uint64_t> fees_final;
-//
-//    //sort fee/bytes
-//
-//    size_t max_bytes = 900 * 1024;
-//
-//    size_t i = 0;
-//    while (i < mempool.size() && max_bytes > 0) {
-//        auto const& tx = mempool[i];
-//        auto w = tx.to_data(true).size();
-//
-//        if (max_bytes >= w) {
-//            mempool_final.push_back(tx);
-//            fees_final.push_back(fees[i]);
-//            max_bytes -= w;
-//        } else {
-//            cout << "skip weight: " << w << std::endl;
-//
-//        }
-//
-//        ++i;
-//    }
-//
-//
-//    return std::make_pair(fees_final, mempool_final);
-//}
-
 
 // This is only used for the server API, need to document sentinel/forks.
 // This is same as fetch_transaction but skips the tx payload.
