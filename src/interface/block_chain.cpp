@@ -760,17 +760,17 @@ std::pair<bool, size_t> block_chain::is_double_spent_and_sigops(chain::transacti
         return ceiling_add(total, output.signature_operations());
     };
     auto sigops_total = inputs_sigops + std::accumulate(tx.outputs().begin(), tx.outputs().end(), size_t{0}, out);
-    std::cout << "sigops_total: " << sigops_total << std::endl;
+    //std::cout << "sigops_total: " << sigops_total << std::endl;
 
     return std::make_pair(false, sigops_total);
 }
 
-bool block_chain::validate_tx(chain::transaction const& tx) const {
+std::pair<bool, size_t> block_chain::validate_tx(chain::transaction const& tx) const {
     auto tx_result = database_.transactions().get(tx.hash(),libbitcoin::max_size_t,false);
     if (!tx_result) {
         //TX NOT FOUND
         //std::cout << "TX RESULT NOT FOUND \n";
-        return false;
+        return std::make_pair(false, 0);
     }
 
     auto tx_generated = tx_result.transaction();
@@ -784,7 +784,7 @@ bool block_chain::validate_tx(chain::transaction const& tx) const {
         auto const now = std::chrono::high_resolution_clock::now();
         auto time = static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count());
         if (!tx_generated.is_final(height+1, time)){
-            return false;
+            return std::make_pair(false, 0);
         }
     }
 
@@ -796,21 +796,21 @@ bool block_chain::validate_tx(chain::transaction const& tx) const {
 
 //            is_missing_previous_outputs(tx_generated);
 
-        return false;
+        return std::make_pair(false, 0);
     }
     for (auto const& in : tx_generated.inputs()) {
         if ( in.script().pattern() == libbitcoin::machine::script_pattern::non_standard){
-            return false;
+            return std::make_pair(false, 0);
         }
     }
 
     for (auto const& out : tx_generated.outputs()) {
         if ( out.script().pattern() == libbitcoin::machine::script_pattern::non_standard){
-            return false;
+            return std::make_pair(false, 0);
         }
     }
 
-    return true;
+    return std::make_pair(true,res.second);
 }
 
 ////TODO: verify if it's ok. this fuction reduce the get_outputs call to 1
@@ -941,12 +941,12 @@ std::vector<block_chain::tx_mempool> block_chain::fetch_mempool_all(size_t max_b
         }
         auto res_validate = validate_tx(tx);
         auto res_ds = is_double_spend_mempool(tx, spent);
-        if (res_validate && !res_ds) {
+        if (res_validate.first && !res_ds) {
             append_spend(tx, spent);
             auto fee_result = block_chain::fees(tx);
             if (fee_result.first) {
                 auto fee = fee_result.second;
-                uint64_t sigops = 0; //TODO...
+                uint64_t sigops = res_validate.second;std
                 std::string dependencies = ""; //TODO: see what to do with the final algorithm
                 size_t tx_weight = tx.to_data(true).size();
                 mempool.emplace_back(tx, fee, sigops, dependencies, tx_weight);
