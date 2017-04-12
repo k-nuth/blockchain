@@ -946,7 +946,7 @@ std::vector<block_chain::tx_mempool> block_chain::fetch_mempool_all(size_t max_b
             auto fee_result = block_chain::fees(tx);
             if (fee_result.first) {
                 auto fee = fee_result.second;
-                uint64_t sigops = res_validate.second;std
+                uint64_t sigops = res_validate.second;
                 std::string dependencies = ""; //TODO: see what to do with the final algorithm
                 size_t tx_weight = tx.to_data(true).size();
                 mempool.emplace_back(tx, fee, sigops, dependencies, tx_weight);
