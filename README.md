@@ -4,14 +4,16 @@
 
 *Bitcoin blockchain library*
 
-Make sure you have installed [bitprim-database](https://github.com/bitprim/bitprim-database) and [bitprim-consensus](https://github.com/bitprim/bitprim-consensus) (optional) beforehand according to their respective build instructions.
+Make sure you have installed [bitprim-core](https://github.com/bitprim/bitprim-core), [bitprim-database](https://github.com/bitprim/bitprim-database) and [bitprim-consensus](https://github.com/bitprim/bitprim-consensus) (optional) beforehand according to their respective build instructions.
 
-```sh
-$ ./autogen.sh
-$ ./configure
-$ make
+```
+$ git clone https://github.com/bitprim/bitprim-blockchain.git
+$ cd bitprim-blockchain
+$ mkdir build
+$ cd build
+$ cmake .. -DWITH_TESTS=OFF -DWITH_TOOLS=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="-std=c++11"
+$ make -j2 
 $ sudo make install
-$ sudo ldconfig
 ```
 
 bitprim-blockchain is now installed in `/usr/local/`.
