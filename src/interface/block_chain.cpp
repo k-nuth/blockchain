@@ -30,7 +30,7 @@
 #include <bitcoin/database.hpp>
 #include <bitcoin/blockchain/settings.hpp>
 #include <bitcoin/blockchain/populate/populate_chain_state.hpp>
-
+#include <numeric>
 
 namespace libbitcoin { namespace blockchain {
 
