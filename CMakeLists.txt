@@ -36,7 +36,7 @@ endif()
 
 # Implement --with-remote-database and declare WITH_REMOTE_DATABASE.
 #------------------------------------------------------------------------------
-option(WITH_REMOTE_DATABASE "Compile with remote bitprim-database (aka. bitprim-database-requester)." ON)
+option(WITH_REMOTE_DATABASE "Compile with remote bitprim-database (aka. bitprim-database-requester)." OFF)
 
 
 # Inherit --enable-shared and define BOOST_TEST_DYN_LINK.
@@ -72,15 +72,15 @@ endif()
 
 # Require bitprim-network of at least version 3.0.0 and output ${bitprim_network_CPPFLAGS/LIBS/PKG}.
 #------------------------------------------------------------------------------
-if (NOT TARGET bitprim-network)
-  find_package(bitprim-network 3.0.0 REQUIRED)
-endif()
+#if (NOT TARGET bitprim-network)
+#  find_package(bitprim-network 3.0.0 REQUIRED)
+#endif()
 
 # Require bitprim-protocol of at least version 3.0.0 and output ${bitprim_protocol_CPPFLAGS/LIBS/PKG}.
 #------------------------------------------------------------------------------
-if (NOT TARGET bitprim-protocol)
-  find_package(bitprim-protocol 3.0.0 REQUIRED)
-endif()
+#if (NOT TARGET bitprim-protocol)
+#  find_package(bitprim-protocol 3.0.0 REQUIRED)
+#endif()
 
 # Require bitprim-consensus of at least version 2.0.0 and output ${bitprim_consensus_CPPFLAGS/LIBS/PKG}.
 #------------------------------------------------------------------------------
