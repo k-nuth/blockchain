@@ -57,6 +57,11 @@ find_package(
 
 # Require bitprim-database (or bitprim-database-requester) of at least version 3.0.0 and output ${bitprim_database_CPPFLAGS/LIBS/PKG}.
 #------------------------------------------------------------------------------
+if (UNIX)
+  set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "/usr/local/lib/cmake")
+elseif (WIN32)
+  set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "cmake")
+endif()
 
 if (WITH_REMOTE_DATABASE)
   if (NOT TARGET bitprim-database-requester)
