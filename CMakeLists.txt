@@ -78,9 +78,9 @@ endif()
 
 # Require bitprim-protocol of at least version 3.0.0 and output ${bitprim_protocol_CPPFLAGS/LIBS/PKG}.
 #------------------------------------------------------------------------------
-if (NOT TARGET bitprim-protocol)
-  find_package(bitprim-protocol 3.0.0 REQUIRED)
-endif()
+#if (NOT TARGET bitprim-protocol)
+#  find_package(bitprim-protocol 3.0.0 REQUIRED)
+#endif()
 
 # Require bitprim-consensus of at least version 2.0.0 and output ${bitprim_consensus_CPPFLAGS/LIBS/PKG}.
 #------------------------------------------------------------------------------
@@ -124,6 +124,7 @@ if (NOT MSVC)
 else()
   _add_c_compile_flag(-W4 _has_all_warning_flag)
   add_definitions(-D_SCL_SECURE_NO_WARNINGS)
+  add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 endif()
 
 # Warn on extra stuff.

@@ -918,6 +918,7 @@ bool is_double_spend_mempool(chain::transaction const& tx, spent_container const
         auto res = result.find(std::make_pair(output_point.hash(), output_point.index()));
         return res != result.end();
     }
+    return false;
 }
 
 std::vector<block_chain::tx_mempool> block_chain::fetch_mempool_all(size_t max_bytes) const
