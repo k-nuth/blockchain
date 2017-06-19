@@ -20,11 +20,11 @@ option(WITH_CONSENSUS "Link bitprim-consensus and use for consensus checks." ON)
 
 # Implement --with-tests and declare WITH_TESTS.
 #------------------------------------------------------------------------------
-option(WITH_TESTS "Compile with unit tests." ON)
+option(WITH_TESTS "Compile with unit tests." OFF)
 
 # Implement --with-tools and declare WITH_TOOLS.
 #------------------------------------------------------------------------------
-option(WITH_TOOLS "Compile with tools." ON)
+option(WITH_TOOLS "Compile with tools." OFF)
 
 # Implement --with-litecoin.
 #------------------------------------------------------------------------------
@@ -36,7 +36,7 @@ endif()
 
 # Implement --with-remote-database and declare WITH_REMOTE_DATABASE.
 #------------------------------------------------------------------------------
-option(WITH_REMOTE_DATABASE "Compile with remote bitprim-database (aka. bitprim-database-requester)." ON)
+option(WITH_REMOTE_DATABASE "Compile with remote bitprim-database (aka. bitprim-database-requester)." OFF)
 
 
 # Inherit --enable-shared and define BOOST_TEST_DYN_LINK.
@@ -72,9 +72,9 @@ endif()
 
 # Require bitprim-network of at least version 3.0.0 and output ${bitprim_network_CPPFLAGS/LIBS/PKG}.
 #------------------------------------------------------------------------------
-if (NOT TARGET bitprim-network)
-  find_package(bitprim-network 3.0.0 REQUIRED)
-endif()
+# if (NOT TARGET bitprim-network)
+#   find_package(bitprim-network 3.0.0 REQUIRED)
+# endif()
 
 # Require bitprim-protocol of at least version 3.0.0 and output ${bitprim_protocol_CPPFLAGS/LIBS/PKG}.
 #------------------------------------------------------------------------------
@@ -220,8 +220,10 @@ add_library(bitprim-blockchain ${MODE}
   src/validate/validate_input.cpp
   src/validate/validate_transaction.cpp
   src/settings.cpp
-  )
+)
 
+set_property(TARGET bitprim-blockchain PROPERTY POSITION_INDEPENDENT_CODE ON)
+  
 target_include_directories(bitprim-blockchain PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
