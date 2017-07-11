@@ -102,10 +102,12 @@ before_script:
     cd ..
     cd ..
     }
+    
   - git clone 'https://github.com/bitprim/secp256k1' -b c-api
   - git clone 'https://github.com/bitprim/bitprim-core' -b c-api
   - git clone 'https://github.com/bitprim/bitprim-consensus' -b c-api
   - git clone 'https://github.com/bitprim/bitprim-database' -b c-api
+  
   - build_project secp256k1
   - build_project bitprim-core
   - build_project bitprim-consensus
