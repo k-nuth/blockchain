@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/bitprim/bitprim-blockchain.svg?branch=master)](https://travis-ci.org/bitprim/bitprim-blockchain)
+[![Build Status](https://travis-ci.org/bitprim/bitprim-blockchain.svg?branch=c-api)](https://travis-ci.org/bitprim/bitprim-blockchain)
 
 # Bitprim Blockchain
 
