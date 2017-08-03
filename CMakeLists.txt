@@ -1,3 +1,22 @@
+#
+# Copyright (c) 2017 Bitprim developers (see AUTHORS)
+#
+# This file is part of Bitprim.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
 cmake_minimum_required(VERSION 3.4)
 
 # bitprim-blockchain
@@ -5,6 +24,10 @@ cmake_minimum_required(VERSION 3.4)
 project(bitprim-blockchain
   VERSION 3.0.0
   LANGUAGES CXX C)
+
+include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+conan_basic_setup()
+
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 # Check for baseline language coverage in the compiler for the C++11 standard.
@@ -51,49 +74,47 @@ if (NOT ENABLE_SHARED)
   set(Boost_USE_STATIC_LIBS ON)
 endif()
 
-find_package(
-  Boost 1.56.0 REQUIRED
-  COMPONENTS unit_test_framework)
+#find_package(
+#  Boost 1.56.0 REQUIRED
+#  COMPONENTS unit_test_framework)
 
-# Require bitprim-database (or bitprim-database-requester) of at least version 3.0.0 and output ${bitprim_database_CPPFLAGS/LIBS/PKG}.
-#------------------------------------------------------------------------------
-if (UNIX)
-  set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "/usr/local/lib/cmake")
-elseif (WIN32)
-  set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "cmake")
-endif()
-
-if (WITH_REMOTE_DATABASE)
-  if (NOT TARGET bitprim-database-requester)
-    find_package(bitprim-database-requester 3.0.0 REQUIRED)
-  endif()
-else()
-  if (NOT TARGET bitprim-database)
-    find_package(bitprim-database 3.0.0 REQUIRED)
-  endif()
-endif()
-
-
-
-# Require bitprim-network of at least version 3.0.0 and output ${bitprim_network_CPPFLAGS/LIBS/PKG}.
-#------------------------------------------------------------------------------
-# if (NOT TARGET bitprim-network)
-#   find_package(bitprim-network 3.0.0 REQUIRED)
-# endif()
-
-# Require bitprim-protocol of at least version 3.0.0 and output ${bitprim_protocol_CPPFLAGS/LIBS/PKG}.
-#------------------------------------------------------------------------------
-#if (NOT TARGET bitprim-protocol)
-#  find_package(bitprim-protocol 3.0.0 REQUIRED)
+## Require bitprim-database (or bitprim-database-requester) of at least version 3.0.0 and output ${bitprim_database_CPPFLAGS/LIBS/PKG}.
+##------------------------------------------------------------------------------
+#if (UNIX)
+#  set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "/usr/local/lib/cmake")
+#elseif (WIN32)
+#  set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "cmake")
+#endif()
+#
+#if (WITH_REMOTE_DATABASE)
+#  if (NOT TARGET bitprim-database-requester)
+#    find_package(bitprim-database-requester 3.0.0 REQUIRED)
+#  endif()
+#else()
+#  if (NOT TARGET bitprim-database)
+#    find_package(bitprim-database 3.0.0 REQUIRED)
+#  endif()
 #endif()
 
-# Require bitprim-consensus of at least version 2.0.0 and output ${bitprim_consensus_CPPFLAGS/LIBS/PKG}.
-#------------------------------------------------------------------------------
-if (WITH_CONSENSUS)
-  if (NOT TARGET bitprim-consensus)
-    find_package(bitprim-consensus 2.0.0 REQUIRED)
-  endif()
-endif()
+## Require bitprim-network of at least version 3.0.0 and output ${bitprim_network_CPPFLAGS/LIBS/PKG}.
+##------------------------------------------------------------------------------
+## if (NOT TARGET bitprim-network)
+##   find_package(bitprim-network 3.0.0 REQUIRED)
+## endif()
+#
+## Require bitprim-protocol of at least version 3.0.0 and output ${bitprim_protocol_CPPFLAGS/LIBS/PKG}.
+##------------------------------------------------------------------------------
+##if (NOT TARGET bitprim-protocol)
+##  find_package(bitprim-protocol 3.0.0 REQUIRED)
+##endif()
+#
+## Require bitprim-consensus of at least version 2.0.0 and output ${bitprim_consensus_CPPFLAGS/LIBS/PKG}.
+##------------------------------------------------------------------------------
+#if (WITH_CONSENSUS)
+#  if (NOT TARGET bitprim-consensus)
+#    find_package(bitprim-consensus 2.0.0 REQUIRED)
+#  endif()
+#endif()
 
 # Set flags.
 #==============================================================================
@@ -203,16 +224,17 @@ if (WITH_CONSENSUS)
 endif()
 
 if (WITH_REMOTE_DATABASE)
-  target_link_libraries(bitprim-blockchain bitprim-database-requester)
+#  target_link_libraries(bitprim-blockchain bitprim-database-requester)
   target_compile_definitions(bitprim-blockchain PUBLIC -DWITH_REMOTE_DATABASE)
-else()
-  target_link_libraries(bitprim-blockchain bitprim-database)
+#else()
+#  target_link_libraries(bitprim-blockchain bitprim-database)
 endif()
 
+#if (WITH_CONSENSUS)
+#  target_link_libraries(bitprim-blockchain bitprim-consensus)
+#endif()
 
-if (WITH_CONSENSUS)
-  target_link_libraries(bitprim-blockchain bitprim-consensus)
-endif()
+target_link_libraries(bitprim-blockchain PUBLIC ${CONAN_LIBS})
 
 _group_sources(bitprim-blockchain "${CMAKE_CURRENT_LIST_DIR}")
 
