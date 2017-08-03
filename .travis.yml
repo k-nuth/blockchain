@@ -75,3 +75,11 @@ script:
   - cd ${TRAVIS_BUILD_DIR}
   - chmod +x .travis/run.sh
   - ./.travis/run.sh
+
+notifications:
+  email: false
+  webhooks:
+    urls: https://webhooks.gitter.im/e/a19dd2b03bf676d2b622
+    on_success: change
+    on_failure: always
+
