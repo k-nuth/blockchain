@@ -234,7 +234,7 @@ endif()
 #  target_link_libraries(bitprim-blockchain bitprim-consensus)
 #endif()
 
-target_link_libraries(bitprim-blockchain PUBLIC ${CONAN_LIBS})
+target_link_libraries(bitprim-blockchain ${CONAN_LIBS})
 
 _group_sources(bitprim-blockchain "${CMAKE_CURRENT_LIST_DIR}")
 
