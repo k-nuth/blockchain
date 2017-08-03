@@ -43,7 +43,7 @@ option(WITH_CONSENSUS "Link bitprim-consensus and use for consensus checks." ON)
 
 # Implement --with-tests and declare WITH_TESTS.
 #------------------------------------------------------------------------------
-option(WITH_TESTS "Compile with unit tests." OFF)
+option(WITH_TESTS "Compile with unit tests." ON)
 
 # Implement --with-tools and declare WITH_TOOLS.
 #------------------------------------------------------------------------------
