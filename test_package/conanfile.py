@@ -13,6 +13,7 @@ class BitprimblockchainTestConan(ConanFile):
 
     def build(self):
         cmake = CMake(self)
+        cmake.definitions["CMAKE_VERBOSE_MAKEFILE"] = "ON"
         # Current dir is "test_package/build/<build_id>" and CMakeLists.txt is in "test_package"
         cmake.configure(source_dir=self.conanfile_directory, build_dir="./")
         cmake.build()

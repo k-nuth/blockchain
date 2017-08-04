@@ -219,6 +219,8 @@ target_include_directories(bitprim-blockchain PUBLIC
   $<INSTALL_INTERFACE:include>)
 
 target_compile_definitions(bitprim-blockchain PUBLIC -DBCB_STATIC)
+
+#TODO(fernando): See what to do with this option. Move to Conan?
 if (WITH_CONSENSUS)
   target_compile_definitions(bitprim-blockchain PUBLIC -DWITH_CONSENSUS)
 endif()
