@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/bitprim/bitprim-blockchain.svg?branch=c-api)](https://travis-ci.org/bitprim/bitprim-blockchain) [![Appveyor Status](https://ci.appveyor.com/api/projects/status/github/bitprim/bitprim-blockchain?branch=c-api&svg=true)](https://ci.appveyor.com/project/hanchon/bitprim-blockchain?branch=c-api)
+[![Build Status](https://travis-ci.org/bitprim/bitprim-blockchain.svg?branch=conan-build)](https://travis-ci.org/bitprim/bitprim-blockchain) [![Appveyor Status](https://ci.appveyor.com/api/projects/status/github/bitprim/bitprim-blockchain?branch=conan-build&svg=true)](https://ci.appveyor.com/project/bitprim/bitprim-blockchain?branch=conan-build)
 
 # Bitprim Blockchain
 
