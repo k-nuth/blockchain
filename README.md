@@ -23,3 +23,5 @@ bitprim-blockchain is now installed in `/usr/local/`.
 ## Configure Options
 
 The default configuration requires `bitprim-consensus`. This ensures consensus parity with the Satoshi client. To eliminate the `bitprim-consensus` dependency use the `--without-consensus` option. This results in use of `bitprim-core` consensus checks.
+
+[badge.Gitter]: https://img.shields.io/badge/gitter-join%20chat-blue.svg
