@@ -1,8 +1,10 @@
-[![Build Status](https://travis-ci.org/bitprim/bitprim-blockchain.svg?branch=conan-build)](https://travis-ci.org/bitprim/bitprim-blockchain) [![Appveyor Status](https://ci.appveyor.com/api/projects/status/github/bitprim/bitprim-blockchain?branch=conan-build&svg=true)](https://ci.appveyor.com/project/bitprim/bitprim-blockchain?branch=conan-build)
-
 # Bitprim Blockchain
 
 *Bitcoin blockchain library*
+
+| **master(linux/osx)** | **conan-build-win(linux/osx)**   | **master(windows)**   | **conan-build-win(windows)** |
+|:------:|:-:|:-:|:-:|
+| [![Build Status](https://travis-ci.org/bitprim/bitprim-blockchain.svg)](https://travis-ci.org/bitprim/bitprim-blockchain)       | [![Build StatusB](https://travis-ci.org/bitprim/bitprim-blockchain.svg?branch=conan-build-win)](https://travis-ci.org/bitprim/bitprim-blockchain?branch=conan-build-win)  | [![Appveyor Status](https://ci.appveyor.com/api/projects/status/github/bitprim/bitprim-blockchain?svg=true)](https://ci.appveyor.com/project/bitprim/bitprim-blockchain)  | [![Appveyor StatusB](https://ci.appveyor.com/api/projects/status/github/bitprim/bitprim-blockchain?branch=conan-build-win&svg=true)](https://ci.appveyor.com/project/bitprim/bitprim-blockchain?branch=conan-build-win)  |
 
 Make sure you have installed [bitprim-core](https://github.com/bitprim/bitprim-core), [bitprim-database](https://github.com/bitprim/bitprim-database) and [bitprim-consensus](https://github.com/bitprim/bitprim-consensus) (optional) beforehand according to their respective build instructions.
 
