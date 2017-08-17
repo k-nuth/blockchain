@@ -218,7 +218,7 @@ target_include_directories(bitprim-blockchain PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
 
-target_compile_definitions(bitprim-blockchain PUBLIC -DBCB_STATIC)
+target_compile_definitions(bitprim-blockchain PUBLIC -DBCB_STATIC -DBC_STATIC)
 
 #TODO(fernando): See what to do with this option. Move to Conan?
 if (WITH_CONSENSUS)
