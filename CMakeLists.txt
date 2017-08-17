@@ -38,7 +38,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Process options.
 #==============================================================================
 
-# Implement --with-consensus 
+# Implement --use-conan
 #------------------------------------------------------------------------------
 option(USE_CONAN "Use Conan Build Tool." OFF)
 
@@ -241,9 +241,9 @@ target_include_directories(bitprim-blockchain PUBLIC
 
 target_compile_definitions(bitprim-blockchain PUBLIC -DBCB_STATIC -DBCD_STATIC -DBC_STATIC)
 
-if (USE_CONAN)
+if (WITH_CONSENSUS)
   target_compile_definitions(bitprim-blockchain PUBLIC -DBCK_STATIC)
-endif(NOT USE_CONAN)
+endif(NOT WITH_CONSENSUS)
 
 if (WITH_REMOTE_DATABASE)
   if (NOT USE_CONAN)
