@@ -42,7 +42,7 @@ class BitprimBlockchainConan(ConanFile):
 
 
     generators = "cmake"
-    exports_sources = "src/*", "CMakeLists.txt", "cmake/*", "bitprim-blockchainConfig.cmake.in", "include/*", "test/*"
+    exports_sources = "src/*", "CMakeLists.txt", "cmake/*", "bitprim-blockchainConfig.cmake.in", "include/*", "test/*", "tools/*"
     package_files = "build/lbitprim-blockchain.a"
     build_policy = "missing"
 
