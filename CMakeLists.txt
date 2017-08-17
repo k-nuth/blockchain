@@ -42,6 +42,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 #------------------------------------------------------------------------------
 option(USE_CONAN "Use Conan Build Tool." OFF)
 
+# Inherit --enable-shared and define BOOST_TEST_DYN_LINK.
+#------------------------------------------------------------------------------
+option(ENABLE_SHARED "" OFF)
+
 # Implement POSITION_INDEPENDENT_CODE
 #------------------------------------------------------------------------------
 option(ENABLE_POSITION_INDEPENDENT_CODE "Enable POSITION_INDEPENDENT_CODE property" ON)
@@ -61,6 +65,10 @@ option(WITH_TOOLS "Compile with tools." OFF)
 # Implement --with-litecoin.
 #------------------------------------------------------------------------------
 option(WITH_LITECOIN "Compile with Litecoin support." OFF)
+
+
+
+
 if (WITH_LITECOIN)
   add_definitions(-DLITECOIN)
 endif()
@@ -71,9 +79,6 @@ endif()
 option(WITH_REMOTE_DATABASE "Compile with remote bitprim-database (aka. bitprim-database-requester)." OFF)
 
 
-# Inherit --enable-shared and define BOOST_TEST_DYN_LINK.
-#------------------------------------------------------------------------------
-option(ENABLE_SHARED "" OFF)
 
 # Check dependencies.
 #==============================================================================
@@ -239,7 +244,10 @@ target_include_directories(bitprim-blockchain PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
 
-target_compile_definitions(bitprim-blockchain PUBLIC -DBCB_STATIC -DBCD_STATIC -DBC_STATIC)
+
+if (NOT ENABLE_SHARED)
+  target_compile_definitions(bitprim-blockchain PUBLIC -DBCB_STATIC -DBCD_STATIC -DBC_STATIC)
+endif()
 
 if (WITH_CONSENSUS)
   target_compile_definitions(bitprim-blockchain PUBLIC -DBCK_STATIC)
