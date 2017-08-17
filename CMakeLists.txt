@@ -273,9 +273,7 @@ if (WITH_CONSENSUS)
   endif(NOT USE_CONAN)
 endif(WITH_CONSENSUS)
 
-if (USE_CONAN)
-  target_link_libraries(bitprim-blockchain ${CONAN_LIBS})
-endif(NOT USE_CONAN)
+target_link_libraries(bitprim-blockchain ${CONAN_LIBS})
 
 _group_sources(bitprim-blockchain "${CMAKE_CURRENT_LIST_DIR}")
 
