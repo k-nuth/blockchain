@@ -239,14 +239,17 @@ target_include_directories(bitprim-blockchain PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
 
-target_compile_definitions(bitprim-blockchain PUBLIC -DBCB_STATIC -DBC_STATIC)
+target_compile_definitions(bitprim-blockchain PUBLIC -DBCB_STATIC -DBCD_STATIC -DBC_STATIC)
 
+if (USE_CONAN)
+  target_compile_definitions(bitprim-blockchain PUBLIC -DBCK_STATIC)
+endif(NOT USE_CONAN)
 
 if (WITH_REMOTE_DATABASE)
   if (NOT USE_CONAN)
     target_link_libraries(bitprim-blockchain bitprim-database-requester)
   endif(NOT USE_CONAN)
-  
+
   target_compile_definitions(bitprim-blockchain PUBLIC -DWITH_REMOTE_DATABASE)
 else()
   if (NOT USE_CONAN)
