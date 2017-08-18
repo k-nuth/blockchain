@@ -89,6 +89,12 @@ class BitprimBlockchainConan(ConanFile):
         cmake.definitions["WITH_LITECOIN"] = option_on_off(self.options.with_litecoin)
         # cmake.definitions["WITH_REMOTE_DATABASE"] = option_on_off(self.options.with_remote_database)
 
+        if self.settings.compiler == "gcc":
+            if float(str(self.settings.compiler.version)) >= 5:
+                cmake.definitions["_GLIBCXX_USE_CXX11_ABI"] = "1"
+            else:
+                cmake.definitions["_GLIBCXX_USE_CXX11_ABI"] = "0"
+
         cmake.configure(source_dir=self.conanfile_directory)
         cmake.build()
 
