@@ -279,7 +279,14 @@ if (WITH_CONSENSUS)
   endif(NOT USE_CONAN)
 endif(WITH_CONSENSUS)
 
-target_link_libraries(bitprim-blockchain ${CONAN_LIBS})
+target_link_libraries(bitprim-blockchain PUBLIC ${CONAN_LIBS})
+
+if (USE_CONAN)
+  if (MINGW)
+    target_link_libraries(bitprim-blockchain PUBLIC ws2_32 wsock32) #TODO(fernando): manage with Conan
+  endif()
+endif()
+
 
 _group_sources(bitprim-blockchain "${CMAKE_CURRENT_LIST_DIR}")
 
