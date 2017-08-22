@@ -27,13 +27,6 @@ project(bitprim-blockchain
 
 add_definitions(-D_GLIBCXX_USE_CXX11_ABI=1) #TODO(fernando): temporary workaround
 
-if(EXISTS ${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-    include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-    conan_basic_setup()
-else()
-    message(WARNING "The file conanbuildinfo.cmake doesn't exist, you have to run conan install first")
-endif()
-
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 # Check for baseline language coverage in the compiler for the C++11 standard.
@@ -47,6 +40,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Implement --use-conan
 #------------------------------------------------------------------------------
 option(USE_CONAN "Use Conan Build Tool." OFF)
+option(NO_CONAN_AT_ALL "Conan totally disabled." OFF)
+
+if (NO_CONAN_AT_ALL)
+  set(USE_CONAN OFF)
+endif()
 
 # Inherit --enable-shared and define BOOST_TEST_DYN_LINK.
 #------------------------------------------------------------------------------
@@ -84,30 +82,41 @@ endif()
 #------------------------------------------------------------------------------
 option(WITH_REMOTE_DATABASE "Compile with remote bitprim-database (aka. bitprim-database-requester)." OFF)
 
-
+# Conan infrastructure.
+#==============================================================================
+# Only if enabled
+#------------------------------------------------------------------------------
+if (NOT NO_CONAN_AT_ALL)
+  if(EXISTS ${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+      include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+      conan_basic_setup()
+  else()
+      message(WARNING "The file conanbuildinfo.cmake doesn't exist, you have to run conan install first")
+  endif()
+endif()
 
 # Check dependencies.
 #==============================================================================
+#------------------------------------------------------------------------------
+if (NO_CONAN_AT_ALL)
+  # Require Boost of at least version 1.56.0 and output ${boost_CPPFLAGS/LDFLAGS}.
+  #------------------------------------------------------------------------------
+  if (NOT ENABLE_SHARED)
+    set(Boost_USE_STATIC_LIBS ON)
+  endif()
 
-# # Require Boost of at least version 1.56.0 and output ${boost_CPPFLAGS/LDFLAGS}.
-# #------------------------------------------------------------------------------
-# if (NOT ENABLE_SHARED)
-#   set(Boost_USE_STATIC_LIBS ON)
-# endif()
-
-#find_package(
-#  Boost 1.56.0 REQUIRED
-#  COMPONENTS unit_test_framework)
-
-#if (UNIX)
-#  set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "/usr/local/lib/cmake")
-#elseif (WIN32)
-#  set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "cmake")
-#endif()
-
-
-
-
+  if (MSVC)
+    find_package(
+      Boost 1.56.0 REQUIRED
+      COMPONENTS atomic chrono date_time filesystem iostreams locale log log_setup program_options regex system thread unit_test_framework
+    )
+  else()
+    find_package(
+      Boost 1.56.0 REQUIRED
+      COMPONENTS chrono date_time filesystem iostreams locale log program_options regex system thread unit_test_framework
+    )
+  endif()
+endif()
 
 if (NOT USE_CONAN)
   # Require bitprim-database (or bitprim-database-requester) of at least version 3.0.0 and output ${bitprim_database_CPPFLAGS/LIBS/PKG}.
@@ -122,18 +131,6 @@ if (NOT USE_CONAN)
     endif()
   endif()
 
-  # Require bitprim-network of at least version 3.0.0 and output ${bitprim_network_CPPFLAGS/LIBS/PKG}.
-  #------------------------------------------------------------------------------
-  # if (NOT TARGET bitprim-network)
-  #   find_package(bitprim-network 3.0.0 REQUIRED)
-  # endif()
-
-  # Require bitprim-protocol of at least version 3.0.0 and output ${bitprim_protocol_CPPFLAGS/LIBS/PKG}.
-  #------------------------------------------------------------------------------
-  #if (NOT TARGET bitprim-protocol)
-  #  find_package(bitprim-protocol 3.0.0 REQUIRED)
-  #endif()
-
   # Require bitprim-consensus of at least version 2.0.0 and output ${bitprim_consensus_CPPFLAGS/LIBS/PKG}.
   #------------------------------------------------------------------------------
   if (WITH_CONSENSUS)
@@ -142,7 +139,6 @@ if (NOT USE_CONAN)
     endif()
   endif()  
 endif(NOT USE_CONAN)
-
 
 
 
@@ -257,7 +253,7 @@ endif()
 
 if (WITH_CONSENSUS)
   target_compile_definitions(bitprim-blockchain PUBLIC -DBCK_STATIC)
-endif(NOT WITH_CONSENSUS)
+endif(WITH_CONSENSUS)
 
 if (WITH_REMOTE_DATABASE)
   if (NOT USE_CONAN)
@@ -272,21 +268,25 @@ else()
 endif()
 
 #TODO(fernando): See what to do with this option. Move to Conan?
-if (WITH_CONSENSUS)
-  target_compile_definitions(bitprim-blockchain PUBLIC -DWITH_CONSENSUS)
-  if (NOT USE_CONAN)
+if (NOT NO_CONAN_AT_ALL)
+  if (WITH_CONSENSUS)
+    target_link_libraries(bitprim-blockchain PUBLIC ${CONAN_LIBS} -DWITH_CONSENSUS)
+  else()
+    target_link_libraries(bitprim-blockchain PUBLIC ${CONAN_LIBS})
+  endif()
+else()
+  if (WITH_CONSENSUS)
+    target_link_libraries(bitprim-blockchain bitprim-consensus -DWITH_CONSENSUS)
+  else()
     target_link_libraries(bitprim-blockchain bitprim-consensus)
-  endif(NOT USE_CONAN)
-endif(WITH_CONSENSUS)
-
-target_link_libraries(bitprim-blockchain PUBLIC ${CONAN_LIBS})
-
-if (USE_CONAN)
-  if (MINGW)
-    target_link_libraries(bitprim-blockchain PUBLIC ws2_32 wsock32) #TODO(fernando): manage with Conan
   endif()
 endif()
 
+if (USE_CONAN)
+  if (MINGW)
+    target_link_libraries(bitprim-consensus PUBLIC ws2_32 wsock32) #TODO(fernando): manage with Conan
+  endif()
+endif()
 
 _group_sources(bitprim-blockchain "${CMAKE_CURRENT_LIST_DIR}")
 
