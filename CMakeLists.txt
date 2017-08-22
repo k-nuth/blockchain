@@ -284,7 +284,7 @@ endif()
 
 if (USE_CONAN)
   if (MINGW)
-    target_link_libraries(bitprim-consensus PUBLIC ws2_32 wsock32) #TODO(fernando): manage with Conan
+    target_link_libraries(bitprim-blockchain PUBLIC ws2_32 wsock32) #TODO(fernando): manage with Conan
   endif()
 endif()
 
