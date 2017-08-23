@@ -36,6 +36,7 @@ class BitprimBlockchainConan(ConanFile):
                "with_tests": [True, False],
                "with_tools": [True, False],
                "with_litecoin": [True, False],
+               "use_cpp11_abi": [True, False]
             #    "with_remote_database": [True, False],
     }
 
@@ -45,7 +46,8 @@ class BitprimBlockchainConan(ConanFile):
         "with_consensus=True", \
         "with_tests=True", \
         "with_tools=True", \
-        "with_litecoin=False"
+        "with_litecoin=False", \
+        "use_cpp11_abi=True"
     # "with_remote_database=False"
 
 
@@ -84,6 +86,7 @@ class BitprimBlockchainConan(ConanFile):
         cmake.definitions["CMAKE_VERBOSE_MAKEFILE"] = "ON"
         cmake.definitions["ENABLE_SHARED"] = option_on_off(self.options.shared)
         cmake.definitions["ENABLE_POSITION_INDEPENDENT_CODE"] = option_on_off(self.options.fPIC)
+        cmake.definitions["USE_CPP11_ABI"] = option_on_off(self.options.use_cpp11_abi)
         cmake.definitions["WITH_CONSENSUS"] = option_on_off(self.options.with_consensus)
         cmake.definitions["WITH_TESTS"] = option_on_off(self.options.with_tests)
         cmake.definitions["WITH_TOOLS"] = option_on_off(self.options.with_tools)
