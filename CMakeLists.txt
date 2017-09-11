@@ -256,7 +256,7 @@ if (NOT ENABLE_SHARED)
 endif()
 
 if (WITH_CONSENSUS)
-  target_compile_definitions(bitprim-blockchain PUBLIC -DBCK_STATIC)
+  target_compile_definitions(bitprim-blockchain PUBLIC -DBCK_STATIC) #TODO(fernando): por que esta afuera?
 endif(WITH_CONSENSUS)
 
 if (WITH_REMOTE_DATABASE)
@@ -267,24 +267,42 @@ if (WITH_REMOTE_DATABASE)
   target_compile_definitions(bitprim-blockchain PUBLIC -DWITH_REMOTE_DATABASE)
 else()
   if (NOT USE_CONAN)
-    target_link_libraries(bitprim-blockchain bitprim-database)
+    target_link_libraries(bitprim-blockchain PUBLIC bitprim-database)
   endif(NOT USE_CONAN)
 endif()
 
-#TODO(fernando): See what to do with this option. Move to Conan?
-if (NOT NO_CONAN_AT_ALL)
-  if (WITH_CONSENSUS)
-    target_link_libraries(bitprim-blockchain PUBLIC ${CONAN_LIBS} -DWITH_CONSENSUS)
-  else()
-    target_link_libraries(bitprim-blockchain PUBLIC ${CONAN_LIBS})
-  endif()
-else()
-  if (WITH_CONSENSUS)
-    target_link_libraries(bitprim-blockchain bitprim-consensus -DWITH_CONSENSUS)
-  else()
-    target_link_libraries(bitprim-blockchain bitprim-consensus)
-  endif()
+
+
+
+# #TODO(fernando): See what to do with this option. Move to Conan?
+# if (NOT NO_CONAN_AT_ALL)
+#   if (WITH_CONSENSUS)
+#     target_compile_definitions(bitprim-blockchain PUBLIC -DWITH_CONSENSUS)
+#     target_link_libraries(bitprim-blockchain PUBLIC ${CONAN_LIBS})
+#   else()
+#     target_link_libraries(bitprim-blockchain PUBLIC ${CONAN_LIBS})
+#   endif()
+# else()
+#   if (WITH_CONSENSUS)
+#     target_link_libraries(bitprim-blockchain bitprim-consensus -DWITH_CONSENSUS)
+#   else()
+#     target_link_libraries(bitprim-blockchain bitprim-consensus)
+#   endif()
+# endif()
+
+
+
+if (WITH_CONSENSUS)		 
+  target_compile_definitions(bitprim-blockchain PUBLIC -DWITH_CONSENSUS)
+  if (NOT USE_CONAN)		
+    target_link_libraries(bitprim-blockchain PUBLIC bitprim-consensus)
+  endif(NOT USE_CONAN)		 
+endif(WITH_CONSENSUS)		 
+
+if (NOT NO_CONAN_AT_ALL) # at least with external libraries
+  target_link_libraries(bitprim-blockchain PUBLIC ${CONAN_LIBS})
 endif()
+
 
 if (USE_CONAN)
   if (MINGW)
