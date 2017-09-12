@@ -125,10 +125,10 @@ code validate_input::convert_result(verify_result_type result)
 }
 
 code validate_input::verify_script(const transaction& tx, uint32_t input_index,
-    uint32_t branches, bool use_libconsensus)
+    uint32_t branches, bool use_libconsensus, bool bitcoin_cash /* = false */)
 {
-    if (!use_libconsensus)
-    {
+    // if (!use_libconsensus) {
+    if ( ! bitcoin_cash) {
         ////// Simulate the inefficiency of calling libconsensus.
         ////BITCOIN_ASSERT(input_index < tx.inputs().size());
         ////const auto& prevout = tx.inputs()[input_index].previous_output().validation;
@@ -145,13 +145,16 @@ code validate_input::verify_script(const transaction& tx, uint32_t input_index,
     const auto& prevout = tx.inputs()[input_index].previous_output().validation;
     const auto script_data = prevout.cache.script().to_data(false);
 
+    // const auto amount = bitcoin_cash ? prevout.cache.value() : 0;
+    const auto amount = prevout.cache.value();
+
     // Wire serialization is cached in support of large numbers of inputs.
     const auto tx_data = tx.to_data();
 
     // libconsensus
     return convert_result(consensus::verify_script(tx_data.data(),
         tx_data.size(), script_data.data(), script_data.size(), input_index,
-        convert_flags(branches)));
+        convert_flags(branches), amount));
 }
 
 #else
