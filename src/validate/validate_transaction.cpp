@@ -24,7 +24,9 @@
 #include <cstdint>
 #include <functional>
 #include <memory>
+
 #include <bitcoin/bitcoin.hpp>
+#include <bitcoin/bitcoin/bitcoin_cash_support.hpp>
 #include <bitcoin/blockchain/interface/fast_chain.hpp>
 #include <bitcoin/blockchain/pools/branch.hpp>
 #include <bitcoin/blockchain/settings.hpp>
@@ -172,9 +174,7 @@ void validate_transaction::connect_inputs(transaction_const_ptr tx,
             break;
         }
 
-        if ((ec = validate_input::verify_script(*tx, input_index, forks,
-            use_libconsensus_)))
-        {
+        if ((ec = validate_input::verify_script(*tx, input_index, forks, use_libconsensus_, is_bitcoin_cash()))) {
             break;
         }
     }
