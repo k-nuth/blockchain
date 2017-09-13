@@ -125,8 +125,8 @@ code validate_input::convert_result(verify_result_type result)
 }
 
 code validate_input::verify_script(const transaction& tx, uint32_t input_index,
-    uint32_t branches, bool use_libconsensus, bool bitcoin_cash /* = false */)
-{
+    uint32_t branches, bool use_libconsensus, bool bitcoin_cash /* = false */) {
+
     // if (!use_libconsensus) {
     if ( ! bitcoin_cash) {
         ////// Simulate the inefficiency of calling libconsensus.
@@ -160,10 +160,15 @@ code validate_input::verify_script(const transaction& tx, uint32_t input_index,
 #else
 
 code validate_input::verify_script(const transaction& tx,
-    uint32_t input_index, uint32_t branches, bool use_libconsensus)
-{
-    if (use_libconsensus)
+    uint32_t input_index, uint32_t branches, bool use_libconsensus, bool bitcoin_cash /* = false */) {
+
+    if (use_libconsensus) {
         return error::operation_failed;
+    }
+
+    if (bitcoin_cash) {
+        return error::operation_failed;
+    }
 
     return script::verify(tx, input_index, branches);
 }
