@@ -68,15 +68,15 @@ class BitprimBlockchainConan(ConanFile):
     build_policy = "missing"
 
     # requires = (("bitprim-conan-boost/1.64.0@bitprim/stable"),
-    #             ("bitprim-database/0.1@bitprim/stable"),
-    #             ("bitprim-consensus/0.1@bitprim/stable"))
+    #             ("bitprim-database/0.1@bitprim/testing"),
+    #             ("bitprim-consensus/0.1@bitprim/testing"))
 
     requires = (("bitprim-conan-boost/1.64.0@bitprim/stable"),
-                ("bitprim-database/0.1@bitprim/stable"))
+                ("bitprim-database/0.1@bitprim/testing"))
 
     def requirements(self):
         if self.options.with_consensus:
-            self.requires.add("bitprim-consensus/0.1@bitprim/stable")
+            self.requires.add("bitprim-consensus/0.1@bitprim/testing")
 
     def build(self):
         cmake = CMake(self)
