@@ -35,22 +35,27 @@ using namespace bc::machine;
 
 using namespace bc::consensus;
 
-uint32_t validate_input::convert_flags(uint32_t native_flags)
+// TODO: map bc policy flags.
+uint32_t validate_input::convert_flags(uint32_t native_forks)
 {
     uint32_t flags = verify_flags_none;
 
-    if (script::is_enabled(native_flags, rule_fork::bip16_rule))
+    if (script::is_enabled(native_forks, rule_fork::bip16_rule))
         flags |= verify_flags_p2sh;
 
-    if (script::is_enabled(native_flags, rule_fork::bip65_rule))
+    if (script::is_enabled(native_forks, rule_fork::bip65_rule))
         flags |= verify_flags_checklocktimeverify;
 
-    if (script::is_enabled(native_flags, rule_fork::bip66_rule))
+    if (script::is_enabled(native_forks, rule_fork::bip66_rule))
         flags |= verify_flags_dersig;
+
+    if (script::is_enabled(native_forks, rule_fork::bip112_rule))
+        flags |= verify_flags_checksequenceverify;
 
     return flags;
 }
 
+// TODO: map to corresponding bc::error codes.
 code validate_input::convert_result(verify_result_type result)
 {
     switch (result)
@@ -103,7 +108,7 @@ code validate_input::convert_result(verify_result_type result)
         case verify_result_type::verify_result_cleanstack:
             return error::operation_failed;
 
-        // BIP65 errors.
+        // BIP65/BIP112 (shared codes).
         case verify_result_type::verify_result_negative_locktime:
         case verify_result_type::verify_result_unsatisfied_locktime:
             return error::invalid_script;
@@ -124,6 +129,7 @@ code validate_input::convert_result(verify_result_type result)
     }
 }
 
+// TODO: cache transaction wire serialization.
 code validate_input::verify_script(const transaction& tx, uint32_t input_index,
     uint32_t branches, bool use_libconsensus, bool bitcoin_cash /* = false */) {
 
@@ -154,13 +160,13 @@ code validate_input::verify_script(const transaction& tx, uint32_t input_index,
     // libconsensus
     return convert_result(consensus::verify_script(tx_data.data(),
         tx_data.size(), script_data.data(), script_data.size(), input_index,
-        convert_flags(branches), amount));
+        convert_flags(forks), amount));
 }
 
 #else
 
 code validate_input::verify_script(const transaction& tx,
-    uint32_t input_index, uint32_t branches, bool use_libconsensus, bool bitcoin_cash /* = false */) {
+    uint32_t input_index, uint32_t forks, bool use_libconsensus, bool bitcoin_cash /* = false */) {
 
     if (use_libconsensus) {
         return error::operation_failed;
@@ -170,7 +176,7 @@ code validate_input::verify_script(const transaction& tx,
         return error::operation_failed;
     }
 
-    return script::verify(tx, input_index, branches);
+    return script::verify(tx, input_index, forks);
 }
 
 #endif

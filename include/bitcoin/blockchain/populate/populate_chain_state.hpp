@@ -55,7 +55,8 @@ private:
     bool populate_bits(data& data, const map& map, branch_ptr branch) const;
     bool populate_versions(data& data, const map& map, branch_ptr branch) const;
     bool populate_timestamps(data& data, const map& map, branch_ptr branch) const;
-    bool populate_checkpoint(data& data, const map& map, branch_ptr branch) const;
+    bool populate_collision(data& data, const map& map, branch_ptr branch) const;
+    bool populate_bip9_bit0(data& data, const map& map, branch_ptr branch) const;
 
     bool get_bits(uint32_t& out_bits, size_t height, branch_ptr branch) const;
     bool get_version(uint32_t& out_version, size_t height, branch_ptr branch) const;
@@ -65,7 +66,6 @@ private:
         branch_ptr branch) const;
 
     // These are thread safe.
-    const uint32_t block_version_;
     const uint32_t configured_forks_;
     const config::checkpoint::list checkpoints_;
 

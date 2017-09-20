@@ -48,6 +48,7 @@ void block_pool::add(block_const_ptr valid_block)
     ////BITCOIN_ASSERT(!block->validation.error);
     block_entry entry{ valid_block };
 
+    // Not all blocks will have validation state.
     ////BITCOIN_ASSERT(block->validation.state);
     auto height = valid_block->header().validation.height;
     const auto& left = blocks_.left;
@@ -180,6 +181,7 @@ void block_pool::prune(size_t top_height)
     hash_list hashes;
     const auto minimum_height = floor_subtract(top_height, maximum_depth_);
 
+    // TODO: not using table sort here, should stop iterating once above min.
     // Iterate over all root nodes with insufficient height.
     for (auto it: blocks_.right)
         if (it.first != 0 && it.first < minimum_height)
@@ -212,6 +214,7 @@ void block_pool::filter(get_data_ptr message) const
         mutex_.unlock_shared();
         ///////////////////////////////////////////////////////////////////////
 
+        // TODO: optimize (prevent repeating vector moves).
         it = found ? inventories.erase(it) : it + 1;
     }
 }

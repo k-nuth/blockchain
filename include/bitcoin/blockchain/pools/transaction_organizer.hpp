@@ -48,23 +48,27 @@ public:
     typedef resubscriber<code, transaction_const_ptr> transaction_subscriber;
 
     /// Construct an instance.
-    transaction_organizer(shared_mutex& mutex, dispatcher& dispatch,
+    transaction_organizer(prioritized_mutex& mutex, dispatcher& dispatch,
         threadpool& thread_pool, fast_chain& chain, const settings& settings);
 
     bool start();
     bool stop();
 
     void organize(transaction_const_ptr tx, result_handler handler);
-    void subscribe_transaction(transaction_handler&& handler);
+    void subscribe(transaction_handler&& handler);
+    void unsubscribe();
 
     void fetch_template(merkle_block_fetch_handler) const;
     void fetch_mempool(size_t maximum, inventory_fetch_handler) const;
 
 protected:
     bool stopped() const;
+    uint64_t price(transaction_const_ptr tx) const;
 
 private:
     // Verify sub-sequence.
+    void handle_check(const code& ec, transaction_const_ptr tx,
+        result_handler handler);
     void handle_accept(const code& ec, transaction_const_ptr tx,
         result_handler handler);
     void handle_connect(const code& ec, transaction_const_ptr tx,
@@ -74,16 +78,16 @@ private:
     void signal_completion(const code& ec);
 
     // Subscription.
-    void notify_transaction(transaction_const_ptr tx);
+    void notify(transaction_const_ptr tx);
 
     // This must be protected by the implementation.
     fast_chain& fast_chain_;
 
     // These are thread safe.
-    shared_mutex& mutex_;
+    prioritized_mutex& mutex_;
     std::atomic<bool> stopped_;
     std::promise<code> resume_;
-    const float minimum_byte_fee_;
+    const settings& settings_;
     dispatcher& dispatch_;
     transaction_pool transaction_pool_;
     validate_transaction validator_;

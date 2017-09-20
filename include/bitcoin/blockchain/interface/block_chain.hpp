@@ -22,6 +22,7 @@
 #include <atomic>
 #include <cstddef>
 #include <cstdint>
+#include <ctime>
 #include <functional>
 #include <vector>
 #include <bitcoin/database.hpp>
@@ -97,8 +98,9 @@ public:
 
     /// Get the output that is referenced by the outpoint.
     bool get_output(chain::output& out_output, size_t& out_height,
-        bool& out_coinbase, const chain::output_point& outpoint,
-        size_t branch_height, bool require_confirmed) const;
+        uint32_t& out_median_time_past, bool& out_coinbase,
+        const chain::output_point& outpoint, size_t branch_height,
+        bool require_confirmed) const;
 
     bool get_output_is_confirmed(chain::output& out_output, size_t& out_height,
         bool& out_coinbase, bool& out_is_confirmed, const chain::output_point& outpoint,
@@ -112,9 +114,9 @@ public:
     bool get_transaction_position(size_t& out_height, size_t& out_position,
         const hash_digest& hash, bool require_confirmed) const;
 
-    /// Get the transaction of the given hash and its block height.
-    transaction_ptr get_transaction(size_t& out_block_height,
-        const hash_digest& hash, bool require_confirmed) const;
+    /////// Get the transaction of the given hash and its block height.
+    ////transaction_ptr get_transaction(size_t& out_block_height,
+    ////    const hash_digest& hash, bool require_confirmed) const;
 
     // Writers.
     // ------------------------------------------------------------------------
@@ -152,6 +154,7 @@ public:
     // ========================================================================
     // SAFE CHAIN
     // ========================================================================
+    // Thread safe.
 
     // Startup and shutdown.
     // ------------------------------------------------------------------------
@@ -167,9 +170,8 @@ public:
     /// Threads must be joined before close is called (or by destruct).
     bool close();
 
-    // Queries.
+    // Node Queries.
     // ------------------------------------------------------------------------
-    // Thread safe.
 
     /// fetch a block by height.
     // virtual      // OLD previo a merge de Feb2017
@@ -236,26 +238,6 @@ public:
     void fetch_transaction_position(const hash_digest& hash,
         bool require_confirmed, transaction_index_fetch_handler handler) const;
 
-    /// fetch the output of an outpoint (spent or otherwise).
-    void fetch_output(const chain::output_point& outpoint,
-        bool require_confirmed, output_fetch_handler handler) const;
-
-    /// fetch the inpoint (spender) of an outpoint.
-    void fetch_spend(const chain::output_point& outpoint,
-        spend_fetch_handler handler) const;
-
-    /// fetch outputs, values and spends for an address.
-    void fetch_history(const wallet::payment_address& address,
-        size_t limit, size_t from_height, history_fetch_handler handler) const;
-
-    /// fetch stealth results.
-    void fetch_stealth(const binary& filter, size_t from_height,
-        stealth_fetch_handler handler) const;
-
-    /// fetch a block locator relative to the current top and threshold.
-    void fetch_block_locator(const chain::block::indexes& heights,
-        block_locator_fetch_handler handler) const;
-
     /// fetch the set of block hashes indicated by the block locator.
     void fetch_locator_block_hashes(get_blocks_const_ptr locator,
         const hash_digest& threshold, size_t limit,
@@ -265,6 +247,25 @@ public:
     void fetch_locator_block_headers(get_headers_const_ptr locator,
         const hash_digest& threshold, size_t limit,
         locator_block_headers_fetch_handler handler) const;
+
+    /// fetch a block locator relative to the current top and threshold.
+    void fetch_block_locator(const chain::block::indexes& heights,
+        block_locator_fetch_handler handler) const;
+
+    // Server Queries.
+    //-------------------------------------------------------------------------
+
+    /// fetch the inpoint (spender) of an outpoint.
+    void fetch_spend(const chain::output_point& outpoint,
+        spend_fetch_handler handler) const;
+
+    /// fetch outputs, values and spends for an address_hash.
+    void fetch_history(const short_hash& address_hash, size_t limit,
+        size_t from_height, history_fetch_handler handler) const;
+
+    /// fetch stealth results.
+    void fetch_stealth(const binary& filter, size_t from_height,
+        stealth_fetch_handler handler) const;
 
     // Transaction Pool.
     //-------------------------------------------------------------------------
@@ -290,10 +291,13 @@ public:
     //-------------------------------------------------------------------------
 
     /// Subscribe to blockchain reorganizations, get branch/height.
-    void subscribe_reorganize(reorganize_handler&& handler);
+    void subscribe_blockchain(reorganize_handler&& handler);
 
     /// Subscribe to memory pool additions, get transaction.
     void subscribe_transaction(transaction_handler&& handler);
+
+    /// Send null data success notification to all subscribers.
+    void unsubscribe();
 
     // Organizers.
     //-------------------------------------------------------------------------
@@ -306,6 +310,9 @@ public:
 
     // Properties.
     //-------------------------------------------------------------------------
+
+    /// True if the blockchain is stale based on configured age limit.
+    bool is_stale() const;
 
     /// Get a reference to the blockchain configuration settings.
     const settings& chain_settings() const;
@@ -337,8 +344,6 @@ private:
     // Utilities.
     //-------------------------------------------------------------------------
 
-    static hash_list to_hashes(const database::block_result& result);
-
     code set_chain_state(chain::chain_state::ptr previous);
     void handle_transaction(const code& ec, transaction_const_ptr tx,
         result_handler handler) const;
@@ -350,7 +355,9 @@ private:
     // These are thread safe.
     std::atomic<bool> stopped_;
     const settings& settings_;
-    asio::duration spin_lock_sleep_;
+    const time_t notify_limit_seconds_;
+    bc::atomic<block_const_ptr> last_block_;
+    bc::atomic<transaction_const_ptr> last_transaction_;
     const populate_chain_state chain_state_populator_;
     database::data_base database_;
 
@@ -359,7 +366,7 @@ private:
     mutable shared_mutex pool_state_mutex_;
 
     // These are thread safe.
-    mutable shared_mutex mutex_;
+    mutable prioritized_mutex validation_mutex_;
     mutable threadpool priority_pool_;
     mutable dispatcher dispatch_;
     transaction_organizer transaction_organizer_;

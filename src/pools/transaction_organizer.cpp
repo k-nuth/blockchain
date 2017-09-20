@@ -18,6 +18,7 @@
  */
 #include <bitcoin/blockchain/pools/transaction_organizer.hpp>
 
+#include <algorithm>
 #include <cstddef>
 #include <functional>
 #include <future>
@@ -38,13 +39,13 @@ using namespace std::placeholders;
 #define NAME "transaction_organizer"
 
 // TODO: create priority pool at blockchain level and use in both organizers. 
-transaction_organizer::transaction_organizer(shared_mutex& mutex,
+transaction_organizer::transaction_organizer(prioritized_mutex& mutex,
     dispatcher& dispatch, threadpool& thread_pool, fast_chain& chain,
     const settings& settings)
   : fast_chain_(chain),
     mutex_(mutex),
     stopped_(true),
-    minimum_byte_fee_(settings.minimum_byte_fee_satoshis),
+    settings_(settings),
     dispatch_(dispatch),
     transaction_pool_(settings),
     validator_(dispatch, fast_chain_, settings),
@@ -89,27 +90,7 @@ void transaction_organizer::organize(transaction_const_ptr tx,
 {
     // Critical Section
     ///////////////////////////////////////////////////////////////////////////
-    mutex_.lock();
-
-    // The stop check must be guarded.
-    if (stopped())
-    {
-        mutex_.unlock();
-        //---------------------------------------------------------------------
-        handler(error::service_stopped);
-        return;
-    }
-
-    // Checks that are independent of chain state.
-    auto ec = validator_.check(tx);
-
-    if (ec)
-    {
-        mutex_.unlock();
-        //---------------------------------------------------------------------
-        handler(ec);
-        return;
-    }
+    mutex_.lock_low_priority();
 
     // Reset the reusable promise.
     resume_ = std::promise<code>();
@@ -118,19 +99,19 @@ void transaction_organizer::organize(transaction_const_ptr tx,
         std::bind(&transaction_organizer::signal_completion,
             this, _1);
 
-    const auto accept_handler =
-        std::bind(&transaction_organizer::handle_accept,
+    const auto check_handler =
+        std::bind(&transaction_organizer::handle_check,
             this, _1, tx, complete);
 
-    // Checks that are dependent on chain state and prevouts.
-    validator_.accept(tx, accept_handler);
+    // Checks that are independent of chain state.
+    validator_.check(tx, check_handler);
 
     // Wait on completion signal.
     // This is necessary in order to continue on a non-priority thread.
     // If we do not wait on the original thread there may be none left.
-    ec = resume_.get_future().get();
+    auto ec = resume_.get_future().get();
 
-    mutex_.unlock();
+    mutex_.unlock_low_priority();
     ///////////////////////////////////////////////////////////////////////////
 
     // Invoke caller handler outside of critical section.
@@ -149,6 +130,30 @@ void transaction_organizer::signal_completion(const code& ec)
 //-----------------------------------------------------------------------------
 
 // private
+void transaction_organizer::handle_check(const code& ec,
+    transaction_const_ptr tx, result_handler handler)
+{
+    if (stopped())
+    {
+        handler(error::service_stopped);
+        return;
+    }
+
+    if (ec)
+    {
+        handler(ec);
+        return;
+    }
+
+    const auto accept_handler =
+        std::bind(&transaction_organizer::handle_accept,
+            this, _1, tx, handler);
+
+    // Checks that are dependent on chain state and prevouts.
+    validator_.accept(tx, accept_handler);
+}
+
+// private
 void transaction_organizer::handle_accept(const code& ec,
     transaction_const_ptr tx, result_handler handler)
 {
@@ -164,9 +169,15 @@ void transaction_organizer::handle_accept(const code& ec,
         return;
     }
 
-    if (tx->fees() < minimum_byte_fee_ * tx->serialized_size(true))
+    if (tx->fees() < price(tx))
     {
         handler(error::insufficient_fee);
+        return;
+    }
+
+    if (tx->is_dusty(settings_.minimum_output_satoshis))
+    {
+        handler(error::dusty_transaction);
         return;
     }
 
@@ -194,7 +205,7 @@ void transaction_organizer::handle_connect(const code& ec,
         return;
     }
 
-    // TODO: create a simulated validation path that does not lock others.
+    // TODO: create a simulated validation path that does not block others.
     if (tx->validation.simulate)
     {
         handler(error::success);
@@ -214,13 +225,6 @@ void transaction_organizer::handle_connect(const code& ec,
 void transaction_organizer::handle_pushed(const code& ec,
     transaction_const_ptr tx, result_handler handler)
 {
-    // The store verifies this as a safeguard, but should have caught earlier.
-    if (ec == error::unspent_duplicate)
-    {
-        handler(ec);
-        return;
-    }
-
     if (ec)
     {
         LOG_FATAL(LOG_BLOCKCHAIN)
@@ -231,7 +235,7 @@ void transaction_organizer::handle_pushed(const code& ec,
     }
 
     // This gets picked up by node tx-out protocol for announcement to peers.
-    notify_transaction(tx);
+    notify(tx);
 
     handler(error::success);
 }
@@ -240,17 +244,20 @@ void transaction_organizer::handle_pushed(const code& ec,
 //-----------------------------------------------------------------------------
 
 // private
-void transaction_organizer::notify_transaction(transaction_const_ptr tx)
+void transaction_organizer::notify(transaction_const_ptr tx)
 {
-    // Using invoke slows down catch-up sync and is a deadlock risk, but
-    // relay can create big backlog that can easily bring down the server.
+    // This invokes handlers within the criticial section (deadlock risk).
     subscriber_->invoke(error::success, tx);
 }
 
-void transaction_organizer::subscribe_transaction(
-    transaction_handler&& handler)
+void transaction_organizer::subscribe(transaction_handler&& handler)
 {
     subscriber_->subscribe(std::move(handler), error::service_stopped, {});
+}
+
+void transaction_organizer::unsubscribe()
+{
+    subscriber_->relay(error::success, {});
 }
 
 // Queries.
@@ -270,6 +277,24 @@ void transaction_organizer::fetch_mempool(size_t maximum,
 
 // Utility.
 //-----------------------------------------------------------------------------
+
+uint64_t transaction_organizer::price(transaction_const_ptr tx) const
+{
+    const auto byte_fee = settings_.byte_fee_satoshis;
+    const auto sigop_fee = settings_.sigop_fee_satoshis;
+
+    // Guard against summing signed values by testing independently.
+    if (byte_fee == 0.0f && sigop_fee == 0.0f)
+        return 0;
+
+    // TODO: this is a second pass on size and sigops, implement cache.
+    // This at least prevents uncached calls when zero fee is configured.
+    auto byte = byte_fee > 0 ? byte_fee * tx->serialized_size(true) : 0;
+    auto sigop = sigop_fee > 0 ? sigop_fee * tx->signature_operations() : 0;
+
+    // Require at least one satoshi per tx if there are any fees configured.
+    return std::max(uint64_t(1), static_cast<uint64_t>(byte + sigop));
+}
 
 } // namespace blockchain
 } // namespace libbitcoin

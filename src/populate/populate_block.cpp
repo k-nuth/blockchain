@@ -70,10 +70,9 @@ void populate_block::populate(branch::const_ptr branch,
         return;
     }
 
-    const auto threads = dispatch_.size();
-    const auto buckets = std::min(threads, non_coinbase_inputs);
+    const auto buckets = std::min(dispatch_.size(), non_coinbase_inputs);
     const auto join_handler = synchronize(std::move(handler), buckets, NAME);
-    BITCOIN_ASSERT(threads != 0);
+    BITCOIN_ASSERT(buckets != 0);
 
     for (size_t bucket = 0; bucket < buckets; ++bucket)
         dispatch_.concurrent(&populate_block::populate_transactions,
@@ -98,14 +97,14 @@ void populate_block::populate_coinbase(branch::const_ptr branch,
     // A coinbase input cannot be a double spend since it originates coin.
     prevout.spent = false;
 
-    // A coinbase is only valid within a block and input is confirmed if valid.
+    // A coinbase is confirmed as long as its block is valid (context free).
     prevout.confirmed = true;
 
-    // A coinbase input has no previous output.
+    // A coinbase does not spend a previous output so these are unused/default.
     prevout.cache = chain::output{};
-
-    // A coinbase input does not spend an output so is itself always mature.
-    prevout.height = output_point::validation_type::not_specified;
+    prevout.coinbase = false;
+    prevout.height = 0;
+    prevout.median_time_past = 0;
 
     //*************************************************************************
     // CONSENSUS: Satoshi implemented allow collisions in Nov 2015. This is a
