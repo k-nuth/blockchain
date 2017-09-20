@@ -160,7 +160,7 @@ code validate_input::verify_script(const transaction& tx, uint32_t input_index,
     // libconsensus
     return convert_result(consensus::verify_script(tx_data.data(),
         tx_data.size(), script_data.data(), script_data.size(), input_index,
-        convert_flags(forks), amount));
+        convert_flags(branches), amount));
 }
 
 #else

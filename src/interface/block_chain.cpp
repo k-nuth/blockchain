@@ -742,7 +742,8 @@ std::pair<bool, uint64_t> block_chain::total_input_value(libbitcoin::chain::tran
         libbitcoin::chain::output out_output;
         size_t out_height;
         bool out_coinbase;
-        if (!get_output(out_output, out_height, out_coinbase, input.previous_output(), libbitcoin::max_size_t, false)){
+        uint32_t out_median; //TODO check if theres something to do with this
+        if (!get_output(out_output, out_height, out_median, out_coinbase, input.previous_output(), libbitcoin::max_size_t, false)){
 //            std::cout << "Output not found. Hash = " << libbitcoin::encode_hash(tx.hash())
 //                      << ".\nOutput hash = " << encode_hash(input.previous_output().hash())
 //                      << ".\nOutput index = " << input.previous_output().index() << "\n";
@@ -777,8 +778,8 @@ std::pair<bool, size_t> block_chain::is_double_spent_and_sigops(chain::transacti
 
         size_t output_height;
         bool output_coinbase;
-
-        auto res_output = get_output(prevout.cache, output_height, output_coinbase, outpoint, max_size_t, true);
+        uint32_t out_median; //TODO check if theres something to do with this
+        auto res_output = get_output(prevout.cache, output_height, out_median, output_coinbase, outpoint, max_size_t, true);
         if (! res_output) return std::make_pair(true, 0);
 
 
