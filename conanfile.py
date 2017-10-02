@@ -65,7 +65,7 @@ class BitprimBlockchainConan(ConanFile):
 
     def requirements(self):
         if self.options.with_consensus:
-            self.requires.add("bitprim-consensus/0.2@bitprim/testing")
+            self.requires.add("bitprim-consensus/0.3@bitprim/testing")
 
     def build(self):
         cmake = CMake(self)
