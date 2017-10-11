@@ -115,22 +115,28 @@ bool block_chain::get_block_hash(hash_digest& out_hash, size_t height) const
     return true;
 }
 
-bool block_chain::get_branch_work(uint256_t& out_work,
-    const uint256_t& maximum, size_t from_height) const
+bool block_chain::get_branch_work(uint256_t& out_work, const uint256_t& maximum, size_t from_height, bool branch_is_ec /*= false */) const
 {
     size_t top;
-    if (!database_.blocks().top(top))
-        return false;
+    if ( ! database_.blocks().top(top)) return false;
 
     out_work = 0;
+
+    // When the branch is building on top of our chain, `from_height` and `top` are equals, so the for does nothing.
     for (auto height = from_height; height <= top && out_work < maximum;
-        ++height)
+         ++height)
     {
-        const auto result = database_.blocks().get(height);
+        auto const result = database_.blocks().get(height);
         if (!result)
             return false;
 
         out_work += chain::block::proof(result.bits());
+    }
+
+    if (is_bitcoin_cash() && branch_is_ec && out_work < maximum) {
+
+        auto const result = database_.blocks().get(top);
+        out_work += chain::block::proof(result.bits()) * 12;
     }
 
     return true;

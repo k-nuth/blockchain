@@ -143,7 +143,7 @@ void block_organizer::handle_check(const code& ec, block_const_ptr block,
         return;
     }
 
-    if (ec)
+    if ((ec) && (ec.value() < 200)) //Error code is not emergent consensus
     {
         handler(ec);
         return;
@@ -189,7 +189,7 @@ void block_organizer::handle_accept(const code& ec, branch::ptr branch,
         return;
     }
 
-    if (ec)
+    if (ec) 
     {
         handler(ec);
         return;
@@ -232,7 +232,7 @@ void block_organizer::handle_connect(const code& ec, branch::ptr branch,
     top_block.start_notify = asio::steady_clock::now();
 
     // The chain query will stop if it reaches work level.
-    if (!fast_chain_.get_branch_work(threshold, work, first_height))
+    if (!fast_chain_.get_branch_work(threshold, work, first_height, branch->is_ec()))
     {
         handler(error::operation_failed);
         return;
@@ -292,7 +292,7 @@ void block_organizer::handle_reorganized(const code& ec,
     // v3 reorg block order is reverse of v2, branch.back() is the new top.
     notify(branch->height(), branch->blocks(), outgoing);
 
-    handler(error::success);
+    handler(ec);
 }
 
 // Subscription.

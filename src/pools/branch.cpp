@@ -329,5 +329,10 @@ bool branch::get_block_hash(hash_digest& out_hash, size_t height) const
     return true;
 }
 
+bool branch::is_ec() const
+{
+    return is_ec_;
+}
+
 } // namespace blockchain
 } // namespace libbitcoin

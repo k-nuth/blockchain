@@ -93,6 +93,9 @@ public:
     /// The hash of the block at the given height if it exists in the branch.
     bool get_block_hash(hash_digest& out_hash, size_t height) const;
 
+    /// Does the branch contains an Emergent consensus block
+    bool is_ec() const;
+
 protected:
     size_t index_of(size_t height) const;
     size_t height_at(size_t index) const;
