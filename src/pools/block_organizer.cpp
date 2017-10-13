@@ -29,6 +29,7 @@
 #include <bitcoin/blockchain/pools/branch.hpp>
 #include <bitcoin/blockchain/settings.hpp>
 #include <bitcoin/blockchain/validate/validate_block.hpp>
+#include <bitcoin/bitcoin/bitcoin_cash_support.hpp>
 
 namespace libbitcoin {
 namespace blockchain {
@@ -270,6 +271,22 @@ void block_organizer::handle_connect(const code& ec, branch::ptr branch,
     //#########################################################################
 }
 
+void update_max_block_size(branch::const_ptr branch)
+{
+    size_t max_block = libbitcoin::get_max_block_size();
+    for(auto const& block_ptr : *branch->blocks())
+    {
+        if(block_ptr->is_ec())
+        {
+            auto block_size = block_ptr->serialized_size(0);
+            while( max_block < block_size ) max_block = max_block * 2;
+        }
+    }
+
+    libbitcoin::set_max_block_size(max_block);
+
+}
+
 // private
 // Outgoing blocks must have median_time_past set.
 void block_organizer::handle_reorganized(const code& ec,
@@ -283,6 +300,11 @@ void block_organizer::handle_reorganized(const code& ec,
             << ec.message();
         handler(ec);
         return;
+    }
+
+    if(branch->is_ec())
+    {
+        update_max_block_size(branch);
     }
 
     block_pool_.remove(branch->blocks());
