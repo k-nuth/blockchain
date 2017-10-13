@@ -35,7 +35,8 @@ using namespace bc::config;
 // This will be eliminated once weak block headers are moved to the store.
 branch::branch(size_t height)
   : height_(height),
-    blocks_(std::make_shared<block_const_ptr_list>())
+    blocks_(std::make_shared<block_const_ptr_list>()),
+    is_ec_(false)
 {
 }
 
@@ -56,6 +57,12 @@ bool branch::push_front(block_const_ptr block)
     if (empty() || linked(block))
     {
         blocks_->insert(blocks_->begin(), block);
+
+        // Emergent Consensus
+        if (!is_ec_) {
+                is_ec_ = block->is_ec();
+        }
+
         return true;
     }
 

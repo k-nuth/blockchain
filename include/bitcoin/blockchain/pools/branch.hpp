@@ -101,6 +101,9 @@ protected:
 private:
     size_t height_;
 
+    // Emergent Consensus
+    bool is_ec_;
+
     /// The chain of blocks in the branch.
     block_const_ptr_list_ptr blocks_;
 };
