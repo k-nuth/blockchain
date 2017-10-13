@@ -856,7 +856,7 @@ std::pair<bool, size_t> block_chain::validate_tx(chain::transaction const& tx) c
     }
 
     auto res = is_double_spent_and_sigops(tx_generated, true);
-    if (res.first || res.second > get_max_block_sigops(is_bitcoin_cash())) {
+    if (res.first || res.second > get_max_block_sigops()) {
 
         //TX ERROR, TODO DELETE THIS TX
 //            std::cout << "TX ERROR IS DOUBLE SPEND OR TOTAL SIGNATURE OPERATIONS ERROR\n";
