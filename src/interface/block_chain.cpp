@@ -645,28 +645,20 @@ void block_chain::fetch_block_height(const hash_digest& hash,
 
 void block_chain::fetch_last_height(last_height_fetch_handler handler) const
 {
-    printf("block_chain::fetch_last_height - 1\n");
     if (stopped())
     {
-        printf("block_chain::fetch_last_height - 2\n");
         handler(error::service_stopped, {});
-        printf("block_chain::fetch_last_height - 3\n");
-        return;
-    }
-    printf("block_chain::fetch_last_height - 4\n");
-    
-    size_t last_height;
-    printf("block_chain::fetch_last_height - 5\n");
-    
-    if (!database_.blocks().top(last_height))
-    {
-        printf("block_chain::fetch_last_height - 6\n");
-        handler(error::not_found, 0);
-        printf("block_chain::fetch_last_height - 7\n");
         return;
     }
 
-    printf("block_chain::fetch_last_height - 8\n");
+    size_t last_height;
+
+    if (!database_.blocks().top(last_height))
+    {
+        handler(error::not_found, 0);
+        return;
+    }
+
     handler(error::success, last_height);
 }
 
