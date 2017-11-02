@@ -52,6 +52,12 @@ uint32_t validate_input::convert_flags(uint32_t native_forks)
     if (script::is_enabled(native_forks, rule_fork::bip112_rule))
         flags |= verify_flags_checksequenceverify;
 
+    if (script::is_enabled(native_forks, rule_fork::cash_low_s_rule)){
+        // Obligatory flags used on the Nov 13Th - 2017 Bitcoin Cash HF
+        flags |= verify_flags_low_s;
+        flags |= verify_flags_nulldummy;
+    }
+
     return flags;
 }
 
