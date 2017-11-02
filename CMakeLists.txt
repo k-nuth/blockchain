@@ -249,6 +249,7 @@ add_library(bitprim-blockchain ${MODE}
   src/validate/validate_input.cpp
   src/validate/validate_transaction.cpp
   src/settings.cpp
+  src/version.cpp
 )
 
 
