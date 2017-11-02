@@ -89,6 +89,12 @@ endif()
 #------------------------------------------------------------------------------
 option(WITH_REMOTE_DATABASE "Compile with remote bitprim-database (aka. bitprim-database-requester)." OFF)
 
+
+
+set(BITPRIM_BUILD_NUMBER "-" CACHE STRING "Specify the Bitprim Build Number.")
+# message(${BITPRIM_BUILD_NUMBER})
+
+
 # Conan infrastructure.
 #==============================================================================
 # Only if enabled
@@ -245,6 +251,7 @@ add_library(bitprim-blockchain ${MODE}
   src/settings.cpp
 )
 
+
 if (ENABLE_POSITION_INDEPENDENT_CODE)
   set_property(TARGET bitprim-blockchain PROPERTY POSITION_INDEPENDENT_CODE ON)
 endif(ENABLE_POSITION_INDEPENDENT_CODE)
@@ -253,6 +260,8 @@ target_include_directories(bitprim-blockchain PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
 
+target_compile_definitions(bitprim-blockchain PUBLIC -DBITPRIM_BUILD_NUMBER="\\"${BITPRIM_BUILD_NUMBER}\\"")
+  
 
 if (NOT ENABLE_SHARED)
   target_compile_definitions(bitprim-blockchain PUBLIC -DBCB_STATIC -DBCD_STATIC -DBC_STATIC)
