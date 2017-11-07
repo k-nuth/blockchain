@@ -22,7 +22,7 @@ cmake_minimum_required(VERSION 3.4)
 # bitprim-blockchain
 #==============================================================================
 project(bitprim-blockchain
-  VERSION 3.0.0
+  VERSION 0.3.0
   LANGUAGES CXX C)
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -89,6 +89,12 @@ endif()
 #------------------------------------------------------------------------------
 option(WITH_REMOTE_DATABASE "Compile with remote bitprim-database (aka. bitprim-database-requester)." OFF)
 
+
+
+set(BITPRIM_BUILD_NUMBER "-" CACHE STRING "Specify the Bitprim Build Number.")
+# message(${BITPRIM_BUILD_NUMBER})
+
+
 # Conan infrastructure.
 #==============================================================================
 # Only if enabled
@@ -126,23 +132,23 @@ if (NO_CONAN_AT_ALL)
 endif()
 
 if (NOT USE_CONAN)
-  # Require bitprim-database (or bitprim-database-requester) of at least version 3.0.0 and output ${bitprim_database_CPPFLAGS/LIBS/PKG}.
+  # Require bitprim-database (or bitprim-database-requester) of at least version 0.3.0 and output ${bitprim_database_CPPFLAGS/LIBS/PKG}.
   #------------------------------------------------------------------------------
   if (WITH_REMOTE_DATABASE)
     if (NOT TARGET bitprim-database-requester)
-      find_package(bitprim-database-requester 3.0.0 REQUIRED)
+      find_package(bitprim-database-requester 0.3.0 REQUIRED)
     endif()
     else()
     if (NOT TARGET bitprim-database)
-      find_package(bitprim-database 3.0.0 REQUIRED)
+      find_package(bitprim-database 0.3.0 REQUIRED)
     endif()
   endif()
 
-  # Require bitprim-consensus of at least version 2.0.0 and output ${bitprim_consensus_CPPFLAGS/LIBS/PKG}.
+  # Require bitprim-consensus of at least version 0.3.0 and output ${bitprim_consensus_CPPFLAGS/LIBS/PKG}.
   #------------------------------------------------------------------------------
   if (WITH_CONSENSUS)
     if (NOT TARGET bitprim-consensus)
-      find_package(bitprim-consensus 2.0.0 REQUIRED)
+      find_package(bitprim-consensus 0.3.0 REQUIRED)
     endif()
   endif()  
 endif(NOT USE_CONAN)
@@ -243,7 +249,9 @@ add_library(bitprim-blockchain ${MODE}
   src/validate/validate_input.cpp
   src/validate/validate_transaction.cpp
   src/settings.cpp
+  src/version.cpp
 )
+
 
 if (ENABLE_POSITION_INDEPENDENT_CODE)
   set_property(TARGET bitprim-blockchain PROPERTY POSITION_INDEPENDENT_CODE ON)
@@ -253,6 +261,8 @@ target_include_directories(bitprim-blockchain PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
 
+target_compile_definitions(bitprim-blockchain PUBLIC -DBITPRIM_BUILD_NUMBER="\\"${BITPRIM_BUILD_NUMBER}\\"")
+  
 
 if (NOT ENABLE_SHARED)
   target_compile_definitions(bitprim-blockchain PUBLIC -DBCB_STATIC -DBCD_STATIC -DBC_STATIC)
