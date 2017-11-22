@@ -1434,9 +1434,22 @@ bool block_chain::is_stale() const
     if (notify_limit_seconds_ == 0)
         return false;
 
-    // The chain is stale after start until first new block is cached.
     const auto top = last_block_.load();
-    const auto timestamp = top ? top->header().timestamp() : uint32_t(0);
+    // BITPRIM: get the last block if there is no cache
+    uint32_t last_timestamp = 0;
+    if (!top)
+    {
+        size_t last_height;
+        if (get_last_height(last_height))
+        {
+            chain::header last_header;
+            if (get_header(last_header, last_height))
+            {
+                last_timestamp = last_header.timestamp();
+            }
+        }
+    }
+    const auto timestamp = top ? top->header().timestamp() : last_timestamp;
     return timestamp < floor_subtract(zulu_time(), notify_limit_seconds_);
 }
 
