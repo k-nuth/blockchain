@@ -670,22 +670,22 @@ void block_chain::fetch_transaction(const hash_digest& hash,
         handler(error::service_stopped, nullptr, 0, 0);
         return;
     }
-
-    // Try the cached block first if confirmation is not required.
-    if (!require_confirmed)
-    {
-        const auto cached = last_transaction_.load();
-
-        if (cached && cached->validation.state && cached->hash() == hash)
-        {
-            ////LOG_INFO(LOG_BLOCKCHAIN) << "TX CACHE HIT";
-
-            // Simulate the position and height overloading of the database.
-            handler(error::success, cached, transaction_database::unconfirmed,
-                cached->validation.state->height());
-            return;
-        }
-    }
+//TODO: (bitprim) dissabled this tx cache because we don't want special treatment for the last txn, it affects the explorer rpc methods
+//    // Try the cached block first if confirmation is not required.
+//    if (!require_confirmed)
+//    {
+//        const auto cached = last_transaction_.load();
+//
+//        if (cached && cached->validation.state && cached->hash() == hash)
+//        {
+//            ////LOG_INFO(LOG_BLOCKCHAIN) << "TX CACHE HIT";
+//
+//            // Simulate the position and height overloading of the database.
+//            handler(error::success, cached, transaction_database::unconfirmed,
+//                cached->validation.state->height());
+//            return;
+//        }
+//    }
   
     const auto result = database_.transactions().get(hash, max_size_t,
         require_confirmed);
