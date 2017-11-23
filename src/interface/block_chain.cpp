@@ -1302,6 +1302,19 @@ void block_chain::fetch_history(const short_hash& address_hash, size_t limit,
         from_height));
 }
 
+void block_chain::fetch_txns(const short_hash& address_hash, size_t limit,
+                                size_t from_height, txns_fetch_handler handler) const
+{
+    if (stopped())
+    {
+        handler(error::service_stopped, {});
+        return;
+    }
+
+    handler(error::success, database_.history().get_txns(address_hash, limit,
+                                                    from_height));
+}
+
 void block_chain::fetch_stealth(const binary& filter, size_t from_height,
     stealth_fetch_handler handler) const
 {
