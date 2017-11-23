@@ -47,7 +47,7 @@ public:
     typedef handle1<chain::stealth_compact::list> stealth_fetch_handler;
     typedef handle2<size_t, size_t> transaction_index_fetch_handler;
 
-    typedef handle1<std::set<hash_digest>> txns_fetch_handler;
+    typedef handle1<std::vector<hash_digest>> txns_fetch_handler;
 
     // Smart pointer parameters must not be passed by reference.
     typedef std::function<void(const code&, block_const_ptr, size_t)>
