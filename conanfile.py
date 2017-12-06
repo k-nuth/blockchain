@@ -25,7 +25,7 @@ def option_on_off(option):
 
 class BitprimBlockchainConan(ConanFile):
     name = "bitprim-blockchain"
-    version = "0.3"
+    version = "0.4"
     license = "http://www.boost.org/users/license.html"  #TODO(fernando): change to bitprim licence file
     url = "https://github.com/bitprim/bitprim-blockchain/blob/conan-build/conanfile.py"
     description = "Bitprim Blockchain Library"
@@ -62,11 +62,11 @@ class BitprimBlockchainConan(ConanFile):
     build_policy = "missing"
 
     requires = (("bitprim-conan-boost/1.64.0@bitprim/stable"),
-                ("bitprim-database/0.3@bitprim/testing"))
+                ("bitprim-database/0.4@bitprim/testing"))
 
     def requirements(self):
         if self.options.with_consensus:
-            self.requires.add("bitprim-consensus/0.3@bitprim/testing")
+            self.requires.add("bitprim-consensus/0.4@bitprim/testing")
 
     def build(self):
         cmake = CMake(self)

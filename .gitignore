@@ -48,5 +48,6 @@ obj
 /build
 .idea/
 cmake-build-debug/
+.vscode
 
 CMakeSettings.json
