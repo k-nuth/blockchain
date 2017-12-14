@@ -670,22 +670,22 @@ void block_chain::fetch_transaction(const hash_digest& hash,
         handler(error::service_stopped, nullptr, 0, 0);
         return;
     }
-
-    // Try the cached block first if confirmation is not required.
-    if (!require_confirmed)
-    {
-        const auto cached = last_transaction_.load();
-
-        if (cached && cached->validation.state && cached->hash() == hash)
-        {
-            ////LOG_INFO(LOG_BLOCKCHAIN) << "TX CACHE HIT";
-
-            // Simulate the position and height overloading of the database.
-            handler(error::success, cached, transaction_database::unconfirmed,
-                cached->validation.state->height());
-            return;
-        }
-    }
+//TODO: (bitprim) dissabled this tx cache because we don't want special treatment for the last txn, it affects the explorer rpc methods
+//    // Try the cached block first if confirmation is not required.
+//    if (!require_confirmed)
+//    {
+//        const auto cached = last_transaction_.load();
+//
+//        if (cached && cached->validation.state && cached->hash() == hash)
+//        {
+//            ////LOG_INFO(LOG_BLOCKCHAIN) << "TX CACHE HIT";
+//
+//            // Simulate the position and height overloading of the database.
+//            handler(error::success, cached, transaction_database::unconfirmed,
+//                cached->validation.state->height());
+//            return;
+//        }
+//    }
   
     const auto result = database_.transactions().get(hash, max_size_t,
         require_confirmed);
@@ -1302,6 +1302,19 @@ void block_chain::fetch_history(const short_hash& address_hash, size_t limit,
         from_height));
 }
 
+void block_chain::fetch_txns(const short_hash& address_hash, size_t limit,
+                                size_t from_height, txns_fetch_handler handler) const
+{
+    if (stopped())
+    {
+        handler(error::service_stopped, {});
+        return;
+    }
+
+    handler(error::success, database_.history().get_txns(address_hash, limit,
+                                                    from_height));
+}
+
 void block_chain::fetch_stealth(const binary& filter, size_t from_height,
     stealth_fetch_handler handler) const
 {
@@ -1434,9 +1447,22 @@ bool block_chain::is_stale() const
     if (notify_limit_seconds_ == 0)
         return false;
 
-    // The chain is stale after start until first new block is cached.
     const auto top = last_block_.load();
-    const auto timestamp = top ? top->header().timestamp() : uint32_t(0);
+    // BITPRIM: get the last block if there is no cache
+    uint32_t last_timestamp = 0;
+    if (!top)
+    {
+        size_t last_height;
+        if (get_last_height(last_height))
+        {
+            chain::header last_header;
+            if (get_header(last_header, last_height))
+            {
+                last_timestamp = last_header.timestamp();
+            }
+        }
+    }
+    const auto timestamp = top ? top->header().timestamp() : last_timestamp;
     return timestamp < floor_subtract(zulu_time(), notify_limit_seconds_);
 }
 
