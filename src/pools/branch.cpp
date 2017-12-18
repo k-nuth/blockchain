@@ -35,7 +35,8 @@ using namespace bc::config;
 // This will be eliminated once weak block headers are moved to the store.
 branch::branch(size_t height)
   : height_(height),
-    blocks_(std::make_shared<block_const_ptr_list>())
+    blocks_(std::make_shared<block_const_ptr_list>()),
+    is_ebp_(false)
 {
 }
 
@@ -56,6 +57,12 @@ bool branch::push_front(block_const_ptr block)
     if (empty() || linked(block))
     {
         blocks_->insert(blocks_->begin(), block);
+
+        // Emergent Consensus
+        if (!is_ebp_) {
+                is_ebp_ = block->is_ebp();
+        }
+
         return true;
     }
 
@@ -320,6 +327,11 @@ bool branch::get_block_hash(hash_digest& out_hash, size_t height) const
 
     out_hash = block->hash();
     return true;
+}
+
+bool branch::is_ebp() const
+{
+    return is_ebp_;
 }
 
 } // namespace blockchain

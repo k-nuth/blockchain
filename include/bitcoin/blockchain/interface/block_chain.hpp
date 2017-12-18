@@ -76,7 +76,7 @@ public:
 
     /// Get the work of the branch starting at the given height.
     bool get_branch_work(uint256_t& out_work, const uint256_t& maximum,
-        size_t height) const;
+        size_t height, bool branch_is_ebp = false) const;
 
     /// Get the header of the block at the given height.
     bool get_header(chain::header& out_header, size_t height) const;

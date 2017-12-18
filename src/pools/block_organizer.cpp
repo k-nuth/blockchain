@@ -29,6 +29,7 @@
 #include <bitcoin/blockchain/pools/branch.hpp>
 #include <bitcoin/blockchain/settings.hpp>
 #include <bitcoin/blockchain/validate/validate_block.hpp>
+#include <bitcoin/bitcoin/bitcoin_cash_support.hpp>
 
 namespace libbitcoin {
 namespace blockchain {
@@ -143,7 +144,7 @@ void block_organizer::handle_check(const code& ec, block_const_ptr block,
         return;
     }
 
-    if (ec)
+    if ((ec) && (ec.value() < 200)) //Error code is not emergent consensus
     {
         handler(ec);
         return;
@@ -189,7 +190,7 @@ void block_organizer::handle_accept(const code& ec, branch::ptr branch,
         return;
     }
 
-    if (ec)
+    if (ec) 
     {
         handler(ec);
         return;
@@ -232,7 +233,7 @@ void block_organizer::handle_connect(const code& ec, branch::ptr branch,
     top_block.start_notify = asio::steady_clock::now();
 
     // The chain query will stop if it reaches work level.
-    if (!fast_chain_.get_branch_work(threshold, work, first_height))
+    if (!fast_chain_.get_branch_work(threshold, work, first_height, branch->is_ebp()))
     {
         handler(error::operation_failed);
         return;
@@ -270,6 +271,23 @@ void block_organizer::handle_connect(const code& ec, branch::ptr branch,
     //#########################################################################
 }
 
+void update_max_block_size(branch::const_ptr branch)
+{
+    size_t max_block = libbitcoin::get_max_block_size();
+    for(auto const& block_ptr : *branch->blocks())
+    {
+        if(block_ptr->is_ebp())
+        {
+            auto block_size = block_ptr->serialized_size(0);
+            libbitcoin::get_next_block_size(block_size);
+            //while( max_block < block_size ) max_block = max_block * 2;
+        }
+    }
+
+    libbitcoin::set_max_block_size(max_block);
+
+}
+
 // private
 // Outgoing blocks must have median_time_past set.
 void block_organizer::handle_reorganized(const code& ec,
@@ -285,6 +303,11 @@ void block_organizer::handle_reorganized(const code& ec,
         return;
     }
 
+    if(branch->is_ebp())
+    {
+        update_max_block_size(branch);
+    }
+
     block_pool_.remove(branch->blocks());
     block_pool_.prune(branch->top_height());
     block_pool_.add(outgoing);
@@ -292,7 +315,7 @@ void block_organizer::handle_reorganized(const code& ec,
     // v3 reorg block order is reverse of v2, branch.back() is the new top.
     notify(branch->height(), branch->blocks(), outgoing);
 
-    handler(error::success);
+    handler(ec);
 }
 
 // Subscription.

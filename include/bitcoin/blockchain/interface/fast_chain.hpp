@@ -53,7 +53,7 @@ public:
 
     /// Get the work of the branch starting at the given height.
     virtual bool get_branch_work(uint256_t& out_work,
-        const uint256_t& maximum, size_t from_height) const = 0;
+        const uint256_t& maximum, size_t from_height, bool branch_is_ebp) const = 0;
 
     /// Get the header of the block at the given height.
     virtual bool get_header(chain::header& out_header,

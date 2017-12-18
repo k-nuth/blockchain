@@ -93,6 +93,9 @@ public:
     /// The hash of the block at the given height if it exists in the branch.
     bool get_block_hash(hash_digest& out_hash, size_t height) const;
 
+    /// Does the branch contains an Emergent consensus block
+    bool is_ebp() const;
+
 protected:
     size_t index_of(size_t height) const;
     size_t height_at(size_t index) const;
@@ -100,6 +103,9 @@ protected:
 
 private:
     size_t height_;
+
+    // Emergent Consensus
+    bool is_ebp_;
 
     /// The chain of blocks in the branch.
     block_const_ptr_list_ptr blocks_;
