@@ -1039,7 +1039,7 @@ std::vector<block_chain::tx_mempool> block_chain::fetch_mempool_all(size_t max_b
 
     // ------------------------------------------------------------------------------------
     std::vector<tx_mempool> mempool_final;
-    auto max_sigops = libbitcoin::get_max_block_sigops();
+    auto max_sigops = libbitcoin::max_block_sigops;
 //    size_t max_bytes = 900 * 1024;
     size_t i = 0;
     while (i < mempool.size() && max_bytes > 0 && max_sigops > 0) {
