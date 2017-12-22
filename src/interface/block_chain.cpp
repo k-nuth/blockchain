@@ -1045,14 +1045,17 @@ std::vector<block_chain::tx_mempool> block_chain::fetch_mempool_all(size_t max_b
 
     // ------------------------------------------------------------------------------------
     std::vector<tx_mempool> mempool_final;
+    auto max_sigops = libbitcoin::get_max_block_sigops();
 //    size_t max_bytes = 900 * 1024;
     size_t i = 0;
-    while (i < mempool.size() && max_bytes > 0) {
+    while (i < mempool.size() && max_bytes > 0 && max_sigops > 0) {
         auto const& tx = mempool[i];
-        auto w = std::get<4>(tx); //tx.to_data(true).size();
-        if (max_bytes >= w) {
+        auto tx_size = std::get<4>(tx); //tx.to_data(true).size();
+        auto tx_sigops = std::get<2>(tx); //
+        if (max_bytes >= tx_size && max_sigops >= tx_sigops) {
             mempool_final.push_back(tx);
-            max_bytes -= w;
+            max_bytes -= tx_size;
+            max_sigops -= tx_sigops;
         } else {
 //            cout << "skip weight: " << w << std::endl;
         }
