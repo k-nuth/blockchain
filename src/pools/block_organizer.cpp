@@ -279,7 +279,7 @@ void update_max_block_size(branch::const_ptr branch)
         if(block_ptr->is_ebp())
         {
             auto block_size = block_ptr->serialized_size(0);
-            libbitcoin::get_next_block_size(block_size);
+            max_block = libbitcoin::get_next_block_size(block_size);
             //while( max_block < block_size ) max_block = max_block * 2;
         }
     }
