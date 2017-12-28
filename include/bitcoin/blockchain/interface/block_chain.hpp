@@ -229,6 +229,7 @@ public:
     using tx_mempool = std::tuple<chain::transaction, uint64_t, uint64_t, std::string, size_t>;
 
     std::pair<bool, size_t> validate_tx (chain::transaction const& tx) const;
+    std::tuple<size_t,size_t,std::vector<tx_mempool>> create_a_pack_of_txns (std::vector<tx_mempool> const &mempool) const;
     std::vector<tx_mempool> fetch_mempool_all(size_t max_bytes) const;
     std::pair<bool, size_t> is_double_spent_and_sigops(chain::transaction const& tx, bool bip16_active) const;
     std::tuple<bool, size_t, uint64_t> is_double_spent_sigops_and_fees(chain::transaction const& tx, bool bip16_active) const;

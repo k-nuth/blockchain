@@ -980,14 +980,13 @@ bool is_double_spend_mempool(chain::transaction const& tx, spent_container const
     return false;
 }
 
-std::vector<block_chain::tx_mempool> block_chain::fetch_mempool_all(size_t max_bytes) const
-{
+std::vector<block_chain::tx_mempool> block_chain::fetch_mempool_all(size_t max_bytes) const {
     if (stopped()) {
         return std::vector<block_chain::tx_mempool>();
     }
 
     size_t height;
-    if (!database_.blocks().top(height)){
+    if (!database_.blocks().top(height)) {
         return std::vector<block_chain::tx_mempool>();
     }
 
@@ -995,8 +994,8 @@ std::vector<block_chain::tx_mempool> block_chain::fetch_mempool_all(size_t max_b
     spent_container spent;
     mempool.reserve(7000);
 
-    database_.transactions_unconfirmed().for_each([&](chain::transaction const& tx) {
-        if (mempool.size() > 7000){
+    database_.transactions_unconfirmed().for_each([&](chain::transaction const &tx) {
+        if (mempool.size() > 7000) {
             return false;
         }
         auto res_validate = validate_tx(tx);
@@ -1035,7 +1034,7 @@ std::vector<block_chain::tx_mempool> block_chain::fetch_mempool_all(size_t max_b
 //    }
 
     // ------------------------------------------------------------------------------------
-    auto const fee_per_weight = [](tx_mempool const& a, tx_mempool const& b){
+    auto const fee_per_weight = [](tx_mempool const &a, tx_mempool const &b) {
         auto const fpw_a = double(std::get<1>(a)) / std::get<4>(a);
         auto const fpw_b = double(std::get<1>(b)) / std::get<4>(b);
         return fpw_a < fpw_b;
@@ -1045,23 +1044,79 @@ std::vector<block_chain::tx_mempool> block_chain::fetch_mempool_all(size_t max_b
 
     // ------------------------------------------------------------------------------------
     std::vector<tx_mempool> mempool_final;
-    auto max_sigops = libbitcoin::get_max_block_sigops();
-//    size_t max_bytes = 900 * 1024;
-    size_t i = 0;
-    while (i < mempool.size() && max_bytes > 0 && max_sigops > 0) {
-        auto const& tx = mempool[i];
-        auto tx_size = std::get<4>(tx); //tx.to_data(true).size();
-        auto tx_sigops = std::get<2>(tx); //
-        if (max_bytes >= tx_size && max_sigops >= tx_sigops) {
-            mempool_final.push_back(tx);
-            max_bytes -= tx_size;
-            max_sigops -= tx_sigops;
+
+    bool finished = false;
+    size_t current_size = 0;
+    size_t current_sigops = 0;
+    size_t iteration = 1;
+    while (!finished) {
+        auto txns = create_a_pack_of_txns(mempool);
+        if (iteration == 1){
+            //first block - continue
+            current_size = std::get<1>(txns);
+            current_sigops = std::get<0>(txns);
+            for (auto it = std::get<2>(txns).begin(); it != std::get<2>(txns).end(); ++it){
+                mempool.erase(std::remove(mempool.begin(), mempool.end(), *it), mempool.end());
+            }
+            std::move(std::get<2>(txns).begin(), std::get<2>(txns).end(), std::back_inserter(mempool_final));
+            ++iteration;
         } else {
-//            cout << "skip weight: " << w << std::endl;
+            size_t temp_size = current_size + std::get<1>(txns);
+            if (temp_size <= max_bytes){
+                // Correct size using the max_bytes value
+                if (temp_size >= ((iteration - 1) * 950 * 1024) && temp_size <= (iteration * 950 * 1024)){
+                    //Correct size - check sigops
+                    size_t temp_sigops = current_sigops + std::get<0>(txns);
+                    if (temp_sigops <= iteration * (20000 - 100)) {
+                        //Correct sigops - continue
+                        current_size += std::get<1>(txns);
+                        current_sigops += std::get<0>(txns);
+                        for (auto it = std::get<2>(txns).begin(); it != std::get<2>(txns).end(); ++it){
+                            mempool.erase(std::remove(mempool.begin(), mempool.end(), *it), mempool.end());
+                        }
+                        std::move(std::get<2>(txns).begin(), std::get<2>(txns).end(), std::back_inserter(mempool_final));
+                        ++iteration;
+                    }else {
+                        // Too much sigops
+                        finished = true;
+                    }
+                } else {
+                    // Not big enough
+                    finished = true;
+                }
+            }else{
+                // The size will be bigger than the requested
+                finished = true;
+            }
+        }
+    }
+
+    return mempool_final;
+}
+using tx_mempool = std::tuple<chain::transaction, uint64_t, uint64_t, std::string, size_t>;
+std::tuple<size_t,size_t,std::vector<tx_mempool>> block_chain::create_a_pack_of_txns(std::vector<tx_mempool> const &mempool) const {
+    size_t max_sigops = 20000 - 100;
+    size_t max_bytes = 950 * 1024;
+
+    size_t sigops_return = 0;
+    size_t bytes_return = 0;
+    std::vector<tx_mempool> mempool_return;
+
+    size_t i = 0;
+
+    while (i < mempool.size() && bytes_return < max_bytes && sigops_return < max_sigops) {
+        auto const &tx = mempool[i];
+        auto tx_size = std::get<4>(tx);
+        auto tx_sigops = std::get<2>(tx);
+        if (max_bytes >= bytes_return + tx_size && max_sigops >= sigops_return + tx_sigops) {
+            mempool_return.push_back(tx);
+            bytes_return += tx_size;
+            sigops_return += tx_sigops;
         }
         ++i;
     }
-    return mempool_final;
+
+    return std::make_tuple(sigops_return, bytes_return, mempool_return);
 }
 
 
