@@ -249,7 +249,8 @@ void validate_block::handle_accepted(const code& ec, block_const_ptr block,
         return;
     }
 
-    const auto exceeded = *sigops > get_max_block_sigops(is_bitcoin_cash());
+    size_t allowed_sigops = get_allowed_sigops(block->serialized_size(1));
+    const auto exceeded = *sigops > allowed_sigops;
     handler(exceeded ? error::block_embedded_sigop_limit : error::success);
 }
 
