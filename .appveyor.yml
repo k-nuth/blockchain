@@ -46,7 +46,7 @@ environment:
           CONAN_VISUAL_VERSIONS: 15
 
         - MINGW_CONFIGURATIONS: "5.4@x86_64@seh@posix" # 5.4@x86_64@sjlj@posix
-        - MINGW_CONFIGURATIONS: "7.1@x86_64@seh@posix" # 7.1@x86_64@sjlj@posix
+        - MINGW_CONFIGURATIONS: "7.2@x86_64@seh@posix" # 7.2@x86_64@sjlj@posix
 
 install:
   - set PATH=%PATH%;%PYTHON%/Scripts/
