@@ -23,15 +23,15 @@
 #include <cstdint>
 #include <functional>
 #include <memory>
+#include <numeric>
 #include <string>
 #include <utility>
 #include <unordered_set>
 #include <bitcoin/bitcoin.hpp>
 #include <bitcoin/database.hpp>
+#include <bitcoin/bitcoin/multi_crypto_support.hpp>
 #include <bitcoin/blockchain/settings.hpp>
 #include <bitcoin/blockchain/populate/populate_chain_state.hpp>
-#include <numeric>
-#include <bitcoin/bitcoin/bitcoin_cash_support.hpp>
 
 namespace libbitcoin { namespace blockchain {
 
