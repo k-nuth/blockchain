@@ -32,6 +32,7 @@
 #include <bitcoin/blockchain/populate/populate_chain_state.hpp>
 #include <numeric>
 #include <bitcoin/bitcoin/bitcoin_cash_support.hpp>
+#include <boost/thread/latch.hpp>
 
 namespace libbitcoin { namespace blockchain {
 
@@ -92,6 +93,11 @@ block_chain::block_chain(threadpool& pool,
 
 // Readers.
 // ----------------------------------------------------------------------------
+
+uint32_t get_clock_now() {
+    auto const now = std::chrono::high_resolution_clock::now();
+    return static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::microseconds>(now.time_since_epoch()).count());
+}
 
 bool block_chain::get_gaps(block_database::heights& out_gaps) const
 {
@@ -769,7 +775,10 @@ std::pair<bool, size_t> block_chain::is_double_spent_and_sigops(chain::transacti
 
     size_t inputs_sigops = 0;
 
+    //auto p1 = get_clock_now();
     for (auto const& input : tx.inputs()) {
+
+        //auto t1 = get_clock_now();
         auto const& outpoint = input.previous_output();
         auto& prevout = outpoint.validation;
         prevout.cache = chain::output{};
@@ -780,12 +789,20 @@ std::pair<bool, size_t> block_chain::is_double_spent_and_sigops(chain::transacti
         size_t output_height;
         bool output_coinbase;
         uint32_t out_median; //TODO check if theres something to do with this
+        //auto t2 = get_clock_now();
+	    //std::cout << "preparation " << t2 - t1 << std::endl;
+
+//////////
+
+        //auto t3 = get_clock_now();
         auto res_output = get_output(prevout.cache, output_height, out_median, output_coinbase, outpoint, max_size_t, true);
+        //auto t4 = get_clock_now();
+
+        //std::cout << "get output" << t4 - t3 << std::endl;
+
+        //auto t7 = get_clock_now();
         if (! res_output) return std::make_pair(true, 0);
-
-
         if ( output_height == 0)  return std::make_pair(true, 0);
-
         const auto spend_height = prevout.cache.validation.spender_height;
 
         if (
@@ -795,18 +812,33 @@ std::pair<bool, size_t> block_chain::is_double_spent_and_sigops(chain::transacti
             return std::make_pair(true, 0);
         }
 
-        inputs_sigops += input.script().sigops(false);
+        //auto t8 = get_clock_now();
+        //std::cout << "rest1 " << t8 - t7 << std::endl;
+    
+///////////////
 
+
+/*        auto t9 = get_clock_now();
+
+        inputs_sigops += input.script().sigops(false);
         if (bip16_active) {
             // This cannot overflow because each total is limited by max ops.
             const auto& cache = prevout.cache.script();
 //            std::cout << "cache to_data: " << cache.to_data(true)<< ". sigops: " << cache.sigops(true) << std::endl;
-
             inputs_sigops += input.script().embedded_sigops(cache);
         }
 
-    }
+        
+        std::cout << "inputs sigops"<< inputs_sigops << std::endl;
+	auto t10 = get_clock_now();
 
+    std::cout << "rest " << t10 - t9 << std::endl;
+*/
+    }
+    //auto p2 = get_clock_now();
+    //std::cout << "for " << p2 - p1 << std::endl;
+    //auto t5 = get_clock_now();
+/*
     const auto out = [](size_t total, const chain::output& output) {
 //        std::cout << "output: " << libbitcoin::encode_base16(output.script().to_data(true)) << std::endl;
 //        std::cout << "output_sigops: " << output.script().sigops(false) << std::endl;
@@ -815,33 +847,52 @@ std::pair<bool, size_t> block_chain::is_double_spent_and_sigops(chain::transacti
     auto sigops_total = inputs_sigops + std::accumulate(tx.outputs().begin(), tx.outputs().end(), size_t{0}, out);
     //std::cout << "sigops_total: " << sigops_total << std::endl;
 
+   auto t6 = get_clock_now();
+   std::cout << "SIGOPS COUNT " << t6 - t5 << std::endl;
+
+    std::cout << "Old method " << sigops_total << std::endl;
+    std::cout << "bip16: " << bip16_active << std::endl;
+    std::cout << "New Method " << tx.signature_operations(bip16_active) << std::endl;*/
+
+    size_t sigops_total = 0;
     return std::make_pair(false, sigops_total);
 }
 
 std::pair<bool, size_t> block_chain::validate_tx(chain::transaction const& tx) const {
+   /*
+    auto t1 = get_clock_now();
     auto tx_result = database_.transactions().get(tx.hash(),libbitcoin::max_size_t,false);
+    auto t2 = get_clock_now();
+    std::cout << std::endl << "get transaction time " << t2 - t1 << std::endl;
+
     if (!tx_result) {
         //TX NOT FOUND
         //std::cout << "TX RESULT NOT FOUND \n";
         return std::make_pair(false, 0);
     }
 
-    auto tx_generated = tx_result.transaction();
-//        if (tx_generated.is_missing_previous_outputs() ||
-//                tx_generated.is_double_spend(true) ||
-//                tx_generated.signature_operations(true) > max_block_sigops) {
-
+    auto tx_generated = tx_result.transaction(true);
+  */
     size_t height;
+    //auto t3 = get_clock_now();
     if (database_.blocks().top(height)){
+        //auto t4 = get_clock_now();
+        //std::cout << "get top time " << t4 - t3 << std::endl;
         //TODO: create a new function to get current time
         auto const now = std::chrono::high_resolution_clock::now();
         auto time = static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count());
-        if (!tx_generated.is_final(height+1, time)){
+        if (!tx.is_final(height+1, time)){
             return std::make_pair(false, 0);
         }
     }
+    
+    //auto t5 = get_clock_now();
+    auto res = is_double_spent_and_sigops(tx, true);
+    //auto t6 = get_clock_now();
+    //std::cout << "read sigops " << tx.cached_sigops_ << std::endl;
+    //std::cout << "get double sigops time " << t6 - t5 << std::endl << std::endl;
 
-    auto res = is_double_spent_and_sigops(tx_generated, true);
+
     if (res.first || res.second > get_max_block_sigops(is_bitcoin_cash())) {
 
         //TX ERROR, TODO DELETE THIS TX
@@ -851,13 +902,13 @@ std::pair<bool, size_t> block_chain::validate_tx(chain::transaction const& tx) c
 
         return std::make_pair(false, 0);
     }
-    for (auto const& in : tx_generated.inputs()) {
+    for (auto const& in : tx.inputs()) {
         if ( in.script().pattern() == libbitcoin::machine::script_pattern::non_standard){
             return std::make_pair(false, 0);
         }
     }
 
-    for (auto const& out : tx_generated.outputs()) {
+    for (auto const& out : tx.outputs()) {
         if ( out.script().pattern() == libbitcoin::machine::script_pattern::non_standard){
             return std::make_pair(false, 0);
         }
