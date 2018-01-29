@@ -34,27 +34,26 @@ class BitprimBlockchainConan(ConanFile):
     options = {"shared": [True, False],
                "fPIC": [True, False],
                "with_consensus": [True, False],
-               "with_litecoin": [True, False]
+               "with_litecoin": [True, False],
+               "with_tests": [True, False],
+               "with_tools": [True, False],
     }
 
     # "with_remote_database": [True, False],
-    # "with_tests": [True, False],
-    # "with_tools": [True, False],
     # "not_use_cpp11_abi": [True, False]
 
     default_options = "shared=False", \
         "fPIC=True", \
         "with_consensus=True", \
-        "with_litecoin=False"
+        "with_litecoin=False", \
+        "with_tests=True", \
+        "with_tools=True"
 
     # "with_remote_database=False"
-    # "with_tests=True", \
-    # "with_tools=True", \
     # "not_use_cpp11_abi=False"
 
-    with_tests = False
-    with_tools = False
-
+    # with_tests = False
+    # with_tools = False
 
     generators = "cmake"
     exports_sources = "src/*", "CMakeLists.txt", "cmake/*", "bitprim-blockchainConfig.cmake.in", "include/*", "test/*", "tools/*"
@@ -81,10 +80,10 @@ class BitprimBlockchainConan(ConanFile):
 
         # cmake.definitions["WITH_REMOTE_DATABASE"] = option_on_off(self.options.with_remote_database)
         # cmake.definitions["NOT_USE_CPP11_ABI"] = option_on_off(self.options.not_use_cpp11_abi)
-        # cmake.definitions["WITH_TESTS"] = option_on_off(self.options.with_tests)
-        # cmake.definitions["WITH_TOOLS"] = option_on_off(self.options.with_tools)
-        cmake.definitions["WITH_TESTS"] = option_on_off(self.with_tests)
-        cmake.definitions["WITH_TOOLS"] = option_on_off(self.with_tools)
+        cmake.definitions["WITH_TESTS"] = option_on_off(self.options.with_tests)
+        cmake.definitions["WITH_TOOLS"] = option_on_off(self.options.with_tools)
+        # cmake.definitions["WITH_TESTS"] = option_on_off(self.with_tests)
+        # cmake.definitions["WITH_TOOLS"] = option_on_off(self.with_tools)
 
         if self.settings.compiler == "gcc":
             if float(str(self.settings.compiler.version)) >= 5:
