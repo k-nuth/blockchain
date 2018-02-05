@@ -945,6 +945,74 @@ std::tuple<size_t,size_t,std::vector<tx_mempool>> block_chain::create_a_pack_of_
     return std::make_tuple(sigops_return, bytes_return, mempool_return);
 }
 
+std::vector<std::tuple<std::string, std::string, size_t, std::string, uint64_t, std::string, std::string>> block_chain::fetch_mempool_addrs(std::vector<std::string> const& payment_addresses, bool use_testnet_rules) const {
+/*          "    \"address\"  (string) The base58check encoded address\n"
+            "    \"txid\"  (string) The related txid\n"
+            "    \"index\"  (number) The related input or output index\n"
+            "    \"satoshis\"  (number) The difference of satoshis\n"
+            "    \"timestamp\"  (number) The time the transaction entered the mempool (seconds)\n"
+            "    \"prevtxid\"  (string) The previous txid (if spending)\n"
+            "    \"prevout\"  (string) The previous transaction output index (if spending)\n"
+*/
+    uint8_t encoding_p2kh;
+    uint8_t encoding_p2sh;
+    if (use_testnet_rules){
+        encoding_p2kh = libbitcoin::wallet::payment_address::testnet_p2kh;
+        encoding_p2sh = libbitcoin::wallet::payment_address::testnet_p2sh;
+    } else {
+        encoding_p2kh = libbitcoin::wallet::payment_address::mainnet_p2kh;
+        encoding_p2sh = libbitcoin::wallet::payment_address::mainnet_p2sh;
+    }
+    std::vector<std::tuple<std::string, std::string, size_t, std::string, uint64_t, std::string, std::string>> ret;
+    std::unordered_set<libbitcoin::wallet::payment_address> addrs;
+    for (const auto & payment_address : payment_addresses) {
+        libbitcoin::wallet::payment_address address(payment_address);
+        if (address){
+            addrs.insert(address);
+        }
+    }
+
+    database_.transactions_unconfirmed().for_each_result([&](libbitcoin::database::transaction_unconfirmed_result const &tx_res) {
+        auto tx = tx_res.transaction();
+        tx.recompute_hash();
+        size_t i = 0;
+        for (auto const& output : tx.outputs()) {
+            const auto tx_address = libbitcoin::wallet::payment_address::extract(output.script(), encoding_p2kh, encoding_p2sh);
+            ++i;
+            if (tx_address && addrs.find(tx_address) != addrs.end()) {
+                ret.push_back(std::make_tuple(tx_address.encoded(), libbitcoin::encode_hash(tx.hash()), i, std::to_string(output.value()), tx_res.arrival_time(), "", ""));
+            }
+        }
+        i = 0;
+        for (auto const& input : tx.inputs()) {
+            const auto tx_address = libbitcoin::wallet::payment_address::extract(input.script(), encoding_p2kh, encoding_p2sh);
+            if (tx_address && addrs.find(tx_address) != addrs.end()) {
+                boost::latch latch(2);
+                fetch_transaction(input.previous_output().hash(), false,
+                                  [&](const libbitcoin::code &ec,
+                                      libbitcoin::transaction_const_ptr tx_ptr, size_t index,
+                                      size_t height) {
+                                      if (ec == libbitcoin::error::success) {
+                                          ret.push_back(std::make_tuple(tx_address.encoded(),
+                                                                            libbitcoin::encode_hash(tx.hash()),
+                                                                            i,
+                                                                            "-"+std::to_string(tx_ptr->outputs()[input.previous_output().index()].value()),
+                                                                            tx_res.arrival_time(),
+                                                                            libbitcoin::encode_hash(input.previous_output().hash()),
+                                                                            std::to_string(input.previous_output().index())));
+                                      }
+                                      latch.count_down();
+                                  });
+                latch.count_down_and_wait();
+            }
+            ++i;
+        }
+        return true;
+    });
+
+    return ret;
+}
+
 // This is same as fetch_transaction but skips deserializing the tx payload.
 void block_chain::fetch_transaction_position(const hash_digest& hash,
     bool require_confirmed, transaction_index_fetch_handler handler) const
