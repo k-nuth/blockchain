@@ -17,7 +17,22 @@ function replace_versions {
     fi
 }  
 
+function increment_py_version {
+    while read p; do
+        if [[ $p == "__version__ ="* ]]; then
+            # echo "$1: $2" >> version.py.t
+            # echo "__version__ = '1.1.9'" | perl -pe 's/\b(\d+)(?=\D*$)/$1+1/e'
+            echo $p | perl -pe 's/\b(\d+)(?=\D*$)/$1+1/e' >> version.py.t
+        else
+            echo $p >> version.py.t
+        fi
+    done <version.py
+    mv version.py{.t,}
+}  
+
+
 # --------------------------------------------------------------------------------------------------------------------
+
 set -e
 set -x
 
@@ -26,6 +41,7 @@ git config --global user.name "Bitprim CI"
 
 mkdir temp
 cd temp
+
 
 
 # --------------------------------------------------------------------------------------------------------------------
@@ -66,5 +82,6 @@ git remote add origin-commit https://${GH_TOKEN}@github.com/bitprim/bitprim-node
 git push --quiet --set-upstream origin-commit ${TRAVIS_BRANCH} || true
 
 cd ..
+
 
 # --------------------------------------------------------------------------------------------------------------------

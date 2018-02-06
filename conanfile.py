@@ -25,7 +25,7 @@ def option_on_off(option):
 
 class BitprimBlockchainConan(ConanFile):
     name = "bitprim-blockchain"
-    version = "0.6"
+    version = "0.7"
     license = "http://www.boost.org/users/license.html"  #TODO(fernando): change to bitprim licence file
     url = "https://github.com/bitprim/bitprim-blockchain/blob/conan-build/conanfile.py"
     description = "Bitprim Blockchain Library"
@@ -34,67 +34,107 @@ class BitprimBlockchainConan(ConanFile):
     options = {"shared": [True, False],
                "fPIC": [True, False],
                "with_consensus": [True, False],
-               "with_litecoin": [True, False]
+               "with_litecoin": [True, False],
+               "with_tests": [True, False],
+               "with_tools": [True, False],
     }
 
     # "with_remote_database": [True, False],
-    # "with_tests": [True, False],
-    # "with_tools": [True, False],
     # "not_use_cpp11_abi": [True, False]
 
     default_options = "shared=False", \
         "fPIC=True", \
         "with_consensus=True", \
-        "with_litecoin=False"
+        "with_litecoin=False", \
+        "with_tests=False", \
+        "with_tools=False"
 
     # "with_remote_database=False"
-    # "with_tests=True", \
-    # "with_tools=True", \
-    # "not_use_cpp11_abi=False"
-
-    with_tests = False
-    with_tools = False
 
 
     generators = "cmake"
-    exports_sources = "src/*", "CMakeLists.txt", "cmake/*", "bitprim-blockchainConfig.cmake.in", "include/*", "test/*", "tools/*"
+    exports_sources = "src/*", "CMakeLists.txt", "cmake/*", "bitprim-blockchainConfig.cmake.in", "bitprimbuildinfo.cmake", "include/*", "test/*", "tools/*"
     package_files = "build/lbitprim-blockchain.a"
     build_policy = "missing"
 
-    requires = (("bitprim-conan-boost/1.64.0@bitprim/stable"),
-                ("bitprim-database/0.6@bitprim/testing"))
+    requires = (("boost/1.66.0@bitprim/stable"),
+                ("bitprim-database/0.7@bitprim/testing"))
+
+    @property
+    def msvc_mt_build(self):
+        return "MT" in str(self.settings.compiler.runtime)
+
+    @property
+    def fPIC_enabled(self):
+        if self.settings.compiler == "Visual Studio":
+            return False
+        else:
+            return self.options.fPIC
+
+    @property
+    def is_shared(self):
+        if self.options.shared and self.msvc_mt_build:
+            return False
+        else:
+            return self.options.shared
+
 
     def requirements(self):
         if self.options.with_consensus:
-            self.requires.add("bitprim-consensus/0.6@bitprim/testing")
+            self.requires.add("bitprim-consensus/0.7@bitprim/testing")
+
+    def package_id(self):
+        self.info.options.with_tests = "ANY"
+        self.info.options.with_tools = "ANY"
+
+        #For Bitprim Packages libstdc++ and libstdc++11 are the same
+        if self.settings.compiler == "gcc" or self.settings.compiler == "clang":
+            if str(self.settings.compiler.libcxx) == "libstdc++" or str(self.settings.compiler.libcxx) == "libstdc++11":
+                self.info.settings.compiler.libcxx = "ANY"
 
     def build(self):
         cmake = CMake(self)
         
         cmake.definitions["USE_CONAN"] = option_on_off(True)
         cmake.definitions["NO_CONAN_AT_ALL"] = option_on_off(False)
-        cmake.definitions["CMAKE_VERBOSE_MAKEFILE"] = option_on_off(False)
-        cmake.definitions["ENABLE_SHARED"] = option_on_off(self.options.shared)
-        cmake.definitions["ENABLE_POSITION_INDEPENDENT_CODE"] = option_on_off(self.options.fPIC)
+
+        # cmake.definitions["CMAKE_VERBOSE_MAKEFILE"] = option_on_off(False)
+        cmake.verbose = False
+
+        cmake.definitions["ENABLE_SHARED"] = option_on_off(self.is_shared)
+        cmake.definitions["ENABLE_POSITION_INDEPENDENT_CODE"] = option_on_off(self.fPIC_enabled)
+
         cmake.definitions["WITH_CONSENSUS"] = option_on_off(self.options.with_consensus)
         cmake.definitions["WITH_LITECOIN"] = option_on_off(self.options.with_litecoin)
 
         # cmake.definitions["WITH_REMOTE_DATABASE"] = option_on_off(self.options.with_remote_database)
-        # cmake.definitions["NOT_USE_CPP11_ABI"] = option_on_off(self.options.not_use_cpp11_abi)
-        # cmake.definitions["WITH_TESTS"] = option_on_off(self.options.with_tests)
-        # cmake.definitions["WITH_TOOLS"] = option_on_off(self.options.with_tools)
-        cmake.definitions["WITH_TESTS"] = option_on_off(self.with_tests)
-        cmake.definitions["WITH_TOOLS"] = option_on_off(self.with_tools)
+        cmake.definitions["WITH_TESTS"] = option_on_off(self.options.with_tests)
+        cmake.definitions["WITH_TOOLS"] = option_on_off(self.options.with_tools)
+
+        if self.settings.compiler != "Visual Studio":
+            # cmake.definitions["CONAN_CXX_FLAGS"] += " -Wno-deprecated-declarations"
+            cmake.definitions["CONAN_CXX_FLAGS"] = cmake.definitions.get("CONAN_CXX_FLAGS", "") + " -Wno-deprecated-declarations"
+
+        if self.settings.compiler == "Visual Studio":
+            cmake.definitions["CONAN_CXX_FLAGS"] = cmake.definitions.get("CONAN_CXX_FLAGS", "") + " /DBOOST_CONFIG_SUPPRESS_OUTDATED_MESSAGE"
 
         if self.settings.compiler == "gcc":
             if float(str(self.settings.compiler.version)) >= 5:
                 cmake.definitions["NOT_USE_CPP11_ABI"] = option_on_off(False)
             else:
                 cmake.definitions["NOT_USE_CPP11_ABI"] = option_on_off(True)
+        elif self.settings.compiler == "clang":
+            if str(self.settings.compiler.libcxx) == "libstdc++" or str(self.settings.compiler.libcxx) == "libstdc++11":
+                cmake.definitions["NOT_USE_CPP11_ABI"] = option_on_off(False)
+
 
         cmake.definitions["BITPRIM_BUILD_NUMBER"] = os.getenv('BITPRIM_BUILD_NUMBER', '-')
         cmake.configure(source_dir=self.source_folder)
         cmake.build()
+
+        if self.options.with_tests:
+            cmake.test()
+
 
     def package(self):
         self.copy("*.h", dst="include", src="include")
