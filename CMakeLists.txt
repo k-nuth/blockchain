@@ -373,14 +373,32 @@ endif()
 #------------------------------------------------------------------------------
 if (WITH_TESTS)
   add_executable(bitprim_blockchain_test
-    test/main.cpp
+    test/block_chain.cpp
+    test/block_entry.cpp
+    test/block_pool.cpp
+    test/branch.cpp
+    test/transaction_entry.cpp
     test/transaction_pool.cpp
-    test/validate_block.cpp)
+    test/validate_block.cpp
+    test/validate_transaction.cpp
+    test/main.cpp
+  )
 
   target_link_libraries(bitprim_blockchain_test PUBLIC bitprim-blockchain)
   _group_sources(bitprim_blockchain_test "${CMAKE_CURRENT_LIST_DIR}/test")
 
-  _add_tests(bitprim_blockchain_test "blockchain" transaction_pool_tests) # validate_block_tests) # no test cases
+  # _add_tests(bitprim_blockchain_test "blockchain" transaction_pool_tests) # validate_block_tests) # no test cases
+
+  _add_tests(bitprim_blockchain_test 
+    fast_chain_tests
+    safe_chain_tests
+    block_entry_tests
+    block_pool_tests
+    branch_tests
+    transaction_entry_tests
+    validate_block_tests
+    validate_transaction_tests
+  )
 endif()
 
 # # local: test/bitprim_blockchain_requester_test
