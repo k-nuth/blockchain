@@ -529,6 +529,39 @@ void block_chain::fetch_block(const hash_digest& hash,
     handler(error::success, message, height);
 }
 
+void block_chain::fetch_getblock(const hash_digest& hash,
+    getblock_fetch_handler handler) const
+{
+
+    if (stopped())
+    {
+        handler(error::service_stopped, nullptr, std::vector<hash_digest>(),0,0);
+        return;
+    }
+
+    const auto block_result = database_.blocks().get(hash);
+
+    if (!block_result)
+    {
+        handler(error::not_found, nullptr, std::vector<hash_digest>(), 0,0);
+        return;
+    }
+
+    const auto height = block_result.height();
+    const auto tx_hashes = block_result.transaction_hashes();
+    const auto& tx_store = database_.transactions();
+    transaction::list txs;
+    txs.reserve(tx_hashes.size());
+    DEBUG_ONLY(size_t position = 0;)
+
+    const auto message = std::make_shared<const block>(block_result.header(),
+        std::move(txs));
+
+    handler(error::success, message, tx_hashes, block_result.serialized_size() ,height);
+}
+
+
+
 void block_chain::fetch_block_header(size_t height,
     block_header_fetch_handler handler) const
 {

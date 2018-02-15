@@ -181,6 +181,9 @@ public:
     void fetch_block(const hash_digest& hash,
         block_fetch_handler handler) const;
 
+    void fetch_getblock(const hash_digest& hash,
+        getblock_fetch_handler handler) const;
+
     /// fetch block header by height.
     // virtual      // OLD previo a merge de Feb2017 
     void fetch_block_header(size_t height, block_header_fetch_handler handler) const;
