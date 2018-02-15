@@ -809,7 +809,7 @@ bool block_chain::validate_tx(chain::transaction const& tx, const size_t top) co
         return false;
     }
 
-    if(!tx.cached_is_standard_)
+    if(!tx.cached_is_standard())
         return false;
 
     return true;
@@ -855,7 +855,7 @@ std::vector<block_chain::tx_mempool> block_chain::fetch_mempool_all(size_t max_b
             append_spend(tx, spent);
             std::string dependencies = ""; //TODO: see what to do with the final algorithm
             size_t tx_weight = tx.to_data(true).size();
-            mempool.emplace_back(tx, tx.cached_fees_, tx.cached_sigops_, dependencies, tx_weight, true);
+            mempool.emplace_back(tx, tx.cached_fees(), tx.cached_sigops(), dependencies, tx_weight, true);
         }
         return true;
     });
