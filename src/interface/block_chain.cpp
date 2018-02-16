@@ -861,7 +861,7 @@ bool block_chain::validate_tx(chain::transaction const& tx, const size_t top) co
         return false;
     }
 
-    if(!tx.cached_is_standard_)
+    if(!tx.cached_is_standard())
         return false;
 
     return true;
@@ -896,6 +896,7 @@ std::vector<block_chain::tx_mempool> block_chain::fetch_mempool_all(size_t max_b
 
     std::vector<tx_mempool> mempool;
     spent_container spent;
+    //TODO: move to constants or remove the transactions limit (35000)
     mempool.reserve(35000);
     database_.transactions_unconfirmed().for_each([&](chain::transaction const &tx) {
         if (mempool.size() > 35000 - 1) {
@@ -907,7 +908,7 @@ std::vector<block_chain::tx_mempool> block_chain::fetch_mempool_all(size_t max_b
             append_spend(tx, spent);
             std::string dependencies = ""; //TODO: see what to do with the final algorithm
             size_t tx_weight = tx.to_data(true).size();
-            mempool.emplace_back(tx, tx.cached_fees_, tx.cached_sigops_, dependencies, tx_weight, true);
+            mempool.emplace_back(tx, tx.cached_fees(), tx.cached_sigops(), dependencies, tx_weight, true);
         }
         return true;
     });
