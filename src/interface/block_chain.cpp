@@ -529,8 +529,8 @@ void block_chain::fetch_block(const hash_digest& hash,
     handler(error::success, message, height);
 }
 
-void block_chain::fetch_getblock(const hash_digest& hash,
-    getblock_fetch_handler handler) const
+void block_chain::fetch_block_txs_size(const hash_digest& hash,
+    block_txs_size_fetch_handler handler) const
 {
 
     if (stopped())
@@ -560,6 +560,25 @@ void block_chain::fetch_getblock(const hash_digest& hash,
     handler(error::success, message, tx_hashes, block_result.serialized_size() ,height);
 }
 
+void block_chain::fetch_block_hash_timestamp(size_t height, block_hash_time_fetch_handler handler) const
+{
+    if (stopped())
+    {
+        handler(error::service_stopped, null_hash, 0, 0);
+        return;
+    }
+
+    const auto block_result = database_.blocks().get(height);
+
+    if (!block_result)
+    {
+        handler(error::not_found, null_hash, 0, 0);
+        return;
+    }
+
+    handler(error::success, block_result.hash(), block_result.timestamp(), height);
+
+}
 
 
 void block_chain::fetch_block_header(size_t height,

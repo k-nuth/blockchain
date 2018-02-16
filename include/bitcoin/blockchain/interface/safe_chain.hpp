@@ -54,7 +54,10 @@ public:
         block_fetch_handler;
 
     typedef std::function<void(const code&, block_const_ptr, const hash_list&, uint64_t, size_t)>
-        getblock_fetch_handler;
+        block_txs_size_fetch_handler;
+
+    typedef std::function<void(const code&, const hash_digest&, uint32_t, size_t)>
+        block_hash_time_fetch_handler;
 
     typedef std::function<void(const code&, merkle_block_ptr, size_t)>
         merkle_block_fetch_handler;
