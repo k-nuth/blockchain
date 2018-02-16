@@ -32,6 +32,7 @@
 #include <bitcoin/bitcoin/multi_crypto_support.hpp>
 #include <bitcoin/blockchain/settings.hpp>
 #include <bitcoin/blockchain/populate/populate_chain_state.hpp>
+#include <boost/thread/latch.hpp>
 
 namespace libbitcoin { namespace blockchain {
 
@@ -92,6 +93,11 @@ block_chain::block_chain(threadpool& pool,
 
 // Readers.
 // ----------------------------------------------------------------------------
+
+uint32_t get_clock_now() {
+    auto const now = std::chrono::high_resolution_clock::now();
+    return static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::microseconds>(now.time_since_epoch()).count());
+}
 
 bool block_chain::get_gaps(block_database::heights& out_gaps) const
 {
@@ -765,9 +771,7 @@ std::pair<bool, uint64_t> block_chain::fees(libbitcoin::chain::transaction const
     return std::make_pair(false, 0);
 }
 
-std::pair<bool, size_t> block_chain::is_double_spent_and_sigops(chain::transaction const& tx, bool bip16_active) const {
-
-    size_t inputs_sigops = 0;
+bool block_chain::is_double_spent(chain::transaction const& tx, bool bip16_active) const {
 
     for (auto const& input : tx.inputs()) {
         auto const& outpoint = input.previous_output();
@@ -775,188 +779,42 @@ std::pair<bool, size_t> block_chain::is_double_spent_and_sigops(chain::transacti
         prevout.cache = chain::output{};
 
         // If the input is a coinbase there is no prevout to populate.
-        if (outpoint.is_null()) return std::make_pair(true, 0);
+        if (outpoint.is_null()) return true;
 
         size_t output_height;
         bool output_coinbase;
         uint32_t out_median; //TODO check if theres something to do with this
         auto res_output = get_output(prevout.cache, output_height, out_median, output_coinbase, outpoint, max_size_t, true);
-        if (! res_output) return std::make_pair(true, 0);
 
-
-        if ( output_height == 0)  return std::make_pair(true, 0);
+        if (! res_output) return true;
+        if ( output_height == 0)  return true;
 
         const auto spend_height = prevout.cache.validation.spender_height;
-
-        if (
-            //(spend_height <= branch_height) &&
-                (spend_height != chain::output::validation::not_spent))
-        {
-            return std::make_pair(true, 0);
-        }
-
-        inputs_sigops += input.script().sigops(false);
-
-        if (bip16_active) {
-            // This cannot overflow because each total is limited by max ops.
-            const auto& cache = prevout.cache.script();
-//            std::cout << "cache to_data: " << cache.to_data(true)<< ". sigops: " << cache.sigops(true) << std::endl;
-
-            inputs_sigops += input.script().embedded_sigops(cache);
-        }
+        if (spend_height != chain::output::validation::not_spent) return true;
 
     }
 
-    const auto out = [](size_t total, const chain::output& output) {
-//        std::cout << "output: " << libbitcoin::encode_base16(output.script().to_data(true)) << std::endl;
-//        std::cout << "output_sigops: " << output.script().sigops(false) << std::endl;
-        return ceiling_add(total, output.signature_operations());
-    };
-    auto sigops_total = inputs_sigops + std::accumulate(tx.outputs().begin(), tx.outputs().end(), size_t{0}, out);
-    //std::cout << "sigops_total: " << sigops_total << std::endl;
-
-    return std::make_pair(false, sigops_total);
+    return false;
 }
 
-std::pair<bool, size_t> block_chain::validate_tx(chain::transaction const& tx) const {
-    auto tx_result = database_.transactions().get(tx.hash(),libbitcoin::max_size_t,false);
-    if (!tx_result) {
-        //TX NOT FOUND
-        //std::cout << "TX RESULT NOT FOUND \n";
-        return std::make_pair(false, 0);
+bool block_chain::validate_tx(chain::transaction const& tx, const size_t top) const {
+
+    auto const now = std::chrono::high_resolution_clock::now();
+    auto time = static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count());
+    if (!tx.is_final(top+1, time)){
+        return false;
     }
 
-    auto tx_generated = tx_result.transaction();
-//        if (tx_generated.is_missing_previous_outputs() ||
-//                tx_generated.is_double_spend(true) ||
-//                tx_generated.signature_operations(true) > max_block_sigops) {
-
-    size_t height;
-    if (database_.blocks().top(height)){
-        //TODO: create a new function to get current time
-        auto const now = std::chrono::high_resolution_clock::now();
-        auto time = static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count());
-        if (!tx_generated.is_final(height+1, time)){
-            return std::make_pair(false, 0);
-        }
+    if (is_double_spent(tx, true)) {
+        return false;
     }
 
-    auto res = is_double_spent_and_sigops(tx_generated, true);
-    if (res.first || res.second > get_max_block_sigops(is_bitcoin_cash())) {
+    if(!tx.cached_is_standard())
+        return false;
 
-        //TX ERROR, TODO DELETE THIS TX
-//            std::cout << "TX ERROR IS DOUBLE SPEND OR TOTAL SIGNATURE OPERATIONS ERROR\n";
-
-//            is_missing_previous_outputs(tx_generated);
-
-        return std::make_pair(false, 0);
-    }
-    for (auto const& in : tx_generated.inputs()) {
-        if ( in.script().pattern() == libbitcoin::machine::script_pattern::non_standard){
-            return std::make_pair(false, 0);
-        }
-    }
-
-    for (auto const& out : tx_generated.outputs()) {
-        if ( out.script().pattern() == libbitcoin::machine::script_pattern::non_standard){
-            return std::make_pair(false, 0);
-        }
-    }
-
-    return std::make_pair(true,res.second);
+    return true;
 }
 
-////TODO: verify if it's ok. this fuction reduce the get_outputs call to 1
-//std::tuple<bool, size_t, uint64_t> block_chain::is_double_spent_sigops_and_fees(chain::transaction const& tx, bool bip16_active) const {
-//
-//    size_t inputs_sigops = 0;
-//    uint64_t total = 0;
-//
-//    for (auto const& input : tx.inputs()) {
-//
-//        if (input.script().pattern() == libbitcoin::machine::script_pattern::non_standard) {
-//            return std::make_tuple(true, 0, 0);
-//        }
-//
-//        auto const& outpoint = input.previous_output();
-//        auto& prevout = outpoint.validation;
-//        prevout.cache = chain::output{};
-//
-//        // If the input is a coinbase there is no prevout to populate.
-//        if (outpoint.is_null()) return std::make_tuple(true, 0, 0);
-//
-//
-//        size_t output_height;
-//        bool output_coinbase;
-//
-//        if (!get_output(prevout.cache, output_height, output_coinbase, outpoint, max_size_t, true)) {
-//            return std::make_tuple(true, 0, 0);
-//        }
-//
-//        if ( output_height == 0)  return std::make_tuple(true, 0, 0);
-//
-//        const auto spend_height = prevout.cache.validation.spender_height;
-//
-//        if (
-//            //(spend_height <= branch_height) &&
-//                (spend_height != chain::output::validation::not_spent))
-//        {
-//            return std::make_tuple(true, 0, 0);
-//        }
-//
-//        inputs_sigops += input.script().sigops(false);
-//
-//        if (bip16_active) {
-//            // This cannot overflow because each total is limited by max ops.
-//            const auto& cache = prevout.cache.script();
-//            inputs_sigops += input.script().embedded_sigops(cache);
-//        }
-//
-//        const bool missing = !prevout.cache.is_valid();
-//        total = ceiling_add(total, missing ? 0 : prevout.cache.value());
-//    }
-//
-//    for (auto const& out : tx.outputs()) {
-//        if (out.script().pattern() == libbitcoin::machine::script_pattern::non_standard) {
-//            std::make_tuple(true, 0, 0);
-//        }
-//    }
-//
-//    const auto out = [](size_t total, const chain::output& output) {
-//        return ceiling_add(total, output.signature_operations());
-//    };
-//
-//    return std::make_tuple(false,
-//           inputs_sigops + std::accumulate(tx.outputs().begin(), tx.outputs().end(), size_t{0}, out),
-//           floor_subtract(total, tx.total_output_value()));
-//
-//}
-//
-//std::tuple<bool, size_t, uint64_t> block_chain::validate_tx_2(chain::transaction const& tx, size_t height) const {
-//
-//
-//    auto tx_result = database_.transactions().get(tx.hash(),libbitcoin::max_size_t, false);
-//
-//    if (!tx_result) {
-//        std::make_tuple(false, 0, 0);
-//    }
-//
-//    //TODO: create a new function to get current time
-//    auto const now = std::chrono::high_resolution_clock::now();
-//    auto time = static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch()).count());
-//    if (!tx_result.transaction().is_final(height+1, time)){
-//        std::make_tuple(false, 0, 0);
-//    }
-//
-//    auto tx_generated = tx_result.transaction();
-//    auto res = is_double_spent_sigops_and_fees(tx_generated, true);
-//    if (std::get<0>(res) || std::get<1>(res) > max_block_sigops) {
-//
-//        std::make_tuple(false, 0, 0);
-//    }
-//
-//    std::make_tuple(true, std::get<1>(res), std::get<2>(res));
-//}
 
 void append_spend(chain::transaction const& tx, spent_container & result) {
     for (auto const& input : tx.inputs()) {
@@ -986,48 +844,23 @@ std::vector<block_chain::tx_mempool> block_chain::fetch_mempool_all(size_t max_b
 
     std::vector<tx_mempool> mempool;
     spent_container spent;
-    mempool.reserve(7000);
-
+    //TODO: move to constants or remove the transactions limit (35000)
+    mempool.reserve(35000);
     database_.transactions_unconfirmed().for_each([&](chain::transaction const &tx) {
-        if (mempool.size() > 7000) {
+        if (mempool.size() > 35000 - 1) {
             return false;
         }
-        auto res_validate = validate_tx(tx);
+        auto res_validate = validate_tx(tx, height);
         auto res_ds = is_double_spend_mempool(tx, spent);
-        if (res_validate.first && !res_ds) {
+        if (res_validate && !res_ds) {
             append_spend(tx, spent);
-            auto fee_result = block_chain::fees(tx);
-            if (fee_result.first) {
-                auto fee = fee_result.second;
-                uint64_t sigops = res_validate.second;
-                std::string dependencies = ""; //TODO: see what to do with the final algorithm
-                size_t tx_weight = tx.to_data(true).size();
-                mempool.emplace_back(tx, fee, sigops, dependencies, tx_weight);
-            }
+            std::string dependencies = ""; //TODO: see what to do with the final algorithm
+            size_t tx_weight = tx.to_data(true).size();
+            mempool.emplace_back(tx, tx.cached_fees(), tx.cached_sigops(), dependencies, tx_weight, true);
         }
         return true;
     });
 
-//    // ------------------------------------------------------------------------------------
-//    //TODO: chequeo temporal de dependencias, ELIMINAR!
-//    for (auto const& tx : mempool) {
-//        for (auto const& input : std::get<0>(tx).inputs()) {
-//            auto const& output_point = input.previous_output();
-//
-//            auto res = std::find_if(mempool.begin(), mempool.end(), [output_point](tx_mempool const &x) {
-//                return (std::get<0>(x).hash() == output_point.hash());
-//            });
-//
-//            if (res != mempool.end()) {
-//                std::cout << "***************** MEMPOOL TX DEPENDENCIES ****************** \n";
-//                std::cout << "tx.hash(): " << encode_hash(std::get<0>(tx).hash()) << "\n";
-//                std::cout << "res.hash(): " << encode_hash(std::get<0>(*res).hash()) << "\n";
-//                std::cout << "************************************************************ \n";
-//            }
-//        }
-//    }
-
-    // ------------------------------------------------------------------------------------
     auto const fee_per_weight = [](tx_mempool const &a, tx_mempool const &b) {
         auto const fpw_a = double(std::get<1>(a)) / std::get<4>(a);
         auto const fpw_b = double(std::get<1>(b)) / std::get<4>(b);
@@ -1035,7 +868,6 @@ std::vector<block_chain::tx_mempool> block_chain::fetch_mempool_all(size_t max_b
     };
 
     std::sort(mempool.begin(), mempool.end(), fee_per_weight);
-
     // ------------------------------------------------------------------------------------
     std::vector<tx_mempool> mempool_final;
 
@@ -1043,15 +875,14 @@ std::vector<block_chain::tx_mempool> block_chain::fetch_mempool_all(size_t max_b
     size_t current_size = 0;
     size_t current_sigops = 0;
     size_t iteration = 1;
+
+    auto end = mempool.end();
     while (!finished) {
         auto txns = create_a_pack_of_txns(mempool);
         if (iteration == 1){
             //first block - continue
             current_size = std::get<1>(txns);
             current_sigops = std::get<0>(txns);
-            for (auto it = std::get<2>(txns).begin(); it != std::get<2>(txns).end(); ++it){
-                mempool.erase(std::remove(mempool.begin(), mempool.end(), *it), mempool.end());
-            }
             std::move(std::get<2>(txns).begin(), std::get<2>(txns).end(), std::back_inserter(mempool_final));
             ++iteration;
         } else {
@@ -1065,9 +896,6 @@ std::vector<block_chain::tx_mempool> block_chain::fetch_mempool_all(size_t max_b
                         //Correct sigops - continue
                         current_size += std::get<1>(txns);
                         current_sigops += std::get<0>(txns);
-                        for (auto it = std::get<2>(txns).begin(); it != std::get<2>(txns).end(); ++it){
-                            mempool.erase(std::remove(mempool.begin(), mempool.end(), *it), mempool.end());
-                        }
                         std::move(std::get<2>(txns).begin(), std::get<2>(txns).end(), std::back_inserter(mempool_final));
                         ++iteration;
                     }else {
@@ -1087,8 +915,9 @@ std::vector<block_chain::tx_mempool> block_chain::fetch_mempool_all(size_t max_b
 
     return mempool_final;
 }
-using tx_mempool = std::tuple<chain::transaction, uint64_t, uint64_t, std::string, size_t>;
-std::tuple<size_t,size_t,std::vector<tx_mempool>> block_chain::create_a_pack_of_txns(std::vector<tx_mempool> const &mempool) const {
+
+using tx_mempool = std::tuple<chain::transaction, uint64_t, uint64_t, std::string, size_t, bool>;
+std::tuple<size_t,size_t,std::vector<tx_mempool>> block_chain::create_a_pack_of_txns(std::vector<tx_mempool>& mempool) const {
     size_t max_sigops = 20000 - 100;
     size_t max_bytes = 950 * 1024;
 
@@ -1099,18 +928,90 @@ std::tuple<size_t,size_t,std::vector<tx_mempool>> block_chain::create_a_pack_of_
     size_t i = 0;
 
     while (i < mempool.size() && bytes_return < max_bytes && sigops_return < max_sigops) {
-        auto const &tx = mempool[i];
-        auto tx_size = std::get<4>(tx);
-        auto tx_sigops = std::get<2>(tx);
-        if (max_bytes >= bytes_return + tx_size && max_sigops >= sigops_return + tx_sigops) {
-            mempool_return.push_back(tx);
-            bytes_return += tx_size;
-            sigops_return += tx_sigops;
+        auto &tx = mempool[i];
+        if(std::get<5>(tx))
+        {
+            auto tx_size = std::get<4>(tx);
+            auto tx_sigops = std::get<2>(tx);
+            if (max_bytes >= bytes_return + tx_size && max_sigops >= sigops_return + tx_sigops) {
+                mempool_return.push_back(tx);
+                std::get<5>(tx) = false;
+                bytes_return += tx_size;
+                sigops_return += tx_sigops;
+            }
         }
         ++i;
     }
 
     return std::make_tuple(sigops_return, bytes_return, mempool_return);
+}
+
+std::vector<std::tuple<std::string, std::string, size_t, std::string, uint64_t, std::string, std::string>> block_chain::fetch_mempool_addrs(std::vector<std::string> const& payment_addresses, bool use_testnet_rules) const {
+/*          "    \"address\"  (string) The base58check encoded address\n"
+            "    \"txid\"  (string) The related txid\n"
+            "    \"index\"  (number) The related input or output index\n"
+            "    \"satoshis\"  (number) The difference of satoshis\n"
+            "    \"timestamp\"  (number) The time the transaction entered the mempool (seconds)\n"
+            "    \"prevtxid\"  (string) The previous txid (if spending)\n"
+            "    \"prevout\"  (string) The previous transaction output index (if spending)\n"
+*/
+    uint8_t encoding_p2kh;
+    uint8_t encoding_p2sh;
+    if (use_testnet_rules){
+        encoding_p2kh = libbitcoin::wallet::payment_address::testnet_p2kh;
+        encoding_p2sh = libbitcoin::wallet::payment_address::testnet_p2sh;
+    } else {
+        encoding_p2kh = libbitcoin::wallet::payment_address::mainnet_p2kh;
+        encoding_p2sh = libbitcoin::wallet::payment_address::mainnet_p2sh;
+    }
+    std::vector<std::tuple<std::string, std::string, size_t, std::string, uint64_t, std::string, std::string>> ret;
+    std::unordered_set<libbitcoin::wallet::payment_address> addrs;
+    for (const auto & payment_address : payment_addresses) {
+        libbitcoin::wallet::payment_address address(payment_address);
+        if (address){
+            addrs.insert(address);
+        }
+    }
+
+    database_.transactions_unconfirmed().for_each_result([&](libbitcoin::database::transaction_unconfirmed_result const &tx_res) {
+        auto tx = tx_res.transaction();
+        tx.recompute_hash();
+        size_t i = 0;
+        for (auto const& output : tx.outputs()) {
+            const auto tx_address = libbitcoin::wallet::payment_address::extract(output.script(), encoding_p2kh, encoding_p2sh);
+            ++i;
+            if (tx_address && addrs.find(tx_address) != addrs.end()) {
+                ret.push_back(std::make_tuple(tx_address.encoded(), libbitcoin::encode_hash(tx.hash()), i, std::to_string(output.value()), tx_res.arrival_time(), "", ""));
+            }
+        }
+        i = 0;
+        for (auto const& input : tx.inputs()) {
+            const auto tx_address = libbitcoin::wallet::payment_address::extract(input.script(), encoding_p2kh, encoding_p2sh);
+            if (tx_address && addrs.find(tx_address) != addrs.end()) {
+                boost::latch latch(2);
+                fetch_transaction(input.previous_output().hash(), false,
+                                  [&](const libbitcoin::code &ec,
+                                      libbitcoin::transaction_const_ptr tx_ptr, size_t index,
+                                      size_t height) {
+                                      if (ec == libbitcoin::error::success) {
+                                          ret.push_back(std::make_tuple(tx_address.encoded(),
+                                                                            libbitcoin::encode_hash(tx.hash()),
+                                                                            i,
+                                                                            "-"+std::to_string(tx_ptr->outputs()[input.previous_output().index()].value()),
+                                                                            tx_res.arrival_time(),
+                                                                            libbitcoin::encode_hash(input.previous_output().hash()),
+                                                                            std::to_string(input.previous_output().index())));
+                                      }
+                                      latch.count_down();
+                                  });
+                latch.count_down_and_wait();
+            }
+            ++i;
+        }
+        return true;
+    });
+
+    return ret;
 }
 
 // This is same as fetch_transaction but skips deserializing the tx payload.

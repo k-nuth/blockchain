@@ -226,14 +226,16 @@ public:
 //    bool is_double_spent(chain::transaction const& tx) const;
 
     /// fetch_mempool_all()
-    using tx_mempool = std::tuple<chain::transaction, uint64_t, uint64_t, std::string, size_t>;
+    using tx_mempool = std::tuple<chain::transaction, uint64_t, uint64_t, std::string, size_t, bool>;
 
-    std::pair<bool, size_t> validate_tx (chain::transaction const& tx) const;
-    std::tuple<size_t,size_t,std::vector<tx_mempool>> create_a_pack_of_txns (std::vector<tx_mempool> const &mempool) const;
+    bool validate_tx (chain::transaction const& tx, const size_t height) const;
+    std::tuple<size_t,size_t,std::vector<tx_mempool>> create_a_pack_of_txns (std::vector<tx_mempool>&mempool) const;
     std::vector<tx_mempool> fetch_mempool_all(size_t max_bytes) const;
-    std::pair<bool, size_t> is_double_spent_and_sigops(chain::transaction const& tx, bool bip16_active) const;
+    bool is_double_spent(chain::transaction const& tx, bool bip16_active) const;
     std::tuple<bool, size_t, uint64_t> is_double_spent_sigops_and_fees(chain::transaction const& tx, bool bip16_active) const;
     std::tuple<bool, size_t, uint64_t> validate_tx_2(chain::transaction const& tx, size_t height) const;
+
+    std::vector<std::tuple<std::string, std::string, size_t, std::string, uint64_t, std::string, std::string>> fetch_mempool_addrs(std::vector<std::string> const& payment_addresses, bool use_testnet_rules) const;
 
     /// fetch position and height within block of transaction by hash.
     void fetch_transaction_position(const hash_digest& hash,
