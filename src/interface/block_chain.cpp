@@ -29,10 +29,12 @@
 #include <unordered_set>
 #include <bitcoin/bitcoin.hpp>
 #include <bitcoin/database.hpp>
+#include <bitcoin/bitcoin/math/sip_hash.hpp>
 #include <bitcoin/bitcoin/multi_crypto_support.hpp>
 #include <bitcoin/blockchain/settings.hpp>
 #include <bitcoin/blockchain/populate/populate_chain_state.hpp>
 #include <boost/thread/latch.hpp>
+
 
 namespace libbitcoin { namespace blockchain {
 
@@ -1013,6 +1015,49 @@ std::vector<std::tuple<std::string, std::string, size_t, std::string, uint64_t, 
 
     return ret;
 }
+
+
+/*
+   def get_siphash_keys(self):
+        header_nonce = self.header.serialize()
+        header_nonce += struct.pack("<Q", self.nonce)
+        hash_header_nonce_as_str = sha256(header_nonce)
+        key0 = struct.unpack("<Q", hash_header_nonce_as_str[0:8])[0]
+        key1 = struct.unpack("<Q", hash_header_nonce_as_str[8:16])[0]
+        return [key0, key1]
+*/
+/*
+std::vector<XXX> block_chain::get_mempool_xxx(message::compact_block const& block) {
+
+    auto header_hash = hash(block);
+
+    auto k0 = from_little_endian_unsafe<uint64_t>(header_hash.begin());
+    auto k1 = from_little_endian_unsafe<uint64_t>(header_hash.begin() + sizeof(uint64_t));
+
+    auto sh = sip_hash_uint256(k0, k1, transaction_id)
+    //Drop the most significative bytes from the sh
+
+    std::vector<tx_mempool> mempool;
+    spent_container spent;
+    //TODO: move to constants or remove the transactions limit (35000)
+    mempool.reserve(35000);
+    database_.transactions_unconfirmed().for_each([&](chain::transaction const &tx) {
+        if (mempool.size() > 35000 - 1) {
+            return false;
+        }
+        auto res_validate = validate_tx(tx, height);
+        auto res_ds = is_double_spend_mempool(tx, spent);
+        if (res_validate && !res_ds) {
+            append_spend(tx, spent);
+            std::string dependencies = ""; //TODO: see what to do with the final algorithm
+            size_t tx_weight = tx.to_data(true).size();
+            mempool.emplace_back(tx, tx.cached_fees(), tx.cached_sigops(), dependencies, tx_weight, true);
+        }
+        return true;
+    });
+}
+*/
+
 
 // This is same as fetch_transaction but skips deserializing the tx payload.
 void block_chain::fetch_transaction_position(const hash_digest& hash,
