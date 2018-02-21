@@ -1026,37 +1026,40 @@ std::vector<std::tuple<std::string, std::string, size_t, std::string, uint64_t, 
         key1 = struct.unpack("<Q", hash_header_nonce_as_str[8:16])[0]
         return [key0, key1]
 */
-/*
-std::vector<XXX> block_chain::get_mempool_xxx(message::compact_block const& block) {
 
+
+ safe_chain::mempool_mini_hash_map block_chain::get_mempool_mini_hash_map(message::compact_block const& block) const {
+ 
+     if (stopped()) {
+        return {};
+    }
+    
     auto header_hash = hash(block);
 
     auto k0 = from_little_endian_unsafe<uint64_t>(header_hash.begin());
     auto k1 = from_little_endian_unsafe<uint64_t>(header_hash.begin() + sizeof(uint64_t));
 
-    auto sh = sip_hash_uint256(k0, k1, transaction_id)
-    //Drop the most significative bytes from the sh
-
-    std::vector<tx_mempool> mempool;
-    spent_container spent;
-    //TODO: move to constants or remove the transactions limit (35000)
-    mempool.reserve(35000);
+    safe_chain::mempool_mini_hash_map mempool;
+   
     database_.transactions_unconfirmed().for_each([&](chain::transaction const &tx) {
-        if (mempool.size() > 35000 - 1) {
-            return false;
-        }
-        auto res_validate = validate_tx(tx, height);
-        auto res_ds = is_double_spend_mempool(tx, spent);
-        if (res_validate && !res_ds) {
-            append_spend(tx, spent);
-            std::string dependencies = ""; //TODO: see what to do with the final algorithm
-            size_t tx_weight = tx.to_data(true).size();
-            mempool.emplace_back(tx, tx.cached_fees(), tx.cached_sigops(), dependencies, tx_weight, true);
-        }
+    
+        auto sh = sip_hash_uint256(k0, k1, tx.hash());
+        
+        to_little_endian()
+        uint64_t pepe = 4564564;
+        uint64_t pepe2 = pepe & 0x0000ffffffffffff;
+            
+        reinterpret_cast<uint8_t*>(pepe2);
+
+        //Drop the most significative bytes from the sh
+        mini_hash short_id;
+        mempool.emplace(short_id,tx);
         return true;
     });
+
+    return mempool;
 }
-*/
+
 
 
 // This is same as fetch_transaction but skips deserializing the tx payload.

@@ -237,6 +237,9 @@ public:
 
     std::vector<std::tuple<std::string, std::string, size_t, std::string, uint64_t, std::string, std::string>> fetch_mempool_addrs(std::vector<std::string> const& payment_addresses, bool use_testnet_rules) const;
 
+    
+
+
     /// fetch position and height within block of transaction by hash.
     void fetch_transaction_position(const hash_digest& hash,
         bool require_confirmed, transaction_index_fetch_handler handler) const;
@@ -284,6 +287,8 @@ public:
     void fetch_mempool(size_t count_limit, uint64_t minimum_fee,
         inventory_fetch_handler handler) const;
 
+
+    mempool_mini_hash_map get_mempool_mini_hash_map(message::compact_block const& block) const override;
     // Filters.
     //-------------------------------------------------------------------------
 

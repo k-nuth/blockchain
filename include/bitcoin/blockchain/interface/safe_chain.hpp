@@ -73,6 +73,9 @@ public:
     typedef std::function<bool(code, transaction_const_ptr)>
         transaction_handler;
 
+
+    using mempool_mini_hash_map = std::unordered_map<mini_hash, chain::transaction>;
+
     // Startup and shutdown.
     // ------------------------------------------------------------------------
 
@@ -152,6 +155,8 @@ public:
     virtual void fetch_template(merkle_block_fetch_handler handler) const = 0;
     virtual void fetch_mempool(size_t count_limit, uint64_t minimum_fee,
         inventory_fetch_handler handler) const = 0;
+
+    virtual mempool_mini_hash_map get_mempool_mini_hash_map(message::compact_block const& block) const = 0;
 
     // Filters.
     //-------------------------------------------------------------------------
