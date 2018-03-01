@@ -1028,9 +1028,51 @@ std::vector<std::tuple<std::string, std::string, size_t, std::string, uint64_t, 
 */
 
 
+void block_chain::fill_tx_list_from_mempool(message::compact_block const& block, size_t& mempool_count, std::vector<chain::transaction>& txn_available, std::unordered_map<uint64_t, uint16_t> const& shorttxids) const {
+    
+    std::vector<bool> have_txn(txn_available.size());
+    
+    auto header_hash = hash(block);
+    auto k0 = from_little_endian_unsafe<uint64_t>(header_hash.begin());
+    auto k1 = from_little_endian_unsafe<uint64_t>(header_hash.begin() + sizeof(uint64_t));
+
+    database_.transactions_unconfirmed().for_each([&](chain::transaction const &tx) {
+
+        uint64_t shortid = sip_hash_uint256(k0, k1, tx.hash()) & uint64_t(0xffffffffffff); 
+        auto idit = shorttxids.find(shortid);
+        if (idit != shorttxids.end()) {
+            if (!have_txn[idit->second]) {
+                txn_available[idit->second] = tx;
+                have_txn[idit->second] = true;
+                ++mempool_count;
+            } else {
+                // If we find two mempool txn that match the short id, just
+                // request it. This should be rare enough that the extra
+                // bandwidth doesn't matter, but eating a round-trip due to
+                // FillBlock failure would be annoying.
+                if (txn_available[idit->second].is_valid()) {
+                    //txn_available[idit->second].reset();
+                    txn_available[idit->second] = chain::transaction{};
+                    --mempool_count;
+                }
+            }
+        }
+        // Though ideally we'd continue scanning for the
+        // two-txn-match-shortid case, the performance win of an early exit
+        // here is too good to pass up and worth the extra risk.
+        if (mempool_count == shorttxids.size()) {
+            return false;
+        } else {
+            return true;
+        }
+    });
+}
+
+
+
  safe_chain::mempool_mini_hash_map block_chain::get_mempool_mini_hash_map(message::compact_block const& block) const {
  
-     if (stopped()) {
+    if (stopped()) {
         return {};
     }
     
@@ -1045,12 +1087,12 @@ std::vector<std::tuple<std::string, std::string, size_t, std::string, uint64_t, 
     
         auto sh = sip_hash_uint256(k0, k1, tx.hash());
         
-        to_little_endian()
+       /* to_little_endian()
         uint64_t pepe = 4564564;
         uint64_t pepe2 = pepe & 0x0000ffffffffffff;
             
         reinterpret_cast<uint8_t*>(pepe2);
-
+        */
         //Drop the most significative bytes from the sh
         mini_hash short_id;
         mempool.emplace(short_id,tx);
