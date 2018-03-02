@@ -529,6 +529,58 @@ void block_chain::fetch_block(const hash_digest& hash,
     handler(error::success, message, height);
 }
 
+void block_chain::fetch_block_txs_size(const hash_digest& hash,
+    block_txs_size_fetch_handler handler) const
+{
+
+    if (stopped())
+    {
+        handler(error::service_stopped, nullptr, 0,std::vector<hash_digest>(),0);
+        return;
+    }
+
+    const auto block_result = database_.blocks().get(hash);
+
+    if (!block_result)
+    {
+        handler(error::not_found, nullptr, 0,std::vector<hash_digest>(),0);
+        return;
+    }
+
+    const auto height = block_result.height();
+    const auto tx_hashes = block_result.transaction_hashes();
+    const auto& tx_store = database_.transactions();
+    transaction::list txs;
+    txs.reserve(tx_hashes.size());
+    DEBUG_ONLY(size_t position = 0;)
+
+    const auto message = std::make_shared<const block>(block_result.header(),
+        std::move(txs));
+
+    handler(error::success, message, height, tx_hashes, block_result.serialized_size());
+}
+
+void block_chain::fetch_block_hash_timestamp(size_t height, block_hash_time_fetch_handler handler) const
+{
+    if (stopped())
+    {
+        handler(error::service_stopped, null_hash, 0, 0);
+        return;
+    }
+
+    const auto block_result = database_.blocks().get(height);
+
+    if (!block_result)
+    {
+        handler(error::not_found, null_hash, 0, 0);
+        return;
+    }
+
+    handler(error::success, block_result.hash(), block_result.timestamp(), height);
+
+}
+
+
 void block_chain::fetch_block_header(size_t height,
     block_header_fetch_handler handler) const
 {
