@@ -1039,6 +1039,11 @@ void block_chain::fill_tx_list_from_mempool(message::compact_block const& block,
     database_.transactions_unconfirmed().for_each([&](chain::transaction const &tx) {
 
         uint64_t shortid = sip_hash_uint256(k0, k1, tx.hash()) & uint64_t(0xffffffffffff); 
+        
+         LOG_INFO(LOG_BLOCKCHAIN)
+            << "mempool tx ->  " << encode_hash(tx.hash()) 
+            << " shortid " << shortid;
+            
         auto idit = shorttxids.find(shortid);
         if (idit != shorttxids.end()) {
             if (!have_txn[idit->second]) {
