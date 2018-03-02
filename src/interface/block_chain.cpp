@@ -535,7 +535,7 @@ void block_chain::fetch_block_txs_size(const hash_digest& hash,
 
     if (stopped())
     {
-        handler(error::service_stopped, nullptr, std::vector<hash_digest>(),0,0);
+        handler(error::service_stopped, nullptr, 0,std::vector<hash_digest>(),0);
         return;
     }
 
@@ -543,7 +543,7 @@ void block_chain::fetch_block_txs_size(const hash_digest& hash,
 
     if (!block_result)
     {
-        handler(error::not_found, nullptr, std::vector<hash_digest>(), 0,0);
+        handler(error::not_found, nullptr, 0,std::vector<hash_digest>(),0);
         return;
     }
 
@@ -557,7 +557,7 @@ void block_chain::fetch_block_txs_size(const hash_digest& hash,
     const auto message = std::make_shared<const block>(block_result.header(),
         std::move(txs));
 
-    handler(error::success, message, tx_hashes, block_result.serialized_size() ,height);
+    handler(error::success, message, height, tx_hashes, block_result.serialized_size());
 }
 
 void block_chain::fetch_block_hash_timestamp(size_t height, block_hash_time_fetch_handler handler) const

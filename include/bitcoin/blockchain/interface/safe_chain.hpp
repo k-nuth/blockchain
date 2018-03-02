@@ -53,7 +53,7 @@ public:
     typedef std::function<void(const code&, block_const_ptr, size_t)>
         block_fetch_handler;
 
-    typedef std::function<void(const code&, block_const_ptr, const hash_list&, uint64_t, size_t)>
+    typedef std::function<void(const code&, block_const_ptr, size_t, const hash_list&, uint64_t)>
         block_txs_size_fetch_handler;
 
     typedef std::function<void(const code&, const hash_digest&, uint32_t, size_t)>
