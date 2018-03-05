@@ -22,7 +22,7 @@ cmake_minimum_required(VERSION 3.4)
 # bitprim-blockchain
 #==============================================================================
 project(bitprim-blockchain
-  VERSION 0.7.0
+  VERSION 0.8.0
   LANGUAGES CXX C)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -120,15 +120,15 @@ if (NO_CONAN_AT_ALL)
 endif()
 
 if (NOT USE_CONAN)
-  # Require bitprim-database (or bitprim-database-requester) of at least version 0.7.0 and output ${bitprim_database_CPPFLAGS/LIBS/PKG}.
+  # Require bitprim-database (or bitprim-database-requester) of at least version 0.8.0 and output ${bitprim_database_CPPFLAGS/LIBS/PKG}.
   #------------------------------------------------------------------------------
   if (WITH_REMOTE_DATABASE)
     if (NOT TARGET bitprim-database-requester)
-      find_package(bitprim-database-requester 0.7.0 REQUIRED)
+      find_package(bitprim-database-requester 0.8.0 REQUIRED)
     endif()
     else()
     if (NOT TARGET bitprim-database)
-      find_package(bitprim-database 0.7.0 REQUIRED)
+      find_package(bitprim-database 0.8.0 REQUIRED)
     endif()
   endif()
 
