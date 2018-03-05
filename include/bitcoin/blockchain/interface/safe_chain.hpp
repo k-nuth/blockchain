@@ -52,6 +52,13 @@ public:
     // Smart pointer parameters must not be passed by reference.
     typedef std::function<void(const code&, block_const_ptr, size_t)>
         block_fetch_handler;
+
+    typedef std::function<void(const code&, block_const_ptr, size_t, const hash_list&, uint64_t)>
+        block_txs_size_fetch_handler;
+
+    typedef std::function<void(const code&, const hash_digest&, uint32_t, size_t)>
+        block_hash_time_fetch_handler;
+
     typedef std::function<void(const code&, merkle_block_ptr, size_t)>
         merkle_block_fetch_handler;
     typedef std::function<void(const code&, compact_block_ptr, size_t)>
