@@ -120,6 +120,12 @@ public:
     virtual void fetch_block_height(const hash_digest& hash,
         block_height_fetch_handler handler) const = 0;
 
+    virtual void fetch_block_txs_size(const hash_digest& hash,
+        block_txs_size_fetch_handler handler) const = 0;
+
+    virtual void fetch_block_hash_timestamp(size_t height,
+        block_hash_time_fetch_handler handler) const = 0;
+
     virtual void fetch_last_height(
         last_height_fetch_handler handler) const = 0;
 
