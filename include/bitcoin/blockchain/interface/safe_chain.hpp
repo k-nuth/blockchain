@@ -102,6 +102,9 @@ public:
     virtual void fetch_block_header(const hash_digest& hash,
         block_header_fetch_handler handler) const = 0;
 
+    virtual bool get_block_hash(hash_digest& out_hash,
+        size_t height) const = 0;
+
     //OLD previo al merge de Feb2017
     // virtual void fetch_merkle_block(size_t height, transaction_hashes_fetch_handler handler) const = 0;
     virtual void fetch_merkle_block(size_t height, merkle_block_fetch_handler handler) const = 0;
