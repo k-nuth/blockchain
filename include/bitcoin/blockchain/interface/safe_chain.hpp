@@ -53,8 +53,8 @@ public:
     typedef std::function<void(const code&, block_const_ptr, size_t)>
         block_fetch_handler;
 
-    typedef std::function<void(const code&, block_const_ptr, size_t, const hash_list&, uint64_t)>
-        block_txs_size_fetch_handler;
+    typedef std::function<void(const code&, header_const_ptr, size_t, const hash_list&, uint64_t)>
+        header_txs_size_fetch_handler;
 
     typedef std::function<void(const code&, const hash_digest&, uint32_t, size_t)>
         block_hash_time_fetch_handler;
@@ -123,8 +123,8 @@ public:
     virtual void fetch_block_height(const hash_digest& hash,
         block_height_fetch_handler handler) const = 0;
 
-    virtual void fetch_block_txs_size(const hash_digest& hash,
-        block_txs_size_fetch_handler handler) const = 0;
+    virtual void fetch_header_txs_size(const hash_digest& hash,
+        header_txs_size_fetch_handler handler) const = 0;
 
     virtual void fetch_block_hash_timestamp(size_t height,
         block_hash_time_fetch_handler handler) const = 0;

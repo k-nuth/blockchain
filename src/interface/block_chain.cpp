@@ -136,7 +136,7 @@ bool block_chain::get_branch_work(uint256_t& out_work,
         if (!result)
             return false;
 
-        out_work += chain::block::proof(result.bits());
+        out_work += chain::header::proof(result.bits());
     }
 
     return true;
@@ -529,8 +529,8 @@ void block_chain::fetch_block(const hash_digest& hash,
     handler(error::success, message, height);
 }
 
-void block_chain::fetch_block_txs_size(const hash_digest& hash,
-    block_txs_size_fetch_handler handler) const
+void block_chain::fetch_header_txs_size(const hash_digest& hash,
+    header_txs_size_fetch_handler handler) const
 {
 
     if (stopped())
@@ -554,8 +554,7 @@ void block_chain::fetch_block_txs_size(const hash_digest& hash,
     txs.reserve(tx_hashes.size());
     DEBUG_ONLY(size_t position = 0;)
 
-    const auto message = std::make_shared<const block>(block_result.header(),
-        std::move(txs));
+    const auto message = std::make_shared<const header>(block_result.header());
 
     handler(error::success, message, height, tx_hashes, block_result.serialized_size());
 }

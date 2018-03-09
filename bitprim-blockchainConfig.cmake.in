@@ -21,6 +21,6 @@ else()
 endif()
 
 if ("WITH_CONSENSUS" IN_LIST _compile_definitions)
-  find_package(bitprim-consensus 0.7.0 REQUIRED)
+  find_package(bitprim-consensus 0.8.0 REQUIRED)
 endif()
 
