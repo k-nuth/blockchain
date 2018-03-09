@@ -676,11 +676,24 @@ void block_chain::fetch_compact_block(size_t height,
     handler(error::not_implemented, {}, 0);
 }
 
-void block_chain::fetch_compact_block(const hash_digest& hash,
-    compact_block_fetch_handler handler) const
+void block_chain::fetch_compact_block(const hash_digest& hash, compact_block_fetch_handler handler) const
 {
-    // TODO: implement compact blocks.
-    handler(error::not_implemented, {}, 0);
+    if (stopped())
+    {
+        handler(error::service_stopped, {},0);
+        return;
+    }
+    
+    fetch_block(hash,[&handler](const code& ec, block_const_ptr message, size_t height) {
+            
+        if (ec == error::success) {
+            auto blk_ptr = std::make_shared<compact_block>(compact_block::factory_from_block(*message));
+            handler(error::success, blk_ptr, height);
+        } else {
+            handler(ec, nullptr, height);
+        }
+        
+    });
 }
 
 void block_chain::fetch_block_height(const hash_digest& hash,
