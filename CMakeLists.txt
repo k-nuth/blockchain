@@ -132,11 +132,11 @@ if (NOT USE_CONAN)
     endif()
   endif()
 
-  # Require bitprim-consensus of at least version 0.7.0 and output ${bitprim_consensus_CPPFLAGS/LIBS/PKG}.
+  # Require bitprim-consensus of at least version 0.8.0 and output ${bitprim_consensus_CPPFLAGS/LIBS/PKG}.
   #------------------------------------------------------------------------------
   if (WITH_CONSENSUS)
     if (NOT TARGET bitprim-consensus)
-      find_package(bitprim-consensus 0.7.0 REQUIRED)
+      find_package(bitprim-consensus 0.8.0 REQUIRED)
     endif()
   endif()  
 endif(NOT USE_CONAN)

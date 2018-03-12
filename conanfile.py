@@ -81,7 +81,7 @@ class BitprimBlockchainConan(ConanFile):
 
     def requirements(self):
         if self.options.with_consensus:
-            self.requires.add("bitprim-consensus/0.7@bitprim/testing")
+            self.requires.add("bitprim-consensus/0.8@bitprim/testing")
 
     def package_id(self):
         self.info.options.with_tests = "ANY"
