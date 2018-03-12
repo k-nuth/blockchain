@@ -181,8 +181,8 @@ public:
     void fetch_block(const hash_digest& hash,
         block_fetch_handler handler) const;
 
-    void fetch_header_txs_size(const hash_digest& hash,
-        header_txs_size_fetch_handler handler) const;
+    void fetch_block_header_txs_size(const hash_digest& hash,
+        block_header_txs_size_fetch_handler handler) const;
 
     void fetch_block_hash_timestamp(size_t height,
         block_hash_time_fetch_handler handler) const;
