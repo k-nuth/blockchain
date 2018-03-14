@@ -48,7 +48,6 @@ using namespace std::placeholders;
 validate_transaction::validate_transaction(dispatcher& dispatch,
     const fast_chain& chain, const settings& settings)
   : stopped_(true),
-    use_libconsensus_(settings.use_libconsensus),
     dispatch_(dispatch),
     transaction_populator_(dispatch, chain),
     fast_chain_(chain)
@@ -149,32 +148,27 @@ void validate_transaction::connect(transaction_const_ptr tx,
             this, tx, bucket, buckets, join_handler);
 }
 
-void validate_transaction::connect_inputs(transaction_const_ptr tx,
-    size_t bucket, size_t buckets, result_handler handler) const
+void validate_transaction::connect_inputs(transaction_const_ptr tx, size_t bucket, size_t buckets, result_handler handler) const
 {
     BITCOIN_ASSERT(bucket < buckets);
     code ec(error::success);
     const auto forks = tx->validation.state->enabled_forks();
     const auto& inputs = tx->inputs();
 
-    for (auto input_index = bucket; input_index < inputs.size();
-        input_index = ceiling_add(input_index, buckets))
-    {
-        if (stopped())
-        {
+    for (auto input_index = bucket; input_index < inputs.size(); input_index = ceiling_add(input_index, buckets)) {
+        if (stopped()) {
             ec = error::service_stopped;
             break;
         }
 
         const auto& prevout = inputs[input_index].previous_output();
 
-        if (!prevout.validation.cache.is_valid())
-        {
+        if (!prevout.validation.cache.is_valid()) {
             ec = error::missing_previous_output;
             break;
         }
 
-        if ((ec = validate_input::verify_script(*tx, input_index, forks, use_libconsensus_, is_bitcoin_cash()))) {
+        if ((ec = validate_input::verify_script(*tx, input_index, forks))) {
             break;
         }
     }

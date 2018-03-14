@@ -26,7 +26,6 @@ namespace blockchain {
 settings::settings()
   : cores(0),
     priority(true),
-    use_libconsensus(false),
     byte_fee_satoshis(1),
     sigop_fee_satoshis(100),
     minimum_output_satoshis(500),

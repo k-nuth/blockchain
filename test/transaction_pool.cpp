@@ -62,8 +62,7 @@ struct fixture {};
 
 BOOST_FIXTURE_TEST_SUITE(transaction_pool_tests, ::fixture)
 
-BOOST_AUTO_TEST_CASE(transaction_pool__construct__foo__bar)
-{
+BOOST_AUTO_TEST_CASE(transaction_pool__construct__foo__bar) {
     // TODO
 }
 

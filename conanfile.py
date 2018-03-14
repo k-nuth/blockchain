@@ -19,46 +19,70 @@
 
 import os
 from conans import ConanFile, CMake
+from conans import __version__ as conan_version
+from conans.model.version import Version
 
 def option_on_off(option):
     return "ON" if option else "OFF"
 
+def get_content(file_name):
+    # print(os.path.dirname(os.path.abspath(__file__)))
+    # print(os.getcwd())
+    file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), file_name)
+    # print(file_path)
+    with open(file_path, 'r') as f:
+        return f.read()
+
+def get_version():
+    return get_content('conan_version')
+
+def get_channel():
+    return get_content('conan_channel')
+
+def get_conan_req_version():
+    return get_content('conan_req_version')
+
 class BitprimBlockchainConan(ConanFile):
     name = "bitprim-blockchain"
-    version = "0.8"
+    version = get_version()
     license = "http://www.boost.org/users/license.html"  #TODO(fernando): change to bitprim licence file
     url = "https://github.com/bitprim/bitprim-blockchain/blob/conan-build/conanfile.py"
     description = "Bitprim Blockchain Library"
     settings = "os", "compiler", "build_type", "arch"
     
+    if conan_version < Version(get_conan_req_version()):
+        raise Exception ("Conan version should be greater or equal than %s" % (get_conan_req_version(), ))
+    
     options = {"shared": [True, False],
                "fPIC": [True, False],
                "with_consensus": [True, False],
-               "with_litecoin": [True, False],
                "with_tests": [True, False],
                "with_tools": [True, False],
+               "currency": ['BCH', 'BTC', 'LTC']
     }
-
+    #    "with_litecoin": [True, False],
     # "with_remote_database": [True, False],
     # "not_use_cpp11_abi": [True, False]
 
     default_options = "shared=False", \
         "fPIC=True", \
         "with_consensus=True", \
-        "with_litecoin=False", \
         "with_tests=False", \
-        "with_tools=False"
+        "with_tools=False", \
+        "currency=BCH"
 
+    # "with_litecoin=False", \
     # "with_remote_database=False"
 
 
     generators = "cmake"
+    exports = "conan_channel", "conan_version", "conan_req_version"
     exports_sources = "src/*", "CMakeLists.txt", "cmake/*", "bitprim-blockchainConfig.cmake.in", "bitprimbuildinfo.cmake", "include/*", "test/*", "tools/*"
     package_files = "build/lbitprim-blockchain.a"
     build_policy = "missing"
 
     requires = (("boost/1.66.0@bitprim/stable"),
-                ("bitprim-database/0.8@bitprim/testing"))
+                ("bitprim-database/0.8@bitprim/%s" % get_channel()))
 
     @property
     def msvc_mt_build(self):
@@ -81,7 +105,7 @@ class BitprimBlockchainConan(ConanFile):
 
     def requirements(self):
         if self.options.with_consensus:
-            self.requires.add("bitprim-consensus/0.8@bitprim/testing")
+            self.requires.add("bitprim-consensus/0.8@bitprim/%s" % get_channel())
 
     def package_id(self):
         self.info.options.with_tests = "ANY"
@@ -105,11 +129,13 @@ class BitprimBlockchainConan(ConanFile):
         cmake.definitions["ENABLE_POSITION_INDEPENDENT_CODE"] = option_on_off(self.fPIC_enabled)
 
         cmake.definitions["WITH_CONSENSUS"] = option_on_off(self.options.with_consensus)
-        cmake.definitions["WITH_LITECOIN"] = option_on_off(self.options.with_litecoin)
+        # cmake.definitions["WITH_LITECOIN"] = option_on_off(self.options.with_litecoin)
 
         # cmake.definitions["WITH_REMOTE_DATABASE"] = option_on_off(self.options.with_remote_database)
         cmake.definitions["WITH_TESTS"] = option_on_off(self.options.with_tests)
         cmake.definitions["WITH_TOOLS"] = option_on_off(self.options.with_tools)
+
+        cmake.definitions["CURRENCY"] = self.options.currency
 
         if self.settings.compiler != "Visual Studio":
             # cmake.definitions["CONAN_CXX_FLAGS"] += " -Wno-deprecated-declarations"

@@ -861,7 +861,6 @@ bool block_chain::validate_tx(chain::transaction const& tx, const size_t top) co
     return true;
 }
 
-
 void append_spend(chain::transaction const& tx, spent_container & result) {
     for (auto const& input : tx.inputs()) {
         auto const& output_point = input.previous_output();
