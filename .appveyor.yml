@@ -22,6 +22,7 @@ branches:
     - master
     - dev
     - /^v\d+\.\d+\.\d+$/
+    - feature_compile_time_currencies
 
 build: false
 
@@ -29,13 +30,6 @@ environment:
     PYTHON: "C:\\Python27"
     PYTHON_VERSION: "2.7.8"
     PYTHON_ARCH: "32"
-
-    CONAN_REFERENCE: "bitprim-blockchain/0.8"
-    CONAN_USERNAME: "bitprim"
-    CONAN_LOGIN_USERNAME: "bitprim-bintray"
-    CONAN_CHANNEL: "testing"
-    CONAN_UPLOAD: "https://api.bintray.com/conan/bitprim/bitprim"
-
     matrix:
         #- APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
         #  CONAN_VISUAL_VERSIONS: 12

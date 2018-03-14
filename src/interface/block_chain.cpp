@@ -143,7 +143,7 @@ bool block_chain::get_branch_work(uint256_t& out_work,
         if (!result)
             return false;
 
-        out_work += chain::block::proof(result.bits());
+        out_work += chain::header::proof(result.bits());
     }
 
     return true;
@@ -536,13 +536,13 @@ void block_chain::fetch_block(const hash_digest& hash,
     handler(error::success, message, height);
 }
 
-void block_chain::fetch_block_txs_size(const hash_digest& hash,
-    block_txs_size_fetch_handler handler) const
+void block_chain::fetch_block_header_txs_size(const hash_digest& hash,
+    block_header_txs_size_fetch_handler handler) const
 {
 
     if (stopped())
     {
-        handler(error::service_stopped, nullptr, 0,std::vector<hash_digest>(),0);
+        handler(error::service_stopped, nullptr, 0, std::make_shared<hash_list>(hash_list()),0);
         return;
     }
 
@@ -550,20 +550,14 @@ void block_chain::fetch_block_txs_size(const hash_digest& hash,
 
     if (!block_result)
     {
-        handler(error::not_found, nullptr, 0,std::vector<hash_digest>(),0);
+        handler(error::not_found, nullptr, 0, std::make_shared<hash_list>(hash_list()),0);
         return;
     }
 
     const auto height = block_result.height();
-    const auto tx_hashes = block_result.transaction_hashes();
-    const auto& tx_store = database_.transactions();
-    transaction::list txs;
-    txs.reserve(tx_hashes.size());
-    DEBUG_ONLY(size_t position = 0;)
-
-    const auto message = std::make_shared<const block>(block_result.header(),
-        std::move(txs));
-
+    const auto message = std::make_shared<const header>(block_result.header());
+    const auto tx_hashes = std::make_shared<hash_list>(block_result.transaction_hashes());
+    //TODO encapsulate header and tx_list
     handler(error::success, message, height, tx_hashes, block_result.serialized_size());
 }
 
@@ -886,7 +880,6 @@ bool block_chain::validate_tx(chain::transaction const& tx, const size_t top) co
 
     return true;
 }
-
 
 void append_spend(chain::transaction const& tx, spent_container & result) {
     for (auto const& input : tx.inputs()) {

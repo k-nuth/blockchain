@@ -66,14 +66,29 @@ option(WITH_TOOLS "Compile with tools." OFF)
 
 # Implement --with-litecoin.
 #------------------------------------------------------------------------------
-option(WITH_LITECOIN "Compile with Litecoin support." OFF)
+# option(WITH_LITECOIN "Compile with Litecoin support." OFF)
 
 
 
 
-if (WITH_LITECOIN)
-  add_definitions(-DLITECOIN)
+# if (WITH_LITECOIN)
+#   add_definitions(-DLITECOIN)
+# endif()
+
+
+set(CURRENCY "BCH" CACHE STRING "Specify the Cryptocurrency (BCH|BTC|LTC).")
+
+if (${CURRENCY} STREQUAL "BCH")
+  add_definitions(-DBITPRIM_CURRENCY_BCH)
+elseif (${CURRENCY} STREQUAL "BTC")
+  add_definitions(-DBITPRIM_CURRENCY_BTC)
+elseif (${CURRENCY} STREQUAL "LTC")
+  add_definitions(-DBITPRIM_CURRENCY_LTC)
+else()
+  message(FATAL_ERROR "Invalid Cryptocurrency: ${CURRENCY}")
 endif()
+
+message(STATUS "Bitprim: Cryptocurrency: ${CURRENCY}")
 
 
 # Implement --with-remote-database and declare WITH_REMOTE_DATABASE.
@@ -132,11 +147,11 @@ if (NOT USE_CONAN)
     endif()
   endif()
 
-  # Require bitprim-consensus of at least version 0.7.0 and output ${bitprim_consensus_CPPFLAGS/LIBS/PKG}.
+  # Require bitprim-consensus of at least version 0.8.0 and output ${bitprim_consensus_CPPFLAGS/LIBS/PKG}.
   #------------------------------------------------------------------------------
   if (WITH_CONSENSUS)
     if (NOT TARGET bitprim-consensus)
-      find_package(bitprim-consensus 0.7.0 REQUIRED)
+      find_package(bitprim-consensus 0.8.0 REQUIRED)
     endif()
   endif()  
 endif(NOT USE_CONAN)
