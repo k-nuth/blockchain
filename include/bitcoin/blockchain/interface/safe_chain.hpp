@@ -202,6 +202,11 @@ public:
     // ------------------------------------------------------------------------
 
     virtual bool is_stale() const = 0;
+
+
+    //TODO(Mario) temporary duplication 
+    /// Get a determination of whether the block hash exists in the store.
+    virtual bool get_block_exists_safe(const hash_digest& block_hash) const = 0;
 };
 
 } // namespace blockchain

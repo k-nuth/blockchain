@@ -112,6 +112,11 @@ bool block_chain::get_block_exists(const hash_digest& block_hash) const
     return database_.blocks().get(block_hash);
 }
 
+bool block_chain::get_block_exists_safe(const hash_digest& block_hash) const
+{
+    return get_block_exists(block_hash);
+}
+
 bool block_chain::get_block_hash(hash_digest& out_hash, size_t height) const
 {
     const auto result = database_.blocks().get(height);
