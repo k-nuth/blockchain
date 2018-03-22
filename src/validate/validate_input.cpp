@@ -52,11 +52,17 @@ uint32_t validate_input::convert_flags(uint32_t native_forks)
     if (script::is_enabled(native_forks, rule_fork::bip112_rule))
         flags |= verify_flags_checksequenceverify;
 
-    if (script::is_enabled(native_forks, rule_fork::cash_low_s_rule)){
+#ifdef BITPRIM_CURRENCY_BCH
+    // First bitcoin cash fork (FORKID on txns)
+    flags |= verify_flags_script_enable_sighash_forkid;
+
+    if (script::is_enabled(native_forks, rule_fork::cash_low_s_rule)) {
         // Obligatory flags used on the Nov 13Th - 2017 Bitcoin Cash HF
         flags |= verify_flags_low_s;
         flags |= verify_flags_nulldummy;
     }
+#endif //BITPRIM_CURRENCY_BCH
+
 
     return flags;
 }
@@ -137,21 +143,7 @@ code validate_input::convert_result(verify_result_type result)
 
 // TODO: cache transaction wire serialization.
 code validate_input::verify_script(const transaction& tx, uint32_t input_index,
-    uint32_t branches, bool use_libconsensus, bool bitcoin_cash /* = false */) {
-
-    // if (!use_libconsensus) {
-    if ( ! bitcoin_cash) {
-        ////// Simulate the inefficiency of calling libconsensus.
-        ////BITCOIN_ASSERT(input_index < tx.inputs().size());
-        ////const auto& prevout = tx.inputs()[input_index].previous_output().validation;
-        ////const auto script_data = prevout.cache.script().to_data(false);
-        ////const auto tx_data = tx.to_data();
-        ////auto clone = transaction::factory_from_data(tx_data);
-        ////const auto input = clone.inputs()[input_index].script();
-        ////const auto prevout = script::factory_from_data(script_data, false);
-        ////return script::verify(clone, input_index, branches, input, prevout);
-        return script::verify(tx, input_index, branches);
-    }
+    uint32_t branches) {
 
     BITCOIN_ASSERT(input_index < tx.inputs().size());
     const auto& prevout = tx.inputs()[input_index].previous_output().validation;
@@ -159,33 +151,43 @@ code validate_input::verify_script(const transaction& tx, uint32_t input_index,
 
     // const auto amount = bitcoin_cash ? prevout.cache.value() : 0;
     const auto amount = prevout.cache.value();
+    // const auto prevout_value = prevout.cache.value();
 
     // Wire serialization is cached in support of large numbers of inputs.
     const auto tx_data = tx.to_data();
 
-    // libconsensus
-    return convert_result(consensus::verify_script(tx_data.data(),
+#ifdef BITPRIM_CURRENCY_BCH
+    auto res = consensus::verify_script(tx_data.data(),
         tx_data.size(), script_data.data(), script_data.size(), input_index,
-        convert_flags(branches), amount));
+        convert_flags(branches), amount);
+
+    return convert_result(res);
+
+#else // BITPRIM_CURRENCY_BCH
+
+    auto res = consensus::verify_script(tx_data.data(),
+        tx_data.size(), script_data.data(), script_data.size(), amount,
+        input_index, convert_flags(branches));
+
+    return convert_result(res);
+
+#endif // BITPRIM_CURRENCY_BCH
 }
 
-#else
+#else //WITH_CONSENSUS
 
-code validate_input::verify_script(const transaction& tx,
-    uint32_t input_index, uint32_t forks, bool use_libconsensus, bool bitcoin_cash /* = false */) {
+code validate_input::verify_script(transaction const& tx, uint32_t input_index, uint32_t forks) {
 
-    if (use_libconsensus) {
-        return error::operation_failed;
-    }
+#error Not supported, build using -o with_consensus=True
 
-    if (bitcoin_cash) {
-        return error::operation_failed;
-    }
+    // if (bitcoin_cash) {
+    //     return error::operation_failed;
+    // }
 
     return script::verify(tx, input_index, forks);
 }
 
-#endif
+#endif //WITH_CONSENSUS
 
 } // namespace blockchain
 } // namespace libbitcoin

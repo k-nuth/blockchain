@@ -181,6 +181,12 @@ public:
     void fetch_block(const hash_digest& hash,
         block_fetch_handler handler) const;
 
+    void fetch_block_header_txs_size(const hash_digest& hash,
+        block_header_txs_size_fetch_handler handler) const;
+
+    void fetch_block_hash_timestamp(size_t height,
+        block_hash_time_fetch_handler handler) const;
+
     /// fetch block header by height.
     // virtual      // OLD previo a merge de Feb2017 
     void fetch_block_header(size_t height, block_header_fetch_handler handler) const;

@@ -52,6 +52,13 @@ public:
     // Smart pointer parameters must not be passed by reference.
     typedef std::function<void(const code&, block_const_ptr, size_t)>
         block_fetch_handler;
+
+    typedef std::function<void(const code&, header_const_ptr, size_t,  const std::shared_ptr<hash_list>, uint64_t)>
+        block_header_txs_size_fetch_handler;
+
+    typedef std::function<void(const code&, const hash_digest&, uint32_t, size_t)>
+        block_hash_time_fetch_handler;
+
     typedef std::function<void(const code&, merkle_block_ptr, size_t)>
         merkle_block_fetch_handler;
     typedef std::function<void(const code&, compact_block_ptr, size_t)>
@@ -95,6 +102,9 @@ public:
     virtual void fetch_block_header(const hash_digest& hash,
         block_header_fetch_handler handler) const = 0;
 
+    virtual bool get_block_hash(hash_digest& out_hash,
+        size_t height) const = 0;
+
     //OLD previo al merge de Feb2017
     // virtual void fetch_merkle_block(size_t height, transaction_hashes_fetch_handler handler) const = 0;
     virtual void fetch_merkle_block(size_t height, merkle_block_fetch_handler handler) const = 0;
@@ -112,6 +122,12 @@ public:
 
     virtual void fetch_block_height(const hash_digest& hash,
         block_height_fetch_handler handler) const = 0;
+
+    virtual void fetch_block_header_txs_size(const hash_digest& hash,
+        block_header_txs_size_fetch_handler handler) const = 0;
+
+    virtual void fetch_block_hash_timestamp(size_t height,
+        block_hash_time_fetch_handler handler) const = 0;
 
     virtual void fetch_last_height(
         last_height_fetch_handler handler) const = 0;

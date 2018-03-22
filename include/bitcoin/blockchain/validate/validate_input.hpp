@@ -36,12 +36,15 @@ class BCB_API validate_input
 public:
 
 #ifdef WITH_CONSENSUS
-    static uint32_t convert_flags(uint32_t native_forks);
-    static code convert_result(consensus::verify_result_type result);
+    static 
+    uint32_t convert_flags(uint32_t native_forks);
+    
+    static 
+    code convert_result(consensus::verify_result_type result);
 #endif
 
-    static code verify_script(const chain::transaction& tx,
-        uint32_t input_index, uint32_t forks, bool use_libconsensus, bool bitcoin_cash = false);
+    static 
+    code verify_script(chain::transaction const& tx, uint32_t input_index, uint32_t forks);
 };
 
 } // namespace blockchain

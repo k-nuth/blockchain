@@ -51,7 +51,6 @@ using namespace std::placeholders;
 validate_block::validate_block(dispatcher& dispatch, const fast_chain& chain,
     const settings& settings, bool relay_transactions)
   : stopped_(true),
-    use_libconsensus_(settings.use_libconsensus),
     fast_chain_(chain),
     priority_dispatch_(dispatch),
     block_populator_(dispatch, chain, relay_transactions)
@@ -267,8 +266,7 @@ void validate_block::connect(branch::const_ptr branch,
     // We are reimplementing connect, so must set timer externally.
     block->validation.start_connect = asio::steady_clock::now();
 
-    if (block->validation.state->is_under_checkpoint())
-    {
+    if (block->validation.state->is_under_checkpoint()) {
         handler(error::success);
         return;
     }
@@ -276,8 +274,7 @@ void validate_block::connect(branch::const_ptr branch,
     const auto non_coinbase_inputs = block->total_inputs(false);
 
     // Return if there are no non-coinbase inputs to validate.
-    if (non_coinbase_inputs == 0)
-    {
+    if (non_coinbase_inputs == 0) {
         handler(error::success);
         return;
     }
@@ -312,13 +309,11 @@ void validate_block::connect_inputs(block_const_ptr block, size_t bucket,
     size_t position = 0;
 
     // Must skip coinbase here as it is already accounted for.
-    for (auto tx = txs.begin() + 1; tx != txs.end(); ++tx)
-    {
+    for (auto tx = txs.begin() + 1; tx != txs.end(); ++tx) {
         ++queries_;
 
         // The tx is pooled with current fork state so outputs are validated.
-        if (tx->validation.current)
-        {
+        if (tx->validation.current) {
             ++hits_;
             continue;
         }
@@ -326,35 +321,30 @@ void validate_block::connect_inputs(block_const_ptr block, size_t bucket,
         size_t input_index;
         const auto& inputs = tx->inputs();
 
-        for (input_index = 0; input_index < inputs.size();
-            ++input_index, ++position)
-        {
+        for (input_index = 0; input_index < inputs.size(); ++input_index, ++position) {
             if (position % buckets != bucket)
                 continue;
 
-            if (stopped())
-            {
+            if (stopped()) {
                 handler(error::service_stopped);
                 return;
             }
 
             const auto& prevout = inputs[input_index].previous_output();
 
-            if (!prevout.validation.cache.is_valid())
-            {
+            if (!prevout.validation.cache.is_valid()) {
                 ec = error::missing_previous_output;
                 break;
             }
 
-            if ((ec = validate_input::verify_script(*tx, input_index, forks, use_libconsensus_, is_bitcoin_cash()))) {
+            if ((ec = validate_input::verify_script(*tx, input_index, forks))) {
                 break;
             }
         }
 
-        if (ec)
-        {
+        if (ec) {
             const auto height = block->validation.state->height();
-            dump(ec, *tx, input_index, forks, height, use_libconsensus_);
+            dump(ec, *tx, input_index, forks, height);
             break;
         }
     }
@@ -379,9 +369,7 @@ void validate_block::handle_connected(const code& ec, block_const_ptr block,
 // Utility.
 //-----------------------------------------------------------------------------
 
-void validate_block::dump(const code& ec, const transaction& tx,
-    uint32_t input_index, uint32_t forks, size_t height, bool use_libconsensus)
-{
+void validate_block::dump(const code& ec, const transaction& tx, uint32_t input_index, uint32_t forks, size_t height) {
     const auto& prevout = tx.inputs()[input_index].previous_output();
     const auto script = prevout.validation.cache.script().to_data(false);
     const auto hash = encode_hash(prevout.hash());
@@ -389,7 +377,6 @@ void validate_block::dump(const code& ec, const transaction& tx,
 
     LOG_DEBUG(LOG_BLOCKCHAIN)
         << "Verify failed [" << height << "] : " << ec.message() << std::endl
-        << " libconsensus : " << use_libconsensus << std::endl
         << " forks        : " << forks << std::endl
         << " outpoint     : " << hash << ":" << prevout.index() << std::endl
         << " script       : " << encode_base16(script) << std::endl

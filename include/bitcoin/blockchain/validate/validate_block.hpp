@@ -61,9 +61,7 @@ private:
     typedef std::atomic<size_t> atomic_counter;
     typedef std::shared_ptr<atomic_counter> atomic_counter_ptr;
 
-    static void dump(const code& ec, const chain::transaction& tx,
-        uint32_t input_index, uint32_t forks, size_t height,
-        bool use_libconsensus);
+    static void dump(const code& ec, const chain::transaction& tx, uint32_t input_index, uint32_t forks, size_t height);
 
     void check_block(block_const_ptr block, size_t bucket, size_t buckets,
         result_handler handler) const;
@@ -83,7 +81,6 @@ private:
 
     // These are thread safe.
     std::atomic<bool> stopped_;
-    const bool use_libconsensus_;
     const fast_chain& fast_chain_;
     dispatcher& priority_dispatch_;
     mutable atomic_counter hits_;

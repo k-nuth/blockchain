@@ -22,7 +22,7 @@ cmake_minimum_required(VERSION 3.4)
 # bitprim-blockchain
 #==============================================================================
 project(bitprim-blockchain
-  VERSION 0.7.0
+  VERSION 0.8.0
   LANGUAGES CXX C)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -66,14 +66,29 @@ option(WITH_TOOLS "Compile with tools." OFF)
 
 # Implement --with-litecoin.
 #------------------------------------------------------------------------------
-option(WITH_LITECOIN "Compile with Litecoin support." OFF)
+# option(WITH_LITECOIN "Compile with Litecoin support." OFF)
 
 
 
 
-if (WITH_LITECOIN)
-  add_definitions(-DLITECOIN)
+# if (WITH_LITECOIN)
+#   add_definitions(-DLITECOIN)
+# endif()
+
+
+set(CURRENCY "BCH" CACHE STRING "Specify the Cryptocurrency (BCH|BTC|LTC).")
+
+if (${CURRENCY} STREQUAL "BCH")
+  add_definitions(-DBITPRIM_CURRENCY_BCH)
+elseif (${CURRENCY} STREQUAL "BTC")
+  add_definitions(-DBITPRIM_CURRENCY_BTC)
+elseif (${CURRENCY} STREQUAL "LTC")
+  add_definitions(-DBITPRIM_CURRENCY_LTC)
+else()
+  message(FATAL_ERROR "Invalid Cryptocurrency: ${CURRENCY}")
 endif()
+
+message(STATUS "Bitprim: Cryptocurrency: ${CURRENCY}")
 
 
 # Implement --with-remote-database and declare WITH_REMOTE_DATABASE.
@@ -120,23 +135,23 @@ if (NO_CONAN_AT_ALL)
 endif()
 
 if (NOT USE_CONAN)
-  # Require bitprim-database (or bitprim-database-requester) of at least version 0.7.0 and output ${bitprim_database_CPPFLAGS/LIBS/PKG}.
+  # Require bitprim-database (or bitprim-database-requester) of at least version 0.8.0 and output ${bitprim_database_CPPFLAGS/LIBS/PKG}.
   #------------------------------------------------------------------------------
   if (WITH_REMOTE_DATABASE)
     if (NOT TARGET bitprim-database-requester)
-      find_package(bitprim-database-requester 0.7.0 REQUIRED)
+      find_package(bitprim-database-requester 0.8.0 REQUIRED)
     endif()
     else()
     if (NOT TARGET bitprim-database)
-      find_package(bitprim-database 0.7.0 REQUIRED)
+      find_package(bitprim-database 0.8.0 REQUIRED)
     endif()
   endif()
 
-  # Require bitprim-consensus of at least version 0.7.0 and output ${bitprim_consensus_CPPFLAGS/LIBS/PKG}.
+  # Require bitprim-consensus of at least version 0.8.0 and output ${bitprim_consensus_CPPFLAGS/LIBS/PKG}.
   #------------------------------------------------------------------------------
   if (WITH_CONSENSUS)
     if (NOT TARGET bitprim-consensus)
-      find_package(bitprim-consensus 0.7.0 REQUIRED)
+      find_package(bitprim-consensus 0.8.0 REQUIRED)
     endif()
   endif()  
 endif(NOT USE_CONAN)
