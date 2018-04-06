@@ -27,12 +27,10 @@
 #include <bitcoin/blockchain/pools/branch.hpp>
 #include <bitcoin/blockchain/settings.hpp>
 
-namespace libbitcoin {
-namespace blockchain {
+namespace libbitcoin { namespace blockchain {
 
 /// This class is NOT thread safe.
-class BCB_API populate_chain_state
-{
+class BCB_API populate_chain_state {
 public:
     populate_chain_state(const fast_chain& chain, const settings& settings);
 
@@ -40,8 +38,7 @@ public:
     chain::chain_state::ptr populate() const;
 
     /// Populate chain state for the top block in the branch (try).
-    chain::chain_state::ptr populate(chain::chain_state::ptr pool,
-        branch::const_ptr branch) const;
+    chain::chain_state::ptr populate(chain::chain_state::ptr pool, branch::const_ptr branch) const;
 
     /// Populate pool state from the top block (organized).
     chain::chain_state::ptr populate(chain::chain_state::ptr top) const;
@@ -57,13 +54,14 @@ private:
     bool populate_timestamps(data& data, const map& map, branch_ptr branch) const;
     bool populate_collision(data& data, const map& map, branch_ptr branch) const;
     bool populate_bip9_bit0(data& data, const map& map, branch_ptr branch) const;
-
     bool get_bits(uint32_t& out_bits, size_t height, branch_ptr branch) const;
     bool get_version(uint32_t& out_version, size_t height, branch_ptr branch) const;
-    bool get_timestamp(uint32_t& out_timestamp, size_t height,
-        branch_ptr branch) const;
-    bool get_block_hash(hash_digest& out_hash, size_t height,
-        branch_ptr branch) const;
+    bool get_timestamp(uint32_t& out_timestamp, size_t height, branch_ptr branch) const;
+    bool get_block_hash(hash_digest& out_hash, size_t height, branch_ptr branch) const;
+
+#ifdef BITPRIM_CURRENCY_BCH
+    const settings& settings_;
+#endif //BITPRIM_CURRENCY_BCH
 
     // These are thread safe.
     const uint32_t configured_forks_;
@@ -75,7 +73,6 @@ private:
     mutable shared_mutex mutex_;
 };
 
-} // namespace blockchain
-} // namespace libbitcoin
+}} // namespace libbitcoin::blockchain
 
 #endif

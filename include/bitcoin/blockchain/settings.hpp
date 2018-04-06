@@ -25,12 +25,10 @@
 #include <bitcoin/bitcoin/config/endpoint.hpp>
 #include <bitcoin/blockchain/define.hpp>
 
-namespace libbitcoin {
-namespace blockchain {
+namespace libbitcoin { namespace blockchain {
 
 /// Common blockchain configuration settings, properties not thread safe.
-class BCB_API settings
-{
+class BCB_API settings {
 public:
     settings();
     settings(config::settings context);
@@ -59,9 +57,17 @@ public:
     bool bip68;
     bool bip112;
     bool bip113;
+
+#ifdef BITPRIM_CURRENCY_BCH
+    // size_t uahf_height;                             //2017-Aug-01 hard fork, defaults to 478559 (Mainnet)
+    // size_t daa_height;                              //2017-Nov-13 hard fork, defaults to 504031 (Mainnet)
+    uint64_t monolith_activation_time;              //2018-May-15 hard fork, defaults to 1526400000
+    uint64_t magnetic_anomaly_activation_time;      //2018-Nov-15 hard fork, defaults to 1542300000
+#endif //BITPRIM_CURRENCY_BCH
+
+
 };
 
-} // namespace blockchain
-} // namespace libbitcoin
+}} // namespace libbitcoin::blockchain
 
 #endif
