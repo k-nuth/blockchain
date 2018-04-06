@@ -39,53 +39,45 @@ static constexpr uint32_t unspecified = max_uint32;
 // get_last_height
 // block: { hash, bits, version, timestamp }
 
-populate_chain_state::populate_chain_state(const fast_chain& chain,
-    const settings& settings)
-  : configured_forks_(settings.enabled_forks()),
-    checkpoints_(config::checkpoint::sort(settings.checkpoints)),
-    fast_chain_(chain)
-{
-}
+populate_chain_state::populate_chain_state(const fast_chain& chain, const settings& settings)
+    :
+#ifdef BITPRIM_CURRENCY_BCH
+      settings_(settings),
+#endif //BITPRIM_CURRENCY_BCH
 
-inline bool is_transaction_pool(branch::const_ptr branch)
-{
+      configured_forks_(settings.enabled_forks())
+    , checkpoints_(config::checkpoint::sort(settings.checkpoints))
+    , fast_chain_(chain)
+{}
+
+inline 
+bool is_transaction_pool(branch::const_ptr branch) {
     return branch->empty();
 }
 
-bool populate_chain_state::get_bits(uint32_t& out_bits, size_t height,
-    branch::const_ptr branch) const
-{
+bool populate_chain_state::get_bits(uint32_t& out_bits, size_t height, branch::const_ptr branch) const {
     // branch returns false only if the height is out of range.
     return branch->get_bits(out_bits, height) ||
         fast_chain_.get_bits(out_bits, height);
 }
 
-bool populate_chain_state::get_version(uint32_t& out_version, size_t height,
-    branch::const_ptr branch) const
-{
+bool populate_chain_state::get_version(uint32_t& out_version, size_t height, branch::const_ptr branch) const {
     // branch returns false only if the height is out of range.
     return branch->get_version(out_version, height) ||
         fast_chain_.get_version(out_version, height);
 }
 
-bool populate_chain_state::get_timestamp(uint32_t& out_timestamp, size_t height,
-    branch::const_ptr branch) const
-{
+bool populate_chain_state::get_timestamp(uint32_t& out_timestamp, size_t height, branch::const_ptr branch) const {
     // branch returns false only if the height is out of range.
-    return branch->get_timestamp(out_timestamp, height) ||
-        fast_chain_.get_timestamp(out_timestamp, height);
+    return branch->get_timestamp(out_timestamp, height) || fast_chain_.get_timestamp(out_timestamp, height);
 }
 
-bool populate_chain_state::get_block_hash(hash_digest& out_hash, size_t height,
-    branch::const_ptr branch) const
-{
+bool populate_chain_state::get_block_hash(hash_digest& out_hash, size_t height, branch::const_ptr branch) const {
     return branch->get_block_hash(out_hash, height) ||
         fast_chain_.get_block_hash(out_hash, height);
 }
 
-bool populate_chain_state::populate_bits(chain_state::data& data,
-    const chain_state::map& map, branch::const_ptr branch) const
-{
+bool populate_chain_state::populate_bits(chain_state::data& data, const chain_state::map& map, branch::const_ptr branch) const {
     auto& bits = data.bits.ordered;
     bits.resize(map.bits.count);
     auto height = map.bits.high - map.bits.count;
@@ -103,9 +95,7 @@ bool populate_chain_state::populate_bits(chain_state::data& data,
     return get_bits(data.bits.self, map.bits_self, branch);
 }
 
-bool populate_chain_state::populate_versions(chain_state::data& data,
-    const chain_state::map& map, branch::const_ptr branch) const
-{
+bool populate_chain_state::populate_versions(chain_state::data& data, const chain_state::map& map, branch::const_ptr branch) const {
     auto& versions = data.version.ordered;
     versions.resize(map.version.count);
     auto height = map.version.high - map.version.count;
@@ -123,9 +113,7 @@ bool populate_chain_state::populate_versions(chain_state::data& data,
     return get_version(data.version.self, map.version_self, branch);
 }
 
-bool populate_chain_state::populate_timestamps(chain_state::data& data,
-    const chain_state::map& map, branch::const_ptr branch) const
-{
+bool populate_chain_state::populate_timestamps(chain_state::data& data, const chain_state::map& map, branch::const_ptr branch) const {
     data.timestamp.retarget = unspecified;
     auto& timestamps = data.timestamp.ordered;
     timestamps.resize(map.timestamp.count);
@@ -147,8 +135,7 @@ bool populate_chain_state::populate_timestamps(chain_state::data& data,
         return false;
     }
 
-    if (is_transaction_pool(branch))
-    {
+    if (is_transaction_pool(branch)) {
         data.timestamp.self = static_cast<uint32_t>(zulu_time());
         return true;
     }
@@ -156,48 +143,36 @@ bool populate_chain_state::populate_timestamps(chain_state::data& data,
     return get_timestamp(data.timestamp.self, map.timestamp_self, branch);
 }
 
-bool populate_chain_state::populate_collision(chain_state::data& data,
-    const chain_state::map& map, branch::const_ptr branch) const
-{
-    if (map.allow_collisions_height == chain_state::map::unrequested)
-    {
+bool populate_chain_state::populate_collision(chain_state::data& data, const chain_state::map& map, branch::const_ptr branch) const {
+    if (map.allow_collisions_height == chain_state::map::unrequested) {
         data.allow_collisions_hash = null_hash;
         return true;
     }
 
-    if (is_transaction_pool(branch))
-    {
+    if (is_transaction_pool(branch)) {
         data.allow_collisions_hash = null_hash;
         return true;
     }
 
-    return get_block_hash(data.allow_collisions_hash,
-        map.allow_collisions_height, branch);
+    return get_block_hash(data.allow_collisions_hash, map.allow_collisions_height, branch);
 }
 
-bool populate_chain_state::populate_bip9_bit0(chain_state::data& data,
-    const chain_state::map& map, branch::const_ptr branch) const
-{
-    if (map.bip9_bit0_height == chain_state::map::unrequested)
-    {
+bool populate_chain_state::populate_bip9_bit0(chain_state::data& data, const chain_state::map& map, branch::const_ptr branch) const {
+    if (map.bip9_bit0_height == chain_state::map::unrequested) {
         data.bip9_bit0_hash = null_hash;
         return true;
     }
 
-    return get_block_hash(data.bip9_bit0_hash,
-        map.bip9_bit0_height, branch);
+    return get_block_hash(data.bip9_bit0_hash, map.bip9_bit0_height, branch);
 }
 
-bool populate_chain_state::populate_all(chain_state::data& data,
-    branch::const_ptr branch) const
-{
+bool populate_chain_state::populate_all(chain_state::data& data, branch::const_ptr branch) const {
     // Critical Section
     ///////////////////////////////////////////////////////////////////////////
     unique_lock lock(mutex_);
 
     // Construct a map to inform chain state data population.
-    const auto map = chain_state::get_map(data.height, checkpoints_,
-        configured_forks_);
+    auto const map = chain_state::get_map(data.height, checkpoints_, configured_forks_);
 
     return (populate_bits(data, map, branch) &&
         populate_versions(data, map, branch) &&
@@ -207,8 +182,7 @@ bool populate_chain_state::populate_all(chain_state::data& data,
     ///////////////////////////////////////////////////////////////////////////
 }
 
-chain_state::ptr populate_chain_state::populate() const
-{
+chain_state::ptr populate_chain_state::populate() const {
     size_t top;
     if (!fast_chain_.get_last_height(top))
         return{};
@@ -218,17 +192,19 @@ chain_state::ptr populate_chain_state::populate() const
     data.height = safe_add(top, size_t(1));
 
     // Use an empty branch to represent the transaction pool.
-    if (!populate_all(data, std::make_shared<branch>(top)))
+    if (!populate_all(data, std::make_shared<branch>(top))) {
         return{};
+    }
 
-    return std::make_shared<chain_state>(std::move(data), checkpoints_,
-        configured_forks_);
+    return std::make_shared<chain_state>(std::move(data), checkpoints_, configured_forks_
+#ifdef BITPRIM_CURRENCY_BCH
+            , settings_.monolith_activation_time, settings_.magnetic_anomaly_activation_time
+#endif //BITPRIM_CURRENCY_BCH
+    );
 }
 
-chain_state::ptr populate_chain_state::populate(chain_state::ptr pool,
-    branch::const_ptr branch) const
-{
-    const auto block = branch->top();
+chain_state::ptr populate_chain_state::populate(chain_state::ptr pool, branch::const_ptr branch) const {
+    auto const block = branch->top();
     BITCOIN_ASSERT(block);
 
     // If this is not a reorganization we can just promote the pool state.
@@ -240,17 +216,20 @@ chain_state::ptr populate_chain_state::populate(chain_state::ptr pool,
     data.height = branch->top_height();
 
     // Caller must test result.
-    if (!populate_all(data, branch))
+    if (!populate_all(data, branch)) {
         return{};
+    }
 
-    return std::make_shared<chain_state>(std::move(data), checkpoints_,
-        configured_forks_);
+    return std::make_shared<chain_state>(std::move(data), checkpoints_, configured_forks_
+#ifdef BITPRIM_CURRENCY_BCH
+            , settings_.monolith_activation_time, settings_.magnetic_anomaly_activation_time
+#endif //BITPRIM_CURRENCY_BCH
+    );
 }
 
-chain_state::ptr populate_chain_state::populate(chain_state::ptr top) const
-{
+chain_state::ptr populate_chain_state::populate(chain_state::ptr top) const {
     // Create pool state from top block chain state.
-    const auto state = std::make_shared<chain_state>(*top);
+    auto const state = std::make_shared<chain_state>(*top);
 
     // Invalidity is not possible unless next height is zero.
     // This can only happen when the chain size overflows size_t.

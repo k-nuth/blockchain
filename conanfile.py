@@ -82,7 +82,7 @@ class BitprimBlockchainConan(ConanFile):
     build_policy = "missing"
 
     requires = (("boost/1.66.0@bitprim/stable"),
-                ("bitprim-database/0.8@bitprim/%s" % get_channel()))
+                ("bitprim-database/0.9@bitprim/%s" % get_channel()))
 
     @property
     def msvc_mt_build(self):
@@ -105,7 +105,7 @@ class BitprimBlockchainConan(ConanFile):
 
     def requirements(self):
         if self.options.with_consensus:
-            self.requires.add("bitprim-consensus/0.8@bitprim/%s" % get_channel())
+            self.requires.add("bitprim-consensus/0.9@bitprim/%s" % get_channel())
 
     def package_id(self):
         self.info.options.with_tests = "ANY"

@@ -53,16 +53,25 @@ uint32_t validate_input::convert_flags(uint32_t native_forks)
         flags |= verify_flags_checksequenceverify;
 
 #ifdef BITPRIM_CURRENCY_BCH
-    // First bitcoin cash fork (FORKID on txns)
+    // BCH UAHF (FORKID on txns)
     flags |= verify_flags_script_enable_sighash_forkid;
 
+    // Obligatory flags used on the 2017-Nov-13 BCH hard fork
     if (script::is_enabled(native_forks, rule_fork::cash_low_s_rule)) {
-        // Obligatory flags used on the Nov 13Th - 2017 Bitcoin Cash HF
         flags |= verify_flags_low_s;
         flags |= verify_flags_nulldummy;
     }
-#endif //BITPRIM_CURRENCY_BCH
 
+    // Obligatory flags used on the 2018-May-15 BCH hard fork
+    if (script::is_enabled(native_forks, rule_fork::cash_monolith_opcodes)) {
+        flags |= verify_flags_script_enable_monolith_opcodes;
+    }
+
+    // We make sure this node will have replay protection during the next hard fork.
+    if (script::is_enabled(native_forks, rule_fork::cash_replay_protection)) {
+        flags |= verify_flags_script_enable_replay_protection;
+    }
+#endif //BITPRIM_CURRENCY_BCH
 
     return flags;
 }

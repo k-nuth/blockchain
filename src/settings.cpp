@@ -24,36 +24,40 @@ namespace libbitcoin {
 namespace blockchain {
 
 settings::settings()
-  : cores(0),
-    priority(true),
-    byte_fee_satoshis(1),
-    sigop_fee_satoshis(100),
-    minimum_output_satoshis(500),
-    notify_limit_hours(24),
-    reorganization_limit(256),
-    allow_collisions(true),
-    easy_blocks(false),
-    bip16(true),
-    bip30(true),
-    bip34(true),
-    bip66(true),
-    bip65(true),
-    bip90(true),
-    bip68(true),
-    bip112(true),
-    bip113(true)
-{
-}
+    : cores(0)
+    , priority(true)
+    , byte_fee_satoshis(1)
+    , sigop_fee_satoshis(100)
+    , minimum_output_satoshis(500)
+    , notify_limit_hours(24)
+    , reorganization_limit(256)
+    , allow_collisions(true)
+    , easy_blocks(false)
+    , bip16(true)
+    , bip30(true)
+    , bip34(true)
+    , bip66(true)
+    , bip65(true)
+    , bip90(true)
+    , bip68(true)
+    , bip112(true)
+    , bip113(true)
+
+#ifdef BITPRIM_CURRENCY_BCH
+    // , uahf_height(478559)
+    // , daa_height(504031)
+    , monolith_activation_time(bch_monolith_activation_time)                        //1526400000
+    , magnetic_anomaly_activation_time(bch_magnetic_anomaly_activation_time)        //1542300000
+#endif //BITPRIM_CURRENCY_BCH
+{}
 
 // Use push_back due to initializer_list bug:
 // stackoverflow.com/a/20168627/1172329
 settings::settings(config::settings context)
-  : settings()
+    : settings()
 {
-    switch (context)
-    {
-        case config::settings::mainnet:
-        {
+    switch (context) {
+        case config::settings::mainnet: {
             checkpoints.reserve(22);
             checkpoints.emplace_back("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f", 0);
             checkpoints.emplace_back("0000000069e244f73d78e8fd29ba2fd2ed618bd6fa2ee92559f542fdb26e7c1d", 11111);
@@ -73,11 +77,15 @@ settings::settings(config::settings context)
             checkpoints.emplace_back("000000000000003887df1f29024b06fc2200b55f8af8f35453d7be294df2d214", 250000);
             checkpoints.emplace_back("0000000000000001ae8c72a0b0c301f67e3afca10e819efa9041e458e9bd7e40", 279000);
             checkpoints.emplace_back("00000000000000004d9b4ef50f0f9d686fd69db2e03af35a100370c64632a983", 295000);
+
+#ifdef BITPRIM_CURRENCY_BCH
+            // uahf_height = 478559;
+            // daa_height  = 504031;
+#endif //BITPRIM_CURRENCY_BCH
+
             break;
         }
-
-        case config::settings::testnet:
-        {
+        case config::settings::testnet: {
             easy_blocks = true;
 
             checkpoints.reserve(7);
@@ -88,18 +96,30 @@ settings::settings(config::settings context)
             checkpoints.emplace_back("000000000598cbbb1e79057b79eef828c495d4fc31050e6b179c57d07d00367c", 400000);
             checkpoints.emplace_back("000000000001a7c0aaa2630fbb2c0e476aafffc60f82177375b2aaa22209f606", 500000);
             checkpoints.emplace_back("000000000000624f06c69d3a9fe8d25e0a9030569128d63ad1b704bbb3059a16", 600000);
+
+#ifdef BITPRIM_CURRENCY_BCH
+            // uahf_height = 1155876;
+            // daa_height  = 1188697;
+#endif //BITPRIM_CURRENCY_BCH
+
             break;
         }
+        case config::settings::regtest: {
+            easy_blocks = true;
 
+#ifdef BITPRIM_CURRENCY_BCH
+            // uahf_height = 0;
+            // daa_height  = 0;
+#endif //BITPRIM_CURRENCY_BCH
+
+            break;
+        }        
         default:
-        case config::settings::none:
-        {
-        }
+        case config::settings::none: {}
     }
 }
 
-uint32_t settings::enabled_forks() const
-{
+uint32_t settings::enabled_forks() const {
     using namespace machine;
 
     uint32_t forks = rule_fork::no_rules;
