@@ -124,7 +124,7 @@ bool transaction_organizer::stop()
 // This is called from block_chain::transaction_validate.
 void transaction_organizer::transaction_validate(transaction_const_ptr tx, result_handler handler) const {
 
-    transaction_organizer_t0 = std::chrono::high_resolution_clock::now();
+    // transaction_organizer_t0 = std::chrono::high_resolution_clock::now();
 
     auto const check_handler = std::bind(&transaction_organizer::validate_handle_check, this, _1, tx, handler);
     // Checks that are independent of chain state.
@@ -133,7 +133,7 @@ void transaction_organizer::transaction_validate(transaction_const_ptr tx, resul
 
 // private
 void transaction_organizer::validate_handle_check(code const& ec, transaction_const_ptr tx, result_handler handler) const {
-    transaction_organizer_t1 = std::chrono::high_resolution_clock::now();
+    // transaction_organizer_t1 = std::chrono::high_resolution_clock::now();
 
     if (stopped()) {
         handler(error::service_stopped);
@@ -153,7 +153,7 @@ void transaction_organizer::validate_handle_check(code const& ec, transaction_co
 // private
 void transaction_organizer::validate_handle_accept(code const& ec, transaction_const_ptr tx, result_handler handler) const {
 
-    transaction_organizer_t2 = std::chrono::high_resolution_clock::now();
+    // transaction_organizer_t2 = std::chrono::high_resolution_clock::now();
 
     if (stopped()) {
         handler(error::service_stopped);
@@ -183,11 +183,11 @@ void transaction_organizer::validate_handle_accept(code const& ec, transaction_c
 
 // private
 void transaction_organizer::validate_handle_connect(code const& ec, transaction_const_ptr tx, result_handler handler) const {
-    transaction_organizer_t3 = std::chrono::high_resolution_clock::now();
+    // transaction_organizer_t3 = std::chrono::high_resolution_clock::now();
 
-    transaction_organizer_duration0 += std::chrono::duration_cast<std::chrono::nanoseconds>(transaction_organizer_t1 - transaction_organizer_t0).count();
-    transaction_organizer_duration1 += std::chrono::duration_cast<std::chrono::nanoseconds>(transaction_organizer_t2 - transaction_organizer_t1).count();
-    transaction_organizer_duration2 += std::chrono::duration_cast<std::chrono::nanoseconds>(transaction_organizer_t3 - transaction_organizer_t2).count();
+    // transaction_organizer_duration0 += std::chrono::duration_cast<std::chrono::nanoseconds>(transaction_organizer_t1 - transaction_organizer_t0).count();
+    // transaction_organizer_duration1 += std::chrono::duration_cast<std::chrono::nanoseconds>(transaction_organizer_t2 - transaction_organizer_t1).count();
+    // transaction_organizer_duration2 += std::chrono::duration_cast<std::chrono::nanoseconds>(transaction_organizer_t3 - transaction_organizer_t2).count();
 
     if (stopped()) {
         handler(error::service_stopped);
@@ -214,6 +214,9 @@ void transaction_organizer::validate_handle_connect(code const& ec, transaction_
 void transaction_organizer::organize(transaction_const_ptr tx,
     result_handler handler)
 {
+    transaction_organizer_t0 = std::chrono::high_resolution_clock::now();
+
+
     // Critical Section
     ///////////////////////////////////////////////////////////////////////////
     mutex_.lock_low_priority();
@@ -229,6 +232,8 @@ void transaction_organizer::organize(transaction_const_ptr tx,
         std::bind(&transaction_organizer::handle_check,
             this, _1, tx, complete);
 
+    transaction_organizer_t1 = std::chrono::high_resolution_clock::now();
+
     // Checks that are independent of chain state.
     validator_.check(tx, check_handler);
 
@@ -236,6 +241,12 @@ void transaction_organizer::organize(transaction_const_ptr tx,
     // This is necessary in order to continue on a non-priority thread.
     // If we do not wait on the original thread there may be none left.
     auto ec = resume_.get_future().get();
+
+    transaction_organizer_duration0 += std::chrono::duration_cast<std::chrono::nanoseconds>(transaction_organizer_t1 - transaction_organizer_t0).count();
+    transaction_organizer_duration1 += std::chrono::duration_cast<std::chrono::nanoseconds>(transaction_organizer_t2 - transaction_organizer_t1).count();
+    transaction_organizer_duration2 += std::chrono::duration_cast<std::chrono::nanoseconds>(transaction_organizer_t3 - transaction_organizer_t2).count();
+    transaction_organizer_duration3 += std::chrono::duration_cast<std::chrono::nanoseconds>(transaction_organizer_t4 - transaction_organizer_t3).count();
+
 
     mutex_.unlock_low_priority();
     ///////////////////////////////////////////////////////////////////////////
@@ -256,91 +267,77 @@ void transaction_organizer::signal_completion(const code& ec)
 //-----------------------------------------------------------------------------
 
 // private
-void transaction_organizer::handle_check(const code& ec,
-    transaction_const_ptr tx, result_handler handler)
-{
-    if (stopped())
-    {
+void transaction_organizer::handle_check(const code& ec, transaction_const_ptr tx, result_handler handler) {
+    transaction_organizer_t2 = std::chrono::high_resolution_clock::now();
+
+    if (stopped()) {
         handler(error::service_stopped);
         return;
     }
 
-    if (ec)
-    {
+    if (ec) {
         handler(ec);
         return;
     }
 
-    const auto accept_handler =
-        std::bind(&transaction_organizer::handle_accept,
-            this, _1, tx, handler);
+    const auto accept_handler = std::bind(&transaction_organizer::handle_accept, this, _1, tx, handler);
 
     // Checks that are dependent on chain state and prevouts.
     validator_.accept(tx, accept_handler);
 }
 
 // private
-void transaction_organizer::handle_accept(const code& ec,
-    transaction_const_ptr tx, result_handler handler)
-{
-    if (stopped())
-    {
+void transaction_organizer::handle_accept(const code& ec, transaction_const_ptr tx, result_handler handler) {
+
+    transaction_organizer_t3 = std::chrono::high_resolution_clock::now();
+
+    if (stopped()) {
         handler(error::service_stopped);
         return;
     }
 
-    if (ec)
-    {
+    if (ec) {
         handler(ec);
         return;
     }
 
-    if (tx->fees() < price(tx))
-    {
+    if (tx->fees() < price(tx)) {
         handler(error::insufficient_fee);
         return;
     }
 
-    if (tx->is_dusty(settings_.minimum_output_satoshis))
-    {
+    if (tx->is_dusty(settings_.minimum_output_satoshis)) {
         handler(error::dusty_transaction);
         return;
     }
 
-    const auto connect_handler =
-        std::bind(&transaction_organizer::handle_connect,
-            this, _1, tx, handler);
+    const auto connect_handler = std::bind(&transaction_organizer::handle_connect, this, _1, tx, handler);
 
     // Checks that include script validation.
     validator_.connect(tx, connect_handler);
 }
 
 // private
-void transaction_organizer::handle_connect(const code& ec,
-    transaction_const_ptr tx, result_handler handler)
-{
-    if (stopped())
-    {
+void transaction_organizer::handle_connect(const code& ec, transaction_const_ptr tx, result_handler handler) {
+    transaction_organizer_t4 = std::chrono::high_resolution_clock::now();
+
+    if (stopped()) {
         handler(error::service_stopped);
         return;
     }
 
-    if (ec)
-    {
+    if (ec) {
         handler(ec);
         return;
     }
 
     // TODO: create a simulated validation path that does not block others.
-    if (tx->validation.simulate)
-    {
+    if (tx->validation.simulate) {
         handler(error::success);
         return;
     }
 
-    const auto pushed_handler =
-        std::bind(&transaction_organizer::handle_pushed,
-            this, _1, tx, handler);
+    const auto pushed_handler = std::bind(&transaction_organizer::handle_pushed, this, _1, tx, handler);
 
     //#########################################################################
     fast_chain_.push(tx, dispatch_, pushed_handler);
@@ -348,11 +345,8 @@ void transaction_organizer::handle_connect(const code& ec,
 }
 
 // private
-void transaction_organizer::handle_pushed(const code& ec,
-    transaction_const_ptr tx, result_handler handler)
-{
-    if (ec)
-    {
+void transaction_organizer::handle_pushed(const code& ec, transaction_const_ptr tx, result_handler handler) {
+    if (ec) {
         LOG_FATAL(LOG_BLOCKCHAIN)
             << "Failure writing transaction to store, is now corrupted: "
             << ec.message();
