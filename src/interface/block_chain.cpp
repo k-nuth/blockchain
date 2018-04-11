@@ -1426,6 +1426,13 @@ void block_chain::unsubscribe()
     transaction_organizer_.unsubscribe();
 }
 
+// Transaction Validation.
+//-----------------------------------------------------------------------------
+
+void block_chain::transaction_validate(transaction_const_ptr tx, result_handler handler) const {
+    transaction_organizer_.transaction_validate(tx, handler);
+}
+
 // Organizers.
 //-----------------------------------------------------------------------------
 
@@ -1440,6 +1447,7 @@ void block_chain::organize(transaction_const_ptr tx, result_handler handler)
     // This cannot call organize or stop (lock safe).
     transaction_organizer_.organize(tx, handler);
 }
+
 
 // Properties (thread safe).
 // ----------------------------------------------------------------------------

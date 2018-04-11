@@ -55,6 +55,8 @@ public:
     bool stop();
 
     void organize(transaction_const_ptr tx, result_handler handler);
+    void transaction_validate(transaction_const_ptr tx, result_handler handler) const;
+
     void subscribe(transaction_handler&& handler);
     void unsubscribe();
 
@@ -67,15 +69,15 @@ protected:
 
 private:
     // Verify sub-sequence.
-    void handle_check(const code& ec, transaction_const_ptr tx,
-        result_handler handler);
-    void handle_accept(const code& ec, transaction_const_ptr tx,
-        result_handler handler);
-    void handle_connect(const code& ec, transaction_const_ptr tx,
-        result_handler handler);
-    void handle_pushed(const code& ec, transaction_const_ptr tx,
-        result_handler handler);
-    void signal_completion(const code& ec);
+    void handle_check(code const& ec, transaction_const_ptr tx, result_handler handler);
+    void handle_accept(code const& ec, transaction_const_ptr tx, result_handler handler);
+    void handle_connect(code const& ec, transaction_const_ptr tx, result_handler handler);
+    void handle_pushed(code const& ec, transaction_const_ptr tx, result_handler handler);
+    void signal_completion(code const& ec);
+
+    void validate_handle_check(code const& ec, transaction_const_ptr tx, result_handler handler) const;
+    void validate_handle_accept(code const& ec, transaction_const_ptr tx, result_handler handler) const;
+    void validate_handle_connect(code const& ec, transaction_const_ptr tx, result_handler handler) const;
 
     // Subscription.
     void notify(transaction_const_ptr tx);

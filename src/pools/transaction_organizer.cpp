@@ -81,6 +81,79 @@ bool transaction_organizer::stop()
     return true;
 }
 
+// Validate Transaction sequence.
+//-----------------------------------------------------------------------------
+
+// This is called from block_chain::transaction_validate.
+void transaction_organizer::transaction_validate(transaction_const_ptr tx, result_handler handler) const {
+    auto const check_handler = std::bind(&transaction_organizer::validate_handle_check, this, _1, tx, handler);
+    // Checks that are independent of chain state.
+    validator_.check(tx, check_handler);
+}
+
+// private
+void transaction_organizer::validate_handle_check(code const& ec, transaction_const_ptr tx, result_handler handler) const {
+    if (stopped()) {
+        handler(error::service_stopped);
+        return;
+    }
+
+    if (ec) {
+        handler(ec);
+        return;
+    }
+
+    auto const accept_handler = std::bind(&transaction_organizer::validate_handle_accept, this, _1, tx, handler);
+    // Checks that are dependent on chain state and prevouts.
+    validator_.accept(tx, accept_handler);
+}
+
+// private
+void transaction_organizer::validate_handle_accept(code const& ec, transaction_const_ptr tx, result_handler handler) const {
+    if (stopped()) {
+        handler(error::service_stopped);
+        return;
+    }
+
+    if (ec) {
+        handler(ec);
+        return;
+    }
+
+    if (tx->fees() < price(tx)) {
+        handler(error::insufficient_fee);
+        return;
+    }
+
+    if (tx->is_dusty(settings_.minimum_output_satoshis)) {
+        handler(error::dusty_transaction);
+        return;
+    }
+
+    auto const connect_handler = std::bind(&transaction_organizer::validate_handle_connect, this, _1, tx, handler);
+
+    // Checks that include script validation.
+    validator_.connect(tx, connect_handler);
+}
+
+// private
+void transaction_organizer::validate_handle_connect(code const& ec, transaction_const_ptr tx, result_handler handler) const {
+    if (stopped()) {
+        handler(error::service_stopped);
+        return;
+    }
+
+    if (ec) {
+        handler(ec);
+        return;
+    }
+
+    handler(error::success);
+    return;
+}
+
+
+
 // Organize sequence.
 //-----------------------------------------------------------------------------
 

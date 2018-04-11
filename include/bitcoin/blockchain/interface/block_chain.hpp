@@ -312,6 +312,11 @@ public:
     /// Send null data success notification to all subscribers.
     void unsubscribe();
 
+    // Transaction Validation.
+    //-----------------------------------------------------------------------------
+
+    void transaction_validate(transaction_const_ptr tx, result_handler handler) const;
+    
     // Organizers.
     //-------------------------------------------------------------------------
 
