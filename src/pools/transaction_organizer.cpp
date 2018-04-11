@@ -31,8 +31,29 @@
 #include <bitcoin/blockchain/settings.hpp>
 #include <bitcoin/blockchain/validate/validate_transaction.hpp>
 
+//------------------------------------------------------------------
+#include <bitprim/bench_globals.h>
+double transaction_organizer_duration0 = 0.0;
+double transaction_organizer_duration1 = 0.0;
+double transaction_organizer_duration2 = 0.0;
+double transaction_organizer_duration3 = 0.0;
+double transaction_organizer_duration4 = 0.0;
+double transaction_organizer_duration5 = 0.0;
+//------------------------------------------------------------------
+
+
 namespace libbitcoin {
 namespace blockchain {
+
+
+auto transaction_organizer_t0 = std::chrono::high_resolution_clock::now();
+auto transaction_organizer_t1 = std::chrono::high_resolution_clock::now();
+auto transaction_organizer_t2 = std::chrono::high_resolution_clock::now();
+auto transaction_organizer_t3 = std::chrono::high_resolution_clock::now();
+auto transaction_organizer_t4 = std::chrono::high_resolution_clock::now();
+auto transaction_organizer_t5 = std::chrono::high_resolution_clock::now();
+auto transaction_organizer_t6 = std::chrono::high_resolution_clock::now();
+
 
 using namespace std::placeholders;
 
@@ -84,8 +105,27 @@ bool transaction_organizer::stop()
 // Validate Transaction sequence.
 //-----------------------------------------------------------------------------
 
+// auto transaction_organizer_t0 = std::chrono::high_resolution_clock::now();
+// auto transaction_organizer_t1 = std::chrono::high_resolution_clock::now();
+// auto transaction_organizer_t2 = std::chrono::high_resolution_clock::now();
+// auto transaction_organizer_t3 = std::chrono::high_resolution_clock::now();
+// auto transaction_organizer_t4 = std::chrono::high_resolution_clock::now();
+// auto transaction_organizer_t5 = std::chrono::high_resolution_clock::now();
+// auto transaction_organizer_t6 = std::chrono::high_resolution_clock::now();
+
+// double transaction_organizer_duration0 = 0.0;
+// double transaction_organizer_duration1 = 0.0;
+// double transaction_organizer_duration2 = 0.0;
+// double transaction_organizer_duration3 = 0.0;
+// double transaction_organizer_duration4 = 0.0;
+// double transaction_organizer_duration5 = 0.0;
+
+
 // This is called from block_chain::transaction_validate.
 void transaction_organizer::transaction_validate(transaction_const_ptr tx, result_handler handler) const {
+
+    transaction_organizer_t0 = std::chrono::high_resolution_clock::now();
+
     auto const check_handler = std::bind(&transaction_organizer::validate_handle_check, this, _1, tx, handler);
     // Checks that are independent of chain state.
     validator_.check(tx, check_handler);
@@ -93,6 +133,8 @@ void transaction_organizer::transaction_validate(transaction_const_ptr tx, resul
 
 // private
 void transaction_organizer::validate_handle_check(code const& ec, transaction_const_ptr tx, result_handler handler) const {
+    transaction_organizer_t1 = std::chrono::high_resolution_clock::now();
+
     if (stopped()) {
         handler(error::service_stopped);
         return;
@@ -110,6 +152,9 @@ void transaction_organizer::validate_handle_check(code const& ec, transaction_co
 
 // private
 void transaction_organizer::validate_handle_accept(code const& ec, transaction_const_ptr tx, result_handler handler) const {
+
+    transaction_organizer_t2 = std::chrono::high_resolution_clock::now();
+
     if (stopped()) {
         handler(error::service_stopped);
         return;
@@ -138,6 +183,12 @@ void transaction_organizer::validate_handle_accept(code const& ec, transaction_c
 
 // private
 void transaction_organizer::validate_handle_connect(code const& ec, transaction_const_ptr tx, result_handler handler) const {
+    transaction_organizer_t3 = std::chrono::high_resolution_clock::now();
+
+    transaction_organizer_duration0 += std::chrono::duration_cast<std::chrono::nanoseconds>(transaction_organizer_t1 - transaction_organizer_t0).count();
+    transaction_organizer_duration1 += std::chrono::duration_cast<std::chrono::nanoseconds>(transaction_organizer_t2 - transaction_organizer_t1).count();
+    transaction_organizer_duration2 += std::chrono::duration_cast<std::chrono::nanoseconds>(transaction_organizer_t3 - transaction_organizer_t2).count();
+
     if (stopped()) {
         handler(error::service_stopped);
         return;
@@ -147,6 +198,8 @@ void transaction_organizer::validate_handle_connect(code const& ec, transaction_
         handler(ec);
         return;
     }
+
+
 
     handler(error::success);
     return;

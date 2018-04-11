@@ -32,6 +32,21 @@
 #include <bitcoin/blockchain/settings.hpp>
 #include <bitcoin/blockchain/validate/validate_transaction.hpp>
 
+// auto transaction_organizer_t0 = std::chrono::high_resolution_clock::now();
+// auto transaction_organizer_t1 = std::chrono::high_resolution_clock::now();
+// auto transaction_organizer_t2 = std::chrono::high_resolution_clock::now();
+// auto transaction_organizer_t3 = std::chrono::high_resolution_clock::now();
+// auto transaction_organizer_t4 = std::chrono::high_resolution_clock::now();
+// auto transaction_organizer_t5 = std::chrono::high_resolution_clock::now();
+// auto transaction_organizer_t6 = std::chrono::high_resolution_clock::now();
+
+// double transaction_organizer_duration0 = 0.0;
+// double transaction_organizer_duration1 = 0.0;
+// double transaction_organizer_duration2 = 0.0;
+// double transaction_organizer_duration3 = 0.0;
+// double transaction_organizer_duration4 = 0.0;
+// double transaction_organizer_duration5 = 0.0;
+
 namespace libbitcoin {
 namespace blockchain {
 
