@@ -22,7 +22,7 @@ cmake_minimum_required(VERSION 3.4)
 # bitprim-blockchain
 #==============================================================================
 project(bitprim-blockchain
-  VERSION 0.9.0
+  VERSION 0.10.0
   LANGUAGES CXX C)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -135,23 +135,23 @@ if (NO_CONAN_AT_ALL)
 endif()
 
 if (NOT USE_CONAN)
-  # Require bitprim-database (or bitprim-database-requester) of at least version 0.9.0 and output ${bitprim_database_CPPFLAGS/LIBS/PKG}.
+  # Require bitprim-database (or bitprim-database-requester) of at least version 0.10.0 and output ${bitprim_database_CPPFLAGS/LIBS/PKG}.
   #------------------------------------------------------------------------------
   if (WITH_REMOTE_DATABASE)
     if (NOT TARGET bitprim-database-requester)
-      find_package(bitprim-database-requester 0.9.0 REQUIRED)
+      find_package(bitprim-database-requester 0.10.0 REQUIRED)
     endif()
     else()
     if (NOT TARGET bitprim-database)
-      find_package(bitprim-database 0.9.0 REQUIRED)
+      find_package(bitprim-database 0.10.0 REQUIRED)
     endif()
   endif()
 
-  # Require bitprim-consensus of at least version 0.9.0 and output ${bitprim_consensus_CPPFLAGS/LIBS/PKG}.
+  # Require bitprim-consensus of at least version 0.10.0 and output ${bitprim_consensus_CPPFLAGS/LIBS/PKG}.
   #------------------------------------------------------------------------------
   if (WITH_CONSENSUS)
     if (NOT TARGET bitprim-consensus)
-      find_package(bitprim-consensus 0.9.0 REQUIRED)
+      find_package(bitprim-consensus 0.10.0 REQUIRED)
     endif()
   endif()  
 endif(NOT USE_CONAN)
