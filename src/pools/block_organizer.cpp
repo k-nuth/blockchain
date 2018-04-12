@@ -234,7 +234,7 @@ void block_organizer::handle_connect(const code& ec, branch::ptr branch,
     // The chain query will stop if it reaches work level.
     if (!fast_chain_.get_branch_work(threshold, work, first_height))
     {
-        handler(error::operation_failed);
+        handler(error::operation_failed_18);
         return;
     }
 
