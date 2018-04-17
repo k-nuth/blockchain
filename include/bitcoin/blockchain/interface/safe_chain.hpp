@@ -192,6 +192,12 @@ public:
     virtual void subscribe_transaction(transaction_handler&& handler) = 0;
     virtual void unsubscribe() = 0;
 
+
+    // Transaction Validation.
+    //-----------------------------------------------------------------------------
+
+    virtual void transaction_validate(transaction_const_ptr tx, result_handler handler) const = 0;
+
     // Organizers.
     //-------------------------------------------------------------------------
 

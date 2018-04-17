@@ -53,16 +53,25 @@ uint32_t validate_input::convert_flags(uint32_t native_forks)
         flags |= verify_flags_checksequenceverify;
 
 #ifdef BITPRIM_CURRENCY_BCH
-    // First bitcoin cash fork (FORKID on txns)
+    // BCH UAHF (FORKID on txns)
     flags |= verify_flags_script_enable_sighash_forkid;
 
+    // Obligatory flags used on the 2017-Nov-13 BCH hard fork
     if (script::is_enabled(native_forks, rule_fork::cash_low_s_rule)) {
-        // Obligatory flags used on the Nov 13Th - 2017 Bitcoin Cash HF
         flags |= verify_flags_low_s;
         flags |= verify_flags_nulldummy;
     }
-#endif //BITPRIM_CURRENCY_BCH
 
+    // Obligatory flags used on the 2018-May-15 BCH hard fork
+    if (script::is_enabled(native_forks, rule_fork::cash_monolith_opcodes)) {
+        flags |= verify_flags_script_enable_monolith_opcodes;
+    }
+
+    // We make sure this node will have replay protection during the next hard fork.
+    if (script::is_enabled(native_forks, rule_fork::cash_replay_protection)) {
+        flags |= verify_flags_script_enable_replay_protection;
+    }
+#endif //BITPRIM_CURRENCY_BCH
 
     return flags;
 }
@@ -107,7 +116,7 @@ code validate_input::convert_result(verify_result_type result)
 
         // Softbranch safeness (should not see).
         case verify_result_type::verify_result_discourage_upgradable_nops:
-            return error::operation_failed;
+            return error::operation_failed_20;
 
         // BIP62 errors (should not see).
         case verify_result_type::verify_result_sig_hashtype:
@@ -118,7 +127,7 @@ code validate_input::convert_result(verify_result_type result)
         case verify_result_type::verify_result_sig_nulldummy:
         case verify_result_type::verify_result_pubkeytype:
         case verify_result_type::verify_result_cleanstack:
-            return error::operation_failed;
+            return error::operation_failed_21;
 
         // BIP65/BIP112 (shared codes).
         case verify_result_type::verify_result_negative_locktime:
@@ -181,7 +190,7 @@ code validate_input::verify_script(transaction const& tx, uint32_t input_index, 
 #error Not supported, build using -o with_consensus=True
 
     // if (bitcoin_cash) {
-    //     return error::operation_failed;
+    //     return error::operation_failed_22;
     // }
 
     return script::verify(tx, input_index, forks);

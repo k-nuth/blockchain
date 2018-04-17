@@ -45,7 +45,12 @@ static transaction_const_ptr make_tx()
 {
     const auto tx = std::make_shared<const message::transaction>();
     tx->validation.state = std::make_shared<chain_state>(
+#ifdef BITPRIM_CURRENCY_BCH
+        chain_state{ data(), {}, 0, 0, 0 });
+#else
         chain_state{ data(), {}, 0 });
+#endif //BITPRIM_CURRENCY_BCH
+        
     return tx;
 }
 
