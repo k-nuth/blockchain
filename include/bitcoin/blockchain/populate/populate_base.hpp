@@ -25,9 +25,9 @@
 #include <bitcoin/blockchain/define.hpp>
 #include <bitcoin/blockchain/interface/fast_chain.hpp>
 #include <bitcoin/blockchain/settings.hpp>
+#include <bitcoin/bitcoin/chainv2/transaction.hpp>
 
-namespace libbitcoin {
-namespace blockchain {
+namespace libbitcoin { namespace blockchain {
 
 /// This class is NOT thread safe.
 class BCB_API populate_base
@@ -42,8 +42,8 @@ protected:
 
     void populate_pooled(const chain::transaction& tx, uint32_t forks) const;
 
-    void populate_prevout(size_t maximum_height,
-        const chain::output_point& outpoint, bool require_confirmed) const;
+    void populate_prevout(size_t maximum_height, chain::output_point const& outpoint, bool require_confirmed) const;
+    void populate_prevout(size_t maximum_height, chainv2::output_point const& outpoint, bool require_confirmed) const;
 
     // This is thread safe.
     dispatcher& dispatch_;
@@ -52,7 +52,6 @@ protected:
     const fast_chain& fast_chain_;
 };
 
-} // namespace blockchain
-} // namespace libbitcoin
+}} // namespace libbitcoin::blockchain
 
 #endif

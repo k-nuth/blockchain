@@ -56,6 +56,8 @@ public:
 
     void organize(transaction_const_ptr tx, result_handler handler);
     void transaction_validate(transaction_const_ptr tx, result_handler handler) const;
+    void transaction_validate_v2(chainv2::transaction::const_ptr tx, result_handler handler) const;
+    void transaction_validate_v2_no_signature(chainv2::transaction::const_ptr tx, result_handler handler) const;
 
     void subscribe(transaction_handler&& handler);
     void unsubscribe();
@@ -66,6 +68,7 @@ public:
 protected:
     bool stopped() const;
     uint64_t price(transaction_const_ptr tx) const;
+    uint64_t price(chainv2::transaction::const_ptr tx) const;
 
 private:
     // Verify sub-sequence.
@@ -78,6 +81,18 @@ private:
     void validate_handle_check(code const& ec, transaction_const_ptr tx, result_handler handler) const;
     void validate_handle_accept(code const& ec, transaction_const_ptr tx, result_handler handler) const;
     void validate_handle_connect(code const& ec, transaction_const_ptr tx, result_handler handler) const;
+
+    void validate_handle_check_v2(code const& ec, chainv2::transaction::const_ptr tx, result_handler handler) const;
+    void validate_handle_accept_v2(code const& ec, chainv2::transaction::const_ptr tx, result_handler handler) const;
+    void validate_handle_connect_v2(code const& ec, chainv2::transaction::const_ptr tx, result_handler handler) const;
+
+    void validate_handle_check_v2_no_signature(code const& ec, chainv2::transaction::const_ptr tx, result_handler handler) const;
+    void validate_handle_accept_v2_no_signature(code const& ec, chainv2::transaction::const_ptr tx, result_handler handler) const;
+    void validate_handle_connect_v2_no_signature(code const& ec, chainv2::transaction::const_ptr tx, result_handler handler) const;
+
+
+
+
 
     // Subscription.
     void notify(transaction_const_ptr tx);

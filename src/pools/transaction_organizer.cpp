@@ -50,8 +50,7 @@ transaction_organizer::transaction_organizer(prioritized_mutex& mutex,
     transaction_pool_(settings),
     validator_(dispatch, fast_chain_, settings),
     subscriber_(std::make_shared<transaction_subscriber>(thread_pool, NAME))
-{
-}
+{}
 
 // Properties.
 //-----------------------------------------------------------------------------
@@ -138,6 +137,143 @@ void transaction_organizer::validate_handle_accept(code const& ec, transaction_c
 
 // private
 void transaction_organizer::validate_handle_connect(code const& ec, transaction_const_ptr tx, result_handler handler) const {
+    if (stopped()) {
+        handler(error::service_stopped);
+        return;
+    }
+
+    if (ec) {
+        handler(ec);
+        return;
+    }
+
+    handler(error::success);
+    return;
+}
+
+//-----------------------------------------------------------------------------
+// This is called from block_chain::transaction_validate_v2.
+void transaction_organizer::transaction_validate_v2(chainv2::transaction::const_ptr tx, result_handler handler) const {
+    auto const check_handler = std::bind(&transaction_organizer::validate_handle_check_v2, this, _1, tx, handler);
+    validator_.check_v2(tx, check_handler); // Checks that are independent of chain state.
+}
+
+// private
+void transaction_organizer::validate_handle_check_v2(code const& ec, chainv2::transaction::const_ptr tx, result_handler handler) const {
+    if (stopped()) {
+        handler(error::service_stopped);
+        return;
+    }
+
+    if (ec) {
+        handler(ec);
+        return;
+    }
+
+    auto const accept_handler = std::bind(&transaction_organizer::validate_handle_accept_v2, this, _1, tx, handler);
+    validator_.accept_v2(tx, accept_handler);   // Checks that are dependent on chain state and prevouts.
+}
+
+// private
+void transaction_organizer::validate_handle_accept_v2(code const& ec, chainv2::transaction::const_ptr tx, result_handler handler) const {
+    if (stopped()) {
+        handler(error::service_stopped);
+        return;
+    }
+
+    if (ec) {
+        handler(ec);
+        return;
+    }
+
+    if (tx->fees() < price(tx)) {
+        handler(error::insufficient_fee);
+        return;
+    }
+
+    if (tx->is_dusty(settings_.minimum_output_satoshis)) {
+        handler(error::dusty_transaction);
+        return;
+    }
+
+    auto const connect_handler = std::bind(&transaction_organizer::validate_handle_connect_v2, this, _1, tx, handler);
+
+    // Checks that include script validation.
+    validator_.connect_v2(tx, connect_handler);
+}
+
+// private
+void transaction_organizer::validate_handle_connect_v2(code const& ec, chainv2::transaction::const_ptr tx, result_handler handler) const {
+    if (stopped()) {
+        handler(error::service_stopped);
+        return;
+    }
+
+    if (ec) {
+        handler(ec);
+        return;
+    }
+
+    handler(error::success);
+    return;
+}
+
+
+//-----------------------------------------------------------------------------
+// This is called from block_chain::transaction_validate_v2_no_signature.
+void transaction_organizer::transaction_validate_v2_no_signature(chainv2::transaction::const_ptr tx, result_handler handler) const {
+    auto const check_handler = std::bind(&transaction_organizer::validate_handle_check_v2_no_signature, this, _1, tx, handler);
+    // Checks that are independent of chain state.
+    validator_.check_v2(tx, check_handler);
+}
+
+// private
+void transaction_organizer::validate_handle_check_v2_no_signature(code const& ec, chainv2::transaction::const_ptr tx, result_handler handler) const {
+    if (stopped()) {
+        handler(error::service_stopped);
+        return;
+    }
+
+    if (ec) {
+        handler(ec);
+        return;
+    }
+
+    auto const accept_handler = std::bind(&transaction_organizer::validate_handle_accept_v2_no_signature, this, _1, tx, handler);
+    // Checks that are dependent on chain state and prevouts.
+    validator_.accept_v2(tx, accept_handler);
+}
+
+// private
+void transaction_organizer::validate_handle_accept_v2_no_signature(code const& ec, chainv2::transaction::const_ptr tx, result_handler handler) const {
+    if (stopped()) {
+        handler(error::service_stopped);
+        return;
+    }
+
+    if (ec) {
+        handler(ec);
+        return;
+    }
+
+    if (tx->fees() < price(tx)) {
+        handler(error::insufficient_fee);
+        return;
+    }
+
+    if (tx->is_dusty(settings_.minimum_output_satoshis)) {
+        handler(error::dusty_transaction);
+        return;
+    }
+
+    auto const connect_handler = std::bind(&transaction_organizer::validate_handle_connect_v2_no_signature, this, _1, tx, handler);
+
+    // Checks that include script validation.
+    validator_.connect_v2(tx, connect_handler);
+}
+
+// private
+void transaction_organizer::validate_handle_connect_v2_no_signature(code const& ec, chainv2::transaction::const_ptr tx, result_handler handler) const {
     if (stopped()) {
         handler(error::service_stopped);
         return;
@@ -364,6 +500,26 @@ uint64_t transaction_organizer::price(transaction_const_ptr tx) const
     // This at least prevents uncached calls when zero fee is configured.
     auto byte = byte_fee > 0 ? byte_fee * tx->serialized_size(true) : 0;
     auto sigop = sigop_fee > 0 ? sigop_fee * tx->signature_operations() : 0;
+
+    // Require at least one satoshi per tx if there are any fees configured.
+    return std::max(uint64_t(1), static_cast<uint64_t>(byte + sigop));
+}
+
+
+uint64_t transaction_organizer::price(chainv2::transaction::const_ptr tx) const {
+    const auto byte_fee = settings_.byte_fee_satoshis;
+    const auto sigop_fee = settings_.sigop_fee_satoshis;
+
+    // Guard against summing signed values by testing independently.
+    if (byte_fee == 0.0f && sigop_fee == 0.0f) {
+        return 0;
+    }
+
+    // TODO: this is a second pass on size and sigops, implement cache.
+    // This at least prevents uncached calls when zero fee is configured.
+    auto byte = byte_fee > 0 ? byte_fee * tx->serialized_size(true) : 0;
+    auto const bip16_rule_enabled = fast_chain_.chain_state()->is_enabled(machine::rule_fork::bip16_rule);
+    auto sigop = sigop_fee > 0 ? sigop_fee * tx->signature_operations(bip16_rule_enabled) : 0;
 
     // Require at least one satoshi per tx if there are any fees configured.
     return std::max(uint64_t(1), static_cast<uint64_t>(byte + sigop));

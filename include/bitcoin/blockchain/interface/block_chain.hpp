@@ -97,10 +97,8 @@ public:
     bool get_last_height(size_t& out_height) const;
 
     /// Get the output that is referenced by the outpoint.
-    bool get_output(chain::output& out_output, size_t& out_height,
-        uint32_t& out_median_time_past, bool& out_coinbase,
-        const chain::output_point& outpoint, size_t branch_height,
-        bool require_confirmed) const;
+    bool get_output(chain::output& out_output, size_t& out_height, uint32_t& out_median_time_past, bool& out_coinbase, const chain::output_point& outpoint, size_t branch_height, bool require_confirmed) const;
+    bool get_output(chainv2::output& out_output, size_t& out_height, uint32_t& out_median_time_past, bool& out_coinbase, const chainv2::output_point& outpoint, size_t branch_height, bool require_confirmed) const;
 
     bool get_output_is_confirmed(chain::output& out_output, size_t& out_height,
         bool& out_coinbase, bool& out_is_confirmed, const chain::output_point& outpoint,
@@ -316,6 +314,10 @@ public:
     //-----------------------------------------------------------------------------
 
     void transaction_validate(transaction_const_ptr tx, result_handler handler) const;
+    
+    void transaction_validate_v2(chainv2::transaction::const_ptr tx, result_handler handler) const;
+
+    void transaction_validate_v2_no_signature(chainv2::transaction::const_ptr tx, result_handler handler) const;
     
     // Organizers.
     //-------------------------------------------------------------------------

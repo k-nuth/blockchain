@@ -200,16 +200,16 @@ bool block_chain::get_last_height(size_t& out_height) const
     return database_.blocks().top(out_height);
 }
 
-bool block_chain::get_output(chain::output& out_output, size_t& out_height,
-    uint32_t& out_median_time_past, bool& out_coinbase,
-    const chain::output_point& outpoint, size_t branch_height,
-    bool require_confirmed) const
-{
+bool block_chain::get_output(chain::output& out_output, size_t& out_height, uint32_t& out_median_time_past, bool& out_coinbase, const chain::output_point& outpoint, size_t branch_height, bool require_confirmed) const {
     // This includes a cached value for spender height (or not_spent).
     // Get the highest tx with matching hash, at or below the branch height.
-    return database_.transactions().get_output(out_output, out_height,
-        out_median_time_past, out_coinbase, outpoint, branch_height,
-        require_confirmed);
+    return database_.transactions().get_output(out_output, out_height, out_median_time_past, out_coinbase, outpoint, branch_height, require_confirmed);
+}
+
+bool block_chain::get_output(chainv2::output& out_output, size_t& out_height, uint32_t& out_median_time_past, bool& out_coinbase, const chainv2::output_point& outpoint, size_t branch_height, bool require_confirmed) const {
+    // This includes a cached value for spender height (or not_spent).
+    // Get the highest tx with matching hash, at or below the branch height.
+    return database_.transactions().get_output(out_output, out_height, out_median_time_past, out_coinbase, outpoint, branch_height, require_confirmed);
 }
 
 bool block_chain::get_output_is_confirmed(chain::output& out_output, size_t& out_height,
@@ -1431,6 +1431,14 @@ void block_chain::unsubscribe()
 
 void block_chain::transaction_validate(transaction_const_ptr tx, result_handler handler) const {
     transaction_organizer_.transaction_validate(tx, handler);
+}
+
+void block_chain::transaction_validate_v2(chainv2::transaction::const_ptr tx, result_handler handler) const {
+    transaction_organizer_.transaction_validate_v2(tx, handler);
+}
+
+void block_chain::transaction_validate_v2_no_signature(chainv2::transaction::const_ptr tx, result_handler handler) const {
+    transaction_organizer_.transaction_validate_v2_no_signature(tx, handler);
 }
 
 // Organizers.

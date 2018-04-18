@@ -27,9 +27,9 @@
 #include <bitcoin/blockchain/pools/branch.hpp>
 #include <bitcoin/blockchain/populate/populate_transaction.hpp>
 #include <bitcoin/blockchain/settings.hpp>
+#include <bitcoin/bitcoin/chainv2/transaction.hpp>
 
-namespace libbitcoin {
-namespace blockchain {
+namespace libbitcoin { namespace blockchain {
 
 /// This class is NOT thread safe.
 class BCB_API validate_transaction
@@ -47,17 +47,23 @@ public:
     void accept(transaction_const_ptr tx, result_handler handler) const;
     void connect(transaction_const_ptr tx, result_handler handler) const;
 
+    void check_v2(chainv2::transaction::const_ptr tx, result_handler handler) const;
+    void accept_v2(chainv2::transaction::const_ptr tx, result_handler handler) const;
+    void connect_v2(chainv2::transaction::const_ptr tx, result_handler handler) const;
+
+
+
 protected:
-    inline bool stopped() const
-    {
+    inline bool stopped() const {
         return stopped_;
     }
 
 private:
-    void handle_populated(const code& ec, transaction_const_ptr tx,
-        result_handler handler) const;
-    void connect_inputs(transaction_const_ptr tx, size_t bucket,
-        size_t buckets, result_handler handler) const;
+    void handle_populated(const code& ec, transaction_const_ptr tx, result_handler handler) const;
+    void connect_inputs(transaction_const_ptr tx, size_t bucket, size_t buckets, result_handler handler) const;
+
+    void handle_populated_v2(const code& ec, chainv2::transaction::const_ptr tx, bool tx_duplicate, result_handler handler) const;
+    void connect_inputs_v2(chainv2::transaction::const_ptr tx, size_t bucket, size_t buckets, result_handler handler) const;
 
     // These are thread safe.
     std::atomic<bool> stopped_;
@@ -68,7 +74,6 @@ private:
     populate_transaction transaction_populator_;
 };
 
-} // namespace blockchain
-} // namespace libbitcoin
+}} // namespace libbitcoin::blockchain
 
 #endif

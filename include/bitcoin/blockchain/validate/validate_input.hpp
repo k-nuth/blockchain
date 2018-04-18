@@ -16,8 +16,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef LIBBITCOIN_BLOCKCHAIN_VALIDATE_INPUT_HPP
-#define LIBBITCOIN_BLOCKCHAIN_VALIDATE_INPUT_HPP
+#ifndef LIBBITCOIN_BLOCKCHAIN_VALIDATE_INPUT_HPP_
+#define LIBBITCOIN_BLOCKCHAIN_VALIDATE_INPUT_HPP_
 
 #include <cstdint>
 #include <bitcoin/bitcoin.hpp>
@@ -27,12 +27,12 @@
 #include <bitcoin/consensus.hpp>
 #endif
 
-namespace libbitcoin {
-namespace blockchain {
+#include <bitcoin/bitcoin/chainv2/transaction.hpp>
+
+namespace libbitcoin { namespace blockchain {
 
 /// This class is static.
-class BCB_API validate_input
-{
+class BCB_API validate_input {
 public:
 
 #ifdef WITH_CONSENSUS
@@ -45,9 +45,12 @@ public:
 
     static 
     code verify_script(chain::transaction const& tx, uint32_t input_index, uint32_t forks);
+
+    static 
+    code verify_script(chainv2::transaction const& tx, uint32_t input_index, uint32_t forks);
+
 };
 
-} // namespace blockchain
-} // namespace libbitcoin
+}} // namespace libbitcoin::blockchain
 
-#endif
+#endif // LIBBITCOIN_BLOCKCHAIN_VALIDATE_INPUT_HPP_

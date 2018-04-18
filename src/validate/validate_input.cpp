@@ -151,8 +151,7 @@ code validate_input::convert_result(verify_result_type result)
 }
 
 // TODO: cache transaction wire serialization.
-code validate_input::verify_script(const transaction& tx, uint32_t input_index,
-    uint32_t branches) {
+code validate_input::verify_script(const transaction& tx, uint32_t input_index, uint32_t branches) {
 
     BITCOIN_ASSERT(input_index < tx.inputs().size());
     const auto& prevout = tx.inputs()[input_index].previous_output().validation;
@@ -180,6 +179,29 @@ code validate_input::verify_script(const transaction& tx, uint32_t input_index,
 
     return convert_result(res);
 
+#endif // BITPRIM_CURRENCY_BCH
+}
+
+// TODO: cache transaction wire serialization.
+code validate_input::verify_script(chainv2::transaction const& tx, uint32_t input_index, uint32_t branches) {
+
+    BITCOIN_ASSERT(input_index < tx.inputs().size());
+    const auto& prevout = tx.inputs()[input_index].previous_output().validation;
+    const auto script_data = prevout.cache.script().to_data(false);
+
+    // const auto amount = bitcoin_cash ? prevout.cache.value() : 0;
+    const auto amount = prevout.cache.value();
+    // const auto prevout_value = prevout.cache.value();
+
+    // Wire serialization is cached in support of large numbers of inputs.
+    const auto tx_data = tx.to_data();
+
+#ifdef BITPRIM_CURRENCY_BCH
+    auto res = consensus::verify_script(tx_data.data(), tx_data.size(), script_data.data(), script_data.size(), input_index, convert_flags(branches), amount);
+    return convert_result(res);
+#else // BITPRIM_CURRENCY_BCH
+    auto res = consensus::verify_script(tx_data.data(), tx_data.size(), script_data.data(), script_data.size(), amount, input_index, convert_flags(branches));
+    return convert_result(res);
 #endif // BITPRIM_CURRENCY_BCH
 }
 

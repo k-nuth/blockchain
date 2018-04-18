@@ -71,45 +71,40 @@ void validate_transaction::stop()
 //-----------------------------------------------------------------------------
 // These checks are context free.
 
-void validate_transaction::check(transaction_const_ptr tx,
-    result_handler handler) const
-{
+void validate_transaction::check(transaction_const_ptr tx, result_handler handler) const {
     // Run context free checks.
     handler(tx->check());
 }
+
+void validate_transaction::check_v2(chainv2::transaction::const_ptr tx, result_handler handler) const {
+    // Run context free checks.
+    handler(tx->check());
+}
+
 
 // Accept sequence.
 //-----------------------------------------------------------------------------
 // These checks require chain and tx state (net height and enabled forks).
 
-void validate_transaction::accept(transaction_const_ptr tx,
-    result_handler handler) const
-{
+void validate_transaction::accept(transaction_const_ptr tx, result_handler handler) const {
     // Populate chain state of the next block (tx pool).
     tx->validation.state = fast_chain_.chain_state();
 
-    if (!tx->validation.state)
-    {
+    if (!tx->validation.state) {
         handler(error::operation_failed_23);
         return;
     }
 
-    transaction_populator_.populate(tx,
-        std::bind(&validate_transaction::handle_populated,
-            this, _1, tx, handler));
+    transaction_populator_.populate(tx, std::bind(&validate_transaction::handle_populated, this, _1, tx, handler));
 }
 
-void validate_transaction::handle_populated(const code& ec,
-    transaction_const_ptr tx, result_handler handler) const
-{
-    if (stopped())
-    {
+void validate_transaction::handle_populated(code const& ec, transaction_const_ptr tx, result_handler handler) const {
+    if (stopped()) {
         handler(error::service_stopped);
         return;
     }
 
-    if (ec)
-    {
+    if (ec) {
         handler(ec);
         return;
     }
@@ -120,19 +115,69 @@ void validate_transaction::handle_populated(const code& ec,
     handler(tx->accept());
 }
 
+void validate_transaction::accept_v2(chainv2::transaction::const_ptr tx, result_handler handler) const {
+    // Populate chain state of the next block (tx pool).
+    auto const state = fast_chain_.chain_state();
+
+    if ( ! state) {
+        handler(error::operation_failed_23);
+        return;
+    }
+
+    // Chain state is for the next block, so always > 0.
+    BITCOIN_ASSERT(state->height() > 0);
+    const auto chain_height = state->height() - 1u;
+
+    //*************************************************************************
+    // CONSENSUS:
+    // It is OK for us to restrict *pool* transactions to those that do not
+    // collide with any in the chain (as well as any in the pool) as collision
+    // will result in monetary destruction and we don't want to facilitate it.
+    // We must allow collisions in *block* validation if that is configured as
+    // otherwise will will not follow the chain when a collision is mined.
+    //*************************************************************************
+    auto const tx_duplicate = fast_chain_.get_is_unspent_transaction(tx->hash(), chain_height, false);
+
+    // Because txs include no proof of work we much short circuit here.
+    // Otherwise a peer can flood us with repeat transactions to validate.
+    // if (tx->validation.duplicate) {
+    if (tx_duplicate) {
+        handler(error::unspent_duplicate);
+        return;
+    }    
+
+    transaction_populator_.populate(tx, state, std::bind(&validate_transaction::handle_populated_v2, this, _1, tx, tx_duplicate, handler));
+}
+
+void validate_transaction::handle_populated_v2(code const& ec, chainv2::transaction::const_ptr tx, bool tx_duplicate, result_handler handler) const {
+    if (stopped()) {
+        handler(error::service_stopped);
+        return;
+    }
+
+    if (ec) {
+        handler(ec);
+        return;
+    }
+
+    auto const state = fast_chain_.chain_state();
+    // BITCOIN_ASSERT(tx->validation.state);
+    BITCOIN_ASSERT(state);
+
+    // Run contextual tx checks.
+    handler(tx->accept(*state, tx_duplicate, true)); //TODO(fernando): eliminate the 3rd actual argument when default value formal argument be added
+}
+
 // Connect sequence.
 //-----------------------------------------------------------------------------
 // These checks require chain state, block state and perform script validation.
 
-void validate_transaction::connect(transaction_const_ptr tx,
-    result_handler handler) const
-{
+void validate_transaction::connect(transaction_const_ptr tx, result_handler handler) const {
     BITCOIN_ASSERT(tx->validation.state);
     const auto total_inputs = tx->inputs().size();
 
     // Return if there are no inputs to validate (will fail later).
-    if (total_inputs == 0)
-    {
+    if (total_inputs == 0) {
         handler(error::success);
         return;
     }
@@ -143,13 +188,12 @@ void validate_transaction::connect(transaction_const_ptr tx,
 
     // If the priority threadpool is shut down when this is called the handler
     // will never be invoked, resulting in a threadpool.join indefinite hang.
-    for (size_t bucket = 0; bucket < buckets; ++bucket)
-        dispatch_.concurrent(&validate_transaction::connect_inputs,
-            this, tx, bucket, buckets, join_handler);
+    for (size_t bucket = 0; bucket < buckets; ++bucket) {
+        dispatch_.concurrent(&validate_transaction::connect_inputs, this, tx, bucket, buckets, join_handler);
+    }
 }
 
-void validate_transaction::connect_inputs(transaction_const_ptr tx, size_t bucket, size_t buckets, result_handler handler) const
-{
+void validate_transaction::connect_inputs(transaction_const_ptr tx, size_t bucket, size_t buckets, result_handler handler) const {
     BITCOIN_ASSERT(bucket < buckets);
     code ec(error::success);
     const auto forks = tx->validation.state->enabled_forks();
@@ -176,5 +220,59 @@ void validate_transaction::connect_inputs(transaction_const_ptr tx, size_t bucke
     handler(ec);
 }
 
-} // namespace blockchain
-} // namespace libbitcoin
+void validate_transaction::connect_v2(chainv2::transaction::const_ptr tx, result_handler handler) const {
+    BITCOIN_ASSERT(tx->validation.state);
+    const auto total_inputs = tx->inputs().size();
+
+    // Return if there are no inputs to validate (will fail later).
+    if (total_inputs == 0) {
+        handler(error::success);
+        return;
+    }
+
+    const auto buckets = std::min(dispatch_.size(), total_inputs);
+    const auto join_handler = synchronize(handler, buckets, NAME "_validate");
+    BITCOIN_ASSERT(buckets != 0);
+
+    // If the priority threadpool is shut down when this is called the handler
+    // will never be invoked, resulting in a threadpool.join indefinite hang.
+    for (size_t bucket = 0; bucket < buckets; ++bucket) {
+        dispatch_.concurrent(&validate_transaction::connect_inputs_v2, this, tx, bucket, buckets, join_handler);
+    }
+}
+
+void validate_transaction::connect_inputs_v2(chainv2::transaction::const_ptr tx, size_t bucket, size_t buckets, result_handler handler) const {
+    BITCOIN_ASSERT(bucket < buckets);
+    code ec(error::success);
+
+    auto const state = fast_chain_.chain_state();
+    BITCOIN_ASSERT(state);
+    
+    // const auto forks = tx->validation.state->enabled_forks();
+    const auto forks = state->enabled_forks();
+
+    const auto& inputs = tx->inputs();
+
+    for (auto input_index = bucket; input_index < inputs.size(); input_index = ceiling_add(input_index, buckets)) {
+        if (stopped()) {
+            ec = error::service_stopped;
+            break;
+        }
+
+        const auto& prevout = inputs[input_index].previous_output();
+
+        if ( ! prevout.validation.cache.is_valid()) {
+            ec = error::missing_previous_output;
+            break;
+        }
+
+        if ((ec = validate_input::verify_script(*tx, input_index, forks))) {
+            break;
+        }
+    }
+
+    handler(ec);
+}
+
+
+}} // namespace libbitcoin::blockchain

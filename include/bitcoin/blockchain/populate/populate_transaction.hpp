@@ -16,14 +16,15 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef LIBBITCOIN_BLOCKCHAIN_POPULATE_TRANSACTION_HPP
-#define LIBBITCOIN_BLOCKCHAIN_POPULATE_TRANSACTION_HPP
+#ifndef LIBBITCOIN_BLOCKCHAIN_POPULATE_TRANSACTION_HPP_
+#define LIBBITCOIN_BLOCKCHAIN_POPULATE_TRANSACTION_HPP_
 
 #include <cstddef>
 #include <bitcoin/bitcoin.hpp>
 #include <bitcoin/blockchain/define.hpp>
 #include <bitcoin/blockchain/interface/fast_chain.hpp>
 #include <bitcoin/blockchain/populate/populate_base.hpp>
+#include <bitcoin/bitcoin/chainv2/transaction.hpp>
 
 namespace libbitcoin {
 namespace blockchain {
@@ -37,13 +38,13 @@ public:
 
     /// Populate validation state for the transaction.
     void populate(transaction_const_ptr tx, result_handler&& handler) const;
+    void populate(chainv2::transaction::const_ptr tx, chain::chain_state::ptr const& state, result_handler&& handler) const;
 
 protected:
-    void populate_inputs(transaction_const_ptr tx, size_t chain_height,
-        size_t bucket, size_t buckets, result_handler handler) const;
+    void populate_inputs(transaction_const_ptr tx, size_t chain_height, size_t bucket, size_t buckets, result_handler handler) const;
+    void populate_inputs_v2(chainv2::transaction::const_ptr tx, size_t chain_height, size_t bucket, size_t buckets, result_handler handler) const;
 };
 
-} // namespace blockchain
-} // namespace libbitcoin
+}} // namespace libbitcoin::blockchain
 
-#endif
+#endif //LIBBITCOIN_BLOCKCHAIN_POPULATE_TRANSACTION_HPP_
