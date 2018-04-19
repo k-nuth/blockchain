@@ -145,7 +145,7 @@ void transaction_organizer::validate_handle_accept(code const& ec, transaction_c
     }
 
     if (ec) {
-        std::cout << "transaction_organizer::validate_handle_accept - 3" << std::endl;
+        std::cout << "transaction_organizer::validate_handle_accept - 3 - " << ec << std::endl;
         handler(ec);
         return;
     }
