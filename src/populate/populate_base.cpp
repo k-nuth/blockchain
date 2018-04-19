@@ -67,66 +67,31 @@ void populate_base::populate_pooled(const chain::transaction& tx,
 // may never hit the file system. However on high RAM systems the file system
 // is faster than the cache due to reduced paging of the memory-mapped file.
 void populate_base::populate_prevout(size_t branch_height, chain::output_point const& outpoint, bool require_confirmed) const {
+
+    std::cout << "populate_transaction::populate_prevout - 1" << std::endl;
     // The previous output will be cached on the input's outpoint.
     auto& prevout = outpoint.validation;
+
+    std::cout << "populate_transaction::populate_prevout - 2" << std::endl;
 
     prevout.spent = false;
     prevout.confirmed = false;
     prevout.cache = chain::output{};
 
-    // If the input is a coinbase there is no prevout to populate.
-    if (outpoint.is_null())
-        return;
-
-    // Get the prevout/cache (and spender height) and its metadata.
-    // The output (prevout.cache) is populated only if the return is true.
-    if (!fast_chain_.get_output(prevout.cache, prevout.height,
-        prevout.median_time_past, prevout.coinbase, outpoint, branch_height,
-        require_confirmed))
-        return;
-
-    //*************************************************************************
-    // CONSENSUS: The genesis block coinbase may not be spent. This is the
-    // consequence of satoshi not including it in the utxo set for block
-    // database initialization. Only he knows why, probably an oversight.
-    //*************************************************************************
-    if (prevout.height == 0)
-        return;
-
-    // BUGBUG: Spends are not marked as spent by unconfirmed transactions.
-    // So tx pool transactions currently have no double spend limitation.
-    // The output is spent only if by a spend at or below the branch height.
-    const auto spend_height = prevout.cache.validation.spender_height;
-
-    // The previous output has already been spent (double spend).
-    if ((spend_height <= branch_height) &&
-        (spend_height != chain::output::validation::not_spent))
-    {
-        prevout.spent = true;
-        prevout.confirmed = true;
-        prevout.cache = chain::output{};
-    }
-}
-
-// Unspent outputs are cached by the store. If the cache is large enough this
-// may never hit the file system. However on high RAM systems the file system
-// is faster than the cache due to reduced paging of the memory-mapped file.
-void populate_base::populate_prevout(size_t branch_height, chainv2::output_point const& outpoint, bool require_confirmed) const {
-    // The previous output will be cached on the input's outpoint.
-    auto& prevout = outpoint.validation;
-
-    prevout.spent = false;
-    prevout.confirmed = false;
-    prevout.cache = chainv2::output{};
+    std::cout << "populate_transaction::populate_prevout - 3" << std::endl;
 
     // If the input is a coinbase there is no prevout to populate.
     if (outpoint.is_null()) {
+        std::cout << "populate_transaction::populate_prevout - 4" << std::endl;
         return;
     }
+
+    std::cout << "populate_transaction::populate_prevout - 5" << std::endl;
 
     // Get the prevout/cache (and spender height) and its metadata.
     // The output (prevout.cache) is populated only if the return is true.
     if (!fast_chain_.get_output(prevout.cache, prevout.height, prevout.median_time_past, prevout.coinbase, outpoint, branch_height, require_confirmed)) {
+        std::cout << "populate_transaction::populate_prevout - 6" << std::endl;
         return;
     }
 
@@ -135,9 +100,15 @@ void populate_base::populate_prevout(size_t branch_height, chainv2::output_point
     // consequence of satoshi not including it in the utxo set for block
     // database initialization. Only he knows why, probably an oversight.
     //*************************************************************************
+    
+    
+    std::cout << "populate_transaction::populate_prevout - 7" << std::endl;
     if (prevout.height == 0) {
+        std::cout << "populate_transaction::populate_prevout - 8" << std::endl;
         return;
     }
+
+    std::cout << "populate_transaction::populate_prevout - 9" << std::endl;
 
     // BUGBUG: Spends are not marked as spent by unconfirmed transactions.
     // So tx pool transactions currently have no double spend limitation.
@@ -145,11 +116,58 @@ void populate_base::populate_prevout(size_t branch_height, chainv2::output_point
     const auto spend_height = prevout.cache.validation.spender_height;
 
     // The previous output has already been spent (double spend).
-    if ((spend_height <= branch_height) && (spend_height != chainv2::output::validation::not_spent)) {
+    if ((spend_height <= branch_height) && (spend_height != chain::output::validation::not_spent)) {
+        std::cout << "populate_transaction::populate_prevout - 10" << std::endl;
         prevout.spent = true;
         prevout.confirmed = true;
-        prevout.cache = chainv2::output{};
+        prevout.cache = chain::output{};
+        std::cout << "populate_transaction::populate_prevout - 11" << std::endl;
     }
+    std::cout << "populate_transaction::populate_prevout - 12" << std::endl;
 }
+
+// // Unspent outputs are cached by the store. If the cache is large enough this
+// // may never hit the file system. However on high RAM systems the file system
+// // is faster than the cache due to reduced paging of the memory-mapped file.
+// void populate_base::populate_prevout_v2(size_t branch_height, chainv2::output_point const& outpoint, bool require_confirmed) const {
+//     // The previous output will be cached on the input's outpoint.
+//     auto& prevout = outpoint.validation;
+
+//     prevout.spent = false;
+//     prevout.confirmed = false;
+//     prevout.cache = chainv2::output{};
+
+//     // If the input is a coinbase there is no prevout to populate.
+//     if (outpoint.is_null()) {
+//         return;
+//     }
+
+//     // Get the prevout/cache (and spender height) and its metadata.
+//     // The output (prevout.cache) is populated only if the return is true.
+//     if (!fast_chain_.get_output(prevout.cache, prevout.height, prevout.median_time_past, prevout.coinbase, outpoint, branch_height, require_confirmed)) {
+//         return;
+//     }
+
+//     //*************************************************************************
+//     // CONSENSUS: The genesis block coinbase may not be spent. This is the
+//     // consequence of satoshi not including it in the utxo set for block
+//     // database initialization. Only he knows why, probably an oversight.
+//     //*************************************************************************
+//     if (prevout.height == 0) {
+//         return;
+//     }
+
+//     // BUGBUG: Spends are not marked as spent by unconfirmed transactions.
+//     // So tx pool transactions currently have no double spend limitation.
+//     // The output is spent only if by a spend at or below the branch height.
+//     const auto spend_height = prevout.cache.validation.spender_height;
+
+//     // The previous output has already been spent (double spend).
+//     if ((spend_height <= branch_height) && (spend_height != chainv2::output::validation::not_spent)) {
+//         prevout.spent = true;
+//         prevout.confirmed = true;
+//         prevout.cache = chainv2::output{};
+//     }
+// }
 
 }} // namespace libbitcoin::blockchain
