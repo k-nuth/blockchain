@@ -100,71 +100,97 @@ bool transaction_organizer::stop() {
 //-----------------------------------------------------------------------------
 // This is called from block_chain::transaction_validate.
 void transaction_organizer::transaction_validate(transaction_const_ptr tx, result_handler handler) const {
+    std::cout << "transaction_organizer::transaction_validate - 1" << std::endl;
     auto const check_handler = std::bind(&transaction_organizer::validate_handle_check, this, _1, tx, handler);
+    std::cout << "transaction_organizer::transaction_validate - 2" << std::endl;
     // Checks that are independent of chain state.
     validator_.check(tx, check_handler);
+    std::cout << "transaction_organizer::transaction_validate - 3" << std::endl;
+
 }
 
 // private
 void transaction_organizer::validate_handle_check(code const& ec, transaction_const_ptr tx, result_handler handler) const {
+    std::cout << "transaction_organizer::validate_handle_check - 1" << std::endl;
     if (stopped()) {
+        std::cout << "transaction_organizer::validate_handle_check - 2" << std::endl;
         handler(error::service_stopped);
         return;
     }
 
+    std::cout << "transaction_organizer::validate_handle_check - 3" << std::endl;
+
     if (ec) {
+        std::cout << "transaction_organizer::validate_handle_check - 4" << std::endl;
         handler(ec);
         return;
     }
 
+    std::cout << "transaction_organizer::validate_handle_check - 5" << std::endl;
     auto const accept_handler = std::bind(&transaction_organizer::validate_handle_accept, this, _1, tx, handler);
+    std::cout << "transaction_organizer::validate_handle_check - 6" << std::endl;
     // Checks that are dependent on chain state and prevouts.
     validator_.accept(tx, accept_handler);
+    std::cout << "transaction_organizer::validate_handle_check - 7" << std::endl;
 }
 
 // private
 void transaction_organizer::validate_handle_accept(code const& ec, transaction_const_ptr tx, result_handler handler) const {
+    std::cout << "transaction_organizer::validate_handle_accept - 1" << std::endl;
 
     if (stopped()) {
+        std::cout << "transaction_organizer::validate_handle_accept - 2" << std::endl;
         handler(error::service_stopped);
         return;
     }
 
     if (ec) {
+        std::cout << "transaction_organizer::validate_handle_accept - 3" << std::endl;
         handler(ec);
         return;
     }
 
+    std::cout << "transaction_organizer::validate_handle_accept - 4" << std::endl;
     if (tx->fees() < price(tx)) {
+        std::cout << "transaction_organizer::validate_handle_accept - 5" << std::endl;
         handler(error::insufficient_fee);
         return;
     }
 
+    std::cout << "transaction_organizer::validate_handle_accept - 6" << std::endl;
     if (tx->is_dusty(settings_.minimum_output_satoshis)) {
         handler(error::dusty_transaction);
         return;
     }
 
+    std::cout << "transaction_organizer::validate_handle_accept - 7" << std::endl;
     auto const connect_handler = std::bind(&transaction_organizer::validate_handle_connect, this, _1, tx, handler);
+    std::cout << "transaction_organizer::validate_handle_accept - 8" << std::endl;
 
     // Checks that include script validation.
     validator_.connect(tx, connect_handler);
+    std::cout << "transaction_organizer::validate_handle_accept - 9" << std::endl;
 }
 
 // private
 void transaction_organizer::validate_handle_connect(code const& ec, transaction_const_ptr tx, result_handler handler) const {
+    std::cout << "transaction_organizer::validate_handle_connect - 1" << std::endl;
 
     if (stopped()) {
+        std::cout << "transaction_organizer::validate_handle_connect - 2" << std::endl;
         handler(error::service_stopped);
         return;
     }
 
     if (ec) {
+        std::cout << "transaction_organizer::validate_handle_connect - 3" << std::endl;
         handler(ec);
         return;
     }
 
+    std::cout << "transaction_organizer::validate_handle_connect - 4" << std::endl;
     handler(error::success);
+    std::cout << "transaction_organizer::validate_handle_connect - 5" << std::endl;
     return;
 }
 
