@@ -85,7 +85,8 @@ void populate_transaction::populate(transaction_const_ptr tx, result_handler&& h
 
     std::cout << "populate_transaction::populate - 9" << std::endl;
 
-    const auto buckets = std::min(dispatch_.size(), total_inputs);
+    // const auto buckets = std::min(dispatch_.size(), total_inputs);
+    const auto buckets = 1; //TODO(fernando): remove this line is for testing purposes
 
     std::cout << "populate_transaction::populate - 10" << std::endl;
 
