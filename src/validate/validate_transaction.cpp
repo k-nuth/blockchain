@@ -87,31 +87,44 @@ void validate_transaction::check_v2(chainv2::transaction::const_ptr tx, result_h
 // These checks require chain and tx state (net height and enabled forks).
 
 void validate_transaction::accept(transaction_const_ptr tx, result_handler handler) const {
+    std::cout << "validate_transaction::accept - 1" << std::endl;
+
     // Populate chain state of the next block (tx pool).
     tx->validation.state = fast_chain_.chain_state();
 
+    std::cout << "validate_transaction::accept - 2" << std::endl;
+
     if (!tx->validation.state) {
+        std::cout << "validate_transaction::accept - 3" << std::endl;
         handler(error::operation_failed_23);
         return;
     }
 
+    std::cout << "validate_transaction::accept - 4" << std::endl;
     transaction_populator_.populate(tx, std::bind(&validate_transaction::handle_populated, this, _1, tx, handler));
+    std::cout << "validate_transaction::accept - 5" << std::endl;
 }
 
 void validate_transaction::handle_populated(code const& ec, transaction_const_ptr tx, result_handler handler) const {
+    std::cout << "validate_transaction::handle_populated - 1" << std::endl;
     if (stopped()) {
+        std::cout << "validate_transaction::handle_populated - 2" << std::endl;
         handler(error::service_stopped);
         return;
     }
 
+    std::cout << "validate_transaction::handle_populated - 3" << std::endl;
     if (ec) {
+        std::cout << "validate_transaction::handle_populated - 4" << std::endl;
         handler(ec);
         return;
     }
 
+    std::cout << "validate_transaction::handle_populated - 5" << std::endl;
     BITCOIN_ASSERT(tx->validation.state);
 
     // Run contextual tx checks.
+    std::cout << "validate_transaction::handle_populated - 6" << std::endl;
     handler(tx->accept());
 }
 
