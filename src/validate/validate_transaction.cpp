@@ -174,7 +174,7 @@ void validate_transaction::handle_populated_v2(code const& ec, chainv2::transact
 
 void validate_transaction::connect(transaction_const_ptr tx, result_handler handler) const {
     BITCOIN_ASSERT(tx->validation.state);
-    const auto total_inputs = tx->inputs().size();
+    auto const total_inputs = tx->inputs().size();
 
     // Return if there are no inputs to validate (will fail later).
     if (total_inputs == 0) {
@@ -182,8 +182,8 @@ void validate_transaction::connect(transaction_const_ptr tx, result_handler hand
         return;
     }
 
-    const auto buckets = std::min(dispatch_.size(), total_inputs);
-    const auto join_handler = synchronize(handler, buckets, NAME "_validate");
+    auto const buckets = std::min(dispatch_.size(), total_inputs);
+    auto const join_handler = synchronize(handler, buckets, NAME "_validate");
     BITCOIN_ASSERT(buckets != 0);
 
     // If the priority threadpool is shut down when this is called the handler
@@ -196,8 +196,8 @@ void validate_transaction::connect(transaction_const_ptr tx, result_handler hand
 void validate_transaction::connect_inputs(transaction_const_ptr tx, size_t bucket, size_t buckets, result_handler handler) const {
     BITCOIN_ASSERT(bucket < buckets);
     code ec(error::success);
-    const auto forks = tx->validation.state->enabled_forks();
-    const auto& inputs = tx->inputs();
+    auto const forks = tx->validation.state->enabled_forks();
+    auto const& inputs = tx->inputs();
 
     for (auto input_index = bucket; input_index < inputs.size(); input_index = ceiling_add(input_index, buckets)) {
         if (stopped()) {
@@ -205,7 +205,7 @@ void validate_transaction::connect_inputs(transaction_const_ptr tx, size_t bucke
             break;
         }
 
-        const auto& prevout = inputs[input_index].previous_output();
+        auto const& prevout = inputs[input_index].previous_output();
 
         if (!prevout.validation.cache.is_valid()) {
             ec = error::missing_previous_output;
