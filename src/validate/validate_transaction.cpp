@@ -76,10 +76,10 @@ void validate_transaction::check(transaction_const_ptr tx, result_handler handle
     handler(tx->check());
 }
 
-// void validate_transaction::check_v2(chainv2::transaction::const_ptr tx, result_handler handler) const {
-//     // Run context free checks.
-//     handler(tx->check());
-// }
+void validate_transaction::check_v2(chainv2::transaction::const_ptr tx, result_handler handler) const {
+    // Run context free checks.
+    handler(tx->check());
+}
 
 
 // Accept sequence.
