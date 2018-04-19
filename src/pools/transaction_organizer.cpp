@@ -195,141 +195,141 @@ void transaction_organizer::validate_handle_connect(code const& ec, transaction_
 }
 
 //-----------------------------------------------------------------------------
-// // This is called from block_chain::transaction_validate_v2.
-// void transaction_organizer::transaction_validate_v2(chainv2::transaction::const_ptr tx, result_handler handler) const {
-//     auto const check_handler = std::bind(&transaction_organizer::validate_handle_check_v2, this, _1, tx, handler);
-//     validator_.check_v2(tx, check_handler); // Checks that are independent of chain state.
-// }
+// This is called from block_chain::transaction_validate_v2.
+void transaction_organizer::transaction_validate_v2(chainv2::transaction::const_ptr tx, result_handler handler) const {
+    auto const check_handler = std::bind(&transaction_organizer::validate_handle_check_v2, this, _1, tx, handler);
+    validator_.check_v2(tx, check_handler); // Checks that are independent of chain state.
+}
 
-// // private
-// void transaction_organizer::validate_handle_check_v2(code const& ec, chainv2::transaction::const_ptr tx, result_handler handler) const {
-//     if (stopped()) {
-//         handler(error::service_stopped);
-//         return;
-//     }
+// private
+void transaction_organizer::validate_handle_check_v2(code const& ec, chainv2::transaction::const_ptr tx, result_handler handler) const {
+    if (stopped()) {
+        handler(error::service_stopped);
+        return;
+    }
 
-//     if (ec) {
-//         handler(ec);
-//         return;
-//     }
+    if (ec) {
+        handler(ec);
+        return;
+    }
 
-//     auto const accept_handler = std::bind(&transaction_organizer::validate_handle_accept_v2, this, _1, tx, handler);
-//     validator_.accept_v2(tx, accept_handler);   // Checks that are dependent on chain state and prevouts.
-// }
+    auto const accept_handler = std::bind(&transaction_organizer::validate_handle_accept_v2, this, _1, tx, handler);
+    validator_.accept_v2(tx, accept_handler);   // Checks that are dependent on chain state and prevouts.
+}
 
-// // private
-// void transaction_organizer::validate_handle_accept_v2(code const& ec, chainv2::transaction::const_ptr tx, result_handler handler) const {
-//     if (stopped()) {
-//         handler(error::service_stopped);
-//         return;
-//     }
+// private
+void transaction_organizer::validate_handle_accept_v2(code const& ec, chainv2::transaction::const_ptr tx, result_handler handler) const {
+    if (stopped()) {
+        handler(error::service_stopped);
+        return;
+    }
 
-//     if (ec) {
-//         handler(ec);
-//         return;
-//     }
+    if (ec) {
+        handler(ec);
+        return;
+    }
 
-//     if (tx->fees() < price(tx)) {
-//         handler(error::insufficient_fee);
-//         return;
-//     }
+    if (tx->fees() < price(tx)) {
+        handler(error::insufficient_fee);
+        return;
+    }
 
-//     if (tx->is_dusty(settings_.minimum_output_satoshis)) {
-//         handler(error::dusty_transaction);
-//         return;
-//     }
+    if (tx->is_dusty(settings_.minimum_output_satoshis)) {
+        handler(error::dusty_transaction);
+        return;
+    }
 
-//     auto const connect_handler = std::bind(&transaction_organizer::validate_handle_connect_v2, this, _1, tx, handler);
+    auto const connect_handler = std::bind(&transaction_organizer::validate_handle_connect_v2, this, _1, tx, handler);
 
-//     // Checks that include script validation.
-//     validator_.connect_v2(tx, connect_handler);
-// }
+    // Checks that include script validation.
+    validator_.connect_v2(tx, connect_handler);
+}
 
-// // private
-// void transaction_organizer::validate_handle_connect_v2(code const& ec, chainv2::transaction::const_ptr tx, result_handler handler) const {
-//     if (stopped()) {
-//         handler(error::service_stopped);
-//         return;
-//     }
+// private
+void transaction_organizer::validate_handle_connect_v2(code const& ec, chainv2::transaction::const_ptr tx, result_handler handler) const {
+    if (stopped()) {
+        handler(error::service_stopped);
+        return;
+    }
 
-//     if (ec) {
-//         handler(ec);
-//         return;
-//     }
+    if (ec) {
+        handler(ec);
+        return;
+    }
 
-//     handler(error::success);
-//     return;
-// }
+    handler(error::success);
+    return;
+}
 
 
-// //-----------------------------------------------------------------------------
-// // This is called from block_chain::transaction_validate_v2_no_signature.
-// void transaction_organizer::transaction_validate_v2_no_signature(chainv2::transaction::const_ptr tx, result_handler handler) const {
-//     auto const check_handler = std::bind(&transaction_organizer::validate_handle_check_v2_no_signature, this, _1, tx, handler);
-//     // Checks that are independent of chain state.
-//     validator_.check_v2(tx, check_handler);
-// }
+//-----------------------------------------------------------------------------
+// This is called from block_chain::transaction_validate_v2_no_signature.
+void transaction_organizer::transaction_validate_v2_no_signature(chainv2::transaction::const_ptr tx, result_handler handler) const {
+    auto const check_handler = std::bind(&transaction_organizer::validate_handle_check_v2_no_signature, this, _1, tx, handler);
+    // Checks that are independent of chain state.
+    validator_.check_v2(tx, check_handler);
+}
 
-// // private
-// void transaction_organizer::validate_handle_check_v2_no_signature(code const& ec, chainv2::transaction::const_ptr tx, result_handler handler) const {
-//     if (stopped()) {
-//         handler(error::service_stopped);
-//         return;
-//     }
+// private
+void transaction_organizer::validate_handle_check_v2_no_signature(code const& ec, chainv2::transaction::const_ptr tx, result_handler handler) const {
+    if (stopped()) {
+        handler(error::service_stopped);
+        return;
+    }
 
-//     if (ec) {
-//         handler(ec);
-//         return;
-//     }
+    if (ec) {
+        handler(ec);
+        return;
+    }
 
-//     auto const accept_handler = std::bind(&transaction_organizer::validate_handle_accept_v2_no_signature, this, _1, tx, handler);
-//     // Checks that are dependent on chain state and prevouts.
-//     validator_.accept_v2(tx, accept_handler);
-// }
+    auto const accept_handler = std::bind(&transaction_organizer::validate_handle_accept_v2_no_signature, this, _1, tx, handler);
+    // Checks that are dependent on chain state and prevouts.
+    validator_.accept_v2(tx, accept_handler);
+}
 
-// // private
-// void transaction_organizer::validate_handle_accept_v2_no_signature(code const& ec, chainv2::transaction::const_ptr tx, result_handler handler) const {
-//     if (stopped()) {
-//         handler(error::service_stopped);
-//         return;
-//     }
+// private
+void transaction_organizer::validate_handle_accept_v2_no_signature(code const& ec, chainv2::transaction::const_ptr tx, result_handler handler) const {
+    if (stopped()) {
+        handler(error::service_stopped);
+        return;
+    }
 
-//     if (ec) {
-//         handler(ec);
-//         return;
-//     }
+    if (ec) {
+        handler(ec);
+        return;
+    }
 
-//     if (tx->fees() < price(tx)) {
-//         handler(error::insufficient_fee);
-//         return;
-//     }
+    if (tx->fees() < price(tx)) {
+        handler(error::insufficient_fee);
+        return;
+    }
 
-//     if (tx->is_dusty(settings_.minimum_output_satoshis)) {
-//         handler(error::dusty_transaction);
-//         return;
-//     }
+    if (tx->is_dusty(settings_.minimum_output_satoshis)) {
+        handler(error::dusty_transaction);
+        return;
+    }
 
-//     auto const connect_handler = std::bind(&transaction_organizer::validate_handle_connect_v2_no_signature, this, _1, tx, handler);
+    auto const connect_handler = std::bind(&transaction_organizer::validate_handle_connect_v2_no_signature, this, _1, tx, handler);
 
-//     // Checks that include script validation.
-//     validator_.connect_v2(tx, connect_handler);
-// }
+    // Checks that include script validation.
+    validator_.connect_v2(tx, connect_handler);
+}
 
-// // private
-// void transaction_organizer::validate_handle_connect_v2_no_signature(code const& ec, chainv2::transaction::const_ptr tx, result_handler handler) const {
-//     if (stopped()) {
-//         handler(error::service_stopped);
-//         return;
-//     }
+// private
+void transaction_organizer::validate_handle_connect_v2_no_signature(code const& ec, chainv2::transaction::const_ptr tx, result_handler handler) const {
+    if (stopped()) {
+        handler(error::service_stopped);
+        return;
+    }
 
-//     if (ec) {
-//         handler(ec);
-//         return;
-//     }
+    if (ec) {
+        handler(ec);
+        return;
+    }
 
-//     handler(error::success);
-//     return;
-// }
+    handler(error::success);
+    return;
+}
 
 
 
