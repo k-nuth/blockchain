@@ -42,12 +42,15 @@ populate_transaction::populate_transaction(dispatcher& dispatch, const fast_chai
 {}
 
 void populate_transaction::populate(transaction_const_ptr tx, result_handler&& handler) const {
+    std::cout << "populate_transaction::populate - 1" << std::endl;
     const auto state = tx->validation.state;
     BITCOIN_ASSERT(state);
+    std::cout << "populate_transaction::populate - 2" << std::endl;
 
     // Chain state is for the next block, so always > 0.
     BITCOIN_ASSERT(tx->validation.state->height() > 0);
     const auto chain_height = tx->validation.state->height() - 1u;
+    std::cout << "populate_transaction::populate - 3" << std::endl;
 
     //*************************************************************************
     // CONSENSUS:
@@ -59,41 +62,65 @@ void populate_transaction::populate(transaction_const_ptr tx, result_handler&& h
     //*************************************************************************
     populate_base::populate_duplicate(chain_height, *tx, false);
 
+    std::cout << "populate_transaction::populate - 4" << std::endl;
+
     // Because txs include no proof of work we much short circuit here.
     // Otherwise a peer can flood us with repeat transactions to validate.
     if (tx->validation.duplicate) {
+        std::cout << "populate_transaction::populate - 5" << std::endl;
         handler(error::unspent_duplicate);
         return;
     }
 
+    std::cout << "populate_transaction::populate - 6" << std::endl;
     const auto total_inputs = tx->inputs().size();
 
+    std::cout << "populate_transaction::populate - 7" << std::endl;
     // Return if there are no inputs to validate (will fail later).
     if (total_inputs == 0) {
+        std::cout << "populate_transaction::populate - 8" << std::endl;
         handler(error::success);
         return;
     }
 
+    std::cout << "populate_transaction::populate - 9" << std::endl;
+
     const auto buckets = std::min(dispatch_.size(), total_inputs);
+
+    std::cout << "populate_transaction::populate - 10" << std::endl;
+
     const auto join_handler = synchronize(std::move(handler), buckets, NAME);
     BITCOIN_ASSERT(buckets != 0);
 
+    std::cout << "populate_transaction::populate - 11" << std::endl;
+
     for (size_t bucket = 0; bucket < buckets; ++bucket) {
+        std::cout << "populate_transaction::populate - 12" << std::endl;
         dispatch_.concurrent(&populate_transaction::populate_inputs, this, tx, chain_height, bucket, buckets, join_handler);
+        std::cout << "populate_transaction::populate - 13" << std::endl;
     }
+    std::cout << "populate_transaction::populate - 14" << std::endl;
 }
 
 void populate_transaction::populate_inputs(transaction_const_ptr tx, size_t chain_height, size_t bucket, size_t buckets, result_handler handler) const {
+    std::cout << "populate_transaction::populate_inputs - 1" << std::endl;
     BITCOIN_ASSERT(bucket < buckets);
     const auto& inputs = tx->inputs();
+    std::cout << "populate_transaction::populate_inputs - 2" << std::endl;
 
     for (auto input_index = bucket; input_index < inputs.size(); input_index = ceiling_add(input_index, buckets)) {
+        std::cout << "populate_transaction::populate_inputs - 3" << std::endl;
         const auto& input = inputs[input_index];
+        std::cout << "populate_transaction::populate_inputs - 4" << std::endl;
         const auto& prevout = input.previous_output();
+        std::cout << "populate_transaction::populate_inputs - 5" << std::endl;
         populate_prevout(chain_height, prevout, false);
+        std::cout << "populate_transaction::populate_inputs - 6" << std::endl;
     }
+    std::cout << "populate_transaction::populate_inputs - 7" << std::endl;
 
     handler(error::success);
+    std::cout << "populate_transaction::populate_inputs - 8" << std::endl;
 }
 
 
