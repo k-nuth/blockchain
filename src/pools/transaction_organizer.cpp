@@ -150,47 +150,47 @@ void transaction_organizer::validate_handle_accept(code const& ec, transaction_c
         return;
     }
 
-    std::cout << "transaction_organizer::validate_handle_accept - 4" << std::endl;
+    //std::cout << "transaction_organizer::validate_handle_accept - 4" << std::endl;
     if (tx->fees() < price(tx)) {
-        std::cout << "transaction_organizer::validate_handle_accept - 5" << std::endl;
+        //std::cout << "transaction_organizer::validate_handle_accept - 5" << std::endl;
         handler(error::insufficient_fee);
         return;
     }
 
-    std::cout << "transaction_organizer::validate_handle_accept - 6" << std::endl;
+    //std::cout << "transaction_organizer::validate_handle_accept - 6" << std::endl;
     if (tx->is_dusty(settings_.minimum_output_satoshis)) {
         handler(error::dusty_transaction);
         return;
     }
 
-    std::cout << "transaction_organizer::validate_handle_accept - 7" << std::endl;
+    //std::cout << "transaction_organizer::validate_handle_accept - 7" << std::endl;
     auto const connect_handler = std::bind(&transaction_organizer::validate_handle_connect, this, _1, tx, handler);
-    std::cout << "transaction_organizer::validate_handle_accept - 8" << std::endl;
+    //std::cout << "transaction_organizer::validate_handle_accept - 8" << std::endl;
 
     // Checks that include script validation.
     validator_.connect(tx, connect_handler);
-    std::cout << "transaction_organizer::validate_handle_accept - 9" << std::endl;
+    //std::cout << "transaction_organizer::validate_handle_accept - 9" << std::endl;
 }
 
 // private
 void transaction_organizer::validate_handle_connect(code const& ec, transaction_const_ptr tx, result_handler handler) const {
-    std::cout << "transaction_organizer::validate_handle_connect - 1" << std::endl;
+    //std::cout << "transaction_organizer::validate_handle_connect - 1" << std::endl;
 
     if (stopped()) {
-        std::cout << "transaction_organizer::validate_handle_connect - 2" << std::endl;
+        //std::cout << "transaction_organizer::validate_handle_connect - 2" << std::endl;
         handler(error::service_stopped);
         return;
     }
 
     if (ec) {
-        std::cout << "transaction_organizer::validate_handle_connect - 3" << std::endl;
+        //std::cout << "transaction_organizer::validate_handle_connect - 3" << std::endl;
         handler(ec);
         return;
     }
 
-    std::cout << "transaction_organizer::validate_handle_connect - 4" << std::endl;
+    //std::cout << "transaction_organizer::validate_handle_connect - 4" << std::endl;
     handler(error::success);
-    std::cout << "transaction_organizer::validate_handle_connect - 5" << std::endl;
+    //std::cout << "transaction_organizer::validate_handle_connect - 5" << std::endl;
     return;
 }
 

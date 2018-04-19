@@ -314,9 +314,8 @@ public:
     //-----------------------------------------------------------------------------
 
     void transaction_validate(transaction_const_ptr tx, result_handler handler) const;
-    
-    // void transaction_validate_v2(chainv2::transaction::const_ptr tx, result_handler handler) const;
-    // void transaction_validate_v2_no_signature(chainv2::transaction::const_ptr tx, result_handler handler) const;
+    void transaction_validate_v2(chainv2::transaction::const_ptr tx, result_handler handler) const;
+    void transaction_validate_v2_no_signature(chainv2::transaction::const_ptr tx, result_handler handler) const;
     
     // Organizers.
     //-------------------------------------------------------------------------
