@@ -47,9 +47,9 @@ public:
     void accept(transaction_const_ptr tx, result_handler handler) const;
     void connect(transaction_const_ptr tx, result_handler handler) const;
 
-    void check_v2(chainv2::transaction::const_ptr tx, result_handler handler) const;
-    void accept_v2(chainv2::transaction::const_ptr tx, result_handler handler) const;
-    void connect_v2(chainv2::transaction::const_ptr tx, result_handler handler) const;
+    // void check_v2(chainv2::transaction::const_ptr tx, result_handler handler) const;
+    // void accept_v2(chainv2::transaction::const_ptr tx, result_handler handler) const;
+    // void connect_v2(chainv2::transaction::const_ptr tx, result_handler handler) const;
 
 
 
@@ -62,8 +62,8 @@ private:
     void handle_populated(const code& ec, transaction_const_ptr tx, result_handler handler) const;
     void connect_inputs(transaction_const_ptr tx, size_t bucket, size_t buckets, result_handler handler) const;
 
-    void handle_populated_v2(const code& ec, chainv2::transaction::const_ptr tx, bool tx_duplicate, result_handler handler) const;
-    void connect_inputs_v2(chainv2::transaction::const_ptr tx, size_t bucket, size_t buckets, result_handler handler) const;
+    // void handle_populated_v2(const code& ec, chainv2::transaction::const_ptr tx, bool tx_duplicate, result_handler handler) const;
+    // void connect_inputs_v2(chainv2::transaction::const_ptr tx, size_t bucket, size_t buckets, result_handler handler) const;
 
     // These are thread safe.
     std::atomic<bool> stopped_;

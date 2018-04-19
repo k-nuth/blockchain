@@ -1434,13 +1434,13 @@ void block_chain::transaction_validate(transaction_const_ptr tx, result_handler 
     transaction_organizer_.transaction_validate(tx, handler);
 }
 
-void block_chain::transaction_validate_v2(chainv2::transaction::const_ptr tx, result_handler handler) const {
-    transaction_organizer_.transaction_validate_v2(tx, handler);
-}
+// void block_chain::transaction_validate_v2(chainv2::transaction::const_ptr tx, result_handler handler) const {
+//     transaction_organizer_.transaction_validate_v2(tx, handler);
+// }
 
-void block_chain::transaction_validate_v2_no_signature(chainv2::transaction::const_ptr tx, result_handler handler) const {
-    transaction_organizer_.transaction_validate_v2_no_signature(tx, handler);
-}
+// void block_chain::transaction_validate_v2_no_signature(chainv2::transaction::const_ptr tx, result_handler handler) const {
+//     transaction_organizer_.transaction_validate_v2_no_signature(tx, handler);
+// }
 
 // Organizers.
 //-----------------------------------------------------------------------------
