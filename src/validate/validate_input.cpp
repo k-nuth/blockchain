@@ -154,15 +154,15 @@ code validate_input::convert_result(verify_result_type result)
 code validate_input::verify_script(const transaction& tx, uint32_t input_index, uint32_t branches) {
 
     BITCOIN_ASSERT(input_index < tx.inputs().size());
-    const auto& prevout = tx.inputs()[input_index].previous_output().validation;
-    const auto script_data = prevout.cache.script().to_data(false);
+    auto const& prevout = tx.inputs()[input_index].previous_output().validation;
+    auto const script_data = prevout.cache.script().to_data(false);
 
-    // const auto amount = bitcoin_cash ? prevout.cache.value() : 0;
-    const auto amount = prevout.cache.value();
-    // const auto prevout_value = prevout.cache.value();
+    // auto const amount = bitcoin_cash ? prevout.cache.value() : 0;
+    auto const amount = prevout.cache.value();
+    // auto const prevout_value = prevout.cache.value();
 
     // Wire serialization is cached in support of large numbers of inputs.
-    const auto tx_data = tx.to_data();
+    auto const tx_data = tx.to_data();
 
 #ifdef BITPRIM_CURRENCY_BCH
     auto res = consensus::verify_script(tx_data.data(),
@@ -194,7 +194,9 @@ code validate_input::verify_script(chainv2::transaction const& tx, uint32_t inpu
     // const auto prevout_value = prevout.cache.value();
 
     // Wire serialization is cached in support of large numbers of inputs.
-    const auto tx_data = tx.to_data();
+    // auto const tx_data = tx.to_data();
+    // auto const& tx_data = tx.data();
+    auto const tx_data = tx.data(); //TODO(fernando): copy data locally, check if we can point to the member data in thread safe manner
 
 #ifdef BITPRIM_CURRENCY_BCH
     auto res = consensus::verify_script(tx_data.data(), tx_data.size(), script_data.data(), script_data.size(), input_index, convert_flags(branches), amount);

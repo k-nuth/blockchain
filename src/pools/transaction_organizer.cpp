@@ -546,7 +546,10 @@ uint64_t transaction_organizer::price(chainv2::transaction::const_ptr tx) const 
 
     // TODO: this is a second pass on size and sigops, implement cache.
     // This at least prevents uncached calls when zero fee is configured.
-    auto byte = byte_fee > 0 ? byte_fee * tx->serialized_size(true) : 0;
+    // auto byte = byte_fee > 0 ? byte_fee * tx->serialized_size(true) : 0;
+    auto byte = byte_fee > 0 ? byte_fee * tx->serialized_size_wired() : 0;
+
+
     auto const bip16_rule_enabled = fast_chain_.chain_state()->is_enabled(machine::rule_fork::bip16_rule);
     auto sigop = sigop_fee > 0 ? sigop_fee * tx->signature_operations(bip16_rule_enabled) : 0;
 
