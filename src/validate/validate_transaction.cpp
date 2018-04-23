@@ -45,25 +45,21 @@ using namespace std::placeholders;
 // spend: { spender }
 // transaction: { exists, height, output }
 
-validate_transaction::validate_transaction(dispatcher& dispatch,
-    const fast_chain& chain, const settings& settings)
-  : stopped_(true),
-    dispatch_(dispatch),
-    transaction_populator_(dispatch, chain),
-    fast_chain_(chain)
-{
-}
+validate_transaction::validate_transaction(dispatcher& dispatch, const fast_chain& chain, const settings& settings)
+    : stopped_(true)
+    , dispatch_(dispatch)
+    , transaction_populator_(dispatch, chain)
+    , fast_chain_(chain)
+{}
 
 // Start/stop sequences.
 //-----------------------------------------------------------------------------
 
-void validate_transaction::start()
-{
+void validate_transaction::start() {
     stopped_ = false;
 }
 
-void validate_transaction::stop()
-{
+void validate_transaction::stop() {
     stopped_ = true;
 }
 
@@ -182,6 +178,36 @@ void validate_transaction::handle_populated_v2(code const& ec, chainv2::transact
     handler(tx->accept(*state, tx_duplicate, true)); //TODO(fernando): eliminate the 3rd actual argument when default value formal argument be added
 }
 
+void validate_transaction::accept_sequential(transaction_const_ptr tx, result_handler handler) const {
+
+    // Populate chain state of the next block (tx pool).
+    tx->validation.state = fast_chain_.chain_state();
+
+    if (!tx->validation.state) {
+        handler(error::operation_failed_23);
+        return;
+    }
+
+    transaction_populator_.populate_sequential(tx, std::bind(&validate_transaction::handle_populated_sequential, this, _1, tx, handler));
+}
+
+void validate_transaction::handle_populated_sequential(code const& ec, transaction_const_ptr tx, result_handler handler) const {
+    if (stopped()) {
+        handler(error::service_stopped);
+        return;
+    }
+
+    if (ec) {
+        handler(ec);
+        return;
+    }
+
+    BITCOIN_ASSERT(tx->validation.state);
+
+    // Run contextual tx checks.
+    handler(tx->accept());
+}
+
 // Connect sequence.
 //-----------------------------------------------------------------------------
 // These checks require chain state, block state and perform script validation.
@@ -288,5 +314,56 @@ void validate_transaction::connect_inputs_v2(chainv2::transaction::const_ptr tx,
     handler(ec);
 }
 
+
+
+
+void validate_transaction::connect_sequential(transaction_const_ptr tx, result_handler handler) const {
+    BITCOIN_ASSERT(tx->validation.state);
+    auto const total_inputs = tx->inputs().size();
+
+    // Return if there are no inputs to validate (will fail later).
+    if (total_inputs == 0) {
+        handler(error::success);
+        return;
+    }
+
+    // auto const buckets = std::min(dispatch_.size(), total_inputs);
+    size_t const buckets = 1;
+    // auto const join_handler = synchronize(handler, buckets, NAME "_validate");
+    BITCOIN_ASSERT(buckets != 0);
+
+    // If the priority threadpool is shut down when this is called the handler
+    // will never be invoked, resulting in a threadpool.join indefinite hang.
+    for (size_t bucket = 0; bucket < buckets; ++bucket) {
+        connect_inputs_sequential(tx, bucket, buckets);
+    }
+
+    handler(error::success);
+}
+
+void validate_transaction::connect_inputs_sequential(transaction_const_ptr tx, size_t bucket, size_t buckets) const {
+    BITCOIN_ASSERT(bucket < buckets);
+    code ec(error::success);
+    auto const forks = tx->validation.state->enabled_forks();
+    auto const& inputs = tx->inputs();
+
+    for (auto input_index = bucket; input_index < inputs.size(); input_index = ceiling_add(input_index, buckets)) {
+        if (stopped()) {
+            ec = error::service_stopped;
+            break;
+        }
+
+        auto const& prevout = inputs[input_index].previous_output();
+
+        if (!prevout.validation.cache.is_valid()) {
+            ec = error::missing_previous_output;
+            break;
+        }
+
+        if ((ec = validate_input::verify_script(*tx, input_index, forks))) {
+            break;
+        }
+    }
+}
 
 }} // namespace libbitcoin::blockchain

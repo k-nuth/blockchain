@@ -184,4 +184,62 @@ void populate_transaction::populate_inputs_v2(chainv2::transaction::const_ptr tx
     handler(error::success);
 }
 
+
+
+void populate_transaction::populate_sequential(transaction_const_ptr tx, result_handler&& handler) const {
+    const auto state = tx->validation.state;
+    BITCOIN_ASSERT(state);
+
+    // Chain state is for the next block, so always > 0.
+    BITCOIN_ASSERT(tx->validation.state->height() > 0);
+    const auto chain_height = tx->validation.state->height() - 1u;
+
+    //*************************************************************************
+    // CONSENSUS:
+    // It is OK for us to restrict *pool* transactions to those that do not
+    // collide with any in the chain (as well as any in the pool) as collision
+    // will result in monetary destruction and we don't want to facilitate it.
+    // We must allow collisions in *block* validation if that is configured as
+    // otherwise will will not follow the chain when a collision is mined.
+    //*************************************************************************
+    populate_base::populate_duplicate(chain_height, *tx, false);
+
+    // Because txs include no proof of work we much short circuit here.
+    // Otherwise a peer can flood us with repeat transactions to validate.
+    if (tx->validation.duplicate) {
+        handler(error::unspent_duplicate);
+        return;
+    }
+
+    const auto total_inputs = tx->inputs().size();
+
+    // Return if there are no inputs to validate (will fail later).
+    if (total_inputs == 0) {
+        handler(error::success);
+        return;
+    }
+    // const auto buckets = std::min(dispatch_.size(), total_inputs);
+    const auto buckets = 1; //TODO(fernando): remove this line is for testing purposes
+
+    // const auto join_handler = synchronize(std::move(handler), buckets, NAME);
+    BITCOIN_ASSERT(buckets != 0);
+
+    for (size_t bucket = 0; bucket < buckets; ++bucket) {
+        populate_inputs_sequential(tx, chain_height, bucket, buckets);
+    }
+
+    handler(error::success);
+}
+
+void populate_transaction::populate_inputs_sequential(transaction_const_ptr tx, size_t chain_height, size_t bucket, size_t buckets) const {
+    BITCOIN_ASSERT(bucket < buckets);
+    const auto& inputs = tx->inputs();
+
+    for (auto input_index = bucket; input_index < inputs.size(); input_index = ceiling_add(input_index, buckets)) {
+        const auto& input = inputs[input_index];
+        const auto& prevout = input.previous_output();
+        populate_prevout(chain_height, prevout, false);
+    }
+}
+
 }} // namespace libbitcoin::blockchain
