@@ -54,7 +54,9 @@ uint32_t validate_input::convert_flags(uint32_t native_forks)
 
 #ifdef BITPRIM_CURRENCY_BCH
     // BCH UAHF (FORKID on txns)
-    flags |= verify_flags_script_enable_sighash_forkid;
+    if (script::is_enabled(native_forks, rule_fork::cash_verify_flags_script_enable_sighash_forkid)) {
+        flags |= verify_flags_script_enable_sighash_forkid;
+    }
 
     // Obligatory flags used on the 2017-Nov-13 BCH hard fork
     if (script::is_enabled(native_forks, rule_fork::cash_low_s_rule)) {
