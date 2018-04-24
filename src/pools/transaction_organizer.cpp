@@ -270,6 +270,22 @@ void transaction_organizer::validate_handle_connect_sequential(code const& ec, t
 }
 
 
+//-----------------------------------------------------------------------------
+// This is called from block_chain::transaction_validate_v2.
+void transaction_organizer::transaction_check_sequential_v2(chainv2::transaction::const_ptr tx, result_handler handler) const {
+    auto const check_handler = std::bind(&transaction_organizer::validate_handle_check_sequential_v2, this, _1, tx, handler);
+    validator_.check_v2(tx, check_handler); // Checks that are independent of chain state.
+}
+// private
+void transaction_organizer::validate_handle_check_sequential_v2(code const& ec, chainv2::transaction::const_ptr tx, result_handler handler) const {
+    if (stopped()) {
+        handler(error::service_stopped);
+        return;
+    }
+
+    handler(ec);
+}
+
 
 
 //-----------------------------------------------------------------------------

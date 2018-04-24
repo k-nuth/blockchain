@@ -198,6 +198,11 @@ public:
     virtual void transaction_accept_sequential(transaction_const_ptr tx, result_handler handler) const = 0;
     virtual void transaction_connect_sequential(transaction_const_ptr tx, result_handler handler) const = 0;
 
+
+    virtual void transaction_check_sequential_v2(chainv2::transaction::const_ptr tx, result_handler handler) const = 0;
+    // virtual void transaction_accept_sequential_v2(chainv2::transaction::const_ptr tx, result_handler handler) const = 0;
+    // virtual void transaction_connect_sequential_v2(chainv2::transaction::const_ptr tx, result_handler handler) const = 0;
+
     // Organizers.
     //-------------------------------------------------------------------------
 

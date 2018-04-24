@@ -1455,6 +1455,23 @@ void block_chain::transaction_connect_sequential(transaction_const_ptr tx, resul
     transaction_organizer_.transaction_connect_sequential(tx, handler);
 }
 
+
+
+
+
+void block_chain::transaction_check_sequential_v2(chainv2::transaction::const_ptr tx, result_handler handler) const {
+    transaction_organizer_.transaction_check_sequential_v2(tx, handler);
+}
+
+// void block_chain::transaction_accept_sequential_v2(chainv2::transaction::const_ptr tx, result_handler handler) const {
+//     transaction_organizer_.transaction_accept_sequential_v2(tx, handler);
+// }
+
+// void block_chain::transaction_connect_sequential_v2(chainv2::transaction::const_ptr tx, result_handler handler) const {
+//     transaction_organizer_.transaction_connect_sequential_v2(tx, handler);
+// }
+
+
 // Organizers.
 //-----------------------------------------------------------------------------
 

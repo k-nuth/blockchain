@@ -57,12 +57,13 @@ public:
     void transaction_validate_v2(chainv2::transaction::const_ptr tx, result_handler handler) const;
     void transaction_validate_v2_no_signature(chainv2::transaction::const_ptr tx, result_handler handler) const;
 
-
-
     void transaction_check_sequential(transaction_const_ptr tx, result_handler handler) const;
     void transaction_accept_sequential(transaction_const_ptr tx, result_handler handler) const;
     void transaction_connect_sequential(transaction_const_ptr tx, result_handler handler) const;
 
+    void transaction_check_sequential_v2(chainv2::transaction::const_ptr tx, result_handler handler) const;
+    // void transaction_accept_sequential_v2(chainv2::transaction::const_ptr tx, result_handler handler) const;
+    // void transaction_connect_sequential_v2(chainv2::transaction::const_ptr tx, result_handler handler) const;
 
 
 
@@ -102,6 +103,10 @@ private:
     void validate_handle_accept_sequential(code const& ec, transaction_const_ptr tx, result_handler handler) const;
     void validate_handle_connect_sequential(code const& ec, transaction_const_ptr tx, result_handler handler) const;
 
+
+    void validate_handle_check_sequential_v2(code const& ec, chainv2::transaction::const_ptr tx, result_handler handler) const;
+    // void validate_handle_accept_sequential_v2(code const& ec, chainv2::transaction::const_ptr tx, result_handler handler) const;
+    // void validate_handle_connect_sequential_v2(code const& ec, chainv2::transaction::const_ptr tx, result_handler handler) const;
 
 
     // Subscription.
