@@ -1447,8 +1447,12 @@ void block_chain::transaction_check_sequential(transaction_const_ptr tx, result_
     transaction_organizer_.transaction_check_sequential(tx, handler);
 }
 
-void block_chain::transaction_accept_sequential(transaction_const_ptr tx, result_handler handler) const {
-    transaction_organizer_.transaction_accept_sequential(tx, handler);
+// void block_chain::transaction_accept_sequential(transaction_const_ptr tx, result_handler handler) const {
+//     transaction_organizer_.transaction_accept_sequential(tx, handler);
+// }
+
+code block_chain::transaction_accept_sequential(transaction_const_ptr tx) const {
+    return transaction_organizer_.transaction_accept_sequential(tx);
 }
 
 void block_chain::transaction_connect_sequential(transaction_const_ptr tx, result_handler handler) const {

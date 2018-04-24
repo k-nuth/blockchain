@@ -186,7 +186,8 @@ void populate_transaction::populate_inputs_v2(chainv2::transaction::const_ptr tx
 
 
 
-void populate_transaction::populate_sequential(transaction_const_ptr tx, result_handler&& handler) const {
+// void populate_transaction::populate_sequential(transaction_const_ptr tx, result_handler&& handler) const {
+code populate_transaction::populate_sequential(transaction_const_ptr tx) const {
     const auto state = tx->validation.state;
     BITCOIN_ASSERT(state);
 
@@ -207,16 +208,16 @@ void populate_transaction::populate_sequential(transaction_const_ptr tx, result_
     // Because txs include no proof of work we much short circuit here.
     // Otherwise a peer can flood us with repeat transactions to validate.
     if (tx->validation.duplicate) {
-        handler(error::unspent_duplicate);
-        return;
+        // handler(error::unspent_duplicate);
+        return error::unspent_duplicate;
     }
 
     const auto total_inputs = tx->inputs().size();
 
     // Return if there are no inputs to validate (will fail later).
     if (total_inputs == 0) {
-        handler(error::success);
-        return;
+        // handler(error::success);
+        return error::success;
     }
     // const auto buckets = std::min(dispatch_.size(), total_inputs);
     const auto buckets = 1; //TODO(fernando): remove this line is for testing purposes
@@ -228,7 +229,8 @@ void populate_transaction::populate_sequential(transaction_const_ptr tx, result_
         populate_inputs_sequential(tx, chain_height, bucket, buckets);
     }
 
-    handler(error::success);
+    // handler(error::success);
+    return error::success;
 }
 
 void populate_transaction::populate_inputs_sequential(transaction_const_ptr tx, size_t chain_height, size_t bucket, size_t buckets) const {

@@ -178,35 +178,49 @@ void validate_transaction::handle_populated_v2(code const& ec, chainv2::transact
     handler(tx->accept(*state, tx_duplicate, true)); //TODO(fernando): eliminate the 3rd actual argument when default value formal argument be added
 }
 
-void validate_transaction::accept_sequential(transaction_const_ptr tx, result_handler handler) const {
+
+// void validate_transaction::accept_sequential(transaction_const_ptr tx, result_handler handler) const {
+code validate_transaction::accept_sequential(transaction_const_ptr tx) const {
 
     // Populate chain state of the next block (tx pool).
     tx->validation.state = fast_chain_.chain_state();
 
     if (!tx->validation.state) {
-        handler(error::operation_failed_23);
-        return;
+        // handler(error::operation_failed_23);
+        return error::operation_failed_23;
     }
 
-    transaction_populator_.populate_sequential(tx, std::bind(&validate_transaction::handle_populated_sequential, this, _1, tx, handler));
-}
+    //transaction_populator_.populate_sequential(tx, std::bind(&validate_transaction::handle_populated_sequential, this, _1, tx, handler));
 
-void validate_transaction::handle_populated_sequential(code const& ec, transaction_const_ptr tx, result_handler handler) const {
-    if (stopped()) {
-        handler(error::service_stopped);
-        return;
-    }
-
+    code ec = transaction_populator_.populate_sequential(tx);
     if (ec) {
-        handler(ec);
-        return;
+        // handler(ec);
+        return ec;
     }
 
     BITCOIN_ASSERT(tx->validation.state);
 
     // Run contextual tx checks.
-    handler(tx->accept());
+    // handler(tx->accept());
+    return tx->accept();
 }
+
+// void validate_transaction::handle_populated_sequential(code const& ec, transaction_const_ptr tx, result_handler handler) const {
+//     if (stopped()) {
+//         handler(error::service_stopped);
+//         return;
+//     }
+
+//     if (ec) {
+//         handler(ec);
+//         return;
+//     }
+
+//     BITCOIN_ASSERT(tx->validation.state);
+
+//     // Run contextual tx checks.
+//     handler(tx->accept());
+// }
 
 // Connect sequence.
 //-----------------------------------------------------------------------------

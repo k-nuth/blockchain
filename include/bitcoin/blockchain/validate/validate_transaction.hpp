@@ -49,7 +49,8 @@ public:
     void accept_v2(chainv2::transaction::const_ptr tx, result_handler handler) const;
     void connect_v2(chainv2::transaction::const_ptr tx, result_handler handler) const;
 
-    void accept_sequential(transaction_const_ptr tx, result_handler handler) const;
+    // void accept_sequential(transaction_const_ptr tx, result_handler handler) const;
+    code accept_sequential(transaction_const_ptr tx) const;
     void connect_sequential(transaction_const_ptr tx, result_handler handler) const;
 
  

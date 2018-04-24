@@ -195,7 +195,7 @@ public:
     virtual void transaction_validate_v2_no_signature(chainv2::transaction::const_ptr tx, result_handler handler) const = 0;
 
     virtual void transaction_check_sequential(transaction_const_ptr tx, result_handler handler) const = 0;
-    virtual void transaction_accept_sequential(transaction_const_ptr tx, result_handler handler) const = 0;
+    virtual code transaction_accept_sequential(transaction_const_ptr tx) const = 0;
     virtual void transaction_connect_sequential(transaction_const_ptr tx, result_handler handler) const = 0;
 
 
