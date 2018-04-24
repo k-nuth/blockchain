@@ -319,7 +319,7 @@ public:
 
     void transaction_check_sequential(transaction_const_ptr tx, result_handler handler) const;
     code transaction_accept_sequential(transaction_const_ptr tx) const;
-    void transaction_connect_sequential(transaction_const_ptr tx, result_handler handler) const;
+    code transaction_connect_sequential(transaction_const_ptr tx) const;
 
     void transaction_check_sequential_v2(chainv2::transaction::const_ptr tx, result_handler handler) const;
     // void transaction_accept_sequential_v2(chainv2::transaction::const_ptr tx, result_handler handler) const;

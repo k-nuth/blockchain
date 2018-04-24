@@ -51,8 +51,7 @@ public:
 
     // void accept_sequential(transaction_const_ptr tx, result_handler handler) const;
     code accept_sequential(transaction_const_ptr tx) const;
-    void connect_sequential(transaction_const_ptr tx, result_handler handler) const;
-
+    code connect_sequential(transaction_const_ptr tx) const;
  
 protected:
     inline bool stopped() const {

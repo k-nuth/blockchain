@@ -239,27 +239,26 @@ code transaction_organizer::transaction_accept_sequential(transaction_const_ptr 
 
 
 // private
-void transaction_organizer::transaction_connect_sequential(transaction_const_ptr tx, result_handler handler) const {
-    auto const connect_handler = std::bind(&transaction_organizer::validate_handle_connect_sequential, this, _1, tx, handler);
+code transaction_organizer::transaction_connect_sequential(transaction_const_ptr tx) const {
     // Checks that include script validation.
-    validator_.connect_sequential(tx, connect_handler);
+    return validator_.connect_sequential(tx);
 }
 
-// private
-void transaction_organizer::validate_handle_connect_sequential(code const& ec, transaction_const_ptr tx, result_handler handler) const {
-    if (stopped()) {
-        handler(error::service_stopped);
-        return;
-    }
+// // private
+// void transaction_organizer::validate_handle_connect_sequential(code const& ec, transaction_const_ptr tx, result_handler handler) const {
+//     if (stopped()) {
+//         handler(error::service_stopped);
+//         return;
+//     }
 
-    if (ec) {
-        handler(ec);
-        return;
-    }
+//     if (ec) {
+//         handler(ec);
+//         return;
+//     }
 
-    handler(error::success);
-    return;
-}
+//     handler(error::success);
+//     return;
+// }
 
 
 //-----------------------------------------------------------------------------

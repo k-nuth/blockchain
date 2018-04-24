@@ -331,14 +331,13 @@ void validate_transaction::connect_inputs_v2(chainv2::transaction::const_ptr tx,
 
 
 
-void validate_transaction::connect_sequential(transaction_const_ptr tx, result_handler handler) const {
+code validate_transaction::connect_sequential(transaction_const_ptr tx) const {
     BITCOIN_ASSERT(tx->validation.state);
     auto const total_inputs = tx->inputs().size();
 
     // Return if there are no inputs to validate (will fail later).
     if (total_inputs == 0) {
-        handler(error::success);
-        return;
+        return error::success;
     }
 
     // auto const buckets = std::min(dispatch_.size(), total_inputs);
@@ -352,7 +351,7 @@ void validate_transaction::connect_sequential(transaction_const_ptr tx, result_h
         connect_inputs_sequential(tx, bucket, buckets);
     }
 
-    handler(error::success);
+    return error::success;
 }
 
 void validate_transaction::connect_inputs_sequential(transaction_const_ptr tx, size_t bucket, size_t buckets) const {
