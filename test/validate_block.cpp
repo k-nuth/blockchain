@@ -83,7 +83,8 @@ BOOST_AUTO_TEST_CASE(validate_block__native__block_520679_tx__valid)
 //    forks |= verify_flags_low_s;
 //    forks |= verify_flags_nulldummy;
 
-    static const uint32_t forks = 67101u;
+    //This value after conversion its equal to the above code.
+    static const uint32_t branches = 296831u;
 
     data_chunk decoded_tx;
     BOOST_REQUIRE(decode_base16(decoded_tx, encoded_tx));
@@ -101,7 +102,7 @@ BOOST_AUTO_TEST_CASE(validate_block__native__block_520679_tx__valid)
     prevout.set_script(script::factory_from_data(decoded_script, false));
     BOOST_REQUIRE(prevout.script().is_valid());
 
-    const auto result = validate_input::verify_script(tx, index, forks);
+    const auto result = validate_input::verify_script(tx, index, branches);
     BOOST_REQUIRE_EQUAL(result.value(), error::success);
 }
 #endif
