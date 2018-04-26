@@ -170,53 +170,10 @@ void transaction_organizer::validate_handle_connect(code const& ec, transaction_
 
 //-----------------------------------------------------------------------------
 // This is called from block_chain::transaction_check_sequential.
-void transaction_organizer::transaction_check_sequential(transaction_const_ptr tx, result_handler handler) const {
-    auto const check_handler = std::bind(&transaction_organizer::validate_handle_check_sequential, this, _1, tx, handler);
+code transaction_organizer::transaction_check_sequential(transaction_const_ptr tx) const {
     // Checks that are independent of chain state.
-    validator_.check(tx, check_handler);
+    return validator_.check_sequential(tx);
 }
-
-// private
-void transaction_organizer::validate_handle_check_sequential(code const& ec, transaction_const_ptr tx, result_handler handler) const {
-    if (stopped()) {
-        handler(error::service_stopped);
-        return;
-    }
-
-    handler(ec);
-}
-
-// private
-// void transaction_organizer::transaction_accept_sequential(transaction_const_ptr tx, result_handler handler) const {
-//     auto const accept_handler = std::bind(&transaction_organizer::validate_handle_accept_sequential, this, _1, tx, handler);
-//     // Checks that are dependent on chain state and prevouts.
-//     validator_.accept_sequential(tx, accept_handler);
-// }
-
-// // private
-// void transaction_organizer::validate_handle_accept_sequential(code const& ec, transaction_const_ptr tx, result_handler handler) const {
-//     if (stopped()) {
-//         handler(error::service_stopped);
-//         return;
-//     }
-
-//     if (ec) {
-//         handler(ec);
-//         return;
-//     }
-
-//     if (tx->fees() < price(tx)) {
-//         handler(error::insufficient_fee);
-//         return;
-//     }
-
-//     if (tx->is_dusty(settings_.minimum_output_satoshis)) {
-//         handler(error::dusty_transaction);
-//         return;
-//     }
-
-//     handler(ec);
-// }
 
 code transaction_organizer::transaction_accept_sequential(transaction_const_ptr tx) const {
     // Checks that are dependent on chain state and prevouts.
@@ -237,45 +194,88 @@ code transaction_organizer::transaction_accept_sequential(transaction_const_ptr 
     return ec;
 }
 
-
-// private
 code transaction_organizer::transaction_connect_sequential(transaction_const_ptr tx) const {
     // Checks that include script validation.
     return validator_.connect_sequential(tx);
 }
 
-// // private
-// void transaction_organizer::validate_handle_connect_sequential(code const& ec, transaction_const_ptr tx, result_handler handler) const {
-//     if (stopped()) {
-//         handler(error::service_stopped);
-//         return;
-//     }
+code transaction_organizer::transaction_validate_sequential(transaction_const_ptr tx) const {
+    auto ec = transaction_check_sequential(tx);
+    if (ec != error::success) return ec;
 
-//     if (ec) {
-//         handler(ec);
-//         return;
-//     }
+    ec = transaction_accept_sequential(tx);
+    if (ec != error::success) return ec;
 
-//     handler(error::success);
-//     return;
-// }
+    ec = transaction_connect_sequential(tx);
+    return ec;
+}
+
+code transaction_organizer::transaction_validate_sequential_no_signature(transaction_const_ptr tx) const {
+    auto ec = transaction_check_sequential(tx);
+    if (ec != error::success) return ec;
+
+    ec = transaction_accept_sequential(tx);
+    return ec;
+}
+
+// --------------
+
+code transaction_organizer::transaction_check_v2_sequential(chainv2::transaction::const_ptr tx) const {
+    // Checks that are independent of chain state.
+    return validator_.check_v2_sequential(tx);
+}
+
+code transaction_organizer::transaction_accept_v2_sequential(chainv2::transaction::const_ptr tx) const {
+    // Checks that are dependent on chain state and prevouts.
+    code ec = validator_.accept_v2_sequential(tx);
+
+    if (ec) {
+        return ec;
+    }
+
+    if (tx->fees() < price(tx)) {
+        return error::insufficient_fee;
+    }
+
+    if (tx->is_dusty(settings_.minimum_output_satoshis)) {
+        return error::dusty_transaction;
+    }
+
+    return ec;
+}
+
+code transaction_organizer::transaction_connect_v2_sequential(chainv2::transaction::const_ptr tx) const {
+    // Checks that include script validation.
+    return validator_.connect_v2_sequential(tx);
+}
+
+code transaction_organizer::transaction_validate_v2_sequential(chainv2::transaction::const_ptr tx) const {
+    auto ec = transaction_check_v2_sequential(tx);
+    if (ec != error::success) return ec;
+
+    ec = transaction_accept_v2_sequential(tx);
+    if (ec != error::success) return ec;
+
+    ec = transaction_connect_v2_sequential(tx);
+    return ec;
+}
+
+code transaction_organizer::transaction_validate_v2_sequential_no_signature(chainv2::transaction::const_ptr tx) const {
+    auto ec = transaction_check_v2_sequential(tx);
+    if (ec != error::success) return ec;
+
+    ec = transaction_accept_v2_sequential(tx);
+    return ec;
+}
+
 
 
 //-----------------------------------------------------------------------------
-// This is called from block_chain::transaction_validate_v2.
-void transaction_organizer::transaction_check_sequential_v2(chainv2::transaction::const_ptr tx, result_handler handler) const {
-    auto const check_handler = std::bind(&transaction_organizer::validate_handle_check_sequential_v2, this, _1, tx, handler);
-    validator_.check_v2(tx, check_handler); // Checks that are independent of chain state.
-}
-// private
-void transaction_organizer::validate_handle_check_sequential_v2(code const& ec, chainv2::transaction::const_ptr tx, result_handler handler) const {
-    if (stopped()) {
-        handler(error::service_stopped);
-        return;
-    }
+// // This is called from block_chain::transaction_validate_v2.
+// code transaction_organizer::transaction_check_v2_sequential(chainv2::transaction::const_ptr tx) const {
+//     return validator_.check_v2_sequential(tx); // Checks that are independent of chain state.
+// }
 
-    handler(ec);
-}
 
 
 

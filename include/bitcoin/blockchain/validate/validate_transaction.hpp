@@ -49,10 +49,15 @@ public:
     void accept_v2(chainv2::transaction::const_ptr tx, result_handler handler) const;
     void connect_v2(chainv2::transaction::const_ptr tx, result_handler handler) const;
 
-    // void accept_sequential(transaction_const_ptr tx, result_handler handler) const;
+    code check_sequential(transaction_const_ptr tx) const;
     code accept_sequential(transaction_const_ptr tx) const;
     code connect_sequential(transaction_const_ptr tx) const;
  
+    code check_v2_sequential(chainv2::transaction::const_ptr tx) const;
+    code accept_v2_sequential(chainv2::transaction::const_ptr tx) const;
+    code connect_v2_sequential(chainv2::transaction::const_ptr tx) const;
+
+
 protected:
     inline bool stopped() const {
         return stopped_;
@@ -66,7 +71,14 @@ private:
     void connect_inputs_v2(chainv2::transaction::const_ptr tx, size_t bucket, size_t buckets, result_handler handler) const;
 
     void handle_populated_sequential(code const& ec, transaction_const_ptr tx, result_handler handler) const;
-    void connect_inputs_sequential(transaction_const_ptr tx, size_t bucket, size_t buckets) const;
+
+    code connect_inputs_sequential(transaction_const_ptr tx, size_t bucket, size_t buckets) const;
+    code connect_inputs_v2_sequential(chainv2::transaction::const_ptr tx, size_t bucket, size_t buckets) const;
+
+
+
+
+ 
 
     // These are thread safe.
     std::atomic<bool> stopped_;

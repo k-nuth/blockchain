@@ -1443,13 +1443,11 @@ void block_chain::transaction_validate_v2_no_signature(chainv2::transaction::con
 }
 
 
-void block_chain::transaction_check_sequential(transaction_const_ptr tx, result_handler handler) const {
-    transaction_organizer_.transaction_check_sequential(tx, handler);
-}
 
-// void block_chain::transaction_accept_sequential(transaction_const_ptr tx, result_handler handler) const {
-//     transaction_organizer_.transaction_accept_sequential(tx, handler);
-// }
+
+code block_chain::transaction_check_sequential(transaction_const_ptr tx) const {
+    return transaction_organizer_.transaction_check_sequential(tx);
+}
 
 code block_chain::transaction_accept_sequential(transaction_const_ptr tx) const {
     return transaction_organizer_.transaction_accept_sequential(tx);
@@ -1459,21 +1457,37 @@ code block_chain::transaction_connect_sequential(transaction_const_ptr tx) const
     return transaction_organizer_.transaction_connect_sequential(tx);
 }
 
-
-
-
-
-void block_chain::transaction_check_sequential_v2(chainv2::transaction::const_ptr tx, result_handler handler) const {
-    transaction_organizer_.transaction_check_sequential_v2(tx, handler);
+code block_chain::transaction_validate_sequential(transaction_const_ptr tx) const {
+    return transaction_organizer_.transaction_validate_sequential(tx);
 }
 
-// void block_chain::transaction_accept_sequential_v2(chainv2::transaction::const_ptr tx, result_handler handler) const {
-//     transaction_organizer_.transaction_accept_sequential_v2(tx, handler);
-// }
+code block_chain::transaction_validate_sequential_no_signature(transaction_const_ptr tx) const {
+    return transaction_organizer_.transaction_validate_sequential_no_signature(tx);
+}
 
-// void block_chain::transaction_connect_sequential_v2(chainv2::transaction::const_ptr tx, result_handler handler) const {
-//     transaction_organizer_.transaction_connect_sequential_v2(tx, handler);
-// }
+
+
+
+
+code block_chain::transaction_check_v2_sequential(chainv2::transaction::const_ptr tx) const {
+    return transaction_organizer_.transaction_check_v2_sequential(tx);
+}
+
+code block_chain::transaction_accept_v2_sequential(chainv2::transaction::const_ptr tx) const {
+    return transaction_organizer_.transaction_accept_v2_sequential(tx);
+}
+
+code block_chain::transaction_connect_v2_sequential(chainv2::transaction::const_ptr tx) const {
+    return transaction_organizer_.transaction_connect_v2_sequential(tx);
+}
+
+code block_chain::transaction_validate_v2_sequential(chainv2::transaction::const_ptr tx) const {
+    return transaction_organizer_.transaction_validate_v2_sequential(tx);
+}
+
+code block_chain::transaction_validate_v2_sequential_no_signature(chainv2::transaction::const_ptr tx) const {
+    return transaction_organizer_.transaction_validate_v2_sequential_no_signature(tx);
+}
 
 
 // Organizers.

@@ -43,6 +43,7 @@ public:
     
     // void populate_sequential(transaction_const_ptr tx, result_handler&& handler) const;
     code populate_sequential(transaction_const_ptr tx) const;
+    code populate_v2_sequential(chainv2::transaction::const_ptr tx, chain::chain_state::ptr const& state) const;
 
 
 
@@ -51,6 +52,8 @@ protected:
 
     void populate_inputs_v2(chainv2::transaction::const_ptr tx, size_t chain_height, size_t bucket, size_t buckets, result_handler handler) const;
     void populate_inputs_sequential(transaction_const_ptr tx, size_t chain_height, size_t bucket, size_t buckets) const;
+    void populate_inputs_v2_sequential(chainv2::transaction::const_ptr tx, size_t chain_height, size_t bucket, size_t buckets) const;
+
 };
 
 }} // namespace libbitcoin::blockchain

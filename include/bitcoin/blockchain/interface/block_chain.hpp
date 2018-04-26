@@ -317,13 +317,17 @@ public:
     void transaction_validate_v2(chainv2::transaction::const_ptr tx, result_handler handler) const;
     void transaction_validate_v2_no_signature(chainv2::transaction::const_ptr tx, result_handler handler) const;
 
-    void transaction_check_sequential(transaction_const_ptr tx, result_handler handler) const;
+    code transaction_check_sequential(transaction_const_ptr tx) const;
     code transaction_accept_sequential(transaction_const_ptr tx) const;
     code transaction_connect_sequential(transaction_const_ptr tx) const;
+    code transaction_validate_sequential(transaction_const_ptr tx) const;
+    code transaction_validate_sequential_no_signature(transaction_const_ptr tx) const;
 
-    void transaction_check_sequential_v2(chainv2::transaction::const_ptr tx, result_handler handler) const;
-    // void transaction_accept_sequential_v2(chainv2::transaction::const_ptr tx, result_handler handler) const;
-    // void transaction_connect_sequential_v2(chainv2::transaction::const_ptr tx, result_handler handler) const;
+    code transaction_check_v2_sequential(chainv2::transaction::const_ptr tx) const;
+    code transaction_accept_v2_sequential(chainv2::transaction::const_ptr tx) const;
+    code transaction_connect_v2_sequential(chainv2::transaction::const_ptr tx) const;
+    code transaction_validate_v2_sequential(chainv2::transaction::const_ptr tx) const;
+    code transaction_validate_v2_sequential_no_signature(chainv2::transaction::const_ptr tx) const;
     
     // Organizers.
     //-------------------------------------------------------------------------
