@@ -492,7 +492,7 @@ static int fetch_block_by_height_result(block_chain& instance,
         }
 
         const auto match = result_height == height && *result_block == *block;
-        promise.set_value(match ? error::success : error::operation_failed);
+        promise.set_value(match ? error::success : error::operation_failed_24);
     };
     instance.fetch_block(height, handler);
     return promise.get_future().get().value();
@@ -543,7 +543,7 @@ static int fetch_block_by_hash_result(block_chain& instance,
         }
 
         const auto match = result_height == height && *result_block == *block;
-        promise.set_value(match ? error::success : error::operation_failed);
+        promise.set_value(match ? error::success : error::operation_failed_25);
     };
     instance.fetch_block(block->hash(), handler);
     return promise.get_future().get().value();
@@ -583,7 +583,7 @@ static int fetch_block_header_by_height_result(block_chain& instance,
 
         const auto match = result_height == height &&
             *result_header == block->header();
-        promise.set_value(match ? error::success : error::operation_failed);
+        promise.set_value(match ? error::success : error::operation_failed_26);
     };
     instance.fetch_block_header(height, handler);
     return promise.get_future().get().value();
@@ -621,7 +621,7 @@ static int fetch_block_header_by_hash_result(block_chain& instance,
 
         const auto match = result_height == height &&
             *result_header == block->header();
-        promise.set_value(match ? error::success : error::operation_failed);
+        promise.set_value(match ? error::success : error::operation_failed_27);
     };
     instance.fetch_block_header(block->hash(), handler);
     return promise.get_future().get().value();
@@ -661,7 +661,7 @@ static int fetch_merkle_block_by_height_result(block_chain& instance,
 
         const auto match = result_height == height &&
             *result_merkle == message::merkle_block(*block);
-        promise.set_value(match ? error::success : error::operation_failed);
+        promise.set_value(match ? error::success : error::operation_failed_28);
     };
     instance.fetch_merkle_block(height, handler);
     return promise.get_future().get().value();
@@ -699,7 +699,7 @@ static int fetch_merkle_block_by_hash_result(block_chain& instance,
 
         const auto match = result_height == height &&
             *result_merkle == message::merkle_block(*block);
-        promise.set_value(match ? error::success : error::operation_failed);
+        promise.set_value(match ? error::success : error::operation_failed_29);
     };
     instance.fetch_merkle_block(block->hash(), handler);
     return promise.get_future().get().value();
@@ -750,7 +750,7 @@ static int fetch_locator_block_headers(block_chain& instance,
         // TODO: incorporate other expectations.
         const auto sequential = result_headers->is_sequential();
 
-        promise.set_value(sequential ? error::success : error::operation_failed);
+        promise.set_value(sequential ? error::success : error::operation_failed_30);
     };
     instance.fetch_locator_block_headers(locator, threshold, limit, handler);
     return promise.get_future().get().value();

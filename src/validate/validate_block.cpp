@@ -152,7 +152,7 @@ void validate_block::accept(branch::const_ptr branch,
 
     if (!block->validation.state)
     {
-        handler(error::operation_failed);
+        handler(error::operation_failed_19);
         return;
     }
 

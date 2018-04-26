@@ -294,7 +294,7 @@ void block_chain::reorganize(const checkpoint& fork_point,
     //**--**
     if (incoming_blocks->empty())
     {
-        handler(error::operation_failed);
+        handler(error::operation_failed_13);
         return;
     }
 
@@ -318,7 +318,7 @@ void block_chain::handle_reorganize(const code& ec, block_const_ptr top,
 
     if (!top->validation.state)
     {
-        handler(error::operation_failed);
+        handler(error::operation_failed_14);
         return;
     }
 
@@ -361,7 +361,7 @@ code block_chain::set_chain_state(chain::chain_state::ptr previous)
     unique_lock lock(pool_state_mutex_);
 
     pool_state_ = chain_state_populator_.populate(previous);
-    return pool_state_ ? error::success : error::operation_failed;
+    return pool_state_ ? error::success : error::operation_failed_15;
     ///////////////////////////////////////////////////////////////////////////
 }
 
@@ -463,7 +463,7 @@ void block_chain::fetch_block(size_t height, block_fetch_handler handler) const
 
         if (!tx_result)
         {
-            handler(error::operation_failed, nullptr, 0);
+            handler(error::operation_failed_16, nullptr, 0);
             return;
         }
 
@@ -516,7 +516,7 @@ void block_chain::fetch_block(const hash_digest& hash,
 
         if (!tx_result)
         {
-            handler(error::operation_failed, nullptr, 0);
+            handler(error::operation_failed_17, nullptr, 0);
             return;
         }
 

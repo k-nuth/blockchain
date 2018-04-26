@@ -90,7 +90,7 @@ void validate_transaction::accept(transaction_const_ptr tx,
 
     if (!tx->validation.state)
     {
-        handler(error::operation_failed);
+        handler(error::operation_failed_23);
         return;
     }
 
