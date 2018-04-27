@@ -428,8 +428,7 @@ code validate_transaction::connect_v2_sequential(chainv2::transaction::const_ptr
         return error::success;
     }
 
-    const auto buckets = std::min(dispatch_.size(), total_inputs);
-    BITCOIN_ASSERT(buckets != 0);
+    const auto buckets = 1;
 
     // If the priority threadpool is shut down when this is called the handler
     // will never be invoked, resulting in a threadpool.join indefinite hang.
