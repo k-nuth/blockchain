@@ -183,9 +183,9 @@ code transaction_organizer::transaction_accept_sequential(transaction_const_ptr 
         return ec;
     }
 
-    if (tx->fees() < price(tx)) {
-        return error::insufficient_fee;
-    }
+    // if (tx->fees() < price(tx)) {
+    //     return error::insufficient_fee;
+    // }
 
     if (tx->is_dusty(settings_.minimum_output_satoshis)) {
         return error::dusty_transaction;
@@ -233,9 +233,9 @@ code transaction_organizer::transaction_accept_v2_sequential(chainv2::transactio
         return ec;
     }
 
-    if (tx->fees() < price(tx)) {
-        return error::insufficient_fee;
-    }
+    // if (tx->fees() < price(tx)) {
+    //     return error::insufficient_fee;
+    // }
 
     if (tx->is_dusty(settings_.minimum_output_satoshis)) {
         return error::dusty_transaction;
