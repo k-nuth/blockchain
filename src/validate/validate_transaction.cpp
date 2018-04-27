@@ -365,7 +365,7 @@ void validate_transaction::connect_inputs_v2(chainv2::transaction::const_ptr tx,
 
 code validate_transaction::connect_sequential(transaction_const_ptr tx) const {
 
-    std::cout << "validate_transaction::connect_sequential - 1" << std::endl;
+    // std::cout << "validate_transaction::connect_sequential - 1" << std::endl;
 
     BITCOIN_ASSERT(tx->validation.state);
     auto const total_inputs = tx->inputs().size();
