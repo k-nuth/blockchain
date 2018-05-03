@@ -41,6 +41,11 @@
 namespace libbitcoin {
 namespace blockchain {
 
+
+    using spent_mempool_type = std::tuple<hash_digest, uint32_t, hash_digest>;
+    using spent_mempool = std::list<spent_mempool_type>;
+
+
 /// The fast_chain interface portion of this class is not thread safe.
 class BCB_API block_chain
   : public safe_chain, public fast_chain, noncopyable
@@ -225,6 +230,10 @@ public:
     void fetch_transaction(const hash_digest& hash, bool require_confirmed,
         transaction_fetch_handler handler) const;
 
+    /// fetch unconfirmed transaction by hash.
+    void fetch_unconfirmed_transaction(const hash_digest& hash,
+        transaction_unconfirmed_fetch_handler handler) const;
+
     /// Generate fees for mining
     std::pair<bool, uint64_t> total_input_value(libbitcoin::chain::transaction const& tx) const;
     std::pair<bool, uint64_t> fees(libbitcoin::chain::transaction const& tx) const;
@@ -335,6 +344,10 @@ public:
     /// Get a reference to the blockchain configuration settings.
     const settings& chain_settings() const;
 
+    std::vector<block_chain::tx_mempool> get_gbt_tx_list() const;
+    bool add_to_chosen_list(transaction_const_ptr tx);
+    bool remove_mined_txs_from_mempool(block_const_ptr blk);
+
 protected:
 
     /// Determine if work should terminate early with service stopped code.
@@ -389,6 +402,26 @@ private:
     mutable dispatcher dispatch_;
     transaction_organizer transaction_organizer_;
     block_organizer block_organizer_;
+
+
+    typedef std::tuple<libbitcoin::hash_digest, double, size_t, size_t> tx_benefit;
+    void append_spend_(transaction_const_ptr tx);
+    void remove_spend(libbitcoin::hash_digest hash);
+    void remove_spend(transaction_const_ptr tx);
+    bool check_is_double_spend(transaction_const_ptr tx);
+    std::set<libbitcoin::hash_digest> get_double_spend_mempool(transaction_const_ptr tx);
+    bool insert_to_chosen_list(transaction_const_ptr& tx, double benefit, size_t tx_size, size_t tx_sigops);
+    size_t find_insertion_point(const size_t sigops_limit, const size_t tx_size,
+        const size_t tx_sigops, const size_t tx_fees, const double benefit,
+            size_t& acum_sigops, size_t& acum_size, double& acum_benefit);
+
+    uint64_t chosen_size;
+    uint64_t chosen_sigops;
+    std::list <tx_benefit> chosen_unconfirmed;
+    spent_mempool chosen_spent;
+
+
+
 #endif
 };
 
