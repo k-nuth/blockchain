@@ -152,6 +152,7 @@ code validate_input::convert_result(verify_result_type result)
         case verify_result_type::verify_result_unknown_error:
             return error::invalid_script;
 
+#ifndef BITPRIM_CURRENCY_BCH
         // Segregated witness.
         case verify_result_type::verify_result_witness_program_wrong_length:
         case verify_result_type::verify_result_witness_program_empty_witness:
@@ -161,6 +162,7 @@ code validate_input::convert_result(verify_result_type result)
         case verify_result_type::verify_result_witness_unexpected:
         case verify_result_type::verify_result_witness_pubkeytype:
             return error::invalid_script;
+#endif
 
         // Augmention codes for tx deserialization.
         case verify_result_type::verify_result_tx_invalid:

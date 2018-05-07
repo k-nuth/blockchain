@@ -241,7 +241,7 @@ public:
     std::tuple<bool, size_t, uint64_t> is_double_spent_sigops_and_fees(chain::transaction const& tx, bool bip16_active) const;
     std::tuple<bool, size_t, uint64_t> validate_tx_2(chain::transaction const& tx, size_t height) const;
 
-    std::vector<std::tuple<std::string, std::string, size_t, std::string, uint64_t, std::string, std::string>> fetch_mempool_addrs(std::vector<std::string> const& payment_addresses, bool use_testnet_rules) const;
+    std::vector<std::tuple<std::string, std::string, size_t, std::string, uint64_t, std::string, std::string>> fetch_mempool_addrs(std::vector<std::string> const& payment_addresses, bool use_testnet_rules, bool witness) const;
 
     /// fetch position and height within block of transaction by hash.
     void fetch_transaction_position(const hash_digest& hash,

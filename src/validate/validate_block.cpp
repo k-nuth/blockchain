@@ -189,8 +189,11 @@ void validate_block::handle_populated(const code& ec, block_const_ptr block,
     const auto sigops = std::make_shared<atomic_counter>(0);
     const auto state = block->validation.state;
     BITCOIN_ASSERT(state);
-
+#ifdef BITPRIM_CURRENCY_BCH
+    const bool bip141 = false;
+#else
     const auto bip141 = state->is_enabled(rule_fork::bip141_rule);
+#endif
 
     result_handler complete_handler =
         std::bind(&validate_block::handle_accepted,
@@ -219,6 +222,9 @@ void validate_block::accept_transactions(block_const_ptr block, size_t bucket,
     size_t buckets, atomic_counter_ptr sigops, bool bip16, bool bip141,
     result_handler handler) const
 {
+#ifdef BITPRIM_CURRENCY_BCH
+    bip141 = false;
+#endif
     if (stopped())
     {
         handler(error::service_stopped);

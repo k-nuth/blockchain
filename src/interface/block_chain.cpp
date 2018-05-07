@@ -426,6 +426,9 @@ block_chain::~block_chain()
 void block_chain::fetch_block(size_t height, bool witness,
     block_fetch_handler handler) const
 {
+#ifdef BITPRIM_CURRENCY_BCH
+    witness = false;
+#endif
     if (stopped())
     {
         handler(error::service_stopped, nullptr, 0);
@@ -480,6 +483,9 @@ void block_chain::fetch_block(size_t height, bool witness,
 void block_chain::fetch_block(const hash_digest& hash, bool witness,
     block_fetch_handler handler) const
 {
+#ifdef BITPRIM_CURRENCY_BCH
+    witness = false;
+#endif
     if (stopped())
     {
         handler(error::service_stopped, nullptr, 0);
@@ -533,7 +539,6 @@ void block_chain::fetch_block(const hash_digest& hash, bool witness,
 void block_chain::fetch_block_header_txs_size(const hash_digest& hash,
     block_header_txs_size_fetch_handler handler) const
 {
-
     if (stopped())
     {
         handler(error::service_stopped, nullptr, 0, std::make_shared<hash_list>(hash_list()),0);
@@ -719,6 +724,9 @@ void block_chain::fetch_transaction(const hash_digest& hash,
     bool require_confirmed, bool witness,
     transaction_fetch_handler handler) const
 {
+#ifdef BITPRIM_CURRENCY_BCH
+    witness = false;
+#endif
     if (stopped())
     {
         handler(error::service_stopped, nullptr, 0, 0);
@@ -994,7 +1002,7 @@ std::tuple<size_t,size_t,std::vector<tx_mempool>> block_chain::create_a_pack_of_
     return std::make_tuple(sigops_return, bytes_return, mempool_return);
 }
 
-std::vector<std::tuple<std::string, std::string, size_t, std::string, uint64_t, std::string, std::string>> block_chain::fetch_mempool_addrs(std::vector<std::string> const& payment_addresses, bool use_testnet_rules) const {
+std::vector<std::tuple<std::string, std::string, size_t, std::string, uint64_t, std::string, std::string>> block_chain::fetch_mempool_addrs(std::vector<std::string> const& payment_addresses, bool use_testnet_rules, bool witness) const {
 /*          "    \"address\"  (string) The base58check encoded address\n"
             "    \"txid\"  (string) The related txid\n"
             "    \"index\"  (number) The related input or output index\n"
@@ -1003,6 +1011,11 @@ std::vector<std::tuple<std::string, std::string, size_t, std::string, uint64_t, 
             "    \"prevtxid\"  (string) The previous txid (if spending)\n"
             "    \"prevout\"  (string) The previous transaction output index (if spending)\n"
 */
+
+#ifdef BITPRIM_CURRENCY_BCH
+    witness = false;
+#endif
+
     uint8_t encoding_p2kh;
     uint8_t encoding_p2sh;
     if (use_testnet_rules){
@@ -1022,22 +1035,24 @@ std::vector<std::tuple<std::string, std::string, size_t, std::string, uint64_t, 
     }
 
     database_.transactions_unconfirmed().for_each_result([&](libbitcoin::database::transaction_unconfirmed_result const &tx_res) {
-        auto tx = tx_res.transaction();
+        auto tx = tx_res.transaction(witness);
         tx.recompute_hash();
         size_t i = 0;
         for (auto const& output : tx.outputs()) {
-            const auto tx_address = libbitcoin::wallet::payment_address::extract(output.script(), encoding_p2kh, encoding_p2sh);
+            const auto tx_addresses = libbitcoin::wallet::payment_address::extract(output.script(), encoding_p2kh, encoding_p2sh);
             ++i;
-            if (tx_address && addrs.find(tx_address) != addrs.end()) {
-                ret.push_back(std::make_tuple(tx_address.encoded(), libbitcoin::encode_hash(tx.hash()), i, std::to_string(output.value()), tx_res.arrival_time(), "", ""));
+            for(const auto tx_address : tx_addresses)
+                if (tx_address && addrs.find(tx_address) != addrs.end()) {
+                    ret.push_back(std::make_tuple(tx_address.encoded(), libbitcoin::encode_hash(tx.hash()), i, std::to_string(output.value()), tx_res.arrival_time(), "", ""));
             }
         }
         i = 0;
         for (auto const& input : tx.inputs()) {
-            const auto tx_address = libbitcoin::wallet::payment_address::extract(input.script(), encoding_p2kh, encoding_p2sh);
+            const auto tx_addresses = libbitcoin::wallet::payment_address::extract(input.script(), encoding_p2kh, encoding_p2sh);
+            for(const auto tx_address : tx_addresses)
             if (tx_address && addrs.find(tx_address) != addrs.end()) {
                 boost::latch latch(2);
-                fetch_transaction(input.previous_output().hash(), false,
+                fetch_transaction(input.previous_output().hash(), false, witness,
                                   [&](const libbitcoin::code &ec,
                                       libbitcoin::transaction_const_ptr tx_ptr, size_t index,
                                       size_t height) {

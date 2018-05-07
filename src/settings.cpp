@@ -24,28 +24,37 @@ namespace libbitcoin {
 namespace blockchain {
 
 settings::settings()
-  : cores(0),
-    priority(true),
-    byte_fee_satoshis(1),
-    sigop_fee_satoshis(100),
-    minimum_output_satoshis(500),
-    notify_limit_hours(24),
-    reorganization_limit(256),
-    allow_collisions(true),
-    easy_blocks(false),
-    retarget(true),
-    bip16(true),
-    bip30(true),
-    bip34(true),
-    bip66(true),
-    bip65(true),
-    bip90(true),
-    bip68(true),
-    bip112(true),
-    bip113(true),
-    bip141(true),
-    bip143(true),
-    bip147(true)
+  : cores(0)
+  , priority(true)
+  , byte_fee_satoshis(1)
+  , sigop_fee_satoshis(100)
+  , minimum_output_satoshis(500)
+  , notify_limit_hours(24)
+  , reorganization_limit(256)
+  , allow_collisions(true)
+  , easy_blocks(false)
+  , retarget(true)
+  , bip16(true)
+  , bip30(true)
+  , bip34(true)
+  , bip66(true)
+  , bip65(true)
+  , bip90(true)
+  , bip68(true)
+  , bip112(true)
+  , bip113(true)
+
+#ifdef BITPRIM_CURRENCY_BCH
+    // , uahf_height(478559)
+    // , daa_height(504031)
+    , monolith_activation_time(bch_monolith_activation_time)                        //1526400000
+    , magnetic_anomaly_activation_time(bch_magnetic_anomaly_activation_time)        //1542300000
+#else //BITPRIM_CURRENCY_BCH
+    , bip141(true)
+    , bip143(true)
+    , bip147(true)
+#endif
+
 {
 }
 
