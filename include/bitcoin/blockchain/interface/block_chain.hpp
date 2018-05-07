@@ -174,11 +174,11 @@ public:
     // ------------------------------------------------------------------------
 
     /// fetch a block by height.
-    // virtual      // OLD previo a merge de Feb2017
-    void fetch_block(size_t height, block_fetch_handler handler) const;
+    void fetch_block(size_t height, bool witness,
+        block_fetch_handler handler) const;
 
     /// fetch a block by hash.
-    void fetch_block(const hash_digest& hash,
+    void fetch_block(const hash_digest& hash, bool witness,
         block_fetch_handler handler) const;
 
     void fetch_block_header_txs_size(const hash_digest& hash,
@@ -223,7 +223,7 @@ public:
 
     /// fetch transaction by hash.
     void fetch_transaction(const hash_digest& hash, bool require_confirmed,
-        transaction_fetch_handler handler) const;
+        bool witness, transaction_fetch_handler handler) const;
 
     /// Generate fees for mining
     std::pair<bool, uint64_t> total_input_value(libbitcoin::chain::transaction const& tx) const;

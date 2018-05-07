@@ -423,7 +423,8 @@ block_chain::~block_chain()
 // Blocks are and transactions returned const because they don't change and
 // this eliminates the need to copy the cached items.
 
-void block_chain::fetch_block(size_t height, block_fetch_handler handler) const
+void block_chain::fetch_block(size_t height, bool witness,
+    block_fetch_handler handler) const
 {
     if (stopped())
     {
@@ -468,7 +469,7 @@ void block_chain::fetch_block(size_t height, block_fetch_handler handler) const
 
         BITCOIN_ASSERT(tx_result.height() == height);
         BITCOIN_ASSERT(tx_result.position() == position++);
-        txs.push_back(tx_result.transaction());
+        txs.push_back(tx_result.transaction(witness));
     }
 
     auto message = std::make_shared<const block>(block_result.header(),
@@ -476,7 +477,7 @@ void block_chain::fetch_block(size_t height, block_fetch_handler handler) const
     handler(error::success, message, height);
 }
 
-void block_chain::fetch_block(const hash_digest& hash,
+void block_chain::fetch_block(const hash_digest& hash, bool witness,
     block_fetch_handler handler) const
 {
     if (stopped())
@@ -521,7 +522,7 @@ void block_chain::fetch_block(const hash_digest& hash,
 
         BITCOIN_ASSERT(tx_result.height() == height);
         BITCOIN_ASSERT(tx_result.position() == position++);
-        txs.push_back(tx_result.transaction());
+        txs.push_back(tx_result.transaction(witness));
     }
 
     const auto message = std::make_shared<const block>(block_result.header(),
@@ -715,7 +716,8 @@ void block_chain::fetch_last_height(last_height_fetch_handler handler) const
 }
 
 void block_chain::fetch_transaction(const hash_digest& hash,
-    bool require_confirmed, transaction_fetch_handler handler) const
+    bool require_confirmed, bool witness,
+    transaction_fetch_handler handler) const
 {
     if (stopped())
     {
@@ -748,7 +750,8 @@ void block_chain::fetch_transaction(const hash_digest& hash,
         return;
     }
 
-    const auto tx = std::make_shared<const transaction>(result.transaction());
+    const auto tx = std::make_shared<const transaction>(
+        result.transaction(witness));
     handler(error::success, tx, result.position(), result.height());
 }
 

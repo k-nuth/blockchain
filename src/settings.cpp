@@ -24,32 +24,30 @@ namespace libbitcoin {
 namespace blockchain {
 
 settings::settings()
-    : cores(0)
-    , priority(true)
-    , byte_fee_satoshis(1)
-    , sigop_fee_satoshis(100)
-    , minimum_output_satoshis(500)
-    , notify_limit_hours(24)
-    , reorganization_limit(256)
-    , allow_collisions(true)
-    , easy_blocks(false)
-    , bip16(true)
-    , bip30(true)
-    , bip34(true)
-    , bip66(true)
-    , bip65(true)
-    , bip90(true)
-    , bip68(true)
-    , bip112(true)
-    , bip113(true)
-
-#ifdef BITPRIM_CURRENCY_BCH
-    // , uahf_height(478559)
-    // , daa_height(504031)
-    , monolith_activation_time(bch_monolith_activation_time)                        //1526400000
-    , magnetic_anomaly_activation_time(bch_magnetic_anomaly_activation_time)        //1542300000
-#endif //BITPRIM_CURRENCY_BCH
-{}
+  : cores(0),
+    priority(true),
+    byte_fee_satoshis(1),
+    sigop_fee_satoshis(100),
+    minimum_output_satoshis(500),
+    notify_limit_hours(24),
+    reorganization_limit(256),
+    allow_collisions(true),
+    easy_blocks(false),
+    retarget(true),
+    bip16(true),
+    bip30(true),
+    bip34(true),
+    bip66(true),
+    bip65(true),
+    bip90(true),
+    bip68(true),
+    bip112(true),
+    bip113(true),
+    bip141(true),
+    bip143(true),
+    bip147(true)
+{
+}
 
 // Use push_back due to initializer_list bug:
 // stackoverflow.com/a/20168627/1172329
@@ -112,8 +110,12 @@ settings::settings(config::settings context)
             // daa_height  = 0;
 #endif //BITPRIM_CURRENCY_BCH
 
+            retarget = false;
+
+            checkpoints.emplace_back("06226e46111a0b59caaf126043eb5bbf28c34f3a5e332a1fc7b2b73cf188910f", 0);
             break;
-        }        
+        }
+
         default:
         case config::settings::none: {}
     }
@@ -124,6 +126,7 @@ uint32_t settings::enabled_forks() const {
 
     uint32_t forks = rule_fork::no_rules;
     forks |= (easy_blocks ? rule_fork::easy_blocks : 0);
+    forks |= (retarget ? rule_fork::retarget : 0);
     forks |= (bip16 ? rule_fork::bip16_rule : 0);
     forks |= (bip30 ? rule_fork::bip30_rule : 0);
     forks |= (bip34 ? rule_fork::bip34_rule : 0);
@@ -139,6 +142,10 @@ uint32_t settings::enabled_forks() const {
     forks |= rule_fork::cash_verify_flags_script_enable_sighash_forkid;
     // Activate this fork rule for the next bitcoin cash release
     ////forks |= rule_fork::cash_replay_protection;
+#else
+    forks |= (bip141 ? rule_fork::bip141_rule : 0);
+    forks |= (bip143 ? rule_fork::bip143_rule : 0);
+    forks |= (bip147 ? rule_fork::bip147_rule : 0);
 #endif
     return forks;
 }
