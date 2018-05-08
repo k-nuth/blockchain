@@ -49,6 +49,9 @@ settings::settings()
     // , daa_height(504031)
     , monolith_activation_time(bch_monolith_activation_time)                        //1526400000
     , magnetic_anomaly_activation_time(bch_magnetic_anomaly_activation_time)        //1542300000
+    , bip141(false)
+    , bip143(false)
+    , bip147(false)
 #else //BITPRIM_CURRENCY_BCH
     , bip141(true)
     , bip143(true)
