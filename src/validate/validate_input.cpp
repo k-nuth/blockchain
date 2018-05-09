@@ -179,6 +179,12 @@ code validate_input::convert_result(verify_result_type result)
 code validate_input::verify_script(const transaction& tx, uint32_t input_index,
     uint32_t branches) {
 
+#ifdef BITPRIM_CURRENCY_BCH
+    bool witness = false;
+#else
+    bool witness = true;
+#endif
+
     BITCOIN_ASSERT(input_index < tx.inputs().size());
     const auto& prevout = tx.inputs()[input_index].previous_output().validation;
     const auto script_data = prevout.cache.script().to_data(false);
@@ -189,7 +195,7 @@ code validate_input::verify_script(const transaction& tx, uint32_t input_index,
     // const auto prevout_value = prevout.cache.value();
 
     // Wire serialization is cached in support of large numbers of inputs.
-    const auto tx_data = tx.to_data();
+    const auto tx_data = tx.to_data(true, witness, false);
 
 #ifdef BITPRIM_CURRENCY_BCH
     auto res = consensus::verify_script(tx_data.data(),

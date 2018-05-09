@@ -892,6 +892,11 @@ std::vector<block_chain::tx_mempool> block_chain::fetch_mempool_all(size_t max_b
     if (stopped()) {
         return std::vector<block_chain::tx_mempool>();
     }
+#ifdef BITPRIM_CURRENCY_BCH
+    bool witness = false;
+#else
+    bool witness = true;
+#endif
 
     size_t height;
     if (!database_.blocks().top(height)) {
@@ -911,7 +916,7 @@ std::vector<block_chain::tx_mempool> block_chain::fetch_mempool_all(size_t max_b
         if (res_validate && !res_ds) {
             append_spend(tx, spent);
             std::string dependencies = ""; //TODO: see what to do with the final algorithm
-            size_t tx_weight = tx.to_data(true).size();
+            size_t tx_weight = tx.to_data(true, witness, false).size();
             mempool.emplace_back(tx, tx.cached_fees(), tx.cached_sigops(), dependencies, tx_weight, true);
         }
         return true;
