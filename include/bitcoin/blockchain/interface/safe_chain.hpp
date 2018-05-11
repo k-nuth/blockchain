@@ -159,6 +159,9 @@ public:
     virtual void fetch_history(const short_hash& address_hash, size_t limit,
         size_t from_height, history_fetch_handler handler) const = 0;
 
+    virtual void fetch_txns(const short_hash& address_hash, size_t limit,
+                            size_t from_height, txns_fetch_handler handler) const = 0;
+
     virtual void fetch_stealth(const binary& filter, size_t from_height,
         stealth_fetch_handler handler) const = 0;
 
