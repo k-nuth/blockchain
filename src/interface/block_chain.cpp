@@ -1135,8 +1135,12 @@ void block_chain::fill_tx_list_from_mempool(message::compact_block const& block,
             
 
     database_.transactions_unconfirmed().for_each([&](chain::transaction const &tx) {
-
-        uint64_t shortid = sip_hash_uint256(k0, k1, tx.hash()) & uint64_t(0xffffffffffff); 
+#ifdef BITPRIM_CURRENCY_BCH
+        bool witness = true;
+#else
+        bool witness = false;
+#endif
+        uint64_t shortid = sip_hash_uint256(k0, k1, tx.hash(witness)) & uint64_t(0xffffffffffff);
         
       /*   LOG_INFO(LOG_BLOCKCHAIN)
             << "mempool tx ->  " << encode_hash(tx.hash()) 
@@ -1174,6 +1178,11 @@ void block_chain::fill_tx_list_from_mempool(message::compact_block const& block,
 
 
  safe_chain::mempool_mini_hash_map block_chain::get_mempool_mini_hash_map(message::compact_block const& block) const {
+#ifdef BITPRIM_CURRENCY_BCH
+     bool witness = true;
+#else
+     bool witness = false;
+#endif
  
     if (stopped()) {
         return {};
@@ -1188,7 +1197,7 @@ void block_chain::fill_tx_list_from_mempool(message::compact_block const& block,
    
     database_.transactions_unconfirmed().for_each([&](chain::transaction const &tx) {
     
-        auto sh = sip_hash_uint256(k0, k1, tx.hash());
+        auto sh = sip_hash_uint256(k0, k1, tx.hash(witness));
         
        /* to_little_endian()
         uint64_t pepe = 4564564;
