@@ -1136,9 +1136,9 @@ void block_chain::fill_tx_list_from_mempool(message::compact_block const& block,
 
     database_.transactions_unconfirmed().for_each([&](chain::transaction const &tx) {
 #ifdef BITPRIM_CURRENCY_BCH
-        bool witness = true;
-#else
         bool witness = false;
+#else
+        bool witness = true;
 #endif
         uint64_t shortid = sip_hash_uint256(k0, k1, tx.hash(witness)) & uint64_t(0xffffffffffff);
         
@@ -1179,9 +1179,9 @@ void block_chain::fill_tx_list_from_mempool(message::compact_block const& block,
 
  safe_chain::mempool_mini_hash_map block_chain::get_mempool_mini_hash_map(message::compact_block const& block) const {
 #ifdef BITPRIM_CURRENCY_BCH
-     bool witness = true;
-#else
      bool witness = false;
+#else
+     bool witness = true;
 #endif
  
     if (stopped()) {
