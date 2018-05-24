@@ -242,6 +242,7 @@ public:
     std::tuple<bool, size_t, uint64_t> validate_tx_2(chain::transaction const& tx, size_t height) const;
 
     std::vector<mempool_tx_summary> get_mempool_transactions(std::vector<std::string> const& payment_addresses, bool use_testnet_rules, bool witness) const;
+    std::vector<mempool_tx_summary> get_mempool_transactions(std::string const& payment_address, bool use_testnet_rules, bool witness) const;
 
     /// fetch position and height within block of transaction by hash.
     void fetch_transaction_position(const hash_digest& hash,

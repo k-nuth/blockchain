@@ -177,6 +177,8 @@ public:
         inventory_fetch_handler handler) const = 0;
     virtual std::vector<mempool_tx_summary> get_mempool_transactions(std::vector<std::string> const& payment_addresses,
                                                                      bool use_testnet_rules, bool witness) const = 0;
+    virtual std::vector<mempool_tx_summary> get_mempool_transactions(std::string const& payment_address,
+                                                                     bool use_testnet_rules, bool witness) const = 0;
 
     // Filters.
     //-------------------------------------------------------------------------

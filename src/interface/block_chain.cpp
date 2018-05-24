@@ -1082,6 +1082,11 @@ std::vector<block_chain::mempool_tx_summary> block_chain::get_mempool_transactio
     return ret;
 }
 
+std::vector<block_chain::mempool_tx_summary> block_chain::get_mempool_transactions(std::string const& payment_address, bool use_testnet_rules, bool witness) const{
+    std::vector<std::string> addresses = {payment_address};
+    return get_mempool_transactions(addresses, use_testnet_rules, witness);
+}
+
 // This is same as fetch_transaction but skips deserializing the tx payload.
 void block_chain::fetch_transaction_position(const hash_digest& hash,
     bool require_confirmed, transaction_index_fetch_handler handler) const
