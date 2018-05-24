@@ -80,6 +80,9 @@ public:
     typedef std::function<bool(code, transaction_const_ptr)>
         transaction_handler;
 
+    /// Shorthand
+    typedef std::tuple<std::string, std::string, size_t, std::string, uint64_t, std::string, std::string> mempool_tx_summary;
+
     // Startup and shutdown.
     // ------------------------------------------------------------------------
 
@@ -172,6 +175,8 @@ public:
     virtual void fetch_template(merkle_block_fetch_handler handler) const = 0;
     virtual void fetch_mempool(size_t count_limit, uint64_t minimum_fee,
         inventory_fetch_handler handler) const = 0;
+    virtual std::vector<mempool_tx_summary> get_mempool_transactions(std::vector<std::string> const& payment_addresses,
+                                                                     bool use_testnet_rules, bool witness) const = 0;
 
     // Filters.
     //-------------------------------------------------------------------------
