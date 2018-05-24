@@ -1328,8 +1328,8 @@ void block_chain::fetch_history(const short_hash& address_hash, size_t limit,
         from_height));
 }
 
-void block_chain::fetch_txns(const short_hash& address_hash, size_t limit,
-                                size_t from_height, txns_fetch_handler handler) const
+void block_chain::fetch_confirmed_transactions(const short_hash& address_hash, size_t limit,
+                                               size_t from_height, txns_fetch_handler handler) const
 {
     if (stopped())
     {

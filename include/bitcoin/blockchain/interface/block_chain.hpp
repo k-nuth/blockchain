@@ -273,8 +273,8 @@ public:
         size_t from_height, history_fetch_handler handler) const;
 
     /// Fetch all the txns used by the wallet
-    void fetch_txns(const short_hash& address_hash, size_t limit,
-                                 size_t from_height, txns_fetch_handler handler) const;
+    void fetch_confirmed_transactions(const short_hash& address_hash, size_t limit,
+                                      size_t from_height, txns_fetch_handler handler) const;
 
     /// fetch stealth results.
     void fetch_stealth(const binary& filter, size_t from_height,
