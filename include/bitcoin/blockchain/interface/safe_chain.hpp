@@ -26,6 +26,7 @@
 #include <vector>
 #include <bitcoin/bitcoin.hpp>
 #include <bitcoin/blockchain/define.hpp>
+#include <bitcoin/blockchain/pools/mempool_transaction_summary.hpp>
 
 namespace libbitcoin {
 namespace blockchain {
@@ -47,7 +48,7 @@ public:
     typedef handle1<chain::stealth_compact::list> stealth_fetch_handler;
     typedef handle2<size_t, size_t> transaction_index_fetch_handler;
 
-    typedef handle1<std::vector<hash_digest>> txns_fetch_handler;
+    typedef handle1<std::vector<hash_digest>> confirmed_transactions_fetch_handler;
 
     // Smart pointer parameters must not be passed by reference.
     typedef std::function<void(const code&, block_const_ptr, size_t)>
@@ -79,9 +80,6 @@ public:
         block_const_ptr_list_const_ptr)> reorganize_handler;
     typedef std::function<bool(code, transaction_const_ptr)>
         transaction_handler;
-
-    /// Shorthand
-    typedef std::tuple<std::string, std::string, size_t, std::string, uint64_t, std::string, std::string> mempool_tx_summary;
 
     // Startup and shutdown.
     // ------------------------------------------------------------------------
@@ -164,7 +162,7 @@ public:
         size_t from_height, history_fetch_handler handler) const = 0;
 
     virtual void fetch_confirmed_transactions(const short_hash& address_hash, size_t limit,
-                                              size_t from_height, txns_fetch_handler handler) const = 0;
+                                              size_t from_height, confirmed_transactions_fetch_handler handler) const = 0;
 
     virtual void fetch_stealth(const binary& filter, size_t from_height,
         stealth_fetch_handler handler) const = 0;
@@ -175,9 +173,9 @@ public:
     virtual void fetch_template(merkle_block_fetch_handler handler) const = 0;
     virtual void fetch_mempool(size_t count_limit, uint64_t minimum_fee,
         inventory_fetch_handler handler) const = 0;
-    virtual std::vector<mempool_tx_summary> get_mempool_transactions(std::vector<std::string> const& payment_addresses,
+    virtual std::vector<mempool_transaction_summary> get_mempool_transactions(std::vector<std::string> const& payment_addresses,
                                                                      bool use_testnet_rules, bool witness) const = 0;
-    virtual std::vector<mempool_tx_summary> get_mempool_transactions(std::string const& payment_address,
+    virtual std::vector<mempool_transaction_summary> get_mempool_transactions(std::string const& payment_address,
                                                                      bool use_testnet_rules, bool witness) const = 0;
 
     // Filters.
