@@ -81,6 +81,9 @@ public:
     typedef std::function<bool(code, transaction_const_ptr)>
         transaction_handler;
 
+
+    using mempool_mini_hash_map = std::unordered_map<mini_hash, chain::transaction>;
+
     // Startup and shutdown.
     // ------------------------------------------------------------------------
 
@@ -178,6 +181,10 @@ public:
     virtual std::vector<mempool_transaction_summary> get_mempool_transactions(std::string const& payment_address,
                                                                      bool use_testnet_rules, bool witness) const = 0;
 
+    virtual mempool_mini_hash_map get_mempool_mini_hash_map(message::compact_block const& block) const = 0;
+
+    virtual void fill_tx_list_from_mempool(message::compact_block const& block, size_t& mempool_count, std::vector<chain::transaction>& txn_available, std::unordered_map<uint64_t, uint16_t> const& shorttxids) const = 0;
+  
     // Filters.
     //-------------------------------------------------------------------------
 
@@ -210,6 +217,11 @@ public:
     // ------------------------------------------------------------------------
 
     virtual bool is_stale() const = 0;
+
+
+    //TODO(Mario) temporary duplication 
+    /// Get a determination of whether the block hash exists in the store.
+    virtual bool get_block_exists_safe(const hash_digest& block_hash) const = 0;
 };
 
 } // namespace blockchain

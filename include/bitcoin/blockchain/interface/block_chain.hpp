@@ -71,6 +71,9 @@ public:
     /// Get a determination of whether the block hash exists in the store.
     bool get_block_exists(const hash_digest& block_hash) const;
 
+    /// Get a determination of whether the block hash exists in the store.
+    bool get_block_exists_safe(const hash_digest& block_hash) const;
+
     /// Get the hash of the block if it exists.
     bool get_block_hash(hash_digest& out_hash, size_t height) const;
 
@@ -244,6 +247,9 @@ public:
     std::vector<mempool_transaction_summary> get_mempool_transactions(std::vector<std::string> const& payment_addresses, bool use_testnet_rules, bool witness) const;
     std::vector<mempool_transaction_summary> get_mempool_transactions(std::string const& payment_address, bool use_testnet_rules, bool witness) const;
 
+    
+
+
     /// fetch position and height within block of transaction by hash.
     void fetch_transaction_position(const hash_digest& hash,
         bool require_confirmed, transaction_index_fetch_handler handler) const;
@@ -290,6 +296,12 @@ public:
     /// Fetch an inventory vector for a rational "mempool" message response.
     void fetch_mempool(size_t count_limit, uint64_t minimum_fee,
         inventory_fetch_handler handler) const;
+
+
+    mempool_mini_hash_map get_mempool_mini_hash_map(message::compact_block const& block) const override;
+
+    void fill_tx_list_from_mempool(message::compact_block const& block, size_t& mempool_count, std::vector<chain::transaction>& txn_available, std::unordered_map<uint64_t, uint16_t> const& shorttxids) const override;
+
 
     // Filters.
     //-------------------------------------------------------------------------

@@ -29,10 +29,12 @@
 #include <unordered_set>
 #include <bitcoin/bitcoin.hpp>
 #include <bitcoin/database.hpp>
+#include <bitcoin/bitcoin/math/sip_hash.hpp>
 #include <bitcoin/bitcoin/multi_crypto_support.hpp>
 #include <bitcoin/blockchain/settings.hpp>
 #include <bitcoin/blockchain/populate/populate_chain_state.hpp>
 #include <boost/thread/latch.hpp>
+
 
 namespace libbitcoin { namespace blockchain {
 
@@ -108,6 +110,11 @@ bool block_chain::get_gaps(block_database::heights& out_gaps) const
 bool block_chain::get_block_exists(const hash_digest& block_hash) const
 {
     return database_.blocks().get(block_hash);
+}
+
+bool block_chain::get_block_exists_safe(const hash_digest& block_hash) const
+{
+    return get_block_exists(block_hash);
 }
 
 bool block_chain::get_block_hash(hash_digest& out_hash, size_t height) const
@@ -674,11 +681,29 @@ void block_chain::fetch_compact_block(size_t height,
     handler(error::not_implemented, {}, 0);
 }
 
-void block_chain::fetch_compact_block(const hash_digest& hash,
-    compact_block_fetch_handler handler) const
+void block_chain::fetch_compact_block(const hash_digest& hash, compact_block_fetch_handler handler) const
 {
-    // TODO: implement compact blocks.
-    handler(error::not_implemented, {}, 0);
+#ifdef BITPRIM_CURRENCY_BCH
+    bool witness = false;
+#else
+    bool witness = true;
+#endif
+    if (stopped())
+    {
+        handler(error::service_stopped, {},0);
+        return;
+    }
+    
+    fetch_block(hash, witness,[&handler](const code& ec, block_const_ptr message, size_t height) {
+            
+        if (ec == error::success) {
+            auto blk_ptr = std::make_shared<compact_block>(compact_block::factory_from_block(*message));
+            handler(error::success, blk_ptr, height);
+        } else {
+            handler(ec, nullptr, height);
+        }
+        
+    });
 }
 
 void block_chain::fetch_block_height(const hash_digest& hash,
@@ -1086,6 +1111,113 @@ std::vector<libbitcoin::blockchain::mempool_transaction_summary> block_chain::ge
 
     return ret;
 }
+
+/*
+   def get_siphash_keys(self):
+        header_nonce = self.header.serialize()
+        header_nonce += struct.pack("<Q", self.nonce)
+        hash_header_nonce_as_str = sha256(header_nonce)
+        key0 = struct.unpack("<Q", hash_header_nonce_as_str[0:8])[0]
+        key1 = struct.unpack("<Q", hash_header_nonce_as_str[8:16])[0]
+        return [key0, key1]
+*/
+
+
+void block_chain::fill_tx_list_from_mempool(message::compact_block const& block, size_t& mempool_count, std::vector<chain::transaction>& txn_available, std::unordered_map<uint64_t, uint16_t> const& shorttxids) const {
+    
+    std::vector<bool> have_txn(txn_available.size());
+    
+    auto header_hash = hash(block);
+    auto k0 = from_little_endian_unsafe<uint64_t>(header_hash.begin());
+    auto k1 = from_little_endian_unsafe<uint64_t>(header_hash.begin() + sizeof(uint64_t));
+
+        
+    //LOG_INFO(LOG_BLOCKCHAIN)
+    //<< "fill_tx_list_from_mempool header_hash ->  " << encode_hash(header_hash) 
+    //<< " k0 " << k0
+    //<< " k1 " << k1;
+            
+
+    database_.transactions_unconfirmed().for_each([&](chain::transaction const &tx) {
+#ifdef BITPRIM_CURRENCY_BCH
+        bool witness = false;
+#else
+        bool witness = true;
+#endif
+        uint64_t shortid = sip_hash_uint256(k0, k1, tx.hash(witness)) & uint64_t(0xffffffffffff);
+        
+      /*   LOG_INFO(LOG_BLOCKCHAIN)
+            << "mempool tx ->  " << encode_hash(tx.hash()) 
+            << " shortid " << shortid;
+      */      
+        auto idit = shorttxids.find(shortid);
+        if (idit != shorttxids.end()) {
+            if (!have_txn[idit->second]) {
+                txn_available[idit->second] = tx;
+                have_txn[idit->second] = true;
+                ++mempool_count;
+            } else {
+                // If we find two mempool txn that match the short id, just
+                // request it. This should be rare enough that the extra
+                // bandwidth doesn't matter, but eating a round-trip due to
+                // FillBlock failure would be annoying.
+                if (txn_available[idit->second].is_valid()) {
+                    //txn_available[idit->second].reset();
+                    txn_available[idit->second] = chain::transaction{};
+                    --mempool_count;
+                }
+            }
+        }
+        // Though ideally we'd continue scanning for the
+        // two-txn-match-shortid case, the performance win of an early exit
+        // here is too good to pass up and worth the extra risk.
+        if (mempool_count == shorttxids.size()) {
+            return false;
+        } else {
+            return true;
+        }
+    });
+}
+
+
+
+ safe_chain::mempool_mini_hash_map block_chain::get_mempool_mini_hash_map(message::compact_block const& block) const {
+#ifdef BITPRIM_CURRENCY_BCH
+     bool witness = false;
+#else
+     bool witness = true;
+#endif
+ 
+    if (stopped()) {
+        return {};
+    }
+    
+    auto header_hash = hash(block);
+
+    auto k0 = from_little_endian_unsafe<uint64_t>(header_hash.begin());
+    auto k1 = from_little_endian_unsafe<uint64_t>(header_hash.begin() + sizeof(uint64_t));
+
+    safe_chain::mempool_mini_hash_map mempool;
+   
+    database_.transactions_unconfirmed().for_each([&](chain::transaction const &tx) {
+    
+        auto sh = sip_hash_uint256(k0, k1, tx.hash(witness));
+        
+       /* to_little_endian()
+        uint64_t pepe = 4564564;
+        uint64_t pepe2 = pepe & 0x0000ffffffffffff;
+            
+        reinterpret_cast<uint8_t*>(pepe2);
+        */
+        //Drop the most significative bytes from the sh
+        mini_hash short_id;
+        mempool.emplace(short_id,tx);
+        return true;
+    });
+
+    return mempool;
+}
+
 
 std::vector<libbitcoin::blockchain::mempool_transaction_summary> block_chain::get_mempool_transactions(std::string const& payment_address, bool use_testnet_rules, bool witness) const{
     std::vector<std::string> addresses = {payment_address};
