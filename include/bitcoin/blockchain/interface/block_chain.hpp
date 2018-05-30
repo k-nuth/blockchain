@@ -244,7 +244,8 @@ public:
     std::tuple<bool, size_t, uint64_t> is_double_spent_sigops_and_fees(chain::transaction const& tx, bool bip16_active) const;
     std::tuple<bool, size_t, uint64_t> validate_tx_2(chain::transaction const& tx, size_t height) const;
 
-    std::vector<std::tuple<std::string, std::string, size_t, std::string, uint64_t, std::string, std::string>> fetch_mempool_addrs(std::vector<std::string> const& payment_addresses, bool use_testnet_rules, bool witness) const;
+    std::vector<mempool_transaction_summary> get_mempool_transactions(std::vector<std::string> const& payment_addresses, bool use_testnet_rules, bool witness) const;
+    std::vector<mempool_transaction_summary> get_mempool_transactions(std::string const& payment_address, bool use_testnet_rules, bool witness) const;
 
     
 
@@ -279,8 +280,8 @@ public:
         size_t from_height, history_fetch_handler handler) const;
 
     /// Fetch all the txns used by the wallet
-    void fetch_txns(const short_hash& address_hash, size_t limit,
-                                 size_t from_height, txns_fetch_handler handler) const;
+    void fetch_confirmed_transactions(const short_hash& address_hash, size_t limit,
+                                      size_t from_height, confirmed_transactions_fetch_handler handler) const;
 
     /// fetch stealth results.
     void fetch_stealth(const binary& filter, size_t from_height,

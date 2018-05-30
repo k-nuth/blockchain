@@ -1032,7 +1032,7 @@ std::tuple<size_t,size_t,std::vector<tx_mempool>> block_chain::create_a_pack_of_
     return std::make_tuple(sigops_return, bytes_return, mempool_return);
 }
 
-std::vector<std::tuple<std::string, std::string, size_t, std::string, uint64_t, std::string, std::string>> block_chain::fetch_mempool_addrs(std::vector<std::string> const& payment_addresses, bool use_testnet_rules, bool witness) const {
+std::vector<libbitcoin::blockchain::mempool_transaction_summary> block_chain::get_mempool_transactions(std::vector<std::string> const& payment_addresses, bool use_testnet_rules, bool witness) const {
 /*          "    \"address\"  (string) The base58check encoded address\n"
             "    \"txid\"  (string) The related txid\n"
             "    \"index\"  (number) The related input or output index\n"
@@ -1055,7 +1055,7 @@ std::vector<std::tuple<std::string, std::string, size_t, std::string, uint64_t, 
         encoding_p2kh = libbitcoin::wallet::payment_address::mainnet_p2kh;
         encoding_p2sh = libbitcoin::wallet::payment_address::mainnet_p2sh;
     }
-    std::vector<std::tuple<std::string, std::string, size_t, std::string, uint64_t, std::string, std::string>> ret;
+    std::vector<libbitcoin::blockchain::mempool_transaction_summary> ret;
     std::unordered_set<libbitcoin::wallet::payment_address> addrs;
     for (const auto & payment_address : payment_addresses) {
         libbitcoin::wallet::payment_address address(payment_address);
@@ -1071,9 +1071,13 @@ std::vector<std::tuple<std::string, std::string, size_t, std::string, uint64_t, 
         for (auto const& output : tx.outputs()) {
             const auto tx_addresses = libbitcoin::wallet::payment_address::extract(output.script(), encoding_p2kh, encoding_p2sh);
             ++i;
-            for(const auto tx_address : tx_addresses)
+            for(const auto tx_address : tx_addresses) {
                 if (tx_address && addrs.find(tx_address) != addrs.end()) {
-                    ret.push_back(std::make_tuple(tx_address.encoded(), libbitcoin::encode_hash(tx.hash()), i, std::to_string(output.value()), tx_res.arrival_time(), "", ""));
+                    ret.push_back
+                            (libbitcoin::blockchain::mempool_transaction_summary
+                                     (tx_address.encoded(), libbitcoin::encode_hash(tx.hash()), "",
+                                      "", std::to_string(output.value()), i, tx_res.arrival_time()));
+                }
             }
         }
         i = 0;
@@ -1087,13 +1091,14 @@ std::vector<std::tuple<std::string, std::string, size_t, std::string, uint64_t, 
                                       libbitcoin::transaction_const_ptr tx_ptr, size_t index,
                                       size_t height) {
                                       if (ec == libbitcoin::error::success) {
-                                          ret.push_back(std::make_tuple(tx_address.encoded(),
-                                                                            libbitcoin::encode_hash(tx.hash()),
-                                                                            i,
-                                                                            "-"+std::to_string(tx_ptr->outputs()[input.previous_output().index()].value()),
-                                                                            tx_res.arrival_time(),
-                                                                            libbitcoin::encode_hash(input.previous_output().hash()),
-                                                                            std::to_string(input.previous_output().index())));
+                                          ret.push_back(libbitcoin::blockchain::mempool_transaction_summary
+                                                                (tx_address.encoded(),
+                                                                libbitcoin::encode_hash(tx.hash()),
+                                                                libbitcoin::encode_hash(input.previous_output().hash()),
+                                                                 std::to_string(input.previous_output().index()),
+                                                                "-"+std::to_string(tx_ptr->outputs()[input.previous_output().index()].value()),
+                                                                i,
+                                                                tx_res.arrival_time()));
                                       }
                                       latch.count_down();
                                   });
@@ -1106,7 +1111,6 @@ std::vector<std::tuple<std::string, std::string, size_t, std::string, uint64_t, 
 
     return ret;
 }
-
 
 /*
    def get_siphash_keys(self):
@@ -1215,6 +1219,10 @@ void block_chain::fill_tx_list_from_mempool(message::compact_block const& block,
 }
 
 
+std::vector<libbitcoin::blockchain::mempool_transaction_summary> block_chain::get_mempool_transactions(std::string const& payment_address, bool use_testnet_rules, bool witness) const{
+    std::vector<std::string> addresses = {payment_address};
+    return get_mempool_transactions(addresses, use_testnet_rules, witness);
+}
 
 // This is same as fetch_transaction but skips deserializing the tx payload.
 void block_chain::fetch_transaction_position(const hash_digest& hash,
@@ -1462,8 +1470,8 @@ void block_chain::fetch_history(const short_hash& address_hash, size_t limit,
         from_height));
 }
 
-void block_chain::fetch_txns(const short_hash& address_hash, size_t limit,
-                                size_t from_height, txns_fetch_handler handler) const
+void block_chain::fetch_confirmed_transactions(const short_hash& address_hash, size_t limit,
+                                               size_t from_height, confirmed_transactions_fetch_handler handler) const
 {
     if (stopped())
     {
