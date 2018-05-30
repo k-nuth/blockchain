@@ -26,7 +26,7 @@ namespace blockchain {
 settings::settings()
   : cores(0)
   , priority(true)
-  , byte_fee_satoshis(1)
+  , byte_fee_satoshis(0.1)
   , sigop_fee_satoshis(100)
   , minimum_output_satoshis(500)
   , notify_limit_hours(24)
