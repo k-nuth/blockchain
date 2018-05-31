@@ -29,10 +29,12 @@
 #include <unordered_set>
 #include <bitcoin/bitcoin.hpp>
 #include <bitcoin/database.hpp>
+#include <bitcoin/bitcoin/math/sip_hash.hpp>
 #include <bitcoin/bitcoin/multi_crypto_support.hpp>
 #include <bitcoin/blockchain/settings.hpp>
 #include <bitcoin/blockchain/populate/populate_chain_state.hpp>
 #include <boost/thread/latch.hpp>
+
 
 namespace libbitcoin { namespace blockchain {
 
@@ -108,6 +110,11 @@ bool block_chain::get_gaps(block_database::heights& out_gaps) const
 bool block_chain::get_block_exists(const hash_digest& block_hash) const
 {
     return database_.blocks().get(block_hash);
+}
+
+bool block_chain::get_block_exists_safe(const hash_digest& block_hash) const
+{
+    return get_block_exists(block_hash);
 }
 
 bool block_chain::get_block_hash(hash_digest& out_hash, size_t height) const
@@ -424,8 +431,12 @@ block_chain::~block_chain()
 // Blocks are and transactions returned const because they don't change and
 // this eliminates the need to copy the cached items.
 
-void block_chain::fetch_block(size_t height, block_fetch_handler handler) const
+void block_chain::fetch_block(size_t height, bool witness,
+    block_fetch_handler handler) const
 {
+#ifdef BITPRIM_CURRENCY_BCH
+    witness = false;
+#endif
     if (stopped())
     {
         handler(error::service_stopped, nullptr, 0);
@@ -469,7 +480,7 @@ void block_chain::fetch_block(size_t height, block_fetch_handler handler) const
 
         BITCOIN_ASSERT(tx_result.height() == height);
         BITCOIN_ASSERT(tx_result.position() == position++);
-        txs.push_back(tx_result.transaction());
+        txs.push_back(tx_result.transaction(witness));
     }
 
     auto message = std::make_shared<const block>(block_result.header(),
@@ -477,9 +488,12 @@ void block_chain::fetch_block(size_t height, block_fetch_handler handler) const
     handler(error::success, message, height);
 }
 
-void block_chain::fetch_block(const hash_digest& hash,
+void block_chain::fetch_block(const hash_digest& hash, bool witness,
     block_fetch_handler handler) const
 {
+#ifdef BITPRIM_CURRENCY_BCH
+    witness = false;
+#endif
     if (stopped())
     {
         handler(error::service_stopped, nullptr, 0);
@@ -522,7 +536,7 @@ void block_chain::fetch_block(const hash_digest& hash,
 
         BITCOIN_ASSERT(tx_result.height() == height);
         BITCOIN_ASSERT(tx_result.position() == position++);
-        txs.push_back(tx_result.transaction());
+        txs.push_back(tx_result.transaction(witness));
     }
 
     const auto message = std::make_shared<const block>(block_result.header(),
@@ -533,7 +547,6 @@ void block_chain::fetch_block(const hash_digest& hash,
 void block_chain::fetch_block_header_txs_size(const hash_digest& hash,
     block_header_txs_size_fetch_handler handler) const
 {
-
     if (stopped())
     {
         handler(error::service_stopped, nullptr, 0, std::make_shared<hash_list>(hash_list()),0);
@@ -669,11 +682,29 @@ void block_chain::fetch_compact_block(size_t height,
     handler(error::not_implemented, {}, 0);
 }
 
-void block_chain::fetch_compact_block(const hash_digest& hash,
-    compact_block_fetch_handler handler) const
+void block_chain::fetch_compact_block(const hash_digest& hash, compact_block_fetch_handler handler) const
 {
-    // TODO: implement compact blocks.
-    handler(error::not_implemented, {}, 0);
+#ifdef BITPRIM_CURRENCY_BCH
+    bool witness = false;
+#else
+    bool witness = true;
+#endif
+    if (stopped())
+    {
+        handler(error::service_stopped, {},0);
+        return;
+    }
+    
+    fetch_block(hash, witness,[&handler](const code& ec, block_const_ptr message, size_t height) {
+            
+        if (ec == error::success) {
+            auto blk_ptr = std::make_shared<compact_block>(compact_block::factory_from_block(*message));
+            handler(error::success, blk_ptr, height);
+        } else {
+            handler(ec, nullptr, height);
+        }
+        
+    });
 }
 
 void block_chain::fetch_block_height(const hash_digest& hash,
@@ -716,8 +747,12 @@ void block_chain::fetch_last_height(last_height_fetch_handler handler) const
 }
 
 void block_chain::fetch_transaction(const hash_digest& hash,
-    bool require_confirmed, transaction_fetch_handler handler) const
+    bool require_confirmed, bool witness,
+    transaction_fetch_handler handler) const
 {
+#ifdef BITPRIM_CURRENCY_BCH
+    witness = false;
+#endif
     if (stopped())
     {
         handler(error::service_stopped, nullptr, 0, 0);
@@ -749,7 +784,8 @@ void block_chain::fetch_transaction(const hash_digest& hash,
         return;
     }
 
-    const auto tx = std::make_shared<const transaction>(result.transaction());
+    const auto tx = std::make_shared<const transaction>(
+        result.transaction(witness));
     handler(error::success, tx, result.position(), result.height());
 }
 
@@ -882,6 +918,11 @@ std::vector<block_chain::tx_mempool> block_chain::fetch_mempool_all(size_t max_b
     if (stopped()) {
         return std::vector<block_chain::tx_mempool>();
     }
+#ifdef BITPRIM_CURRENCY_BCH
+    bool witness = false;
+#else
+    bool witness = true;
+#endif
 
     size_t height;
     if (!database_.blocks().top(height)) {
@@ -901,7 +942,7 @@ std::vector<block_chain::tx_mempool> block_chain::fetch_mempool_all(size_t max_b
         if (res_validate && !res_ds) {
             append_spend(tx, spent);
             std::string dependencies = ""; //TODO: see what to do with the final algorithm
-            size_t tx_weight = tx.to_data(true).size();
+            size_t tx_weight = tx.to_data(true, witness, false).size();
             mempool.emplace_back(tx, tx.cached_fees(), tx.cached_sigops(), dependencies, tx_weight, true);
         }
         return true;
@@ -992,7 +1033,7 @@ std::tuple<size_t,size_t,std::vector<tx_mempool>> block_chain::create_a_pack_of_
     return std::make_tuple(sigops_return, bytes_return, mempool_return);
 }
 
-std::vector<std::tuple<std::string, std::string, size_t, std::string, uint64_t, std::string, std::string>> block_chain::fetch_mempool_addrs(std::vector<std::string> const& payment_addresses, bool use_testnet_rules) const {
+std::vector<libbitcoin::blockchain::mempool_transaction_summary> block_chain::get_mempool_transactions(std::vector<std::string> const& payment_addresses, bool use_testnet_rules, bool witness) const {
 /*          "    \"address\"  (string) The base58check encoded address\n"
             "    \"txid\"  (string) The related txid\n"
             "    \"index\"  (number) The related input or output index\n"
@@ -1001,6 +1042,11 @@ std::vector<std::tuple<std::string, std::string, size_t, std::string, uint64_t, 
             "    \"prevtxid\"  (string) The previous txid (if spending)\n"
             "    \"prevout\"  (string) The previous transaction output index (if spending)\n"
 */
+
+#ifdef BITPRIM_CURRENCY_BCH
+    witness = false;
+#endif
+
     uint8_t encoding_p2kh;
     uint8_t encoding_p2sh;
     if (use_testnet_rules){
@@ -1010,7 +1056,7 @@ std::vector<std::tuple<std::string, std::string, size_t, std::string, uint64_t, 
         encoding_p2kh = libbitcoin::wallet::payment_address::mainnet_p2kh;
         encoding_p2sh = libbitcoin::wallet::payment_address::mainnet_p2sh;
     }
-    std::vector<std::tuple<std::string, std::string, size_t, std::string, uint64_t, std::string, std::string>> ret;
+    std::vector<libbitcoin::blockchain::mempool_transaction_summary> ret;
     std::unordered_set<libbitcoin::wallet::payment_address> addrs;
     for (const auto & payment_address : payment_addresses) {
         libbitcoin::wallet::payment_address address(payment_address);
@@ -1020,33 +1066,40 @@ std::vector<std::tuple<std::string, std::string, size_t, std::string, uint64_t, 
     }
 
     database_.transactions_unconfirmed().for_each_result([&](libbitcoin::database::transaction_unconfirmed_result const &tx_res) {
-        auto tx = tx_res.transaction();
+        auto tx = tx_res.transaction(witness);
         tx.recompute_hash();
         size_t i = 0;
         for (auto const& output : tx.outputs()) {
-            const auto tx_address = libbitcoin::wallet::payment_address::extract(output.script(), encoding_p2kh, encoding_p2sh);
+            const auto tx_addresses = libbitcoin::wallet::payment_address::extract(output.script(), encoding_p2kh, encoding_p2sh);
             ++i;
-            if (tx_address && addrs.find(tx_address) != addrs.end()) {
-                ret.push_back(std::make_tuple(tx_address.encoded(), libbitcoin::encode_hash(tx.hash()), i, std::to_string(output.value()), tx_res.arrival_time(), "", ""));
+            for(const auto tx_address : tx_addresses) {
+                if (tx_address && addrs.find(tx_address) != addrs.end()) {
+                    ret.push_back
+                            (libbitcoin::blockchain::mempool_transaction_summary
+                                     (tx_address.encoded(), libbitcoin::encode_hash(tx.hash()), "",
+                                      "", std::to_string(output.value()), i, tx_res.arrival_time()));
+                }
             }
         }
         i = 0;
         for (auto const& input : tx.inputs()) {
-            const auto tx_address = libbitcoin::wallet::payment_address::extract(input.script(), encoding_p2kh, encoding_p2sh);
+            const auto tx_addresses = libbitcoin::wallet::payment_address::extract(input.script(), encoding_p2kh, encoding_p2sh);
+            for(const auto tx_address : tx_addresses)
             if (tx_address && addrs.find(tx_address) != addrs.end()) {
                 boost::latch latch(2);
-                fetch_transaction(input.previous_output().hash(), false,
+                fetch_transaction(input.previous_output().hash(), false, witness,
                                   [&](const libbitcoin::code &ec,
                                       libbitcoin::transaction_const_ptr tx_ptr, size_t index,
                                       size_t height) {
                                       if (ec == libbitcoin::error::success) {
-                                          ret.push_back(std::make_tuple(tx_address.encoded(),
-                                                                            libbitcoin::encode_hash(tx.hash()),
-                                                                            i,
-                                                                            "-"+std::to_string(tx_ptr->outputs()[input.previous_output().index()].value()),
-                                                                            tx_res.arrival_time(),
-                                                                            libbitcoin::encode_hash(input.previous_output().hash()),
-                                                                            std::to_string(input.previous_output().index())));
+                                          ret.push_back(libbitcoin::blockchain::mempool_transaction_summary
+                                                                (tx_address.encoded(),
+                                                                libbitcoin::encode_hash(tx.hash()),
+                                                                libbitcoin::encode_hash(input.previous_output().hash()),
+                                                                 std::to_string(input.previous_output().index()),
+                                                                "-"+std::to_string(tx_ptr->outputs()[input.previous_output().index()].value()),
+                                                                i,
+                                                                tx_res.arrival_time()));
                                       }
                                       latch.count_down();
                                   });
@@ -1058,6 +1111,118 @@ std::vector<std::tuple<std::string, std::string, size_t, std::string, uint64_t, 
     });
 
     return ret;
+}
+
+/*
+   def get_siphash_keys(self):
+        header_nonce = self.header.serialize()
+        header_nonce += struct.pack("<Q", self.nonce)
+        hash_header_nonce_as_str = sha256(header_nonce)
+        key0 = struct.unpack("<Q", hash_header_nonce_as_str[0:8])[0]
+        key1 = struct.unpack("<Q", hash_header_nonce_as_str[8:16])[0]
+        return [key0, key1]
+*/
+
+
+void block_chain::fill_tx_list_from_mempool(message::compact_block const& block, size_t& mempool_count, std::vector<chain::transaction>& txn_available, std::unordered_map<uint64_t, uint16_t> const& shorttxids) const {
+    
+    std::vector<bool> have_txn(txn_available.size());
+    
+    auto header_hash = hash(block);
+    auto k0 = from_little_endian_unsafe<uint64_t>(header_hash.begin());
+    auto k1 = from_little_endian_unsafe<uint64_t>(header_hash.begin() + sizeof(uint64_t));
+
+        
+    //LOG_INFO(LOG_BLOCKCHAIN)
+    //<< "fill_tx_list_from_mempool header_hash ->  " << encode_hash(header_hash) 
+    //<< " k0 " << k0
+    //<< " k1 " << k1;
+            
+
+    database_.transactions_unconfirmed().for_each([&](chain::transaction const &tx) {
+#ifdef BITPRIM_CURRENCY_BCH
+        bool witness = false;
+#else
+        bool witness = true;
+#endif
+        uint64_t shortid = sip_hash_uint256(k0, k1, tx.hash(witness)) & uint64_t(0xffffffffffff);
+        
+      /*   LOG_INFO(LOG_BLOCKCHAIN)
+            << "mempool tx ->  " << encode_hash(tx.hash()) 
+            << " shortid " << shortid;
+      */      
+        auto idit = shorttxids.find(shortid);
+        if (idit != shorttxids.end()) {
+            if (!have_txn[idit->second]) {
+                txn_available[idit->second] = tx;
+                have_txn[idit->second] = true;
+                ++mempool_count;
+            } else {
+                // If we find two mempool txn that match the short id, just
+                // request it. This should be rare enough that the extra
+                // bandwidth doesn't matter, but eating a round-trip due to
+                // FillBlock failure would be annoying.
+                if (txn_available[idit->second].is_valid()) {
+                    //txn_available[idit->second].reset();
+                    txn_available[idit->second] = chain::transaction{};
+                    --mempool_count;
+                }
+            }
+        }
+        // Though ideally we'd continue scanning for the
+        // two-txn-match-shortid case, the performance win of an early exit
+        // here is too good to pass up and worth the extra risk.
+        if (mempool_count == shorttxids.size()) {
+            return false;
+        } else {
+            return true;
+        }
+    });
+}
+
+
+
+ safe_chain::mempool_mini_hash_map block_chain::get_mempool_mini_hash_map(message::compact_block const& block) const {
+#ifdef BITPRIM_CURRENCY_BCH
+     bool witness = false;
+#else
+     bool witness = true;
+#endif
+ 
+    if (stopped()) {
+        return {};
+    }
+    
+    auto header_hash = hash(block);
+
+    auto k0 = from_little_endian_unsafe<uint64_t>(header_hash.begin());
+    auto k1 = from_little_endian_unsafe<uint64_t>(header_hash.begin() + sizeof(uint64_t));
+
+    safe_chain::mempool_mini_hash_map mempool;
+   
+    database_.transactions_unconfirmed().for_each([&](chain::transaction const &tx) {
+    
+        auto sh = sip_hash_uint256(k0, k1, tx.hash(witness));
+        
+       /* to_little_endian()
+        uint64_t pepe = 4564564;
+        uint64_t pepe2 = pepe & 0x0000ffffffffffff;
+            
+        reinterpret_cast<uint8_t*>(pepe2);
+        */
+        //Drop the most significative bytes from the sh
+        mini_hash short_id;
+        mempool.emplace(short_id,tx);
+        return true;
+    });
+
+    return mempool;
+}
+
+
+std::vector<libbitcoin::blockchain::mempool_transaction_summary> block_chain::get_mempool_transactions(std::string const& payment_address, bool use_testnet_rules, bool witness) const{
+    std::vector<std::string> addresses = {payment_address};
+    return get_mempool_transactions(addresses, use_testnet_rules, witness);
 }
 
 // This is same as fetch_transaction but skips deserializing the tx payload.
@@ -1306,8 +1471,8 @@ void block_chain::fetch_history(const short_hash& address_hash, size_t limit,
         from_height));
 }
 
-void block_chain::fetch_txns(const short_hash& address_hash, size_t limit,
-                                size_t from_height, txns_fetch_handler handler) const
+void block_chain::fetch_confirmed_transactions(const short_hash& address_hash, size_t limit,
+                                               size_t from_height, confirmed_transactions_fetch_handler handler) const
 {
     if (stopped())
     {

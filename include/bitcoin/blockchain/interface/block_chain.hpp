@@ -71,6 +71,9 @@ public:
     /// Get a determination of whether the block hash exists in the store.
     bool get_block_exists(const hash_digest& block_hash) const;
 
+    /// Get a determination of whether the block hash exists in the store.
+    bool get_block_exists_safe(const hash_digest& block_hash) const;
+
     /// Get the hash of the block if it exists.
     bool get_block_hash(hash_digest& out_hash, size_t height) const;
 
@@ -174,11 +177,11 @@ public:
     // ------------------------------------------------------------------------
 
     /// fetch a block by height.
-    // virtual      // OLD previo a merge de Feb2017
-    void fetch_block(size_t height, block_fetch_handler handler) const;
+    void fetch_block(size_t height, bool witness,
+        block_fetch_handler handler) const;
 
     /// fetch a block by hash.
-    void fetch_block(const hash_digest& hash,
+    void fetch_block(const hash_digest& hash, bool witness,
         block_fetch_handler handler) const;
 
     void fetch_block_header_txs_size(const hash_digest& hash,
@@ -223,7 +226,7 @@ public:
 
     /// fetch transaction by hash.
     void fetch_transaction(const hash_digest& hash, bool require_confirmed,
-        transaction_fetch_handler handler) const;
+        bool witness, transaction_fetch_handler handler) const;
 
     /// Generate fees for mining
     std::pair<bool, uint64_t> total_input_value(libbitcoin::chain::transaction const& tx) const;
@@ -241,7 +244,11 @@ public:
     std::tuple<bool, size_t, uint64_t> is_double_spent_sigops_and_fees(chain::transaction const& tx, bool bip16_active) const;
     std::tuple<bool, size_t, uint64_t> validate_tx_2(chain::transaction const& tx, size_t height) const;
 
-    std::vector<std::tuple<std::string, std::string, size_t, std::string, uint64_t, std::string, std::string>> fetch_mempool_addrs(std::vector<std::string> const& payment_addresses, bool use_testnet_rules) const;
+    std::vector<mempool_transaction_summary> get_mempool_transactions(std::vector<std::string> const& payment_addresses, bool use_testnet_rules, bool witness) const;
+    std::vector<mempool_transaction_summary> get_mempool_transactions(std::string const& payment_address, bool use_testnet_rules, bool witness) const;
+
+    
+
 
     /// fetch position and height within block of transaction by hash.
     void fetch_transaction_position(const hash_digest& hash,
@@ -273,8 +280,8 @@ public:
         size_t from_height, history_fetch_handler handler) const;
 
     /// Fetch all the txns used by the wallet
-    void fetch_txns(const short_hash& address_hash, size_t limit,
-                                 size_t from_height, txns_fetch_handler handler) const;
+    void fetch_confirmed_transactions(const short_hash& address_hash, size_t limit,
+                                      size_t from_height, confirmed_transactions_fetch_handler handler) const;
 
     /// fetch stealth results.
     void fetch_stealth(const binary& filter, size_t from_height,
@@ -289,6 +296,12 @@ public:
     /// Fetch an inventory vector for a rational "mempool" message response.
     void fetch_mempool(size_t count_limit, uint64_t minimum_fee,
         inventory_fetch_handler handler) const;
+
+
+    mempool_mini_hash_map get_mempool_mini_hash_map(message::compact_block const& block) const override;
+
+    void fill_tx_list_from_mempool(message::compact_block const& block, size_t& mempool_count, std::vector<chain::transaction>& txn_available, std::unordered_map<uint64_t, uint16_t> const& shorttxids) const override;
+
 
     // Filters.
     //-------------------------------------------------------------------------

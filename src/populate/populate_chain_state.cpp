@@ -88,7 +88,8 @@ bool populate_chain_state::populate_bits(chain_state::data& data, const chain_st
 
     if (is_transaction_pool(branch))
     {
-        data.bits.self = proof_of_work_limit;
+        // This is an unused value.
+        data.bits.self = work_limit(true);
         return true;
     }
 
@@ -166,7 +167,22 @@ bool populate_chain_state::populate_bip9_bit0(chain_state::data& data, const cha
     return get_block_hash(data.bip9_bit0_hash, map.bip9_bit0_height, branch);
 }
 
-bool populate_chain_state::populate_all(chain_state::data& data, branch::const_ptr branch) const {
+bool populate_chain_state::populate_bip9_bit1(chain_state::data& data,
+    const chain_state::map& map, branch::const_ptr branch) const
+{
+    if (map.bip9_bit1_height == chain_state::map::unrequested)
+    {
+        data.bip9_bit1_hash = null_hash;
+        return true;
+    }
+
+    return get_block_hash(data.bip9_bit1_hash,
+        map.bip9_bit1_height, branch);
+}
+
+bool populate_chain_state::populate_all(chain_state::data& data,
+    branch::const_ptr branch) const
+{
     // Critical Section
     ///////////////////////////////////////////////////////////////////////////
     unique_lock lock(mutex_);
@@ -178,7 +194,8 @@ bool populate_chain_state::populate_all(chain_state::data& data, branch::const_p
         populate_versions(data, map, branch) &&
         populate_timestamps(data, map, branch) &&
         populate_collision(data, map, branch) &&
-        populate_bip9_bit0(data, map, branch));
+        populate_bip9_bit0(data, map, branch) &&
+        populate_bip9_bit1(data, map, branch));
     ///////////////////////////////////////////////////////////////////////////
 }
 
