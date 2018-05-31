@@ -1181,15 +1181,15 @@ void block_chain::fill_tx_list_from_mempool(message::compact_block const& block,
 
 
 
- safe_chain::mempool_mini_hash_map block_chain::get_mempool_mini_hash_map(message::compact_block const& block) const {
+safe_chain::mempool_mini_hash_map block_chain::get_mempool_mini_hash_map(message::compact_block const& block) const {
 #ifdef BITPRIM_CURRENCY_BCH
      bool witness = false;
 #else
      bool witness = true;
 #endif
- 
+
     if (stopped()) {
-        return {};
+        return safe_chain::mempool_mini_hash_map();
     }
     
     auto header_hash = hash(block);
