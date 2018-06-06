@@ -57,6 +57,7 @@ public:
     block_chain(threadpool& pool,
         const blockchain::settings& chain_settings,
         const database::settings& database_settings,
+        std::mutex& gbt_mutex,
         bool relay_transactions=true);
 
     /// The database is closed on destruct, threads must be joined.
@@ -419,7 +420,8 @@ private:
     uint64_t chosen_sigops;
     std::list <tx_benefit> chosen_unconfirmed;
     spent_mempool chosen_spent;
-
+    mutable std::mutex* gbt_mutex_;
+    bool gbt_ready_;
 
 
 #endif
