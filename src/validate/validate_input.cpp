@@ -73,8 +73,13 @@ uint32_t validate_input::convert_flags(uint32_t native_forks)
     if (script::is_enabled(native_forks, rule_fork::cash_replay_protection)) {
         flags |= verify_flags_script_enable_replay_protection;
     }
-#endif //BITPRIM_CURRENCY_BCH
+#else //BITPRIM_CURRENCY_BCH
+    if (script::is_enabled(native_forks, rule_fork::bip141_rule))
+        flags |= verify_flags_witness;
 
+    if (script::is_enabled(native_forks, rule_fork::bip147_rule))
+        flags |= verify_flags_nulldummy;
+#endif
     return flags;
 }
 
@@ -116,13 +121,19 @@ code validate_input::convert_result(verify_result_type result)
         case verify_result_type::verify_result_unbalanced_conditional:
             return error::invalid_script;
 
-        // Softbranch safeness (should not see).
+        // Softfork safeness (should not see).
         case verify_result_type::verify_result_discourage_upgradable_nops:
-            return error::operation_failed_20;
+            return error::operation_failed;
+#ifndef BITPRIM_CURRENCY_BCH
+        case verify_result_type::verify_result_discourage_upgradable_witness_program:
+            return error::operation_failed;
 
+        // BIP66 errors (also BIP62, which is undeployed).
+        case verify_result_type::verify_result_sig_der:
+            return error::invalid_signature_encoding;
+#endif
         // BIP62 errors (should not see).
         case verify_result_type::verify_result_sig_hashtype:
-        case verify_result_type::verify_result_sig_der:
         case verify_result_type::verify_result_minimaldata:
         case verify_result_type::verify_result_sig_pushonly:
         case verify_result_type::verify_result_sig_high_s:
@@ -141,6 +152,18 @@ code validate_input::convert_result(verify_result_type result)
         case verify_result_type::verify_result_unknown_error:
             return error::invalid_script;
 
+#ifndef BITPRIM_CURRENCY_BCH
+        // Segregated witness.
+        case verify_result_type::verify_result_witness_program_wrong_length:
+        case verify_result_type::verify_result_witness_program_empty_witness:
+        case verify_result_type::verify_result_witness_program_mismatch:
+        case verify_result_type::verify_result_witness_malleated:
+        case verify_result_type::verify_result_witness_malleated_p2sh:
+        case verify_result_type::verify_result_witness_unexpected:
+        case verify_result_type::verify_result_witness_pubkeytype:
+            return error::invalid_script;
+#endif
+
         // Augmention codes for tx deserialization.
         case verify_result_type::verify_result_tx_invalid:
         case verify_result_type::verify_result_tx_size_invalid:
@@ -156,16 +179,23 @@ code validate_input::convert_result(verify_result_type result)
 code validate_input::verify_script(const transaction& tx, uint32_t input_index,
     uint32_t branches) {
 
+#ifdef BITPRIM_CURRENCY_BCH
+    bool witness = false;
+#else
+    bool witness = true;
+#endif
+
     BITCOIN_ASSERT(input_index < tx.inputs().size());
     const auto& prevout = tx.inputs()[input_index].previous_output().validation;
     const auto script_data = prevout.cache.script().to_data(false);
+    const auto prevout_value = prevout.cache.value();
 
     // const auto amount = bitcoin_cash ? prevout.cache.value() : 0;
     const auto amount = prevout.cache.value();
     // const auto prevout_value = prevout.cache.value();
 
     // Wire serialization is cached in support of large numbers of inputs.
-    const auto tx_data = tx.to_data();
+    const auto tx_data = tx.to_data(true, witness, false);
 
 #ifdef BITPRIM_CURRENCY_BCH
     auto res = consensus::verify_script(tx_data.data(),

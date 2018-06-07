@@ -26,6 +26,7 @@
 #include <vector>
 #include <bitcoin/bitcoin.hpp>
 #include <bitcoin/blockchain/define.hpp>
+#include <bitcoin/blockchain/pools/mempool_transaction_summary.hpp>
 
 namespace libbitcoin {
 namespace blockchain {
@@ -47,7 +48,7 @@ public:
     typedef handle1<chain::stealth_compact::list> stealth_fetch_handler;
     typedef handle2<size_t, size_t> transaction_index_fetch_handler;
 
-    typedef handle1<std::vector<hash_digest>> txns_fetch_handler;
+    typedef handle1<std::vector<hash_digest>> confirmed_transactions_fetch_handler;
 
     // Smart pointer parameters must not be passed by reference.
     typedef std::function<void(const code&, block_const_ptr, size_t)>
@@ -82,6 +83,9 @@ public:
     typedef std::function<bool(code, transaction_const_ptr)>
         transaction_handler;
 
+
+    using mempool_mini_hash_map = std::unordered_map<mini_hash, chain::transaction>;
+
     // Startup and shutdown.
     // ------------------------------------------------------------------------
 
@@ -92,10 +96,10 @@ public:
     // Node Queries.
     // ------------------------------------------------------------------------
 
-    virtual void fetch_block(size_t height,
+    virtual void fetch_block(size_t height, bool witness,
         block_fetch_handler handler) const = 0;
 
-    virtual void fetch_block(const hash_digest& hash,
+    virtual void fetch_block(const hash_digest& hash, bool witness,
         block_fetch_handler handler) const = 0;
 
     virtual void fetch_block_header(size_t height,
@@ -135,7 +139,8 @@ public:
         last_height_fetch_handler handler) const = 0;
 
     virtual void fetch_transaction(const hash_digest& hash,
-        bool require_confirmed, transaction_fetch_handler handler) const = 0;
+        bool require_confirmed, bool witness,
+        transaction_fetch_handler handler) const = 0;
 
     virtual void fetch_transaction_position(const hash_digest& hash,
         bool require_confirmed,
@@ -161,6 +166,9 @@ public:
     virtual void fetch_history(const short_hash& address_hash, size_t limit,
         size_t from_height, history_fetch_handler handler) const = 0;
 
+    virtual void fetch_confirmed_transactions(const short_hash& address_hash, size_t limit,
+                                              size_t from_height, confirmed_transactions_fetch_handler handler) const = 0;
+
     virtual void fetch_stealth(const binary& filter, size_t from_height,
         stealth_fetch_handler handler) const = 0;
 
@@ -170,7 +178,15 @@ public:
     virtual void fetch_template(merkle_block_fetch_handler handler) const = 0;
     virtual void fetch_mempool(size_t count_limit, uint64_t minimum_fee,
         inventory_fetch_handler handler) const = 0;
+    virtual std::vector<mempool_transaction_summary> get_mempool_transactions(std::vector<std::string> const& payment_addresses,
+                                                                     bool use_testnet_rules, bool witness) const = 0;
+    virtual std::vector<mempool_transaction_summary> get_mempool_transactions(std::string const& payment_address,
+                                                                     bool use_testnet_rules, bool witness) const = 0;
 
+    virtual mempool_mini_hash_map get_mempool_mini_hash_map(message::compact_block const& block) const = 0;
+
+    virtual void fill_tx_list_from_mempool(message::compact_block const& block, size_t& mempool_count, std::vector<chain::transaction>& txn_available, std::unordered_map<uint64_t, uint16_t> const& shorttxids) const = 0;
+  
     // Filters.
     //-------------------------------------------------------------------------
 
@@ -206,6 +222,10 @@ public:
 
     virtual bool add_to_chosen_list(transaction_const_ptr tx) = 0;
     virtual bool remove_mined_txs_from_mempool(block_const_ptr blk) = 0;
+
+    //TODO(Mario) temporary duplication 
+    /// Get a determination of whether the block hash exists in the store.
+    virtual bool get_block_exists_safe(const hash_digest& block_hash) const = 0;
 
 };
 

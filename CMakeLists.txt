@@ -22,7 +22,7 @@ cmake_minimum_required(VERSION 3.4)
 # bitprim-blockchain
 #==============================================================================
 project(bitprim-blockchain
-  VERSION 0.10.0
+  VERSION 0.11.0
   LANGUAGES CXX C)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -135,23 +135,23 @@ if (NO_CONAN_AT_ALL)
 endif()
 
 if (NOT USE_CONAN)
-  # Require bitprim-database (or bitprim-database-requester) of at least version 0.10.0 and output ${bitprim_database_CPPFLAGS/LIBS/PKG}.
+  # Require bitprim-database (or bitprim-database-requester) of at least version 0.11.0 and output ${bitprim_database_CPPFLAGS/LIBS/PKG}.
   #------------------------------------------------------------------------------
   if (WITH_REMOTE_DATABASE)
     if (NOT TARGET bitprim-database-requester)
-      find_package(bitprim-database-requester 0.10.0 REQUIRED)
+      find_package(bitprim-database-requester 0.11.0 REQUIRED)
     endif()
     else()
     if (NOT TARGET bitprim-database)
-      find_package(bitprim-database 0.10.0 REQUIRED)
+      find_package(bitprim-database 0.11.0 REQUIRED)
     endif()
   endif()
 
-  # Require bitprim-consensus of at least version 0.10.0 and output ${bitprim_consensus_CPPFLAGS/LIBS/PKG}.
+  # Require bitprim-consensus of at least version 0.11.0 and output ${bitprim_consensus_CPPFLAGS/LIBS/PKG}.
   #------------------------------------------------------------------------------
   if (WITH_CONSENSUS)
     if (NOT TARGET bitprim-consensus)
-      find_package(bitprim-consensus 0.10.0 REQUIRED)
+      find_package(bitprim-consensus 0.11.0 REQUIRED)
     endif()
   endif()  
 endif(NOT USE_CONAN)
@@ -253,7 +253,7 @@ add_library(bitprim-blockchain ${MODE}
   src/validate/validate_transaction.cpp
   src/settings.cpp
   src/version.cpp
-)
+        include/bitcoin/blockchain/pools/mempool_transaction_summary.hpp src/pools/mempool_transaction_summary.cpp)
 
 
 if (ENABLE_POSITION_INDEPENDENT_CODE)
@@ -397,7 +397,7 @@ if (WITH_TESTS)
     test/validate_block.cpp
     test/validate_transaction.cpp
     test/main.cpp
-  )
+          include/bitcoin/blockchain/pools/mempool_transaction_summary.hpp src/pools/mempool_transaction_summary.cpp)
 
   target_link_libraries(bitprim_blockchain_test PUBLIC bitprim-blockchain)
   _group_sources(bitprim_blockchain_test "${CMAKE_CURRENT_LIST_DIR}/test")
@@ -445,7 +445,7 @@ endif()
 # local: tools/initchain/initchain
 #------------------------------------------------------------------------------
 if (WITH_TOOLS)
-  add_executable(tools.initchain tools/initchain/initchain.cpp)
+  add_executable(tools.initchain tools/initchain/initchain.cpp include/bitcoin/blockchain/pools/mempool_transaction_summary.hpp src/pools/mempool_transaction_summary.cpp)
   target_link_libraries(tools.initchain bitprim-blockchain)
   _group_sources(tools.initchain "${CMAKE_CURRENT_LIST_DIR}/tools/initchain")
 endif()
