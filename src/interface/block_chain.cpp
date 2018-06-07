@@ -312,9 +312,15 @@ void block_chain::append_spend_(transaction_const_ptr tx) {
 // retrieve the transaction from the database to access the full data.
 void block_chain::remove_spend(libbitcoin::hash_digest hash){
     //TODO improve linear search
+#ifdef BITPRIM_CURRENCY_BCH
+    bool witness = false;
+#else
+    bool witness = true;
+#endif
+
     libbitcoin::transaction_const_ptr tx;
     boost::latch latch(2);
-    fetch_transaction(hash, false,
+    fetch_transaction(hash, false, witness,
         [&](const libbitcoin::code &ec, libbitcoin::transaction_const_ptr tx_ptr, size_t index,
             size_t height) {
             if (ec == libbitcoin::error::success) {
