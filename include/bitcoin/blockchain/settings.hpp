@@ -47,6 +47,7 @@ public:
     config::checkpoint::list checkpoints;
     bool allow_collisions;
     bool easy_blocks;
+    bool retarget;
     bool bip16;
     bool bip30;
     bool bip34;
@@ -66,6 +67,9 @@ public:
 #endif //BITPRIM_CURRENCY_BCH
 
 
+    bool bip141;
+    bool bip143;
+    bool bip147;
 };
 
 }} // namespace libbitcoin::blockchain
