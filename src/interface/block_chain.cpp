@@ -325,21 +325,21 @@ void block_chain::remove_spend(libbitcoin::hash_digest hash){
 void block_chain::remove_spend(transaction_const_ptr tx) {
     //TODO linear search
 
-    //std::cout << "Al borrar una tx " << chosen_spent.size() << std::endl;
-    for (auto const& input : tx->inputs()) {
-    auto it = std::find_if (chosen_spent.begin(), chosen_spent.end(),
+    //Since every spend tx is consecuent
+    auto prev_outputs_size = tx->inputs().size();
+    auto from_it = std::find_if (chosen_spent.begin(), chosen_spent.end(),
             [&](const spent_mempool_type& spent){ 
-                return (std::get<0>(spent) == input.previous_output().hash() && std::get<1>(spent) == input.previous_output().index());
+                return (std::get<0>(spent) == tx->inputs().begin()->previous_output().hash() && std::get<1>(spent) == tx->inputs().begin()->previous_output().index());
               });
-    if(it!= chosen_spent.end())
-        chosen_spent.erase(it);
-    }
+    auto to_it = from_it;
+    std::advance(to_it, prev_outputs_size);
+    chosen_spent.erase(from_it, to_it);
+    
 }
 
 // Search the TEMPORARY SPENT index for conflicts between previous output
 std::set<libbitcoin::hash_digest> block_chain::get_double_spend_mempool(transaction_const_ptr tx) {
 
-//TODO Shared Lock for CHOSEN SPENT
     std::set<libbitcoin::hash_digest> spent_conflict{};
     for (auto const& input : tx->inputs()) {
         for(auto const& spent : chosen_spent){
@@ -375,16 +375,26 @@ bool block_chain::check_is_double_spend(transaction_const_ptr tx){
 bool block_chain::insert_to_chosen_list(transaction_const_ptr& tx, double benefit, size_t tx_size, size_t tx_sigops){
     //TODO linear search
     //busco donde tengo que agregar la nueva, ordenada por beneficio.
-    auto it = chosen_unconfirmed.begin();
+    tx_benefit txnew(tx->hash(), benefit, tx_sigops, tx_size);
+
+    chosen_unconfirmed.insert(
+        std::upper_bound(begin(chosen_unconfirmed), end(chosen_unconfirmed), txnew, [](tx_benefit const& a, tx_benefit const& b) {
+            return std::get<1>(a) < std::get<1>(b);
+    }), txnew);
+
+    chosen_size += tx_size;
+    chosen_sigops += tx_sigops;
+    append_spend_(tx);
+
+/*    auto it = chosen_unconfirmed.begin();
     while (it != chosen_unconfirmed.end()){
         if( std::get<1>(*it) < benefit)
             it++;
         else break;
     }
-    chosen_size += tx_size;
-    chosen_sigops += tx_sigops;
     chosen_unconfirmed.emplace(it, tx->hash(), benefit, tx_sigops, tx_size);
-    append_spend_(tx);
+*/
+
 
     return true;
 }
@@ -430,15 +440,8 @@ size_t block_chain::find_insertion_point(const size_t sigops_limit, const size_t
 //Check if the new transaction can be added to the txs selection.
 //
 bool block_chain::add_to_chosen_list(transaction_const_ptr tx){
-
+    gbt_mutex_->lock();
     //std::cout << "hash " << libbitcoin::encode_hash(tx->hash()) << std::endl;
-    auto tx_size = tx->serialized_size(0);
-    auto tx_sigops = tx->signature_operations();
-    auto tx_fees = tx->fees();
-    auto estimated_size = chosen_size + tx_size;
-    auto next_size = (estimated_size > ( libbitcoin::get_max_block_size() - 20000 ))? libbitcoin::get_max_block_size() - 20000 : (estimated_size);
-    auto sigops_limit = (size_t(next_size / 1000000) + 1) * 20000;
-    double benefit = (double(tx_fees) /  tx_size * tx_sigops ); //Le di peso a los sigops (quizas demasiado)
     //std::cout << "add_to_chosen_list - thread id " << std::this_thread::get_id() << std::endl;
     //std::cout << chosen_unconfirmed.size() << " Acum size "<< chosen_size << " acum sigops " << chosen_sigops << "  tx_size " << tx_size << " tx_sigops ";
     //std::cout << "spent size "<< chosen_spent.size() << std::endl;
@@ -446,6 +449,16 @@ bool block_chain::add_to_chosen_list(transaction_const_ptr tx){
 
     if (!check_is_double_spend(tx)){ 
         //Si no tengo lugar para insertar //TODO hardcoded -20000
+
+        auto tx_size = tx->serialized_size(0);
+        auto tx_sigops = tx->signature_operations();
+        auto tx_fees = tx->fees();
+
+        auto estimated_size = chosen_size + tx_size;
+        auto next_size = (estimated_size > ( libbitcoin::get_max_block_size() - 20000 ))? libbitcoin::get_max_block_size() - 20000 : (estimated_size);
+        auto sigops_limit = (size_t(next_size / 1000000) + 1) * 20000;
+        double benefit = (double(tx_fees) /  tx_size * tx_sigops ); //Le di peso a los sigops (quizas demasiado)
+
         if (((chosen_sigops + tx_sigops) > sigops_limit) || (estimated_size > (libbitcoin::get_max_block_size() - 20000))){ 
             size_t acum_sigops = 0;
             size_t acum_size = 0;
@@ -459,7 +472,7 @@ bool block_chain::add_to_chosen_list(transaction_const_ptr tx){
             if(amount_to_remove!=0)
             {
                 //TODO make method
-                gbt_mutex_->lock();
+
                 chosen_sigops -= acum_sigops;
                 chosen_size -= acum_size;
                 while(amount_to_remove != 0)
@@ -470,24 +483,22 @@ bool block_chain::add_to_chosen_list(transaction_const_ptr tx){
                 } 
                 //busco donde tengo que agregar la nueva, ordenada por beneficio.
                 insert_to_chosen_list(tx, benefit, tx_size, tx_sigops);
-                gbt_mutex_->unlock();
+
             }
 
 
         } else {
             //std::cout << "agrego sin consultar" << std::endl;
             //busco donde tengo que agregar la nueva, ordenada por beneficio.
-            //TODO LOCK tiene que ser interno?
-            gbt_mutex_->lock();
-            //unique_lock lock(gbt_mutex_);
             insert_to_chosen_list(tx, benefit, tx_size, tx_sigops);
-            gbt_mutex_->unlock();
         }
     }
     // else {
     //    std::cout << "es doble spend " << std::endl;
     //}
     //std::cout << "spent size after add "<< chosen_spent.size() << std::endl;
+
+    gbt_mutex_->unlock();
     return true;
 } 
 
@@ -510,11 +521,12 @@ std::vector<block_chain::tx_mempool> block_chain::get_gbt_tx_list() const{
     std::vector<tx_mempool> mempool;
     libbitcoin::transaction_const_ptr tx_chosen_ptr;
 
-    //TODO Use shared Lock
     gbt_mutex_->lock();
+    std::list<tx_benefit> chosen_unconfirmed_copy(chosen_unconfirmed);
+    gbt_mutex_->unlock();
     //std::cout << "get_gbt_tx_list - thread id " << std::this_thread::get_id() << std::endl;
 
-    for( auto const& tx_hash : chosen_unconfirmed){
+    for( auto const& tx_hash : chosen_unconfirmed_copy){
         fetch_unconfirmed_transaction(std::get<0>(tx_hash),
             [&](const libbitcoin::code &ec, libbitcoin::transaction_const_ptr tx_ptr) {
             if (ec == libbitcoin::error::success) {
@@ -529,7 +541,7 @@ std::vector<block_chain::tx_mempool> block_chain::get_gbt_tx_list() const{
         } 
     }
  
-    gbt_mutex_->unlock();
+
     return mempool;
 }
 
@@ -539,10 +551,11 @@ std::vector<block_chain::tx_mempool> block_chain::get_gbt_tx_list() const{
 
 bool block_chain::remove_mined_txs_from_mempool(block_const_ptr blk){
     //std::cout << "chosen size before erasing "<< chosen_unconfirmed.size() << std::endl;
+
+
     //TODO change gbt_ready_ to std::atomic<bool>
     gbt_ready_=false;
-
-    
+    gbt_mutex_->lock();    
     for(auto const& tx : blk->transactions()){
         libbitcoin::message::transaction msg_tx {tx};
         transaction_const_ptr msg_ptr = std::make_shared<const libbitcoin::message::transaction>(msg_tx);
@@ -580,10 +593,11 @@ bool block_chain::remove_mined_txs_from_mempool(block_const_ptr blk){
         chosen_sigops += std::get<2>(mempool);
         chosen_size += std::get<3>(mempool);
     }
-
+    gbt_mutex_->unlock();
     //std::cout << "chosen size after erasing "<< chosen_unconfirmed.size() << std::endl;
     //std::cout << "spent size after erasing "<< chosen_spent.size() << std::endl;
     gbt_ready_ = true;
+
 }
 
 void block_chain::fetch_unconfirmed_transaction(const hash_digest& hash, 
