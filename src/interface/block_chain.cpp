@@ -1070,7 +1070,6 @@ std::vector<libbitcoin::blockchain::mempool_transaction_summary> block_chain::ge
         size_t i = 0;
         for (auto const& output : tx.outputs()) {
             const auto tx_addresses = libbitcoin::wallet::payment_address::extract(output.script(), encoding_p2kh, encoding_p2sh);
-            ++i;
             for(const auto tx_address : tx_addresses) {
                 if (tx_address && addrs.find(tx_address) != addrs.end()) {
                     ret.push_back
@@ -1079,9 +1078,12 @@ std::vector<libbitcoin::blockchain::mempool_transaction_summary> block_chain::ge
                                       "", std::to_string(output.value()), i, tx_res.arrival_time()));
                 }
             }
+            ++i;
         }
         i = 0;
         for (auto const& input : tx.inputs()) {
+            // TODO: payment_addrress::extract should use the prev_output script instead of the input script
+            // see https://github.com/bitprim/bitprim-core/blob/v0.10.0/src/wallet/payment_address.cpp#L505
             const auto tx_addresses = libbitcoin::wallet::payment_address::extract(input.script(), encoding_p2kh, encoding_p2sh);
             for(const auto tx_address : tx_addresses)
             if (tx_address && addrs.find(tx_address) != addrs.end()) {
