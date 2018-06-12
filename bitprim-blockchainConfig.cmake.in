@@ -15,12 +15,12 @@ get_target_property(
   bitprim-blockchain INTERFACE_COMPILE_DEFINITIONS)
 
 if ("WITH_REMOTE_DATABASE" IN_LIST _compile_definitions)
-	find_package(bitprim-database-requester 0.11.0 REQUIRED)
+	find_package(bitprim-database-requester 0.10.1 REQUIRED)
 else()
-	find_package(bitprim-database 0.11.0 REQUIRED)
+	find_package(bitprim-database 0.10.1 REQUIRED)
 endif()
 
 if ("WITH_CONSENSUS" IN_LIST _compile_definitions)
-  find_package(bitprim-consensus 0.11.0 REQUIRED)
+  find_package(bitprim-consensus 0.10.1 REQUIRED)
 endif()
 
