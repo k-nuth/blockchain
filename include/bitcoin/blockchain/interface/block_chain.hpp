@@ -358,7 +358,9 @@ public:
     /// Get a reference to the blockchain configuration settings.
     const settings& chain_settings() const;
 
-    std::vector<block_chain::tx_mempool> get_gbt_tx_list() const;
+    typedef std::tuple<libbitcoin::hash_digest /*tx_hash */, double /*benefit*/, size_t /*tx_sigops*/, size_t /*tx_size*/, size_t /*tx_fees*/, libbitcoin::data_chunk /*tx_hex*/> tx_benefit;
+    using tx_mempool_complete = std::tuple<libbitcoin::data_chunk/*tx_hex*/, uint64_t/*tx_fees*/, uint64_t /*sigops*/, std::string /*dependencies*/, size_t /*tx_size*/, bool, libbitcoin::hash_digest/*hash*/>;
+    std::vector<block_chain::tx_benefit> get_gbt_tx_list() const;
     bool add_to_chosen_list(transaction_const_ptr tx);
     bool remove_mined_txs_from_mempool(block_const_ptr blk);
 
@@ -418,7 +420,6 @@ private:
     block_organizer block_organizer_;
 
 
-    typedef std::tuple<libbitcoin::hash_digest, double, size_t, size_t> tx_benefit;
     void append_spend_(transaction_const_ptr tx);
     void remove_spend(libbitcoin::hash_digest hash);
     void remove_spend(transaction_const_ptr tx);
@@ -429,12 +430,13 @@ private:
         const size_t tx_sigops, const size_t tx_fees, const double benefit,
             size_t& acum_sigops, size_t& acum_size, double& acum_benefit);
 
-    uint64_t chosen_size;
-    uint64_t chosen_sigops;
-    std::list <tx_benefit> chosen_unconfirmed;
-    spent_mempool chosen_spent;
-    mutable std::mutex* gbt_mutex_;
-    bool gbt_ready_;
+
+    uint64_t chosen_size_; // Size in bytes of the chosen unconfirmed transaction list
+    uint64_t chosen_sigops_; // Total Amount of sigops in the chosen unconfirmed transaction list
+    std::list <tx_benefit> chosen_unconfirmed_; // Chosen unconfirmed transaction list
+    spent_mempool chosen_spent_; // Set of outputs that the chosen transaction list will consume
+    mutable std::mutex* gbt_mutex_; // Protect chosen unconfirmed transaction list
+    std::atomic_bool gbt_ready_; // Getblocktemplate ready 
 
 
 #endif
