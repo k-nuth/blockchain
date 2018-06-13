@@ -238,27 +238,8 @@ public:
     void fetch_unconfirmed_transaction(const hash_digest& hash,
         transaction_unconfirmed_fetch_handler handler) const;
 
-    /// Generate fees for mining
-    std::pair<bool, uint64_t> total_input_value(libbitcoin::chain::transaction const& tx) const;
-    std::pair<bool, uint64_t> fees(libbitcoin::chain::transaction const& tx) const;
-    bool is_missing_previous_outputs(chain::transaction const& tx) const;
-//    bool is_double_spent(chain::transaction const& tx) const;
-
-    /// fetch_mempool_all()
-    using tx_mempool = std::tuple<chain::transaction, uint64_t, uint64_t, std::string, size_t, bool>;
-
-    bool validate_tx (chain::transaction const& tx, const size_t height) const;
-    std::tuple<size_t,size_t,std::vector<tx_mempool>> create_a_pack_of_txns (std::vector<tx_mempool>&mempool) const;
-    std::vector<tx_mempool> fetch_mempool_all(size_t max_bytes) const;
-    bool is_double_spent(chain::transaction const& tx, bool bip16_active) const;
-    std::tuple<bool, size_t, uint64_t> is_double_spent_sigops_and_fees(chain::transaction const& tx, bool bip16_active) const;
-    std::tuple<bool, size_t, uint64_t> validate_tx_2(chain::transaction const& tx, size_t height) const;
-
     std::vector<mempool_transaction_summary> get_mempool_transactions(std::vector<std::string> const& payment_addresses, bool use_testnet_rules, bool witness) const;
     std::vector<mempool_transaction_summary> get_mempool_transactions(std::string const& payment_address, bool use_testnet_rules, bool witness) const;
-
-    
-
 
     /// fetch position and height within block of transaction by hash.
     void fetch_transaction_position(const hash_digest& hash,
