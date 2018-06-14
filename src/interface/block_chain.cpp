@@ -386,11 +386,14 @@ bool block_chain::check_is_double_spend(transaction_const_ptr tx){
 
 // Insert to chosen transaction List, ordered by the benefit yielded by the transaction
 bool block_chain::insert_to_chosen_list(transaction_const_ptr& tx, double benefit, size_t tx_size, size_t tx_sigops){
-    tx_benefit txnew(tx->hash(), benefit, tx_sigops, tx_size, tx->fees(), tx->to_data(1));
-
+#ifdef BITPRIM_CURRENCY_BCH
+    tx_benefit txnew(benefit, tx_sigops, tx_size, tx->fees(), tx->to_data(1), tx->hash());
+#else
+    tx_benefit txnew(benefit, tx_sigops, tx_size, tx->fees(), tx->to_data(1), tx->hash(), tx->hash(true));
+#endif
     chosen_unconfirmed_.insert(
         std::upper_bound(begin(chosen_unconfirmed_), end(chosen_unconfirmed_), txnew, [](tx_benefit const& a, tx_benefit const& b) {
-            return std::get<1>(a) < std::get<1>(b);
+            return std::get<0>(a) < std::get<0>(b);
     }), txnew);
 
     chosen_size_ += tx_size;
@@ -406,9 +409,9 @@ size_t block_chain::find_insertion_point(const size_t sigops_limit, const size_t
             size_t& acum_sigops, size_t& acum_size, double& acum_benefit)
 {
     // How manu transactions should I remove, while still gaining more benefit
-    acum_benefit += std::get<1>(*chosen_unconfirmed_.begin());
-    acum_sigops += std::get<2>(*chosen_unconfirmed_.begin());
-    acum_size += std::get<3>(*chosen_unconfirmed_.begin());
+    acum_benefit += std::get<0>(*chosen_unconfirmed_.begin());
+    acum_sigops += std::get<1>(*chosen_unconfirmed_.begin());
+    acum_size += std::get<2>(*chosen_unconfirmed_.begin());
 
     size_t removed = 0;
 
@@ -420,9 +423,9 @@ size_t block_chain::find_insertion_point(const size_t sigops_limit, const size_t
                 // If I reached a point where taking out some transaction, i will generate more benefit
                 return 1 + removed;
             } else {
-                acum_benefit += std::get<1>(*to_remove); // Benefit i will loose if i remove this transaction
-                acum_sigops += std::get<2>(*to_remove); // Sigops removed from list
-                acum_size += std::get<3>(*to_remove); // Total bytes removed from list
+                acum_benefit += std::get<0>(*to_remove); // Benefit i will loose if i remove this transaction
+                acum_sigops += std::get<1>(*to_remove); // Sigops removed from list
+                acum_size += std::get<2>(*to_remove); // Total bytes removed from list
                 removed++;
             }
         } else return 0;
@@ -462,7 +465,7 @@ bool block_chain::add_to_chosen_list(transaction_const_ptr tx){
                 chosen_size_ -= acum_size;
                 while(amount_to_remove != 0)
                 {
-                    remove_spend(std::get<0>(*chosen_unconfirmed_.begin()));
+                    remove_spend(std::get<5>(*chosen_unconfirmed_.begin()));
                     chosen_unconfirmed_.pop_front();
                     amount_to_remove--;
                 } 
@@ -506,7 +509,7 @@ std::vector<block_chain::tx_benefit> block_chain::get_gbt_tx_list() const{
 
 //When a new block arrives, we need to check every transaction on the chosen list
 //to see if it was mined; and remove it if it was.
-
+//using tx_benefit = std::tuple<double /*benefit*/, size_t /*tx_sigops*/, size_t /*tx_size*/, size_t /*tx_fees*/, libbitcoin::data_chunk /*tx_hex*/, libbitcoin::hash_digest /*tx_hash */> ;
 bool block_chain::remove_mined_txs_from_mempool(block_const_ptr blk){
 
     //TODO change gbt_ready_ to std::atomic<bool>
@@ -519,7 +522,7 @@ bool block_chain::remove_mined_txs_from_mempool(block_const_ptr blk){
         //erase transactions by hash
         auto it = std::find_if (chosen_unconfirmed_.begin(), chosen_unconfirmed_.end(),
             [&](const tx_benefit& benefit){
-                return (std::get<0>(benefit) == tx.hash());
+                return (std::get<5>(benefit) == tx.hash());
               });
         if(it != chosen_unconfirmed_.end()){
           //If transaction was deleted by hash, remove spended outputs
@@ -532,7 +535,7 @@ bool block_chain::remove_mined_txs_from_mempool(block_const_ptr blk){
             for(auto const& conflict_hash : get_double_spend_mempool(msg_ptr)){
                 auto conflict = std::remove_if (chosen_unconfirmed_.begin(), chosen_unconfirmed_.end(),
                 [&](const tx_benefit& benefit){
-                    return (std::get<0>(benefit) == conflict_hash);
+                    return (std::get<5>(benefit) == conflict_hash);
                   });
                 if(conflict!=chosen_unconfirmed_.end()){
                     chosen_unconfirmed_.erase(conflict);
@@ -545,8 +548,8 @@ bool block_chain::remove_mined_txs_from_mempool(block_const_ptr blk){
     chosen_size_ = 0;
     chosen_sigops_ = 0;
     for(auto mempool : chosen_unconfirmed_ ){
-        chosen_sigops_ += std::get<2>(mempool);
-        chosen_size_ += std::get<3>(mempool);
+        chosen_sigops_ += std::get<1>(mempool);
+        chosen_size_ += std::get<2>(mempool);
     }
     gbt_mutex_->unlock();
     gbt_ready_ = true;

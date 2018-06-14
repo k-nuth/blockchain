@@ -339,7 +339,13 @@ public:
     /// Get a reference to the blockchain configuration settings.
     const settings& chain_settings() const;
 
-    using tx_benefit = std::tuple<libbitcoin::hash_digest /*tx_hash */, double /*benefit*/, size_t /*tx_sigops*/, size_t /*tx_size*/, size_t /*tx_fees*/, libbitcoin::data_chunk /*tx_hex*/> ;
+//TODO make class
+#ifdef BITPRIM_CURRENCY_BCH
+    using tx_benefit = std::tuple<double /*benefit*/, size_t /*tx_sigops*/, size_t /*tx_size*/, size_t /*tx_fees*/, libbitcoin::data_chunk /*tx_hex*/, libbitcoin::hash_digest /*tx_id */> ;
+#else
+    using tx_benefit = std::tuple<double /*benefit*/, size_t /*tx_sigops*/, size_t /*tx_size*/, size_t /*tx_fees*/, libbitcoin::data_chunk /*tx_hex*/, libbitcoin::hash_digest /*tx_id */, libbitcoin::hash_digest /*tx_hash */> ;
+#endif
+
     std::vector<block_chain::tx_benefit> get_gbt_tx_list() const;
     bool add_to_chosen_list(transaction_const_ptr tx);
     bool remove_mined_txs_from_mempool(block_const_ptr blk);
