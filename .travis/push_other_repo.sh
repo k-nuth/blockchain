@@ -55,6 +55,16 @@ else
 fi
 echo "Bitprim branch: ${BITPRIM_BRANCH}"
 
+echo "Travis branch: ${TRAVIS_BRANCH}"
+echo "Travis tag: ${TRAVIS_TAG}"
+
+if [[ ${TRAVIS_BRANCH} == ${TRAVIS_TAG} ]]; then
+    export BITPRIM_BRANCH=master
+else
+    export BITPRIM_BRANCH=${TRAVIS_BRANCH}
+fi
+echo "Bitprim branch: ${BITPRIM_BRANCH}"
+
 # --------------------------------------------------------------------------------------------------------------------
 # bitprim-node-exe
 # --------------------------------------------------------------------------------------------------------------------
