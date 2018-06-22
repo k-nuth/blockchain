@@ -32,11 +32,13 @@
 #include <bitcoin/blockchain/settings.hpp>
 #include <bitcoin/blockchain/validate/validate_transaction.hpp>
 
-namespace libbitcoin { namespace blockchain {
+namespace libbitcoin {
+namespace blockchain {
 
 /// This class is thread safe.
 /// Organises transactions via the transaction pool to the blockchain.
-class BCB_API transaction_organizer {
+class BCB_API transaction_organizer
+{
 public:
     typedef handle0 result_handler;
     typedef std::shared_ptr<transaction_organizer> ptr;
@@ -94,6 +96,7 @@ private:
     transaction_subscriber::ptr subscriber_;
 };
 
-}} // namespace libbitcoin::blockchain
+} // namespace blockchain
+} // namespace libbitcoin
 
 #endif

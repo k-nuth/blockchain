@@ -298,7 +298,6 @@ void block_chain::reorganize(const checkpoint& fork_point,
     block_const_ptr_list_ptr outgoing_blocks, dispatcher& dispatch,
     result_handler handler)
 {
-    //**--**
     if (incoming_blocks->empty())
     {
         handler(error::operation_failed_13);
