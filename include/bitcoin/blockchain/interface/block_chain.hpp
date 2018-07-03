@@ -42,10 +42,6 @@ namespace libbitcoin {
 namespace blockchain {
 
 
-    using spent_mempool_type = std::tuple<hash_digest, uint32_t, hash_digest>;
-    using spent_mempool = std::list<spent_mempool_type>;
-
-
 /// The fast_chain interface portion of this class is not thread safe.
 class BCB_API block_chain
   : public safe_chain, public fast_chain, noncopyable
@@ -339,16 +335,28 @@ public:
     /// Get a reference to the blockchain configuration settings.
     const settings& chain_settings() const;
 
-//TODO make class
-#ifdef BITPRIM_CURRENCY_BCH
-    using tx_benefit = std::tuple<double /*benefit*/, size_t /*tx_sigops*/, size_t /*tx_size*/, size_t /*tx_fees*/, libbitcoin::data_chunk /*tx_hex*/, libbitcoin::hash_digest /*tx_id */> ;
-#else
-    using tx_benefit = std::tuple<double /*benefit*/, size_t /*tx_sigops*/, size_t /*tx_size*/, size_t /*tx_fees*/, libbitcoin::data_chunk /*tx_hex*/, libbitcoin::hash_digest /*tx_id */, libbitcoin::hash_digest /*tx_hash */> ;
+    struct tx_benefit {
+        double benefit;
+        size_t tx_sigops;
+        size_t tx_size;
+        size_t tx_fees;
+        libbitcoin::data_chunk tx_hex;
+        libbitcoin::hash_digest tx_id;
+
+#ifndef BITPRIM_CURRENCY_BCH
+        libbitcoin::hash_digest tx_hash;
 #endif
+    };
+
+    struct spent_chosen_type {
+        libbitcoin::hash_digest output_hash;
+        uint32_t output_index;
+        libbitcoin::hash_digest spender_hash;
+    };
 
     std::vector<block_chain::tx_benefit> get_gbt_tx_list() const;
     bool add_to_chosen_list(transaction_const_ptr tx);
-    bool remove_mined_txs_from_mempool(block_const_ptr blk);
+    bool remove_mined_txs_from_chosen_list(block_const_ptr blk);
 
 protected:
 
@@ -406,13 +414,13 @@ private:
     block_organizer block_organizer_;
 
 
-    void append_spend_(transaction_const_ptr tx);
+    void append_spend(transaction_const_ptr tx);
     void remove_spend(libbitcoin::hash_digest hash);
     void remove_spend(transaction_const_ptr tx);
     bool check_is_double_spend(transaction_const_ptr tx);
-    std::set<libbitcoin::hash_digest> get_double_spend_mempool(transaction_const_ptr tx);
+    std::set<libbitcoin::hash_digest> get_double_spend_chosen_list(transaction_const_ptr tx);
     bool insert_to_chosen_list(transaction_const_ptr& tx, double benefit, size_t tx_size, size_t tx_sigops);
-    size_t find_insertion_point(const size_t sigops_limit, const size_t tx_size,
+    size_t find_txs_to_remove_from_chosen(const size_t sigops_limit, const size_t tx_size,
         const size_t tx_sigops, const size_t tx_fees, const double benefit,
             size_t& acum_sigops, size_t& acum_size, double& acum_benefit);
 
@@ -420,7 +428,7 @@ private:
     uint64_t chosen_size_; // Size in bytes of the chosen unconfirmed transaction list
     uint64_t chosen_sigops_; // Total Amount of sigops in the chosen unconfirmed transaction list
     std::list <tx_benefit> chosen_unconfirmed_; // Chosen unconfirmed transaction list
-    spent_mempool chosen_spent_; // Set of outputs that the chosen transaction list will consume
+    std::vector<spent_chosen_type> chosen_spent_; // Set of outputs that the chosen transaction list will consume
     mutable std::mutex* gbt_mutex_; // Protect chosen unconfirmed transaction list
     std::atomic_bool gbt_ready_; // Getblocktemplate ready 
 
