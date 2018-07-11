@@ -60,13 +60,12 @@ using namespace boost::filesystem;
 
 #define START_BLOCKCHAIN(name, flush) \
     threadpool pool; \
-    std::mutex gbt_mutex_; \
     database::settings database_settings; \
     database_settings.flush_writes = flush; \
     database_settings.directory = TEST_NAME; \
     BOOST_REQUIRE(create_database(database_settings)); \
     blockchain::settings blockchain_settings; \
-    block_chain name(pool, blockchain_settings, database_settings, gbt_mutex_); \
+    block_chain name(pool, blockchain_settings, database_settings); \
     BOOST_REQUIRE(name.start())
 
 #define NEW_BLOCK(height) \
@@ -501,14 +500,13 @@ static int fetch_block_by_height_result(block_chain& instance,
 
 BOOST_AUTO_TEST_CASE(block_chain__fetch_block1__unstarted__error_service_stopped)
 {
-    std::mutex gbt_mutex_;
     threadpool pool;
     database::settings database_settings;
     database_settings.directory = TEST_NAME;
     BOOST_REQUIRE(create_database(database_settings));
 
     blockchain::settings blockchain_settings;
-    block_chain instance(pool, blockchain_settings, database_settings, gbt_mutex_);
+    block_chain instance(pool, blockchain_settings, database_settings);
 
     const auto block1 = NEW_BLOCK(1);
     BOOST_REQUIRE_EQUAL(fetch_block_by_height_result(instance, block1, 1), error::service_stopped);

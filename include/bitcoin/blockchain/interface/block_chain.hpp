@@ -53,7 +53,6 @@ public:
     block_chain(threadpool& pool,
         const blockchain::settings& chain_settings,
         const database::settings& database_settings,
-        std::mutex& gbt_mutex,
         bool relay_transactions=true);
 
     /// The database is closed on destruct, threads must be joined.
@@ -414,7 +413,7 @@ private:
 
 
     void append_spend(transaction_const_ptr tx);
-    void remove_spend(libbitcoin::hash_digest hash);
+    void remove_spend(libbitcoin::hash_digest const& hash);
     bool check_is_double_spend(transaction_const_ptr tx);
     std::set<libbitcoin::hash_digest> get_double_spend_chosen_list(transaction_const_ptr tx);
     bool insert_to_chosen_list(transaction_const_ptr& tx, double benefit, size_t tx_size, size_t tx_sigops);
@@ -427,7 +426,7 @@ private:
     uint64_t chosen_sigops_; // Total Amount of sigops in the chosen unconfirmed transaction list
     std::list <tx_benefit> chosen_unconfirmed_; // Chosen unconfirmed transaction list
     std::unordered_map<hash_digest, std::vector<prev_output>> chosen_spent_;
-    mutable std::mutex* gbt_mutex_; // Protect chosen unconfirmed transaction list
+    mutable std::mutex gbt_mutex_; // Protect chosen unconfirmed transaction list
     std::atomic_bool gbt_ready_; // Getblocktemplate ready
 
 

@@ -72,7 +72,7 @@ static const auto hour_seconds = 3600u;
 
 block_chain::block_chain(threadpool& pool,
     const blockchain::settings& chain_settings,
-    const database::settings& database_settings,  std::mutex& gbt_mutex, bool relay_transactions)
+    const database::settings& database_settings,  bool relay_transactions)
   : stopped_(true),
     settings_(chain_settings),
     notify_limit_seconds_(chain_settings.notify_limit_hours * hour_seconds),
@@ -90,7 +90,7 @@ block_chain::block_chain(threadpool& pool,
     chosen_sigops_(0),
     chosen_unconfirmed_(),
     chosen_spent_(),
-    gbt_mutex_(&gbt_mutex),
+    gbt_mutex_(),
     gbt_ready_(true)
 {
 }
@@ -314,7 +314,7 @@ void block_chain::append_spend(transaction_const_ptr tx) {
 // Once a transaction was mined, every previous output that was marked
 // as TEMPORARY SPENT, needs to be removed
 // (since it was permanetly added to the spent database)
-void block_chain::remove_spend(libbitcoin::hash_digest hash){
+void block_chain::remove_spend(libbitcoin::hash_digest const& hash){
     chosen_spent_.erase(hash);
 }
 
@@ -407,7 +407,7 @@ size_t block_chain::find_txs_to_remove_from_chosen(const size_t sigops_limit, co
 
 //Check if the new transaction can be added to the txs selection.
 bool block_chain::add_to_chosen_list(transaction_const_ptr tx){
-    std::lock_guard<std::mutex> lock(*gbt_mutex_);
+    std::lock_guard<std::mutex> lock(gbt_mutex_);
 
     //Dont allow dependencies
     for(auto const& input : tx->inputs())
@@ -468,7 +468,7 @@ std::vector<block_chain::tx_benefit> block_chain::get_gbt_tx_list() const{
         return std::vector<block_chain::tx_benefit>();
     }
 
-    std::lock_guard<std::mutex> lock(*gbt_mutex_);
+    std::lock_guard<std::mutex> lock(gbt_mutex_);
     std::vector<tx_benefit> txs_chosen_list{ std::begin(chosen_unconfirmed_), std::end(chosen_unconfirmed_) };
 
     return txs_chosen_list;
@@ -481,7 +481,7 @@ std::vector<block_chain::tx_benefit> block_chain::get_gbt_tx_list() const{
 bool block_chain::remove_mined_txs_from_chosen_list(block_const_ptr blk){
 
     gbt_ready_= false;
-    std::lock_guard<std::mutex> lock(*gbt_mutex_);
+    std::lock_guard<std::mutex> lock(gbt_mutex_);
     for(auto const& tx : blk->transactions()){
         //erase transactions by hash
         auto it = std::find_if (chosen_unconfirmed_.begin(), chosen_unconfirmed_.end(),
@@ -513,7 +513,7 @@ bool block_chain::remove_mined_txs_from_chosen_list(block_const_ptr blk){
 
     chosen_size_ = 0;
     chosen_sigops_ = 0;
-    for(auto tx : chosen_unconfirmed_ ){
+    for(auto const& tx : chosen_unconfirmed_ ){
         chosen_sigops_ += tx.tx_sigops;
         chosen_size_ += tx.tx_size;
     }
