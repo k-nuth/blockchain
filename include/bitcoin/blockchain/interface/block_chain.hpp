@@ -348,10 +348,9 @@ public:
 #endif
     };
 
-    struct spent_chosen_type {
+    struct prev_output {
         libbitcoin::hash_digest output_hash;
         uint32_t output_index;
-        libbitcoin::hash_digest spender_hash;
     };
 
     std::vector<block_chain::tx_benefit> get_gbt_tx_list() const;
@@ -416,7 +415,6 @@ private:
 
     void append_spend(transaction_const_ptr tx);
     void remove_spend(libbitcoin::hash_digest hash);
-    void remove_spend(transaction_const_ptr tx);
     bool check_is_double_spend(transaction_const_ptr tx);
     std::set<libbitcoin::hash_digest> get_double_spend_chosen_list(transaction_const_ptr tx);
     bool insert_to_chosen_list(transaction_const_ptr& tx, double benefit, size_t tx_size, size_t tx_sigops);
@@ -428,9 +426,9 @@ private:
     uint64_t chosen_size_; // Size in bytes of the chosen unconfirmed transaction list
     uint64_t chosen_sigops_; // Total Amount of sigops in the chosen unconfirmed transaction list
     std::list <tx_benefit> chosen_unconfirmed_; // Chosen unconfirmed transaction list
-    std::vector<spent_chosen_type> chosen_spent_; // Set of outputs that the chosen transaction list will consume
+    std::unordered_map<hash_digest, std::vector<prev_output>> chosen_spent_;
     mutable std::mutex* gbt_mutex_; // Protect chosen unconfirmed transaction list
-    std::atomic_bool gbt_ready_; // Getblocktemplate ready 
+    std::atomic_bool gbt_ready_; // Getblocktemplate ready
 
 
 #endif
