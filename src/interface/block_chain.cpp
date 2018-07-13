@@ -328,7 +328,7 @@ std::set<libbitcoin::hash_digest> block_chain::get_double_spend_chosen_list(tran
                 if(previous.output_hash == input.previous_output().hash() &&
                     previous.output_index == input.previous_output().index())
                 {
-                    spent_conflict.insert(tx->hash());
+                    spent_conflict.insert(spents.first);
                 }
             }
         }
@@ -405,14 +405,39 @@ size_t block_chain::find_txs_to_remove_from_chosen(const size_t sigops_limit, co
 
 }
 
+bool block_chain::get_transaction_is_confirmed(libbitcoin::hash_digest tx_hash){
+
+#ifdef BITPRIM_CURRENCY_BCH
+    bool witness = false;
+#else
+    bool witness = true;
+#endif
+
+    bool is_confirmed = true;
+    boost::latch latch(2);
+    fetch_transaction(tx_hash, true, witness,
+        [&](const libbitcoin::code &ec, libbitcoin::transaction_const_ptr tx_ptr, size_t index,
+                size_t height) {
+        if (ec != libbitcoin::error::success) {
+            is_confirmed = false;
+        }
+        latch.count_down();
+    });
+    latch.count_down_and_wait();
+    return is_confirmed;
+
+}
+
 //Check if the new transaction can be added to the txs selection.
 bool block_chain::add_to_chosen_list(transaction_const_ptr tx){
     std::lock_guard<std::mutex> lock(gbt_mutex_);
 
     //Dont allow dependencies
-    for(auto const& input : tx->inputs())
-        if(chosen_spent_.find(input.previous_output().hash()) != chosen_spent_.end())
+    for(auto const& input : tx->inputs()){
+        if( !get_transaction_is_confirmed(input.previous_output().hash())){
             return false;
+        }
+    }
 
     //If is not double spend
     if (!check_is_double_spend(tx)){

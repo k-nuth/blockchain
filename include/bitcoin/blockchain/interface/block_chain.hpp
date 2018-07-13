@@ -411,7 +411,7 @@ private:
     transaction_organizer transaction_organizer_;
     block_organizer block_organizer_;
 
-
+    bool get_transaction_is_confirmed(libbitcoin::hash_digest tx_hash);
     void append_spend(transaction_const_ptr tx);
     void remove_spend(libbitcoin::hash_digest const& hash);
     bool check_is_double_spend(transaction_const_ptr tx);
