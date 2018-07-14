@@ -53,7 +53,7 @@ class BitprimBlockchainConan(BitprimConanFile):
         "currency=BCH", \
         "microarchitecture=_DUMMY_",  \
         "fix_march=False", \
-        "verbose=True"
+        "verbose=False"
 
     # "with_remote_database=False"
 
