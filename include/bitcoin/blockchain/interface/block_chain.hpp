@@ -41,6 +41,7 @@
 namespace libbitcoin {
 namespace blockchain {
 
+
 /// The fast_chain interface portion of this class is not thread safe.
 class BCB_API block_chain
   : public safe_chain, public fast_chain, noncopyable
@@ -228,27 +229,12 @@ public:
     void fetch_transaction(const hash_digest& hash, bool require_confirmed,
         bool witness, transaction_fetch_handler handler) const;
 
-    /// Generate fees for mining
-    std::pair<bool, uint64_t> total_input_value(libbitcoin::chain::transaction const& tx) const;
-    std::pair<bool, uint64_t> fees(libbitcoin::chain::transaction const& tx) const;
-    bool is_missing_previous_outputs(chain::transaction const& tx) const;
-//    bool is_double_spent(chain::transaction const& tx) const;
-
-    /// fetch_mempool_all()
-    using tx_mempool = std::tuple<chain::transaction, uint64_t, uint64_t, std::string, size_t, bool>;
-
-    bool validate_tx (chain::transaction const& tx, const size_t height) const;
-    std::tuple<size_t,size_t,std::vector<tx_mempool>> create_a_pack_of_txns (std::vector<tx_mempool>&mempool) const;
-    std::vector<tx_mempool> fetch_mempool_all(size_t max_bytes) const;
-    bool is_double_spent(chain::transaction const& tx, bool bip16_active) const;
-    std::tuple<bool, size_t, uint64_t> is_double_spent_sigops_and_fees(chain::transaction const& tx, bool bip16_active) const;
-    std::tuple<bool, size_t, uint64_t> validate_tx_2(chain::transaction const& tx, size_t height) const;
+    /// fetch unconfirmed transaction by hash.
+    void fetch_unconfirmed_transaction(const hash_digest& hash,
+        transaction_unconfirmed_fetch_handler handler) const;
 
     std::vector<mempool_transaction_summary> get_mempool_transactions(std::vector<std::string> const& payment_addresses, bool use_testnet_rules, bool witness) const;
     std::vector<mempool_transaction_summary> get_mempool_transactions(std::string const& payment_address, bool use_testnet_rules, bool witness) const;
-
-    
-
 
     /// fetch position and height within block of transaction by hash.
     void fetch_transaction_position(const hash_digest& hash,
@@ -348,6 +334,28 @@ public:
     /// Get a reference to the blockchain configuration settings.
     const settings& chain_settings() const;
 
+    struct tx_benefit {
+        double benefit;
+        size_t tx_sigops;
+        size_t tx_size;
+        size_t tx_fees;
+        libbitcoin::data_chunk tx_hex;
+        libbitcoin::hash_digest tx_id;
+
+#ifndef BITPRIM_CURRENCY_BCH
+        libbitcoin::hash_digest tx_hash;
+#endif
+    };
+
+    struct prev_output {
+        libbitcoin::hash_digest output_hash;
+        uint32_t output_index;
+    };
+
+    std::vector<block_chain::tx_benefit> get_gbt_tx_list() const;
+    bool add_to_chosen_list(transaction_const_ptr tx);
+    bool remove_mined_txs_from_chosen_list(block_const_ptr blk);
+
 protected:
 
     /// Determine if work should terminate early with service stopped code.
@@ -402,6 +410,26 @@ private:
     mutable dispatcher dispatch_;
     transaction_organizer transaction_organizer_;
     block_organizer block_organizer_;
+
+    bool get_transaction_is_confirmed(libbitcoin::hash_digest tx_hash);
+    void append_spend(transaction_const_ptr tx);
+    void remove_spend(libbitcoin::hash_digest const& hash);
+    bool check_is_double_spend(transaction_const_ptr tx);
+    std::set<libbitcoin::hash_digest> get_double_spend_chosen_list(transaction_const_ptr tx);
+    bool insert_to_chosen_list(transaction_const_ptr& tx, double benefit, size_t tx_size, size_t tx_sigops);
+    size_t find_txs_to_remove_from_chosen(const size_t sigops_limit, const size_t tx_size,
+        const size_t tx_sigops, const size_t tx_fees, const double benefit,
+            size_t& acum_sigops, size_t& acum_size, double& acum_benefit);
+
+
+    uint64_t chosen_size_; // Size in bytes of the chosen unconfirmed transaction list
+    uint64_t chosen_sigops_; // Total Amount of sigops in the chosen unconfirmed transaction list
+    std::list <tx_benefit> chosen_unconfirmed_; // Chosen unconfirmed transaction list
+    std::unordered_map<hash_digest, std::vector<prev_output>> chosen_spent_;
+    mutable std::mutex gbt_mutex_; // Protect chosen unconfirmed transaction list
+    std::atomic_bool gbt_ready_; // Getblocktemplate ready
+
+
 #endif
 };
 
