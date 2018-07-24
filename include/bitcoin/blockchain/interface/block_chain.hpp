@@ -67,44 +67,44 @@ public:
     // Thread safe, unprotected by sequential lock.
 
     /// Get the set of block gaps in the chain.
-    bool get_gaps(database::block_database::heights& out_gaps) const;
+    bool get_gaps(database::block_database::heights& out_gaps) const override;
 
     /// Get a determination of whether the block hash exists in the store.
-    bool get_block_exists(const hash_digest& block_hash) const;
+    bool get_block_exists(const hash_digest& block_hash) const override;
 
     /// Get a determination of whether the block hash exists in the store.
-    bool get_block_exists_safe(const hash_digest& block_hash) const;
+    bool get_block_exists_safe(const hash_digest& block_hash) const override;
 
     /// Get the hash of the block if it exists.
-    bool get_block_hash(hash_digest& out_hash, size_t height) const;
+    bool get_block_hash(hash_digest& out_hash, size_t height) const override;
 
     /// Get the work of the branch starting at the given height.
     bool get_branch_work(uint256_t& out_work, const uint256_t& maximum,
-        size_t height) const;
+        size_t height) const override;
 
     /// Get the header of the block at the given height.
-    bool get_header(chain::header& out_header, size_t height) const;
+    bool get_header(chain::header& out_header, size_t height) const override;
 
     /// Get the height of the block with the given hash.
-    bool get_height(size_t& out_height, const hash_digest& block_hash) const;
+    bool get_height(size_t& out_height, const hash_digest& block_hash) const override;
 
     /// Get the bits of the block with the given height.
-    bool get_bits(uint32_t& out_bits, const size_t& height) const;
+    bool get_bits(uint32_t& out_bits, const size_t& height) const override;
 
     /// Get the timestamp of the block with the given height.
-    bool get_timestamp(uint32_t& out_timestamp, const size_t& height) const;
+    bool get_timestamp(uint32_t& out_timestamp, const size_t& height) const override;
 
     /// Get the version of the block with the given height.
-    bool get_version(uint32_t& out_version, const size_t& height) const;
+    bool get_version(uint32_t& out_version, const size_t& height) const override;
 
     /// Get height of latest block.
-    bool get_last_height(size_t& out_height) const;
+    bool get_last_height(size_t& out_height) const override;
 
     /// Get the output that is referenced by the outpoint.
     bool get_output(chain::output& out_output, size_t& out_height,
         uint32_t& out_median_time_past, bool& out_coinbase,
         const chain::output_point& outpoint, size_t branch_height,
-        bool require_confirmed) const;
+        bool require_confirmed) const override;
 
     bool get_output_is_confirmed(chain::output& out_output, size_t& out_height,
         bool& out_coinbase, bool& out_is_confirmed, const chain::output_point& outpoint,
@@ -112,11 +112,11 @@ public:
 
     /// Determine if an unspent transaction exists with the given hash.
     bool get_is_unspent_transaction(const hash_digest& hash,
-        size_t branch_height, bool require_confirmed) const;
+        size_t branch_height, bool require_confirmed) const override;
 
     /// Get position data for a transaction.
     bool get_transaction_position(size_t& out_height, size_t& out_position,
-        const hash_digest& hash, bool require_confirmed) const;
+        const hash_digest& hash, bool require_confirmed) const override;
 
     /////// Get the transaction of the given hash and its block height.
     ////transaction_ptr get_transaction(size_t& out_block_height,
@@ -127,33 +127,33 @@ public:
     // Thread safe, insert does not set sequential lock.
 
     /// Create flush lock if flush_writes is true, and set sequential lock.
-    bool begin_insert() const;
+    bool begin_insert() const override;
 
     /// Clear flush lock if flush_writes is true, and clear sequential lock.
-    bool end_insert() const;
+    bool end_insert() const override;
 
     /// Insert a block to the blockchain, height is checked for existence.
     /// Reads and reorgs are undefined when chain is gapped.
-    bool insert(block_const_ptr block, size_t height);
+    bool insert(block_const_ptr block, size_t height) override;
 
     /// Push an unconfirmed transaction to the tx table and index outputs.
     void push(transaction_const_ptr tx, dispatcher& dispatch,
-        result_handler handler);
+        result_handler handler) override;
 
     /// Swap incoming and outgoing blocks, height is validated.
     void reorganize(const config::checkpoint& fork_point,
         block_const_ptr_list_const_ptr incoming_blocks,
         block_const_ptr_list_ptr outgoing_blocks, dispatcher& dispatch,
-        result_handler handler);
+        result_handler handler) override;
 
     // Properties
     // ------------------------------------------------------------------------
 
     /// Get forks chain state relative to chain top.
-    chain::chain_state::ptr chain_state() const;
+    chain::chain_state::ptr chain_state() const override;
 
     /// Get full chain state relative to the branch top.
-    chain::chain_state::ptr chain_state(branch::const_ptr branch) const;
+    chain::chain_state::ptr chain_state(branch::const_ptr branch) const override;
 
     // ========================================================================
     // SAFE CHAIN
@@ -165,123 +165,120 @@ public:
     // Thread safe except start.
 
     /// Start the block pool and the transaction pool.
-    bool start();
+    bool start() override;
 
     /// Signal pool work stop, speeds shutdown with multiple threads.
-    bool stop();
+    bool stop() override;
 
     /// Unmaps all memory and frees the database file handles.
     /// Threads must be joined before close is called (or by destruct).
-    bool close();
+    bool close() override;
 
     // Node Queries.
     // ------------------------------------------------------------------------
 
     /// fetch a block by height.
     void fetch_block(size_t height, bool witness,
-        block_fetch_handler handler) const;
+        block_fetch_handler handler) const override;
 
     /// fetch a block by hash.
     void fetch_block(const hash_digest& hash, bool witness,
-        block_fetch_handler handler) const;
+        block_fetch_handler handler) const override;
 
     void fetch_block_header_txs_size(const hash_digest& hash,
-        block_header_txs_size_fetch_handler handler) const;
+        block_header_txs_size_fetch_handler handler) const override;
 
     void fetch_block_hash_timestamp(size_t height,
-        block_hash_time_fetch_handler handler) const;
+        block_hash_time_fetch_handler handler) const override;
 
     /// fetch block header by height.
     // virtual      // OLD previo a merge de Feb2017 
-    void fetch_block_header(size_t height, block_header_fetch_handler handler) const;
+    void fetch_block_header(size_t height, block_header_fetch_handler handler) const override;
 
 
     /// fetch block header by hash.
     void fetch_block_header(const hash_digest& hash,
-        block_header_fetch_handler handler) const;
+        block_header_fetch_handler handler) const override;
 
     /// fetch hashes of transactions for a block, by block height.
-    // OLD previo a merge de Feb2017 
-    // virtual 
-    // void fetch_merkle_block(size_t height, transaction_hashes_fetch_handler handler) const;
-    void fetch_merkle_block(size_t height, merkle_block_fetch_handler handler) const;
+    void fetch_merkle_block(size_t height, merkle_block_fetch_handler handler) const override;
 
     /// fetch hashes of transactions for a block, by block hash.
     void fetch_merkle_block(const hash_digest& hash,
-        merkle_block_fetch_handler handler) const;
+        merkle_block_fetch_handler handler) const override;
 
     /// fetch compact block by block height.
     void fetch_compact_block(size_t height,
-        compact_block_fetch_handler handler) const;
+        compact_block_fetch_handler handler) const override;
 
     /// fetch compact block by block hash.
     void fetch_compact_block(const hash_digest& hash,
-        compact_block_fetch_handler handler) const;
+        compact_block_fetch_handler handler) const override;
 
     /// fetch height of block by hash.
     void fetch_block_height(const hash_digest& hash,
-        block_height_fetch_handler handler) const;
+        block_height_fetch_handler handler) const override;
 
     /// fetch height of latest block.
-    void fetch_last_height(last_height_fetch_handler handler) const;
+    void fetch_last_height(last_height_fetch_handler handler) const override;
 
     /// fetch transaction by hash.
     void fetch_transaction(const hash_digest& hash, bool require_confirmed,
-        bool witness, transaction_fetch_handler handler) const;
+        bool witness, transaction_fetch_handler handler) const override;
 
     /// fetch unconfirmed transaction by hash.
     void fetch_unconfirmed_transaction(const hash_digest& hash,
         transaction_unconfirmed_fetch_handler handler) const;
 
-    std::vector<mempool_transaction_summary> get_mempool_transactions(std::vector<std::string> const& payment_addresses, bool use_testnet_rules, bool witness) const;
-    std::vector<mempool_transaction_summary> get_mempool_transactions(std::string const& payment_address, bool use_testnet_rules, bool witness) const;
+    std::vector<mempool_transaction_summary> get_mempool_transactions(std::vector<std::string> const& payment_addresses, bool use_testnet_rules, bool witness) const override;
+    std::vector<mempool_transaction_summary> get_mempool_transactions(std::string const& payment_address, bool use_testnet_rules, bool witness) const override;
 
     /// fetch position and height within block of transaction by hash.
     void fetch_transaction_position(const hash_digest& hash,
-        bool require_confirmed, transaction_index_fetch_handler handler) const;
+        bool require_confirmed, transaction_index_fetch_handler handler) const override;
 
     /// fetch the set of block hashes indicated by the block locator.
     void fetch_locator_block_hashes(get_blocks_const_ptr locator,
         const hash_digest& threshold, size_t limit,
-        inventory_fetch_handler handler) const;
+        inventory_fetch_handler handler) const override;
 
     /// fetch the set of block headers indicated by the block locator.
     void fetch_locator_block_headers(get_headers_const_ptr locator,
         const hash_digest& threshold, size_t limit,
-        locator_block_headers_fetch_handler handler) const;
+        locator_block_headers_fetch_handler handler) const override;
 
     /// fetch a block locator relative to the current top and threshold.
     void fetch_block_locator(const chain::block::indexes& heights,
-        block_locator_fetch_handler handler) const;
+        block_locator_fetch_handler handler) const override;
 
     // Server Queries.
     //-------------------------------------------------------------------------
 
     /// fetch the inpoint (spender) of an outpoint.
     void fetch_spend(const chain::output_point& outpoint,
-        spend_fetch_handler handler) const;
+        spend_fetch_handler handler) const override;
 
     /// fetch outputs, values and spends for an address_hash.
     void fetch_history(const short_hash& address_hash, size_t limit,
-        size_t from_height, history_fetch_handler handler) const;
+        size_t from_height, history_fetch_handler handler) const override;
 
     /// Fetch all the txns used by the wallet
     void fetch_confirmed_transactions(const short_hash& address_hash, size_t limit,
-                                      size_t from_height, confirmed_transactions_fetch_handler handler) const;
+                                      size_t from_height, confirmed_transactions_fetch_handler handler) const override;
 
     /// fetch stealth results.
     void fetch_stealth(const binary& filter, size_t from_height,
-        stealth_fetch_handler handler) const;
+        stealth_fetch_handler handler) const override;
 
     // Transaction Pool.
     //-------------------------------------------------------------------------
 
     /// Fetch a merkle block for the maximal fee block template.
-    void fetch_template(merkle_block_fetch_handler handler) const;
+    void fetch_template(merkle_block_fetch_handler handler) const override;
 
     /// Fetch an inventory vector for a rational "mempool" message response.
     void fetch_mempool(size_t count_limit, uint64_t minimum_fee,
-        inventory_fetch_handler handler) const;
+        inventory_fetch_handler handler) const override;
 
 
     mempool_mini_hash_map get_mempool_mini_hash_map(message::compact_block const& block) const override;
@@ -293,43 +290,43 @@ public:
     //-------------------------------------------------------------------------
 
     /// Filter out block by hash that exist in the block pool or store.
-    void filter_blocks(get_data_ptr message, result_handler handler) const;
+    void filter_blocks(get_data_ptr message, result_handler handler) const override;
 
     /// Filter out confirmed and unconfirmed transactions by hash.
     void filter_transactions(get_data_ptr message,
-        result_handler handler) const;
+        result_handler handler) const override;
 
     // Subscribers.
     //-------------------------------------------------------------------------
 
     /// Subscribe to blockchain reorganizations, get branch/height.
-    void subscribe_blockchain(reorganize_handler&& handler);
+    void subscribe_blockchain(reorganize_handler&& handler) override;
 
     /// Subscribe to memory pool additions, get transaction.
-    void subscribe_transaction(transaction_handler&& handler);
+    void subscribe_transaction(transaction_handler&& handler) override;
 
     /// Send null data success notification to all subscribers.
-    void unsubscribe();
+    void unsubscribe() override;
 
     // Transaction Validation.
     //-----------------------------------------------------------------------------
 
-    void transaction_validate(transaction_const_ptr tx, result_handler handler) const;
+    void transaction_validate(transaction_const_ptr tx, result_handler handler) const override;
     
     // Organizers.
     //-------------------------------------------------------------------------
 
     /// Organize a block into the block pool if valid and sufficient.
-    void organize(block_const_ptr block, result_handler handler);
+    void organize(block_const_ptr block, result_handler handler) override;
 
     /// Store a transaction to the pool if valid.
-    void organize(transaction_const_ptr tx, result_handler handler);
+    void organize(transaction_const_ptr tx, result_handler handler) override;
 
     // Properties.
     //-------------------------------------------------------------------------
 
     /// True if the blockchain is stale based on configured age limit.
-    bool is_stale() const;
+    bool is_stale() const override;
 
     /// Get a reference to the blockchain configuration settings.
     const settings& chain_settings() const;
@@ -353,8 +350,8 @@ public:
     };
 
     std::vector<block_chain::tx_benefit> get_gbt_tx_list() const;
-    bool add_to_chosen_list(transaction_const_ptr tx);
-    bool remove_mined_txs_from_chosen_list(block_const_ptr blk);
+    bool add_to_chosen_list(transaction_const_ptr tx) override;
+    bool remove_mined_txs_from_chosen_list(block_const_ptr blk) override;
 
 protected:
 
