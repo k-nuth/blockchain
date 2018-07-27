@@ -189,7 +189,12 @@ TEST_CASE("[state_get_all_asset_addresses] ") {
     
     REQUIRE(list_source.size() == 2);
 
-    auto const asset_1 = list_source[0];
+    auto it = std::find_if(list_source.begin(),list_source.end(), [&source](get_all_asset_addresses_data const& x) {
+        return x.amount_owner == source;
+    } );
+
+
+    auto const asset_1 = *it;
 
     REQUIRE(asset_1.asset_id == 0);
     REQUIRE(asset_1.asset_name == name);
@@ -197,12 +202,17 @@ TEST_CASE("[state_get_all_asset_addresses] ") {
     REQUIRE(asset_1.asset_creator == source);
     REQUIRE(asset_1.amount_owner == source);
 
-    auto const asset_2 = list_source[1];
+    it = std::find_if(list_source.begin(),list_source.end(), [&destination](get_all_asset_addresses_data const& x) {
+        return x.amount_owner == destination;
+    } );
+
+    auto const asset_2 = *it;
 
     REQUIRE(asset_2.asset_id == 0);
     REQUIRE(asset_2.asset_name == name);
     REQUIRE(asset_2.amount == amount_to_transfer);
     REQUIRE(asset_2.asset_creator == source);
+    REQUIRE(asset_2.amount_owner == destination);
 }
 
 
