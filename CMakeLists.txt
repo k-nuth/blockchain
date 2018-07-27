@@ -59,14 +59,28 @@ option(WITH_CONSENSUS "Link bitprim-consensus and use for consensus checks." ON)
 # Implement --with-tests and declare WITH_TESTS.
 #------------------------------------------------------------------------------
 option(WITH_TESTS "Compile with unit tests." ON)
+option(WITH_TESTS_NEW "Compile with unit tests." OFF)
 
 # Implement --with-tools and declare WITH_TOOLS.
 #------------------------------------------------------------------------------
 option(WITH_TOOLS "Compile with tools." OFF)
 
-# Implement --with-litecoin.
+# Implement --with-keoken and declare WITH_KEOKEN.
 #------------------------------------------------------------------------------
-# option(WITH_LITECOIN "Compile with Litecoin support." OFF)
+option(WITH_KEOKEN "Keoken enabled." OFF)
+if (WITH_KEOKEN)
+  message(STATUS "Bitprim: Keoken enabled")
+  add_definitions(-DWITH_KEOKEN)
+endif()
+
+
+# Implement --JUST_BITPRIM_SOURCES for linting.
+#------------------------------------------------------------------------------
+option(JUST_BITPRIM_SOURCES "Just Bitprim source code to be linted." OFF)
+if (JUST_BITPRIM_SOURCES)
+  message(STATUS "Bitprim: Just Bitprim source code to be linted: enabled")
+endif()
+
 
 set(BITPRIM_PROJECT_VERSION "-" CACHE STRING "Specify the Bitprim Project Version.")
 # message(${BITPRIM_PROJECT_VERSION})
@@ -237,8 +251,9 @@ if (ENABLE_SHARED)
   set(MODE SHARED)
 endif()
 
-add_library(bitprim-blockchain ${MODE}
+set(bitprim_blockchain_sources_just_libbitcoin
   src/interface/block_chain.cpp
+
   src/pools/block_entry.cpp
   src/pools/block_organizer.cpp
   src/pools/block_pool.cpp
@@ -246,6 +261,8 @@ add_library(bitprim-blockchain ${MODE}
   src/pools/transaction_entry.cpp
   src/pools/transaction_organizer.cpp
   src/pools/transaction_pool.cpp
+  src/pools/mempool_transaction_summary.cpp #Rama
+
   src/populate/populate_base.cpp
   src/populate/populate_block.cpp
   src/populate/populate_chain_state.cpp
@@ -255,7 +272,37 @@ add_library(bitprim-blockchain ${MODE}
   src/validate/validate_transaction.cpp
   src/settings.cpp
   src/version.cpp
-        include/bitcoin/blockchain/pools/mempool_transaction_summary.hpp src/pools/mempool_transaction_summary.cpp)
+
+  src/bitprim/interface/block_chain.cpp
+)
+
+set(bitprim_blockchain_sources_just_bitprim
+  src/bitprim/interface/block_chain.cpp
+)
+
+# message(STATUS "TODO(fernando) WITH_KEOKEN: ${WITH_KEOKEN}")
+
+if (WITH_KEOKEN)
+  set(bitprim_blockchain_sources_just_bitprim 
+    ${bitprim_blockchain_sources_just_bitprim}         
+    src/bitprim/keoken/interpreter.cpp
+    src/bitprim/keoken/state.cpp
+  )
+endif()
+
+if (NOT JUST_BITPRIM_SOURCES)
+  set(bitprim_blockchain_sources 
+    ${bitprim_blockchain_sources_just_libbitcoin}
+  )
+endif()
+
+set(bitprim_blockchain_sources 
+  ${bitprim_blockchain_sources}   
+  ${bitprim_blockchain_sources_just_bitprim}         
+)
+
+add_library(bitprim-blockchain ${MODE} ${bitprim_blockchain_sources})
+
 
 
 if (ENABLE_POSITION_INDEPENDENT_CODE)
@@ -381,7 +428,7 @@ _group_sources(bitprim-blockchain "${CMAKE_CURRENT_LIST_DIR}")
 # Tests
 #==============================================================================
 
-if (WITH_TESTS)
+if (WITH_TESTS OR WITH_TESTS_NEW)
   enable_testing()
 endif()
 
@@ -398,7 +445,7 @@ if (WITH_TESTS)
     test/validate_block.cpp
     test/validate_transaction.cpp
     test/main.cpp
-          include/bitcoin/blockchain/pools/mempool_transaction_summary.hpp src/pools/mempool_transaction_summary.cpp)
+  )
 
   target_link_libraries(bitprim_blockchain_test PUBLIC bitprim-blockchain)
   _group_sources(bitprim_blockchain_test "${CMAKE_CURRENT_LIST_DIR}/test")
@@ -416,6 +463,22 @@ if (WITH_TESTS)
     validate_transaction_tests
   )
 endif()
+
+if (WITH_TESTS_NEW)
+  if (WITH_KEOKEN)
+    
+    add_executable(bitprim_blockchain_test_new
+          test_new/main.cpp
+          test_new/state_tests.cpp
+          test_new/interpreter_tests.cpp
+    )
+    
+    target_link_libraries(bitprim_blockchain_test_new PUBLIC bitprim-blockchain)
+    add_test(NAME bitprim_blockchain_test_new COMMAND bitprim_blockchain_test_new)
+    
+  endif()
+endif()
+
 
 # # local: test/bitprim_blockchain_requester_test
 # #------------------------------------------------------------------------------
@@ -446,7 +509,8 @@ endif()
 # local: tools/initchain/initchain
 #------------------------------------------------------------------------------
 if (WITH_TOOLS)
-  add_executable(tools.initchain tools/initchain/initchain.cpp include/bitcoin/blockchain/pools/mempool_transaction_summary.hpp src/pools/mempool_transaction_summary.cpp)
+  add_executable(tools.initchain tools/initchain/initchain.cpp)
+
   target_link_libraries(tools.initchain bitprim-blockchain)
   _group_sources(tools.initchain "${CMAKE_CURRENT_LIST_DIR}/tools/initchain")
 endif()
@@ -479,6 +543,10 @@ set(_bitprim_headers
   bitcoin/blockchain/pools/transaction_entry.hpp
   bitcoin/blockchain/pools/transaction_organizer.hpp
   bitcoin/blockchain/pools/transaction_pool.hpp
+  
+  #Rama
+  bitcoin/blockchain/pools/mempool_transaction_summary.hpp 
+
   # include_bitcoin_blockchain_populate_HEADERS =
   bitcoin/blockchain/populate/populate_base.hpp
   bitcoin/blockchain/populate/populate_block.hpp
@@ -487,7 +555,12 @@ set(_bitprim_headers
   # include_bitcoin_blockchain_validation_HEADERS =
   bitcoin/blockchain/validate/validate_block.hpp
   bitcoin/blockchain/validate/validate_input.hpp
-  bitcoin/blockchain/validate/validate_transaction.hpp)
+  bitcoin/blockchain/validate/validate_transaction.hpp
+
+  
+
+)
+  
 foreach (_header ${_bitprim_headers})
   get_filename_component(_directory "${_header}" DIRECTORY)
   install(FILES "include/${_header}" DESTINATION "include/${_directory}")

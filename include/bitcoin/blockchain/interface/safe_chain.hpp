@@ -83,6 +83,8 @@ public:
     typedef std::function<bool(code, transaction_const_ptr)>
         transaction_handler;
 
+    using for_each_tx_handler = std::function<void(code const&, size_t, chain::transaction const&)>;
+
 
     using mempool_mini_hash_map = std::unordered_map<mini_hash, chain::transaction>;
 
@@ -156,6 +158,9 @@ public:
 
     virtual void fetch_block_locator(const chain::block::indexes& heights,
         block_locator_fetch_handler handler) const = 0;
+
+    void for_each_transaction(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const;
+    void for_each_transaction_non_coinbase(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const;
 
     // Server Queries.
     //-------------------------------------------------------------------------

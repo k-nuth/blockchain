@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2017-2018 Bitprim Inc.
+# Copyright (c) 2016-2018 Bitprim Inc.
 #
 # This file is part of Bitprim.
 #
@@ -17,15 +17,14 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import os
 from conans import CMake
-from ci_utils import option_on_off, get_version, get_conan_req_version, march_conan_manip, pass_march_to_compiler
+from ci_utils import option_on_off, march_conan_manip, pass_march_to_compiler
 from ci_utils import BitprimConanFile
 
 class BitprimBlockchainConan(BitprimConanFile):
     name = "bitprim-blockchain"
     # version = get_version()
-    license = "http://www.boost.org/users/license.html"  #TODO(fernando): change to bitprim licence file
+    license = "http://www.boost.org/users/license.html"
     url = "https://github.com/bitprim/bitprim-blockchain/blob/conan-build/conanfile.py"
     description = "Bitprim Blockchain Library"
     settings = "os", "compiler", "build_type", "arch"
@@ -41,7 +40,8 @@ class BitprimBlockchainConan(BitprimConanFile):
                "currency": ['BCH', 'BTC', 'LTC'],
                "microarchitecture": "ANY", #["x86_64", "haswell", "ivybridge", "sandybridge", "bulldozer", ...]
                "fix_march": [True, False],
-               "verbose": [True, False]
+               "verbose": [True, False],
+               "keoken": [True, False]
     }
     # "with_remote_database": [True, False],
 
@@ -53,17 +53,20 @@ class BitprimBlockchainConan(BitprimConanFile):
         "currency=BCH", \
         "microarchitecture=_DUMMY_",  \
         "fix_march=False", \
-        "verbose=False"
+        "verbose=False", \
+        "keoken=False"
 
     # "with_remote_database=False"
 
-
     generators = "cmake"
     exports = "conan_*", "ci_utils/*"
-    exports_sources = "src/*", "CMakeLists.txt", "cmake/*", "bitprim-blockchainConfig.cmake.in", "bitprimbuildinfo.cmake", "include/*", "test/*", "tools/*"
+    exports_sources = "src/*", "CMakeLists.txt", "cmake/*", "bitprim-blockchainConfig.cmake.in", "bitprimbuildinfo.cmake", "include/*", "test/*", "test_new/*", "tools/*"
     package_files = "build/lbitprim-blockchain.a"
     build_policy = "missing"
 
+    @property
+    def is_keoken(self):
+        return self.options.currency == "BCH" and self.options.get_safe("keoken")
 
     def requirements(self):
         self.requires("boost/1.66.0@bitprim/stable")
@@ -83,6 +86,11 @@ class BitprimBlockchainConan(BitprimConanFile):
             if self.options.shared and self.msvc_mt_build:
                 self.options.remove("shared")
 
+        if self.options.keoken and self.options.currency != "BCH":
+            self.output.warning("Keoken is only enabled for BCH, for the moment. Removing Keoken support")
+            self.options.remove("keoken")
+
+
     def configure(self):
         if self.settings.arch == "x86_64" and self.options.microarchitecture == "_DUMMY_":
             del self.options.fix_march
@@ -92,6 +100,12 @@ class BitprimBlockchainConan(BitprimConanFile):
         if self.settings.arch == "x86_64":
             march_conan_manip(self)
             self.options["*"].microarchitecture = self.options.microarchitecture
+
+        if self.options.keoken and self.options.currency != "BCH":
+            self.output.warn("For the moment Keoken is only enabled for BCH. Building without Keoken support...")
+            del self.options.keoken
+        else:
+            self.options["*"].keoken = self.options.keoken
 
         self.options["*"].currency = self.options.currency
         self.output.info("Compiling for currency: %s" % (self.options.currency,))
@@ -118,8 +132,10 @@ class BitprimBlockchainConan(BitprimConanFile):
         # cmake.definitions["WITH_LITECOIN"] = option_on_off(self.options.with_litecoin)
         # cmake.definitions["WITH_REMOTE_DATABASE"] = option_on_off(self.options.with_remote_database)
         cmake.definitions["WITH_TESTS"] = option_on_off(self.options.with_tests)
-        cmake.definitions["WITH_TOOLS"] = option_on_off(self.options.with_tools)
+        cmake.definitions["WITH_TESTS_NEW"] = option_on_off(self.options.with_tests)
 
+        cmake.definitions["WITH_TOOLS"] = option_on_off(self.options.with_tools)
+        cmake.definitions["WITH_KEOKEN"] = option_on_off(self.is_keoken)
         cmake.definitions["CURRENCY"] = self.options.currency
 
         if self.settings.compiler != "Visual Studio":
