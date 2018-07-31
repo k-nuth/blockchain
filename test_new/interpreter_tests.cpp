@@ -46,71 +46,9 @@ using libbitcoin::base16_literal;
 using libbitcoin::data_source;
 using libbitcoin::istream_reader;
 
-class BCB_API fast_chain_dummy
+class BCB_API fast_chain_dummy_return_false
 {
 public:
-    // This avoids conflict with the result_handler in safe_chain.
-    typedef libbitcoin::handle0 complete_handler;
-
-    // Readers.
-    // ------------------------------------------------------------------------
-/*
-    /// Get the set of block gaps in the chain.
-    bool get_gaps(
-        libbitcoin::database::block_database::heights& out_gaps) const {
-            return true;
-        }
-
-    /// Get a determination of whether the block hash exists in the store.
-    bool get_block_exists(const hash_digest& block_hash) const {
-        return true;
-    }
-
-    /// Get the hash of the block if it exists.
-    bool get_block_hash(hash_digest& out_hash, size_t height) const {
-            return true;
-    }
-
-    /// Get the work of the branch starting at the given height.
-    bool get_branch_work(uint256_t& out_work,
-        const uint256_t& maximum, size_t from_height) const {
-            return true;
-         }
-
-    /// Get the header of the block at the given height.
-    bool get_header(chain::header& out_header,
-        size_t height) const {
-            return true;
-         }
-
-    /// Get the height of the block with the given hash.
-    bool get_height(size_t& out_height,
-        const hash_digest& block_hash) const {
-            return true;
-         }
-
-    /// Get the bits of the block with the given height.
-    bool get_bits(uint32_t& out_bits, const size_t& height) const {
-        return true;
-     }
-
-    /// Get the timestamp of the block with the given height.
-    bool get_timestamp(uint32_t& out_timestamp,
-        const size_t& height) const { 
-            return true;
-        }
-
-    /// Get the version of the block with the given height.
-    bool get_version(uint32_t& out_version,
-        const size_t& height) const { 
-            return true;
-        }
-
-    /// Get height of latest block.
-    bool get_last_height(size_t& out_height) const {
-        return true;
-     }
-*/
     /// Get the output that is referenced by the outpoint.
     bool get_output(libbitcoin::chain::output& out_output, size_t& out_height,
         uint32_t& out_median_time_past, bool& out_coinbase, 
@@ -118,78 +56,39 @@ public:
         bool require_confirmed) const { 
             return false;
         }
-        
-/*
-    /// Determine if an unspent transaction exists with the given hash.
-    bool get_is_unspent_transaction(const hash_digest& hash,
-        size_t branch_height, bool require_confirmed) const {
-            return true;
-         }
-
-    /// Get position data for a transaction.
-    bool get_transaction_position(size_t& out_height,
-        size_t& out_position, const hash_digest& hash,
-        bool require_confirmed) const {
-            return true;
-         }
-
-    /////// Get the transaction of the given hash and its block height.
-    ////transaction_ptr get_transaction(size_t& out_block_height,
-    ////    const hash_digest& hash, bool require_confirmed) const { }
-
-    // Writers.
-    // ------------------------------------------------------------------------
-
-    /// Create flush lock if flush_writes is true, and set sequential lock.
-    bool begin_insert() const {
-        return true;
-     }
-
-    /// Clear flush lock if flush_writes is true, and clear sequential lock.
-    bool end_insert() const {
-        return true;
-     }
-
-    /// Insert a block to the blockchain, height is checked for existence.
-    bool insert(block_const_ptr block, size_t height) {
-        return true;
-    }
-
-    /// Push an unconfirmed transaction to the tx table and index outputs.
-    void push(transaction_const_ptr tx, dispatcher& dispatch,
-        complete_handler handler) {
-            
-        }
-
-    /// Swap incoming and outgoing blocks, height is validated.
-    void reorganize(const config::checkpoint& fork_point,
-        block_const_ptr_list_const_ptr incoming_blocks,
-        block_const_ptr_list_ptr outgoing_blocks, dispatcher& dispatch,
-        complete_handler handler) {
-            
-        }
-
-    // Properties
-    // ------------------------------------------------------------------------
-
-    /// Get a reference to the chain state relative to the next block.
-    chain::chain_state::ptr chain_state() const {
-        return nullptr;
-     }
-
-    /// Get a reference to the chain state relative to the next block.
-    chain::chain_state::ptr chain_state(
-        branch::const_ptr branch) const {
-            return nullptr;
-         }
-         */
 };
 
+
+class BCB_API fast_chain_dummy_return_true
+{
+public:
+    
+    fast_chain_dummy_return_true(libbitcoin::chain::transaction& tx)
+        :tx_(tx) {
+
+    }
+
+    /// Get the output that is referenced by the outpoint.
+    bool get_output(libbitcoin::chain::output& out_output, size_t& out_height,
+        uint32_t& out_median_time_past, bool& out_coinbase, 
+        const libbitcoin::chain::output_point& outpoint, size_t branch_height,
+        bool require_confirmed) const { 
+            
+            out_output = tx_.outputs()[0];
+            out_height = 123;
+            out_median_time_past = 456;
+            out_coinbase = false;
+            
+            return true;
+        }
+private:
+    libbitcoin::chain::transaction& tx_;
+};
 
 
 TEST_CASE("[interpreter_tx_without_output] ") {
 
-    using blk_t = fast_chain_dummy;
+    using blk_t = fast_chain_dummy_return_false;
 
     blk_t chain_;
     state state_(1);
@@ -213,9 +112,9 @@ TEST_CASE("[interpreter_tx_without_output] ") {
 
 
 
-TEST_CASE("[interpreter_tx_create_asset] ") {
+TEST_CASE("[interpreter_tx_create_asset_invalid] ") {
 
-    using blk_t = fast_chain_dummy;
+    using blk_t = fast_chain_dummy_return_false;
 
     blk_t chain_;
     state state_(1);
@@ -229,3 +128,48 @@ TEST_CASE("[interpreter_tx_create_asset] ") {
     REQUIRE(interpreter_.process(1550,tx) == error_code_t::invalid_asset_creator);
 }
 
+TEST_CASE("[interpreter_tx_create_asset_valid] ") {
+
+    using blk_t = fast_chain_dummy_return_true;
+
+    data_chunk raw_tx = to_chunk(base16_literal("01000000016ef955ef813fd167438ef35d862d9dcb299672b22ccbc20da598f5ddc59d69aa000000006a473044022056f0511deaaf7485d7f17ec953ad7f6ede03a73c957f98629d290f890aee165602207f1f1a4c04eadeafcd3f4eacd0bb85a45803ef715bfc9a3375fed472212b67fb4121036735a1fe1b39fbe39e629a6dd680bf00b13aefe40d9f3bb6f863d2c4094ddd0effffffff02a007052a010000001976a9140ef6dfde07323619edd2440ca0a54d311df1ee8b88ac00000000000000001b6a0400004b5014000000004269747072696d0000000000000f424000000000"));
+
+    libbitcoin::chain::transaction tx;
+    tx.from_data(raw_tx);
+
+    blk_t chain_(tx);
+    state state_(1);
+    interpreter<blk_t> interpreter_(chain_, state_);
+
+    auto const& ret = state_.get_assets();
+    REQUIRE(ret.size() == 0);
+
+    REQUIRE(interpreter_.process(1550,tx) == error_code_t::success);
+
+    auto const& ret2 = state_.get_assets();
+    REQUIRE(ret2.size() == 1);
+}
+
+TEST_CASE("[interpreter_tx_send_token_insufficient_money] ") {
+
+    using blk_t = fast_chain_dummy_return_true;
+    
+    state state_(2);
+
+    data_chunk raw_tx = to_chunk(base16_literal("01000000016ef955ef813fd167438ef35d862d9dcb299672b22ccbc20da598f5ddc59d69aa000000006a473044022056f0511deaaf7485d7f17ec953ad7f6ede03a73c957f98629d290f890aee165602207f1f1a4c04eadeafcd3f4eacd0bb85a45803ef715bfc9a3375fed472212b67fb4121036735a1fe1b39fbe39e629a6dd680bf00b13aefe40d9f3bb6f863d2c4094ddd0effffffff02a007052a010000001976a9140ef6dfde07323619edd2440ca0a54d311df1ee8b88ac00000000000000001b6a0400004b5014000000004269747072696d0000000000000f424000000000"));
+    libbitcoin::chain::transaction tx;
+    tx.from_data(raw_tx);
+
+    blk_t chain1_(tx);
+    interpreter<blk_t> interpreter1_(chain1_, state_);
+    interpreter1_.process(1550,tx);
+
+    data_chunk raw_send_tx = to_chunk(base16_literal("01000000011e572671f2cff67190785b52e72dc221b1c3a092159b70ec14bc2f433c4dcb2f000000006b48304502210084c05aa0d2a60f69045b46179cff207fde8003ea07a90a75d934ec35d6a46a3a02205b328724e736d9400b3f13ac6e0e49462048dfc2c9a7bd1be9944aa9baa455144121036735a1fe1b39fbe39e629a6dd680bf00b13aefe40d9f3bb6f863d2c4094ddd0effffffff03204e0000000000001976a914071ed73aa65c19f86c88a29a789210fafc8d675188ac606b042a010000001976a9140ef6dfde07323619edd2440ca0a54d311df1ee8b88ac0000000000000000176a0400004b50100000000100000002000000000000006400000000"));
+    libbitcoin::chain::transaction tx_send;
+    tx_send.from_data(raw_send_tx);
+
+    blk_t chain2_(tx_send);
+    interpreter<blk_t> interpreter2_(chain2_, state_);
+
+    REQUIRE(interpreter2_.process(1550,tx_send) == error_code_t::insufficient_money);
+}
