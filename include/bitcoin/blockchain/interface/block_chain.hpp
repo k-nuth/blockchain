@@ -378,7 +378,7 @@ public:
 
     std::vector<block_chain::tx_benefit> get_gbt_tx_list() const;
     bool add_to_chosen_list(transaction_const_ptr tx) override;
-    bool remove_mined_txs_from_chosen_list(block_const_ptr blk) override;
+    void remove_mined_txs_from_chosen_list(block_const_ptr blk) override;
 
 protected:
 

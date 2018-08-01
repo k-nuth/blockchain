@@ -403,6 +403,8 @@ size_t block_chain::find_txs_to_remove_from_chosen(const size_t sigops_limit, co
         } else return 0;
     }
 
+    return 0;
+
 }
 
 bool block_chain::get_transaction_is_confirmed(libbitcoin::hash_digest tx_hash){
@@ -503,7 +505,7 @@ std::vector<block_chain::tx_benefit> block_chain::get_gbt_tx_list() const{
 //When a new block arrives, we need to check every transaction on the chosen list
 //to see if it was mined; and remove it if it was.
 //using tx_benefit = std::tuple<double /*benefit*/, size_t /*tx_sigops*/, size_t /*tx_size*/, size_t /*tx_fees*/, libbitcoin::data_chunk /*tx_hex*/, libbitcoin::hash_digest /*tx_hash */> ;
-bool block_chain::remove_mined_txs_from_chosen_list(block_const_ptr blk){
+void block_chain::remove_mined_txs_from_chosen_list(block_const_ptr blk){
 
     gbt_ready_= false;
     std::lock_guard<std::mutex> lock(gbt_mutex_);
