@@ -20,7 +20,7 @@
 #ifndef BITPRIM_BLOCKCHAIN_KEOKEN_INTERPRETER_HPP_
 #define BITPRIM_BLOCKCHAIN_KEOKEN_INTERPRETER_HPP_
 
-#include <bitcoin/blockchain/interface/fast_chain.hpp>
+// #include <bitcoin/blockchain/interface/fast_chain.hpp>
 
 #include <bitcoin/bitcoin/chain/output.hpp>
 #include <bitcoin/bitcoin/chain/transaction.hpp>
@@ -31,7 +31,8 @@
 #include <bitprim/keoken/error.hpp>
 #include <bitprim/keoken/message/base.hpp>
 #include <bitprim/keoken/message/create_asset.hpp>
-#include <bitprim/keoken/state.hpp>
+#include <bitprim/keoken/message/send_tokens.hpp>
+// #include <bitprim/keoken/state.hpp>
 #include <bitprim/keoken/transaction_extractor.hpp>
 
 namespace bitprim {
@@ -46,11 +47,11 @@ enum class message_type_t {
     send_tokens = 1
 };
 
-template <typename Fastchain>
+template <typename State, typename Fastchain>
 class interpreter {
 public:
-    explicit
-    interpreter(Fastchain& fast_chain, state& st);
+    // explicit
+    interpreter(State& st, Fastchain& fast_chain);
 
     // non-copyable class
     interpreter(interpreter const&) = delete;
@@ -67,7 +68,7 @@ private:
     error::error_code_t process_create_asset_version_0(size_t block_height, bc::chain::transaction const& tx, bc::reader& source);
     error::error_code_t process_send_tokens_version_0(size_t block_height, bc::chain::transaction const& tx, bc::reader& source);
 
-    state& state_;
+    State& state_;
     Fastchain& fast_chain_;
 };
 
@@ -75,14 +76,14 @@ private:
 using error::error_code_t;
 
 // explicit
-template <typename Fastchain>
-interpreter<Fastchain>::interpreter(Fastchain& fast_chain, state& st)
-    : fast_chain_(fast_chain)
-    , state_(st)
+template <typename State, typename Fastchain>
+interpreter<State, Fastchain>::interpreter(State& st, Fastchain& fast_chain)
+    : state_(st)
+    , fast_chain_(fast_chain)
 {}
 
-template <typename Fastchain>
-error_code_t interpreter<Fastchain>::process(size_t block_height, bc::chain::transaction const& tx) {
+template <typename State, typename Fastchain>
+error_code_t interpreter<State, Fastchain>::process(size_t block_height, bc::chain::transaction const& tx) {
     using bc::istream_reader;
     using bc::data_source;
 
@@ -96,8 +97,8 @@ error_code_t interpreter<Fastchain>::process(size_t block_height, bc::chain::tra
     return error::not_keoken_tx;
 }
 
-template <typename Fastchain>
-error_code_t interpreter<Fastchain>::version_dispatcher(size_t block_height, bc::chain::transaction const& tx, bc::reader& source) {
+template <typename State, typename Fastchain>
+error_code_t interpreter<State, Fastchain>::version_dispatcher(size_t block_height, bc::chain::transaction const& tx, bc::reader& source) {
 
     auto version = source.read_2_bytes_big_endian();
     if ( ! source) return error::invalid_version_number;
@@ -109,8 +110,8 @@ error_code_t interpreter<Fastchain>::version_dispatcher(size_t block_height, bc:
     return error::not_recognized_version_number;
 }
 
-template <typename Fastchain>
-error_code_t interpreter<Fastchain>::version_0_type_dispatcher(size_t block_height, bc::chain::transaction const& tx, bc::reader& source) {
+template <typename State, typename Fastchain>
+error_code_t interpreter<State, Fastchain>::version_0_type_dispatcher(size_t block_height, bc::chain::transaction const& tx, bc::reader& source) {
     auto type = source.read_2_bytes_big_endian();
     if ( ! source) return error::invalid_type;
 
@@ -123,8 +124,8 @@ error_code_t interpreter<Fastchain>::version_0_type_dispatcher(size_t block_heig
     return error::not_recognized_type;
 }
 
-template <typename Fastchain>
-bc::wallet::payment_address interpreter<Fastchain>::get_first_input_addr(bc::chain::transaction const& tx) const {
+template <typename State, typename Fastchain>
+bc::wallet::payment_address interpreter<State, Fastchain>::get_first_input_addr(bc::chain::transaction const& tx) const {
     auto const& owner_input = tx.inputs()[0];
 
     bc::chain::output out_output;
@@ -140,8 +141,8 @@ bc::wallet::payment_address interpreter<Fastchain>::get_first_input_addr(bc::cha
     return out_output.address();
 }
 
-template <typename Fastchain>
-error_code_t interpreter<Fastchain>::process_create_asset_version_0(size_t block_height, bc::chain::transaction const& tx, bc::reader& source) {
+template <typename State, typename Fastchain>
+error_code_t interpreter<State, Fastchain>::process_create_asset_version_0(size_t block_height, bc::chain::transaction const& tx, bc::reader& source) {
     auto msg = message::create_asset::factory_from_data(source);
     if ( ! source) return error::invalid_create_asset_message;
 
@@ -158,14 +159,14 @@ error_code_t interpreter<Fastchain>::process_create_asset_version_0(size_t block
     return error::success;
 }
 
-template <typename Fastchain>
-std::pair<bc::wallet::payment_address, bc::wallet::payment_address> interpreter<Fastchain>::get_send_tokens_addrs(bc::chain::transaction const& tx) const {
+template <typename State, typename Fastchain>
+std::pair<bc::wallet::payment_address, bc::wallet::payment_address> interpreter<State, Fastchain>::get_send_tokens_addrs(bc::chain::transaction const& tx) const {
     auto source = get_first_input_addr(tx);
     if ( ! source) {
         return {bc::wallet::payment_address{}, bc::wallet::payment_address{}};
     }
 
-    auto it = std::find_if(tx.outputs().begin(), tx.outputs().end(), [&source](output const& o) {
+    auto it = std::find_if(tx.outputs().begin(), tx.outputs().end(), [&source](bc::chain::output const& o) {
         return o.address() && o.address() != source;
     });
 
@@ -176,8 +177,8 @@ std::pair<bc::wallet::payment_address, bc::wallet::payment_address> interpreter<
     return {std::move(source), it->address()};
 }
 
-template <typename Fastchain>
-error_code_t interpreter<Fastchain>::process_send_tokens_version_0(size_t block_height, bc::chain::transaction const& tx, bc::reader& source) {
+template <typename State, typename Fastchain>
+error_code_t interpreter<State, Fastchain>::process_send_tokens_version_0(size_t block_height, bc::chain::transaction const& tx, bc::reader& source) {
     auto msg = message::send_tokens::factory_from_data(source);
     if ( ! source) return error::invalid_send_tokens_message;
 
