@@ -22,25 +22,17 @@
 
 #include <bitcoin/blockchain/interface/fast_chain.hpp>
 
+#include <bitcoin/bitcoin/chain/output.hpp>
 #include <bitcoin/bitcoin/chain/transaction.hpp>
+#include <bitcoin/bitcoin/utility/container_source.hpp>
+#include <bitcoin/bitcoin/utility/istream_reader.hpp>
 #include <bitcoin/bitcoin/utility/reader.hpp>
 
 #include <bitprim/keoken/error.hpp>
 #include <bitprim/keoken/message/base.hpp>
 #include <bitprim/keoken/message/create_asset.hpp>
 #include <bitprim/keoken/state.hpp>
-
-#include <bitcoin/bitcoin/chain/output.hpp>
-#include <bitcoin/bitcoin/utility/container_source.hpp>
-#include <bitcoin/bitcoin/utility/istream_reader.hpp>
-
 #include <bitprim/keoken/transaction_extractor.hpp>
-
-using libbitcoin::chain::transaction;
-using libbitcoin::chain::output;
-using libbitcoin::data_chunk;
-using libbitcoin::reader;
-using libbitcoin::wallet::payment_address;
 
 namespace bitprim {
 namespace keoken {
@@ -64,16 +56,16 @@ public:
     interpreter(interpreter const&) = delete;
     interpreter& operator=(interpreter const&) = delete;
 
-    error::error_code_t process(size_t block_height, libbitcoin::chain::transaction const& tx);
+    error::error_code_t process(size_t block_height, bc::chain::transaction const& tx);
 
 private:
-    libbitcoin::wallet::payment_address get_first_input_addr(libbitcoin::chain::transaction const& tx) const;
-    std::pair<libbitcoin::wallet::payment_address, libbitcoin::wallet::payment_address> get_send_tokens_addrs(libbitcoin::chain::transaction const& tx) const;
+    bc::wallet::payment_address get_first_input_addr(bc::chain::transaction const& tx) const;
+    std::pair<bc::wallet::payment_address, bc::wallet::payment_address> get_send_tokens_addrs(bc::chain::transaction const& tx) const;
     
-    error::error_code_t version_dispatcher(size_t block_height, libbitcoin::chain::transaction const& tx, libbitcoin::reader& source);
-    error::error_code_t version_0_type_dispatcher(size_t block_height, libbitcoin::chain::transaction const& tx, libbitcoin::reader& source);
-    error::error_code_t process_create_asset_version_0(size_t block_height, libbitcoin::chain::transaction const& tx, libbitcoin::reader& source);
-    error::error_code_t process_send_tokens_version_0(size_t block_height, libbitcoin::chain::transaction const& tx, libbitcoin::reader& source);
+    error::error_code_t version_dispatcher(size_t block_height, bc::chain::transaction const& tx, bc::reader& source);
+    error::error_code_t version_0_type_dispatcher(size_t block_height, bc::chain::transaction const& tx, bc::reader& source);
+    error::error_code_t process_create_asset_version_0(size_t block_height, bc::chain::transaction const& tx, bc::reader& source);
+    error::error_code_t process_send_tokens_version_0(size_t block_height, bc::chain::transaction const& tx, bc::reader& source);
 
     state& state_;
     Fastchain& fast_chain_;
@@ -90,9 +82,9 @@ interpreter<Fastchain>::interpreter(Fastchain& fast_chain, state& st)
 {}
 
 template <typename Fastchain>
-error_code_t interpreter<Fastchain>::process(size_t block_height, transaction const& tx) {
-    using libbitcoin::istream_reader;
-    using libbitcoin::data_source;
+error_code_t interpreter<Fastchain>::process(size_t block_height, bc::chain::transaction const& tx) {
+    using bc::istream_reader;
+    using bc::data_source;
 
     auto data = first_keoken_output(tx);
     if ( ! data.empty()) {
@@ -105,7 +97,7 @@ error_code_t interpreter<Fastchain>::process(size_t block_height, transaction co
 }
 
 template <typename Fastchain>
-error_code_t interpreter<Fastchain>::version_dispatcher(size_t block_height, transaction const& tx, reader& source) {
+error_code_t interpreter<Fastchain>::version_dispatcher(size_t block_height, bc::chain::transaction const& tx, bc::reader& source) {
 
     auto version = source.read_2_bytes_big_endian();
     if ( ! source) return error::invalid_version_number;
@@ -118,7 +110,7 @@ error_code_t interpreter<Fastchain>::version_dispatcher(size_t block_height, tra
 }
 
 template <typename Fastchain>
-error_code_t interpreter<Fastchain>::version_0_type_dispatcher(size_t block_height, transaction const& tx, reader& source) {
+error_code_t interpreter<Fastchain>::version_0_type_dispatcher(size_t block_height, bc::chain::transaction const& tx, bc::reader& source) {
     auto type = source.read_2_bytes_big_endian();
     if ( ! source) return error::invalid_type;
 
@@ -132,24 +124,24 @@ error_code_t interpreter<Fastchain>::version_0_type_dispatcher(size_t block_heig
 }
 
 template <typename Fastchain>
-payment_address interpreter<Fastchain>::get_first_input_addr(transaction const& tx) const {
+bc::wallet::payment_address interpreter<Fastchain>::get_first_input_addr(bc::chain::transaction const& tx) const {
     auto const& owner_input = tx.inputs()[0];
 
-    output out_output;
+    bc::chain::output out_output;
     size_t out_height;
     uint32_t out_median_time_past;
     bool out_coinbase;
 
     if ( ! fast_chain_.get_output(out_output, out_height, out_median_time_past, out_coinbase, 
-                                  owner_input.previous_output(), libbitcoin::max_size_t, true)) {
-        return payment_address{};
+                                  owner_input.previous_output(), bc::max_size_t, true)) {
+        return bc::wallet::payment_address{};
     }
 
     return out_output.address();
 }
 
 template <typename Fastchain>
-error_code_t interpreter<Fastchain>::process_create_asset_version_0(size_t block_height, transaction const& tx, reader& source) {
+error_code_t interpreter<Fastchain>::process_create_asset_version_0(size_t block_height, bc::chain::transaction const& tx, bc::reader& source) {
     auto msg = message::create_asset::factory_from_data(source);
     if ( ! source) return error::invalid_create_asset_message;
 
@@ -167,10 +159,10 @@ error_code_t interpreter<Fastchain>::process_create_asset_version_0(size_t block
 }
 
 template <typename Fastchain>
-std::pair<payment_address, payment_address> interpreter<Fastchain>::get_send_tokens_addrs(transaction const& tx) const {
+std::pair<bc::wallet::payment_address, bc::wallet::payment_address> interpreter<Fastchain>::get_send_tokens_addrs(bc::chain::transaction const& tx) const {
     auto source = get_first_input_addr(tx);
     if ( ! source) {
-        return {payment_address{}, payment_address{}};
+        return {bc::wallet::payment_address{}, bc::wallet::payment_address{}};
     }
 
     auto it = std::find_if(tx.outputs().begin(), tx.outputs().end(), [&source](output const& o) {
@@ -178,14 +170,14 @@ std::pair<payment_address, payment_address> interpreter<Fastchain>::get_send_tok
     });
 
     if (it == tx.outputs().end()) {
-        return {std::move(source), payment_address{}};        
+        return {std::move(source), bc::wallet::payment_address{}};        
     }
 
     return {std::move(source), it->address()};
 }
 
 template <typename Fastchain>
-error_code_t interpreter<Fastchain>::process_send_tokens_version_0(size_t block_height, transaction const& tx, reader& source) {
+error_code_t interpreter<Fastchain>::process_send_tokens_version_0(size_t block_height, bc::chain::transaction const& tx, bc::reader& source) {
     auto msg = message::send_tokens::factory_from_data(source);
     if ( ! source) return error::invalid_send_tokens_message;
 
@@ -198,8 +190,8 @@ error_code_t interpreter<Fastchain>::process_send_tokens_version_0(size_t block_
     }
   
     auto wallets = get_send_tokens_addrs(tx);
-    payment_address const& source_addr = wallets.first;
-    payment_address const& target_addr = wallets.second;
+    auto const& source_addr = wallets.first;
+    auto const& target_addr = wallets.second;
 
     if ( ! source_addr) return error::invalid_source_address;
     if ( ! target_addr) return error::invalid_target_address;

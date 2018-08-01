@@ -285,7 +285,6 @@ set(bitprim_blockchain_sources_just_bitprim
 if (WITH_KEOKEN)
   set(bitprim_blockchain_sources_just_bitprim 
     ${bitprim_blockchain_sources_just_bitprim}         
-    src/bitprim/keoken/interpreter.cpp
     src/bitprim/keoken/state.cpp
   )
 endif()
