@@ -97,7 +97,7 @@ TEST_CASE("[interpreter_tx_without_output] ") {
     bc::chain::transaction tx;
     tx.from_data(raw_tx);
 
-    REQUIRE(interpreter.process(1550,tx) == error_code_t::not_keoken_tx);
+    REQUIRE(interpreter.process(1550,tx) == error::not_keoken_tx);
 }
 
 TEST_CASE("[interpreter_tx_create_asset_invalid] ") {
@@ -111,7 +111,7 @@ TEST_CASE("[interpreter_tx_create_asset_invalid] ") {
     bc::chain::transaction tx;
     tx.from_data(raw_tx);
 
-    REQUIRE(interpreter.process(1550,tx) == error_code_t::invalid_asset_creator);
+    REQUIRE(interpreter.process(1550,tx) == error::invalid_asset_creator);
 }
 
 TEST_CASE("[interpreter_tx_create_asset_valid] ") {
@@ -129,7 +129,7 @@ TEST_CASE("[interpreter_tx_create_asset_valid] ") {
     auto const& ret = st.get_assets();
     REQUIRE(ret.size() == 0);
 
-    REQUIRE(interpreter.process(1550,tx) == error_code_t::success);
+    REQUIRE(interpreter.process(1550,tx) == error::success);
 
     auto const& ret2 = st.get_assets();
     REQUIRE(ret2.size() == 1);
@@ -156,5 +156,5 @@ TEST_CASE("[interpreter_tx_send_token_insufficient_money] ") {
     blk_t chain2(tx_send);
     interpreter<state, blk_t> interpreter2_(st, chain2);
 
-    REQUIRE(interpreter2_.process(1550,tx_send) == error_code_t::insufficient_money);
+    REQUIRE(interpreter2_.process(1550,tx_send) == error::insufficient_money);
 }
