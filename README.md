@@ -13,7 +13,7 @@ $ git clone https://github.com/bitprim/bitprim-blockchain.git
 $ cd bitprim-blockchain
 $ mkdir build
 $ cd build
-$ cmake .. -DWITH_TESTS=OFF -DWITH_TOOLS=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="-std=c++11"
+$ cmake .. -DWITH_TESTS=OFF -DWITH_TOOLS=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="-std=c++14"
 $ make -j2 
 $ sudo make install
 ```

@@ -32,8 +32,11 @@
 #include <bitprim/keoken/message/send_tokens.hpp>
 #include <bitprim/keoken/transaction_extractor.hpp>
 
-#include <bitprim/keoken/transaction_processors/v0/create_asset.hpp>
-#include <bitprim/keoken/transaction_processors/v0/send_tokens.hpp>
+// #include <bitprim/keoken/transaction_processors/v0/create_asset.hpp>
+// #include <bitprim/keoken/transaction_processors/v0/send_tokens.hpp>
+#include <bitprim/keoken/transaction_processors/v0/transactions.hpp>
+
+// #define Tuple typename
 
 namespace bitprim {
 namespace keoken {
@@ -42,15 +45,102 @@ enum class version_t {
     zero = 0
 };
 
-enum class message_type_t {
-    create_asset = 0,
-    send_tokens = 1
+
+namespace detail {
+
+template <typename T, message_type_t x>
+struct find_type {
+
+    template <size_t... Is>
+    constexpr 
+    bool call_impl(std::index_sequence<Is...>) const {
+        return false;
+    }
+
+    template <size_t I, size_t... Is>
+    constexpr 
+    bool call_impl(std::index_sequence<I, Is...>) const {
+        if (x == std::tuple_element_t<I, T>::message_type) {
+            return true;
+        } else {
+            return call_impl(std::index_sequence<Is...>{});
+        }
+    }
+
+    constexpr 
+    bool operator()() const {
+        using idxs_t = std::make_index_sequence<std::tuple_size<T>::value>;
+        return call_impl(idxs_t{});
+    }
 };
+
+template <typename T>
+struct no_repeated_types {
+
+    template <size_t... Is>
+    constexpr 
+    bool call_impl(std::index_sequence<Is...>) const {
+        return true;
+    }
+
+    template <size_t I, size_t... Is>
+    constexpr 
+    bool call_impl(std::index_sequence<I, Is...>) const {
+        constexpr auto type_num = std::tuple_element_t<I, T>::message_type;
+        using idxs_t = std::index_sequence<Is...>;
+
+        bool res = find_type<T, type_num>{}.call_impl(idxs_t{});
+        if (res) {
+            return false;
+        } else {
+            return call_impl(idxs_t{});
+        }
+    }
+
+    constexpr
+    bool operator()() const {
+        using idxs_t = std::make_index_sequence<std::tuple_size<T>::value>;
+        return call_impl(idxs_t{});
+    }
+
+};
+
+} //namespace detail
+
+namespace v0 {
+
+template <typename T>
+struct dispatcher {
+    template <typename State, typename Fastchain, size_t... Is>
+    constexpr 
+    auto call_impl(message_type_t, State&, Fastchain const&, size_t, bc::chain::transaction const&, bc::reader&, std::index_sequence<Is...>) const {
+        return error::not_recognized_type;
+    }
+
+    template <typename State, typename Fastchain, size_t I, size_t... Is>
+    constexpr 
+    auto call_impl(message_type_t mt, State& state, Fastchain const& fast_chain, size_t block_height, bc::chain::transaction const& tx, bc::reader& source, std::index_sequence<I, Is...>) const {
+        using msg_t = std::tuple_element_t<I, T>;
+        using idxs_t = std::index_sequence<Is...>;
+        return mt == msg_t::message_type 
+                ? msg_t{}(state, fast_chain, block_height, tx, source) 
+                : call_impl(mt, state, fast_chain, block_height, tx, source, idxs_t{});
+    }
+
+    template <typename State, typename Fastchain>
+    constexpr 
+    auto operator()(message_type_t mt, State& state, Fastchain const& fast_chain, size_t block_height, bc::chain::transaction const& tx, bc::reader& source) const {
+        static_assert(detail::no_repeated_types<T>{}(), "repeated transaction types in transaction list");
+        using idxs_t = std::make_index_sequence<std::tuple_size<T>::value>;
+        return call_impl(mt, state, fast_chain, block_height, tx, source, idxs_t{});
+    }
+};
+
+} //namespace v0
 
 template <typename State, typename Fastchain>
 class interpreter {
 public:
-    // explicit
     interpreter(State& st, Fastchain& fast_chain)
         : state_(st)
         , fast_chain_(fast_chain)
@@ -92,13 +182,8 @@ private:
         auto type = source.read_2_bytes_big_endian();
         if ( ! source) return error::invalid_type;
 
-        switch (static_cast<message_type_t>(type)) {
-            case message_type_t::create_asset:
-                return create_asset(state_, fast_chain_, block_height, tx, source);
-            case message_type_t::send_tokens:
-                return send_tokens(state_, fast_chain_, block_height, tx, source);
-        }
-        return error::not_recognized_type;
+        using dispatch_t = v0::dispatcher<transaction_processors::v0::transactions>;
+        return dispatch_t{}(static_cast<message_type_t>(type), state_, fast_chain_, block_height, tx, source);
     }
 
     State& state_;

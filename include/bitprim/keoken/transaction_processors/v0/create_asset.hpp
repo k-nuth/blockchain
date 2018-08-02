@@ -28,26 +28,27 @@ namespace keoken {
 namespace transaction_processors {
 namespace v0 {
 
-template <typename State, typename Fastchain>
-error::error_code_t create_asset(State& state, Fastchain const& fast_chain, 
-                          size_t block_height, bc::chain::transaction const& tx, bc::reader& source) {
+struct create_asset {
+    static constexpr message_type_t message_type = message_type_t::create_asset;
 
-    auto msg = message::create_asset::factory_from_data(source);
-    if ( ! source) return error::invalid_create_asset_message;
+    template <typename State, typename Fastchain>
+    error::error_code_t operator()(State& state, Fastchain const& fast_chain, size_t block_height, bc::chain::transaction const& tx, bc::reader& source) const {
+        auto msg = message::create_asset::factory_from_data(source);
+        if ( ! source) return error::invalid_create_asset_message;
 
-    if (msg.amount() <= 0) {
-        return error::invalid_asset_amount;
+        if (msg.amount() <= 0) {
+            return error::invalid_asset_amount;
+        }
+
+        auto owner = get_first_input_addr(fast_chain, tx);
+        if ( ! owner) {
+            return error::invalid_asset_creator;
+        }
+
+        state.create_asset(msg.name(), msg.amount(), std::move(owner), block_height, tx.hash());
+        return error::success;
     }
-
-    auto owner = get_first_input_addr(fast_chain, tx);
-    if ( ! owner) {
-        return error::invalid_asset_creator;
-    }
-
-    state.create_asset(msg.name(), msg.amount(), std::move(owner), block_height, tx.hash());
-    return error::success;
-}
-
+};
 
 } // namespace v0
 } // namespace transaction_processors

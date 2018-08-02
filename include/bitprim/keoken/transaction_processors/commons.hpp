@@ -26,6 +26,12 @@
 namespace bitprim {
 namespace keoken {
 
+enum class message_type_t {
+    create_asset = 0,
+    send_tokens = 1
+};
+
+
 template <typename Fastchain>
 bc::wallet::payment_address get_first_input_addr(Fastchain const& fast_chain, bc::chain::transaction const& tx) {
     auto const& owner_input = tx.inputs()[0];
