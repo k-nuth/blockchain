@@ -46,8 +46,10 @@ public:
     using get_assets_list = std::vector<get_assets_data>;
     using get_all_asset_addresses_list = std::vector<get_all_asset_addresses_data>;
 
-    explicit
-    state(asset_id_t asset_id_initial);
+    // explicit
+    // state(asset_id_t asset_id_initial);
+
+    state() = default;
 
     // non-copyable class
     state(state const&) = delete;
@@ -55,6 +57,8 @@ public:
 
     // Commands.
     // ---------------------------------------------------------------------------------
+    void set_initial_asset_id(asset_id_t asset_id_initial);
+
     void create_asset(std::string asset_name, amount_t asset_amount, 
                       payment_address owner,
                       size_t block_height, libbitcoin::hash_digest const& txid);

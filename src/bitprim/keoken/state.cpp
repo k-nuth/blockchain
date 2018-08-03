@@ -29,9 +29,13 @@ using libbitcoin::wallet::payment_address;
 namespace bitprim {
 namespace keoken {
 
-state::state(asset_id_t asset_id_initial)
-    : asset_id_next_(asset_id_initial)
-{}
+// state::state(asset_id_t asset_id_initial)
+//     : asset_id_next_(asset_id_initial)
+// {}
+
+void state::set_initial_asset_id(asset_id_t asset_id_initial) {
+    asset_id_next_ = asset_id_initial;
+}
 
 void state::create_asset(std::string asset_name, amount_t asset_amount, 
                     payment_address owner,

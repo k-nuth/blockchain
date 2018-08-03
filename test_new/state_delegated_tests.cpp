@@ -20,25 +20,30 @@
 #include "doctest.h"
 
 #include <bitprim/keoken/state.hpp>
+#include <bitprim/keoken/state_delegated.hpp>
 
 using namespace bitprim::keoken;
 using libbitcoin::hash_digest;
 using libbitcoin::hash_literal;
 using libbitcoin::wallet::payment_address;
 
-TEST_CASE("[state_asset_id_exists_empty] ") {
 
-    // state state_(0);
-    state state_;
+TEST_CASE("[state_delegated_asset_id_exists_empty] ") {
+
+    state_delegated state_;
+    state st;
+    bind_to_state(st, state_);
     state_.set_initial_asset_id(0);
+
     REQUIRE( ! state_.asset_id_exists(0));
     REQUIRE( ! state_.asset_id_exists(1));
 }
 
-TEST_CASE("[state_asset_id_exists_not_empty] ") {
+TEST_CASE("[state_delegated_asset_id_exists_not_empty] ") {
 
-    // state state_(0);
-    state state_;
+    state_delegated state_;
+    state st;
+    bind_to_state(st, state_);
     state_.set_initial_asset_id(0);
 
     std::string name = "Test";
@@ -52,10 +57,11 @@ TEST_CASE("[state_asset_id_exists_not_empty] ") {
     REQUIRE(state_.asset_id_exists(0));
 }
 
-TEST_CASE("[state_get_assets_empty] ") {
+TEST_CASE("[state_delegated_get_assets_empty] ") {
 
-    // state state_(1);
-    state state_;
+    state_delegated state_;
+    state st;
+    bind_to_state(st, state_);
     state_.set_initial_asset_id(1);
 
     auto const& ret = state_.get_assets();
@@ -63,10 +69,11 @@ TEST_CASE("[state_get_assets_empty] ") {
 }
 
 
-TEST_CASE("[state_get_assets_not_empty] ") {
+TEST_CASE("[state_delegated_get_assets_not_empty] ") {
 
-    // state state_(0);
-    state state_;
+    state_delegated state_;
+    state st;
+    bind_to_state(st, state_);
     state_.set_initial_asset_id(0);
 
 
@@ -89,10 +96,11 @@ TEST_CASE("[state_get_assets_not_empty] ") {
     REQUIRE(new_asset.asset_creator == addr);
 }
 
-TEST_CASE("[state_create_asset] ") {
+TEST_CASE("[state_delegated_create_asset] ") {
 
-    // state state_(0);
-    state state_;
+    state_delegated state_;
+    state st;
+    bind_to_state(st, state_);
     state_.set_initial_asset_id(0);
 
     std::string name = "Test";
@@ -117,12 +125,12 @@ TEST_CASE("[state_create_asset] ") {
      REQUIRE(balance == 1559);
 }
 
-TEST_CASE("[state_create_balance_entry] ") {
+TEST_CASE("[state_delegated_create_balance_entry] ") {
 
-    // state state_(0);
-    state state_;
+    state_delegated state_;
+    state st;
+    bind_to_state(st, state_);
     state_.set_initial_asset_id(0);
-
 
     std::string name = "Test";
     amount_t amount = 1559;
@@ -146,10 +154,11 @@ TEST_CASE("[state_create_balance_entry] ") {
 }
 
 
-TEST_CASE("[state_get_assets_by_address] ") {
+TEST_CASE("[state_delegated_get_assets_by_address] ") {
 
-    // state state_(0);
-    state state_;
+    state_delegated state_;
+    state st;
+    bind_to_state(st, state_);
     state_.set_initial_asset_id(0);
 
     std::string name = "Test";
@@ -186,11 +195,13 @@ TEST_CASE("[state_get_assets_by_address] ") {
 }
 
 
-TEST_CASE("[state_get_all_asset_addresses] ") {
+TEST_CASE("[state_delegated_get_all_asset_addresses] ") {
 
-    // state state_(0);
-    state state_;
+    state_delegated state_;
+    state st;
+    bind_to_state(st, state_);
     state_.set_initial_asset_id(0);
+
 
     std::string name = "Test";
     amount_t amount = 1559;
@@ -233,5 +244,3 @@ TEST_CASE("[state_get_all_asset_addresses] ") {
     REQUIRE(asset_2.asset_creator == source);
     REQUIRE(asset_2.amount_owner == destination);
 }
-
-

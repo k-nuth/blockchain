@@ -468,6 +468,7 @@ if (WITH_TESTS_NEW)
     
     add_executable(bitprim_blockchain_test_new
           test_new/main.cpp
+          test_new/state_delegated_tests.cpp
           test_new/state_tests.cpp
           test_new/interpreter_tests.cpp
     )
