@@ -517,6 +517,14 @@ std::vector<block_chain::tx_benefit> block_chain::get_gbt_tx_list() const{
 //using tx_benefit = std::tuple<double /*benefit*/, size_t /*tx_sigops*/, size_t /*tx_size*/, size_t /*tx_fees*/, libbitcoin::data_chunk /*tx_hex*/, libbitcoin::hash_digest /*tx_hash */> ;
 void block_chain::remove_mined_txs_from_chosen_list(block_const_ptr blk){
 
+    LOG_INFO(LOG_BLOCKCHAIN) << "remove_mined_txs_from_chosen_list - 1";
+
+    if (blk) {
+        LOG_INFO(LOG_BLOCKCHAIN) << "remove_mined_txs_from_chosen_list - blk is OK";
+    } else {
+        LOG_INFO(LOG_BLOCKCHAIN) << "remove_mined_txs_from_chosen_list - blk is empty";
+    }
+
     gbt_ready_= false;
     std::lock_guard<std::mutex> lock(gbt_mutex_);
     for(auto const& tx : blk->transactions()){
