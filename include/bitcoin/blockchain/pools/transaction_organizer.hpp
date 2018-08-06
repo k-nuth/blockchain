@@ -72,7 +72,11 @@ private:
     void handle_check(code const& ec, transaction_const_ptr tx, result_handler handler);
     void handle_accept(code const& ec, transaction_const_ptr tx, result_handler handler);
     void handle_connect(code const& ec, transaction_const_ptr tx, result_handler handler);
+
+#ifndef BITPRIM_READ_ONLY
     void handle_pushed(code const& ec, transaction_const_ptr tx, result_handler handler);
+#endif
+
     void signal_completion(code const& ec);
 
     void validate_handle_check(code const& ec, transaction_const_ptr tx, result_handler handler) const;

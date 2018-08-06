@@ -41,7 +41,8 @@ class BitprimBlockchainConan(BitprimConanFile):
                "microarchitecture": "ANY", #["x86_64", "haswell", "ivybridge", "sandybridge", "bulldozer", ...]
                "fix_march": [True, False],
                "verbose": [True, False],
-               "keoken": [True, False]
+               "keoken": [True, False],
+               "read_only": [True, False]
     }
     # "with_remote_database": [True, False],
 
@@ -54,7 +55,8 @@ class BitprimBlockchainConan(BitprimConanFile):
         "microarchitecture=_DUMMY_",  \
         "fix_march=False", \
         "verbose=False", \
-        "keoken=False"
+        "keoken=False", \
+        "read_only=False"
 
     # "with_remote_database=False"
 
@@ -86,9 +88,9 @@ class BitprimBlockchainConan(BitprimConanFile):
             if self.options.shared and self.msvc_mt_build:
                 self.options.remove("shared")
 
-        if self.options.keoken and self.options.currency != "BCH":
-            self.output.warning("Keoken is only enabled for BCH, for the moment. Removing Keoken support")
-            self.options.remove("keoken")
+        # if self.options.keoken and self.options.currency != "BCH":
+        #     self.output.warning("Keoken is only enabled for BCH, for the moment. Removing Keoken support")
+        #     self.options.remove("keoken")
 
 
     def configure(self):
@@ -136,6 +138,7 @@ class BitprimBlockchainConan(BitprimConanFile):
 
         cmake.definitions["WITH_TOOLS"] = option_on_off(self.options.with_tools)
         cmake.definitions["WITH_KEOKEN"] = option_on_off(self.is_keoken)
+        cmake.definitions["READ_ONLY"] = option_on_off(self.options.read_only)
         cmake.definitions["CURRENCY"] = self.options.currency
 
         if self.settings.compiler != "Visual Studio":

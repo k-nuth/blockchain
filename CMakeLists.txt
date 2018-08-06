@@ -73,6 +73,18 @@ if (WITH_KEOKEN)
   add_definitions(-DWITH_KEOKEN)
 endif()
 
+# Implement --read-only and declare READ_ONLY.
+#------------------------------------------------------------------------------
+option(READ_ONLY "Read-only blockchain." OFF)
+if (READ_ONLY)
+  message(STATUS "Bitprim: Read-only blockchain")
+  add_definitions(-DBITPRIM_READ_ONLY)
+else()
+message(STATUS "Bitprim: Writable blockchain")
+endif()
+
+
+
 
 # Implement --JUST_BITPRIM_SOURCES for linting.
 #------------------------------------------------------------------------------
@@ -435,7 +447,8 @@ endif()
 #------------------------------------------------------------------------------
 if (WITH_TESTS)
   add_executable(bitprim_blockchain_test
-    test/block_chain.cpp
+    test/block_chain_read_only.cpp
+    test/block_chain_writable.cpp
     test/block_entry.cpp
     test/block_pool.cpp
     test/branch.cpp

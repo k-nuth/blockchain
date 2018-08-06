@@ -76,8 +76,11 @@ private:
     void handle_connect(const code& ec, branch::ptr branch,
         result_handler handler);
     void organized(branch::ptr branch, result_handler handler);
+
+#ifndef BITPRIM_READ_ONLY    
     void handle_reorganized(const code& ec, branch::const_ptr branch,
         block_const_ptr_list_ptr outgoing, result_handler handler);
+#endif
     void signal_completion(const code& ec);
 
     // Subscription.

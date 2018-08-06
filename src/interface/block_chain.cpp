@@ -275,6 +275,8 @@ bool block_chain::get_transaction_position(size_t& out_height,
 // Writers
 // ----------------------------------------------------------------------------
 
+#ifndef BITPRIM_READ_ONLY
+
 bool block_chain::begin_insert() const
 {
     return database_.begin_insert();
@@ -298,6 +300,14 @@ void block_chain::push(transaction_const_ptr tx, dispatcher&,
     // Transaction push is currently sequential so dispatch is not used.
     handler(database_.push(*tx, chain_state()->enabled_forks()));
 }
+
+#endif // BITPRIM_READ_ONLY
+
+
+
+
+
+
 
 
 //Mark every previous output of the transaction as TEMPORARY SPENT
@@ -570,6 +580,7 @@ void block_chain::fetch_unconfirmed_transaction(const hash_digest& hash,
 }
 
 
+#ifndef BITPRIM_READ_ONLY
 
 void block_chain::reorganize(const checkpoint& fork_point,
     block_const_ptr_list_const_ptr incoming_blocks,
@@ -611,6 +622,8 @@ void block_chain::handle_reorganize(const code& ec, block_const_ptr top,
 
     handler(error::success);
 }
+
+#endif //BITPRIM_READ_ONLY
 
 // Properties.
 // ----------------------------------------------------------------------------
@@ -720,6 +733,7 @@ void block_chain::fetch_block(size_t height, bool witness,
         return;
     }
 
+#ifndef BITPRIM_READ_ONLY
     const auto cached = last_block_.load();
 
     // Try the cached block first.
@@ -729,6 +743,7 @@ void block_chain::fetch_block(size_t height, bool witness,
         handler(error::success, cached, height);
         return;
     }
+#endif
 
     const auto block_result = database_.blocks().get(height);
 
@@ -777,6 +792,7 @@ void block_chain::fetch_block(const hash_digest& hash, bool witness,
         return;
     }
 
+#ifndef BITPRIM_READ_ONLY
     const auto cached = last_block_.load();
 
     // Try the cached block first.
@@ -785,6 +801,8 @@ void block_chain::fetch_block(const hash_digest& hash, bool witness,
         handler(error::success, cached, cached->validation.state->height());
         return;
     }
+#endif // BITPRIM_READ_ONLY
+
 
     const auto block_result = database_.blocks().get(hash);
 
@@ -1672,6 +1690,8 @@ void block_chain::transaction_validate(transaction_const_ptr tx, result_handler 
 // Organizers.
 //-----------------------------------------------------------------------------
 
+#ifndef BITPRIM_READ_ONLY
+
 void block_chain::organize(block_const_ptr block, result_handler handler)
 {
     // This cannot call organize or stop (lock safe).
@@ -1684,6 +1704,8 @@ void block_chain::organize(transaction_const_ptr tx, result_handler handler)
     transaction_organizer_.organize(tx, handler);
 }
 
+#endif // BITPRIM_READ_ONLY
+
 
 // Properties (thread safe).
 // ----------------------------------------------------------------------------
@@ -1694,10 +1716,15 @@ bool block_chain::is_stale() const
     if (notify_limit_seconds_ == 0)
         return false;
 
+#ifndef BITPRIM_READ_ONLY
     const auto top = last_block_.load();
+#else
+    bool const top = false;
+#endif
+
     // BITPRIM: get the last block if there is no cache
     uint32_t last_timestamp = 0;
-    if (!top)
+    if ( ! top)
     {
         size_t last_height;
         if (get_last_height(last_height))
@@ -1709,7 +1736,13 @@ bool block_chain::is_stale() const
             }
         }
     }
+
+#ifndef BITPRIM_READ_ONLY
     const auto timestamp = top ? top->header().timestamp() : last_timestamp;
+#else
+    const auto timestamp = last_timestamp;
+#endif
+
     return timestamp < floor_subtract(zulu_time(), notify_limit_seconds_);
 }
 

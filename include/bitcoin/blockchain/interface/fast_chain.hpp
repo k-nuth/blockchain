@@ -98,6 +98,7 @@ public:
 
     // Writers.
     // ------------------------------------------------------------------------
+#ifndef BITPRIM_READ_ONLY
 
     /// Create flush lock if flush_writes is true, and set sequential lock.
     virtual bool begin_insert() const = 0;
@@ -112,11 +113,14 @@ public:
     virtual void push(transaction_const_ptr tx, dispatcher& dispatch,
         complete_handler handler) = 0;
 
+
     /// Swap incoming and outgoing blocks, height is validated.
     virtual void reorganize(const config::checkpoint& fork_point,
         block_const_ptr_list_const_ptr incoming_blocks,
         block_const_ptr_list_ptr outgoing_blocks, dispatcher& dispatch,
         complete_handler handler) = 0;
+
+#endif // BITPRIM_READ_ONLY
 
     // Properties
     // ------------------------------------------------------------------------

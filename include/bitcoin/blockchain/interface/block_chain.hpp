@@ -126,6 +126,7 @@ public:
     // ------------------------------------------------------------------------
     // Thread safe, insert does not set sequential lock.
 
+#ifndef BITPRIM_READ_ONLY
     /// Create flush lock if flush_writes is true, and set sequential lock.
     bool begin_insert() const override;
 
@@ -145,6 +146,8 @@ public:
         block_const_ptr_list_const_ptr incoming_blocks,
         block_const_ptr_list_ptr outgoing_blocks, dispatcher& dispatch,
         result_handler handler) override;
+#endif //BITPRIM_READ_ONLY
+
 
     // Properties
     // ------------------------------------------------------------------------
@@ -343,11 +346,15 @@ public:
     // Organizers.
     //-------------------------------------------------------------------------
 
+#ifndef BITPRIM_READ_ONLY
+
     /// Organize a block into the block pool if valid and sufficient.
     void organize(block_const_ptr block, result_handler handler) override;
 
     /// Store a transaction to the pool if valid.
     void organize(transaction_const_ptr tx, result_handler handler) override;
+
+#endif //BITPRIM_READ_ONLY
 
     // Properties.
     //-------------------------------------------------------------------------
@@ -412,15 +419,22 @@ private:
         result_handler handler) const;
     void handle_block(const code& ec, block_const_ptr block,
         result_handler handler) const;
+
+#ifndef BITPRIM_READ_ONLY
     void handle_reorganize(const code& ec, block_const_ptr top,
         result_handler handler);
+#endif
 
     // These are thread safe.
     std::atomic<bool> stopped_;
     const settings& settings_;
     const time_t notify_limit_seconds_;
+    
+#ifndef BITPRIM_READ_ONLY
     bc::atomic<block_const_ptr> last_block_;
     bc::atomic<transaction_const_ptr> last_transaction_;
+#endif // BITPRIM_READ_ONLY
+
     const populate_chain_state chain_state_populator_;
     database::data_base database_;
 

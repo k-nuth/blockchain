@@ -292,6 +292,7 @@ void transaction_organizer::handle_connect(const code& ec,
         return;
     }
 
+#ifndef BITPRIM_READ_ONLY
     const auto pushed_handler =
         std::bind(&transaction_organizer::handle_pushed,
             this, _1, tx, handler);
@@ -299,8 +300,14 @@ void transaction_organizer::handle_connect(const code& ec,
     //#########################################################################
     fast_chain_.push(tx, dispatch_, pushed_handler);
     //#########################################################################
+#else
+    handler(error::success);
+#endif
+
+
 }
 
+#ifndef BITPRIM_READ_ONLY
 // private
 void transaction_organizer::handle_pushed(const code& ec,
     transaction_const_ptr tx, result_handler handler)
@@ -319,6 +326,8 @@ void transaction_organizer::handle_pushed(const code& ec,
 
     handler(error::success);
 }
+#endif // BITPRIM_READ_ONLY
+
 
 // Subscription.
 //-----------------------------------------------------------------------------

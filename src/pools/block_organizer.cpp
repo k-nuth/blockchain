@@ -262,6 +262,8 @@ void block_organizer::handle_connect(const code& ec, branch::ptr branch,
         return;
     }
 
+#ifndef BITPRIM_READ_ONLY
+
     // Get the outgoing blocks to forward to reorg handler.
     const auto out_blocks = std::make_shared<block_const_ptr_list>();
 
@@ -275,8 +277,12 @@ void block_organizer::handle_connect(const code& ec, branch::ptr branch,
     fast_chain_.reorganize(branch->fork_point(), branch->blocks(), out_blocks,
         dispatch_, reorganized_handler);
     //#########################################################################
+#else
+    handler(error::success);
+#endif
 }
 
+#ifndef BITPRIM_READ_ONLY
 // private
 // Outgoing blocks must have median_time_past set.
 void block_organizer::handle_reorganized(const code& ec,
@@ -302,6 +308,7 @@ void block_organizer::handle_reorganized(const code& ec,
     handler(error::success);
 }
 
+#endif // BITPRIM_READ_ONLY
 // Subscription.
 //-----------------------------------------------------------------------------
 
