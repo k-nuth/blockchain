@@ -54,7 +54,9 @@ public:
     bool start();
     bool stop();
 
+#ifndef BITPRIM_READ_ONLY
     void organize(block_const_ptr block, result_handler handler);
+#endif    
     void subscribe(reorganize_handler&& handler);
     void unsubscribe();
 
@@ -75,9 +77,9 @@ private:
         result_handler handler);
     void handle_connect(const code& ec, branch::ptr branch,
         result_handler handler);
+#ifndef BITPRIM_READ_ONLY    
     void organized(branch::ptr branch, result_handler handler);
 
-#ifndef BITPRIM_READ_ONLY    
     void handle_reorganized(const code& ec, branch::const_ptr branch,
         block_const_ptr_list_ptr outgoing, result_handler handler);
 #endif

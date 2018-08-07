@@ -157,6 +157,7 @@ void transaction_organizer::validate_handle_connect(code const& ec, transaction_
 // Organize sequence.
 //-----------------------------------------------------------------------------
 
+#ifndef BITPRIM_READ_ONLY
 // This is called from block_chain::organize.
 void transaction_organizer::organize(transaction_const_ptr tx,
     result_handler handler)
@@ -197,6 +198,8 @@ void transaction_organizer::organize(transaction_const_ptr tx,
     // Invoke caller handler outside of critical section.
     handler(ec);
 }
+#endif // BITPRIM_READ_ONLY    
+
 
 // private
 void transaction_organizer::signal_completion(const code& ec)

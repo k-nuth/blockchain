@@ -54,7 +54,9 @@ public:
     bool start();
     bool stop();
 
+#ifndef BITPRIM_READ_ONLY    
     void organize(transaction_const_ptr tx, result_handler handler);
+#endif // BITPRIM_READ_ONLY    
     void transaction_validate(transaction_const_ptr tx, result_handler handler) const;
 
     void subscribe(transaction_handler&& handler);

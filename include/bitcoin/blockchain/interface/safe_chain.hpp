@@ -218,10 +218,8 @@ public:
     //-------------------------------------------------------------------------
 
 #ifndef BITPRIM_READ_ONLY
-
     virtual void organize(block_const_ptr block, result_handler handler) = 0;
     virtual void organize(transaction_const_ptr tx, result_handler handler) = 0;
-
 #endif // BITPRIM_READ_ONLY
 
     // Properties

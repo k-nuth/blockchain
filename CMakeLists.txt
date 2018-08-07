@@ -80,7 +80,7 @@ if (READ_ONLY)
   message(STATUS "Bitprim: Read-only blockchain")
   add_definitions(-DBITPRIM_READ_ONLY)
 else()
-message(STATUS "Bitprim: Writable blockchain")
+  message(STATUS "Bitprim: Writable blockchain")
 endif()
 
 

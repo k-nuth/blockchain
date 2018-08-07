@@ -89,6 +89,7 @@ bool block_organizer::stop()
 // Organize sequence.
 //-----------------------------------------------------------------------------
 
+#ifndef BITPRIM_READ_ONLY    
 // This is called from block_chain::organize.
 void block_organizer::organize(block_const_ptr block, result_handler handler)
 {
@@ -128,6 +129,7 @@ void block_organizer::organize(block_const_ptr block, result_handler handler)
     // Invoke caller handler outside of critical section.
     handler(ec);
 }
+#endif // BITPRIM_READ_ONLY    
 
 // private
 void block_organizer::signal_completion(const code& ec)

@@ -347,13 +347,11 @@ public:
     //-------------------------------------------------------------------------
 
 #ifndef BITPRIM_READ_ONLY
-
     /// Organize a block into the block pool if valid and sufficient.
     void organize(block_const_ptr block, result_handler handler) override;
 
     /// Store a transaction to the pool if valid.
     void organize(transaction_const_ptr tx, result_handler handler) override;
-
 #endif //BITPRIM_READ_ONLY
 
     // Properties.
