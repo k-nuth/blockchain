@@ -70,10 +70,13 @@ class BitprimBlockchainConan(BitprimConanFile):
 
     def requirements(self):
         self.requires("boost/1.66.0@bitprim/stable")
-        self.requires("bitprim-database/0.X@%s/%s" % (self.user, self.channel))
+        # self.requires("bitprim-database/0.X@%s/%s" % (self.user, self.channel))
+        reqs = ["bitprim-database/0.X@%s/%s"]
 
         if self.options.with_consensus:
-            self.requires.add("bitprim-consensus/0.X@%s/%s" % (self.user, self.channel))
+            # self.requires.add("bitprim-consensus/0.X@%s/%s" % (self.user, self.channel))
+            reqs.append("bitprim-consensus/0.X@%s/%s")
+        self.bitprim_requires(reqs)
 
     def config_options(self):
         if self.settings.arch != "x86_64":
