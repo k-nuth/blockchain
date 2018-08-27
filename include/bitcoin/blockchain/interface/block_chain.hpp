@@ -358,6 +358,7 @@ public:
     /// Get a reference to the blockchain configuration settings.
     const settings& chain_settings() const;
 
+#ifdef WITH_MINING
     struct tx_benefit {
         double benefit;
         size_t tx_sigops;
@@ -368,7 +369,7 @@ public:
 
 #ifndef BITPRIM_CURRENCY_BCH
         libbitcoin::hash_digest tx_hash;
-#endif
+#endif // BITPRIM_CURRENCY_BCH
     };
 
     struct prev_output {
@@ -379,6 +380,7 @@ public:
     std::vector<block_chain::tx_benefit> get_gbt_tx_list() const;
     bool add_to_chosen_list(transaction_const_ptr tx) override;
     void remove_mined_txs_from_chosen_list(block_const_ptr blk) override;
+#endif // WITH_MINING
 
 protected:
 
@@ -435,6 +437,7 @@ private:
     transaction_organizer transaction_organizer_;
     block_organizer block_organizer_;
 
+#ifdef WITH_MINING
     bool get_transaction_is_confirmed(libbitcoin::hash_digest tx_hash);
     void append_spend(transaction_const_ptr tx);
     void remove_spend(libbitcoin::hash_digest const& hash);
@@ -452,12 +455,12 @@ private:
     std::unordered_map<hash_digest, std::vector<prev_output>> chosen_spent_;
     mutable std::mutex gbt_mutex_; // Protect chosen unconfirmed transaction list
     std::atomic_bool gbt_ready_; // Getblocktemplate ready
+#endif // WITH_MINING
 
-
-#endif
+#endif // WITH_BLOCKCHAIN_REQUESTER
 };
 
 } // namespace blockchain
 } // namespace libbitcoin
 
-#endif
+#endif // LIBBITCOIN_BLOCKCHAIN_BLOCK_CHAIN_HPP

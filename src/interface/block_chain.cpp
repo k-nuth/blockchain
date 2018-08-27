@@ -73,25 +73,25 @@ static const auto hour_seconds = 3600u;
 block_chain::block_chain(threadpool& pool,
     const blockchain::settings& chain_settings,
     const database::settings& database_settings,  bool relay_transactions)
-  : stopped_(true),
-    settings_(chain_settings),
-    notify_limit_seconds_(chain_settings.notify_limit_hours * hour_seconds),
-    chain_state_populator_(*this, chain_settings),
-    database_(database_settings),
-    validation_mutex_(database_settings.flush_writes && relay_transactions),
-    priority_pool_(thread_ceiling(chain_settings.cores),
-        priority(chain_settings.priority)),
-    dispatch_(priority_pool_, NAME "_priority"),
-    transaction_organizer_(validation_mutex_, dispatch_, pool, *this,
-        chain_settings),
-    block_organizer_(validation_mutex_, dispatch_, pool, *this, chain_settings,
-        relay_transactions),
-    chosen_size_(0),
-    chosen_sigops_(0),
-    chosen_unconfirmed_(),
-    chosen_spent_(),
-    gbt_mutex_(),
-    gbt_ready_(true)
+    : stopped_(true)
+    , settings_(chain_settings)
+    , notify_limit_seconds_(chain_settings.notify_limit_hours * hour_seconds)
+    , chain_state_populator_(*this, chain_settings)
+    , database_(database_settings)
+    , validation_mutex_(database_settings.flush_writes && relay_transactions)
+    , priority_pool_(thread_ceiling(chain_settings.cores)
+    , priority(chain_settings.priority))
+    , dispatch_(priority_pool_, NAME "_priority")
+    , transaction_organizer_(validation_mutex_, dispatch_, pool, *this, chain_settings)
+    , block_organizer_(validation_mutex_, dispatch_, pool, *this, chain_settings, relay_transactions)
+#ifdef WITH_MINING
+    , chosen_size_(0)
+    , chosen_sigops_(0)
+    , chosen_unconfirmed_()
+    , chosen_spent_()
+    , gbt_mutex_()
+    , gbt_ready_(true)
+#endif // WITH_MINING    
 {
 }
 
@@ -299,7 +299,7 @@ void block_chain::push(transaction_const_ptr tx, dispatcher&,
     handler(database_.push(*tx, chain_state()->enabled_forks()));
 }
 
-
+#ifdef WITH_MINING
 //Mark every previous output of the transaction as TEMPORARY SPENT
 void block_chain::append_spend(transaction_const_ptr tx) {
     std::vector<prev_output> prev_outputs;
@@ -547,6 +547,7 @@ void block_chain::remove_mined_txs_from_chosen_list(block_const_ptr blk){
     gbt_ready_ = true;
 
 }
+#endif // WITH_MINING
 
 void block_chain::fetch_unconfirmed_transaction(const hash_digest& hash, 
     transaction_unconfirmed_fetch_handler handler) const
@@ -1101,6 +1102,7 @@ hash_digest generate_merkle_root(std::vector<chain::transaction> transactions) {
     return merkle.front();
 }
 
+//TODO(fernando): refactor!!!
 std::vector<libbitcoin::blockchain::mempool_transaction_summary> block_chain::get_mempool_transactions(std::vector<std::string> const& payment_addresses, bool use_testnet_rules, bool witness) const {
 /*          "    \"address\"  (string) The base58check encoded address\n"
             "    \"txid\"  (string) The related txid\n"

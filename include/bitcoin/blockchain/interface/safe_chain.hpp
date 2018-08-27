@@ -225,8 +225,10 @@ public:
 
     virtual bool is_stale() const = 0;
 
+#ifdef WITH_MINING
     virtual bool add_to_chosen_list(transaction_const_ptr tx) = 0;
     virtual void remove_mined_txs_from_chosen_list(block_const_ptr blk) = 0;
+#endif // WITH_MINING
 
     //TODO(Mario) temporary duplication 
     /// Get a determination of whether the block hash exists in the store.
