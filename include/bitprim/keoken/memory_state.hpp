@@ -16,8 +16,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef BITPRIM_BLOCKCHAIN_KEOKEN_STATE_HPP_
-#define BITPRIM_BLOCKCHAIN_KEOKEN_STATE_HPP_
+#ifndef BITPRIM_BLOCKCHAIN_KEOKEN_MEMORY_STATE_HPP_
+#define BITPRIM_BLOCKCHAIN_KEOKEN_MEMORY_STATE_HPP_
 
 #include <unordered_map>
 #include <vector>
@@ -35,7 +35,7 @@
 namespace bitprim {
 namespace keoken {
 
-class state {
+class memory_state {
 public:    
     using asset_list_t = std::vector<asset_entry>;
     using balance_value = std::vector<balance_entry>;
@@ -49,15 +49,17 @@ public:
     // explicit
     // state(asset_id_t asset_id_initial);
 
-    state() = default;
+    memory_state() = default;
 
-    // non-copyable class
-    state(state const&) = delete;
-    state operator=(state const&) = delete;
+    // non-copyable and non-movable class
+    memory_state(memory_state const&) = delete;
+    memory_state operator=(memory_state const&) = delete;
 
     // Commands.
     // ---------------------------------------------------------------------------------
     void set_initial_asset_id(asset_id_t asset_id_initial);
+    void reset();
+    void rollback_to(size_t height);
 
     void create_asset(std::string asset_name, amount_t asset_amount, 
                       payment_address owner,
@@ -68,6 +70,8 @@ public:
                               payment_address target, 
                               size_t block_height, libbitcoin::hash_digest const& txid);
 
+
+
     // Queries.
     // ---------------------------------------------------------------------------------
     bool asset_id_exists(asset_id_t id) const;
@@ -77,9 +81,13 @@ public:
     get_all_asset_addresses_list get_all_asset_addresses() const;
 
 private:
+    template <typename Predicate>
+    void remove_balance_entries(Predicate const& pred);
+
     entities::asset get_asset_by_id(asset_id_t id) const;
     amount_t get_balance_internal(balance_value const& entries) const;
 
+    asset_id_t asset_id_initial_;
     asset_id_t asset_id_next_;
     asset_list_t asset_list_;
     balance_t balance_;
@@ -91,4 +99,4 @@ private:
 } // namespace keoken
 } // namespace bitprim
 
-#endif //BITPRIM_BLOCKCHAIN_KEOKEN_STATE_HPP_
+#endif //BITPRIM_BLOCKCHAIN_KEOKEN_MEMORY_STATE_HPP_

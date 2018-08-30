@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <bitprim/keoken/state.hpp>
+#include <bitprim/keoken/memory_state.hpp>
 
 #include <algorithm>
 #include <numeric>
@@ -29,15 +29,82 @@ using libbitcoin::wallet::payment_address;
 namespace bitprim {
 namespace keoken {
 
-// state::state(asset_id_t asset_id_initial)
+// memory_state::memory_state(asset_id_t asset_id_initial)
 //     : asset_id_next_(asset_id_initial)
 // {}
 
-void state::set_initial_asset_id(asset_id_t asset_id_initial) {
+void memory_state::set_initial_asset_id(asset_id_t asset_id_initial) {
+    asset_id_initial_ = asset_id_initial;
     asset_id_next_ = asset_id_initial;
 }
 
-void state::create_asset(std::string asset_name, amount_t asset_amount, 
+// private
+template <typename Predicate>
+void memory_state::remove_balance_entries(Predicate const& pred) {
+    // precondition: mutex must be locked
+
+    // for(auto&& x : balance_) {
+    //     auto& balance_entries = x.second;
+
+    //     balance_entries.erase(
+    //         std::remove_if(begin(balance_entries), end(balance_entries), pred), 
+    //     end(balance_entries));
+    // }
+
+    auto f = begin(balance_); 
+    auto l = end(balance_);
+
+    while (f != l) {
+        auto& balance_entries = f->second;
+
+        balance_entries.erase(
+            std::remove_if(begin(balance_entries), end(balance_entries), pred), 
+        end(balance_entries));
+
+        if (balance_entries.empty()) {
+            f = balance_.erase(f);
+        } else {
+            ++f;
+        }
+    }
+}
+
+void memory_state::reset() {
+    boost::unique_lock<boost::shared_mutex> lock(mutex_);
+
+    asset_id_next_ = asset_id_initial_;
+    asset_list_.clear();
+    balance_.clear();
+}
+
+struct rollback_pred {
+    size_t height;
+
+    explicit
+    rollback_pred(size_t height)
+        : height(height)
+    {}
+
+    template <typename Entry>
+    bool operator()(Entry const& entry) const {
+        return entry.block_height >= height;
+    }
+};
+
+void memory_state::rollback_to(size_t height) {
+    boost::unique_lock<boost::shared_mutex> lock(mutex_);
+
+    remove_balance_entries(rollback_pred{height});
+
+    asset_list_.erase(
+        std::remove_if(begin(asset_list_), end(asset_list_), rollback_pred{height}), 
+    end(asset_list_));
+
+    asset_id_next_ = asset_list_.empty() ? asset_id_initial_ : asset_list_.back().asset.id() + 1;
+}
+
+
+void memory_state::create_asset(std::string asset_name, amount_t asset_amount, 
                     payment_address owner,
                     size_t block_height, hash_digest const& txid) {
 
@@ -54,7 +121,7 @@ void state::create_asset(std::string asset_name, amount_t asset_amount,
     ++asset_id_next_;
 }
 
-void state::create_balance_entry(asset_id_t asset_id, amount_t asset_amount,
+void memory_state::create_balance_entry(asset_id_t asset_id, amount_t asset_amount,
                             payment_address source,
                             payment_address target, 
                             size_t block_height, hash_digest const& txid) {
@@ -66,20 +133,20 @@ void state::create_balance_entry(asset_id_t asset_id, amount_t asset_amount,
     balance_[balance_key{asset_id, std::move(target)}].emplace_back(asset_amount, block_height, txid);
 }
 
-bool state::asset_id_exists(asset_id_t id) const {
+bool memory_state::asset_id_exists(asset_id_t id) const {
     boost::shared_lock<boost::shared_mutex> lock(mutex_);
     return id < asset_id_next_;      // id > 0 ????
 }
 
 // private
-amount_t state::get_balance_internal(balance_value const& entries) const {
+amount_t memory_state::get_balance_internal(balance_value const& entries) const {
     // precondition: mutex_.lock_shared() called
     return std::accumulate(entries.begin(), entries.end(), amount_t(0), [](amount_t bal, balance_entry const& entry) {
         return bal + entry.amount;
     });
 }
 
-amount_t state::get_balance(asset_id_t id, libbitcoin::wallet::payment_address const& addr) const {
+amount_t memory_state::get_balance(asset_id_t id, libbitcoin::wallet::payment_address const& addr) const {
     boost::shared_lock<boost::shared_mutex> lock(mutex_);
     
     auto it = balance_.find(balance_key{id, addr});
@@ -90,7 +157,7 @@ amount_t state::get_balance(asset_id_t id, libbitcoin::wallet::payment_address c
     return get_balance_internal(it->second);
 }
 
-state::get_assets_by_address_list state::get_assets_by_address(libbitcoin::wallet::payment_address const& addr) const {
+memory_state::get_assets_by_address_list memory_state::get_assets_by_address(libbitcoin::wallet::payment_address const& addr) const {
     get_assets_by_address_list res;
 
     {
@@ -112,7 +179,7 @@ state::get_assets_by_address_list state::get_assets_by_address(libbitcoin::walle
     return res;
 }
 
-state::get_assets_list state::get_assets() const {
+memory_state::get_assets_list memory_state::get_assets() const {
     get_assets_list res;
 
     {
@@ -131,7 +198,7 @@ state::get_assets_list state::get_assets() const {
 }
 
 // private
-entities::asset state::get_asset_by_id(asset_id_t id) const {
+entities::asset memory_state::get_asset_by_id(asset_id_t id) const {
     // precondition: id must exists in asset_list_
     // precondition: mutex_.lock_shared() called
 
@@ -145,7 +212,7 @@ entities::asset state::get_asset_by_id(asset_id_t id) const {
     // if (it != asset_list_.end() && !cmp(id, *it)) {
 }
 
-state::get_all_asset_addresses_list state::get_all_asset_addresses() const {
+memory_state::get_all_asset_addresses_list memory_state::get_all_asset_addresses() const {
     get_all_asset_addresses_list res;
 
     {

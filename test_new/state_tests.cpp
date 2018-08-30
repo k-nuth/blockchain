@@ -19,7 +19,7 @@
 
 #include "doctest.h"
 
-#include <bitprim/keoken/state.hpp>
+#include <bitprim/keoken/memory_state.hpp>
 
 using namespace bitprim::keoken;
 using libbitcoin::hash_digest;
@@ -29,7 +29,7 @@ using libbitcoin::wallet::payment_address;
 TEST_CASE("[state_asset_id_exists_empty] ") {
 
     // state state_(0);
-    state state_;
+    memory_state state_;
     state_.set_initial_asset_id(0);
     REQUIRE( ! state_.asset_id_exists(0));
     REQUIRE( ! state_.asset_id_exists(1));
@@ -38,7 +38,7 @@ TEST_CASE("[state_asset_id_exists_empty] ") {
 TEST_CASE("[state_asset_id_exists_not_empty] ") {
 
     // state state_(0);
-    state state_;
+    memory_state state_;
     state_.set_initial_asset_id(0);
 
     std::string name = "Test";
@@ -55,18 +55,60 @@ TEST_CASE("[state_asset_id_exists_not_empty] ") {
 TEST_CASE("[state_get_assets_empty] ") {
 
     // state state_(1);
-    state state_;
+    memory_state state_;
     state_.set_initial_asset_id(1);
 
     auto const& ret = state_.get_assets();
     REQUIRE(ret.size() == 0);
 }
 
+TEST_CASE("[state_get_assets_empty_after_reset] ") {
+
+    // state state_(1);
+    memory_state state_;
+    state_.set_initial_asset_id(1);
+
+    // ----------------------------------------
+    std::string name = "Test";
+    amount_t amount = 1559;
+    size_t height = 456;
+    payment_address addr("moNQd8TVGogcLsmPzNN2QdFwDfcAZFfUCr");
+    const hash_digest txid = hash_literal("8b4b9487199ed6668cf6135f29f832c215ab8d32a32c323923594e7475dece25");
+    state_.create_asset(name, amount, addr, height, txid);
+    REQUIRE(state_.get_assets().size() == 1);
+    // ----------------------------------------
+
+    state_.reset();
+
+    REQUIRE(state_.get_assets().size() == 0);
+}
+
+TEST_CASE("[state_get_assets_empty_after_rollback] ") {
+
+    // state state_(1);
+    memory_state state_;
+    state_.set_initial_asset_id(1);
+
+    // ----------------------------------------
+    std::string name = "Test";
+    amount_t amount = 1559;
+    size_t height = 456;
+    payment_address addr("moNQd8TVGogcLsmPzNN2QdFwDfcAZFfUCr");
+    const hash_digest txid = hash_literal("8b4b9487199ed6668cf6135f29f832c215ab8d32a32c323923594e7475dece25");
+    state_.create_asset(name, amount, addr, height, txid);
+    REQUIRE(state_.get_assets().size() == 1);
+    // ----------------------------------------
+
+    state_.rollback_to(height - 1);
+
+    REQUIRE(state_.get_assets().size() == 0);
+}
+
 
 TEST_CASE("[state_get_assets_not_empty] ") {
 
     // state state_(0);
-    state state_;
+    memory_state state_;
     state_.set_initial_asset_id(0);
 
 
@@ -92,7 +134,7 @@ TEST_CASE("[state_get_assets_not_empty] ") {
 TEST_CASE("[state_create_asset] ") {
 
     // state state_(0);
-    state state_;
+    memory_state state_;
     state_.set_initial_asset_id(0);
 
     std::string name = "Test";
@@ -119,9 +161,9 @@ TEST_CASE("[state_create_asset] ") {
 
 TEST_CASE("[state_create_balance_entry] ") {
 
-    // state state_(0);
-    state state_;
-    state_.set_initial_asset_id(0);
+    asset_id_t asset_id = 0;
+    memory_state state_;
+    state_.set_initial_asset_id(asset_id);
 
 
     std::string name = "Test";
@@ -134,22 +176,74 @@ TEST_CASE("[state_create_balance_entry] ") {
     state_.create_asset(name, amount, source, height, txid);
     
     amount_t amount_to_transfer = 5;
-    state_.create_balance_entry(0, amount_to_transfer, source, destination, height, txid );
+    state_.create_balance_entry(asset_id, amount_to_transfer, source, destination, height, txid );
 
-    auto const& balance = state_.get_balance(0,source);
-
-     REQUIRE(balance == 1554);
-
-     auto const& balance_destination = state_.get_balance(0,destination);
-
-     REQUIRE(balance_destination == 5);
+    REQUIRE(state_.get_balance(asset_id, source) == amount - amount_to_transfer);
+    REQUIRE(state_.get_balance(asset_id, destination) == amount_to_transfer);
 }
 
+TEST_CASE("[state_create_balance_entry_after_reset] ") {
+
+    asset_id_t asset_id = 0;
+    memory_state state_;
+    state_.set_initial_asset_id(asset_id);
+
+
+    std::string name = "Test";
+    amount_t amount = 1559;
+    size_t height = 456;
+    payment_address source("moNQd8TVGogcLsmPzNN2QdFwDfcAZFfUCr");
+    payment_address destination("1CK6KHY6MHgYvmRQ4PAafKYDrg1ejbH1cE");
+    const hash_digest txid = hash_literal("8b4b9487199ed6668cf6135f29f832c215ab8d32a32c323923594e7475dece25");
+
+    state_.create_asset(name, amount, source, height, txid);
+    
+    amount_t amount_to_transfer = 5;
+    state_.create_balance_entry(asset_id, amount_to_transfer, source, destination, height + 1, txid );
+
+    REQUIRE(state_.get_balance(asset_id, source) == amount - amount_to_transfer);
+    REQUIRE(state_.get_balance(asset_id, destination) == amount_to_transfer);
+
+    state_.reset();
+
+    REQUIRE(state_.get_balance(asset_id, source) == 0);
+    REQUIRE(state_.get_balance(asset_id, destination) == 0);
+
+}
+
+TEST_CASE("[state_create_balance_entry_after_rollback] ") {
+
+    asset_id_t asset_id = 0;
+    memory_state state_;
+    state_.set_initial_asset_id(asset_id);
+
+
+    std::string name = "Test";
+    amount_t amount = 1559;
+    size_t height = 456;
+    payment_address source("moNQd8TVGogcLsmPzNN2QdFwDfcAZFfUCr");
+    payment_address destination("1CK6KHY6MHgYvmRQ4PAafKYDrg1ejbH1cE");
+    const hash_digest txid = hash_literal("8b4b9487199ed6668cf6135f29f832c215ab8d32a32c323923594e7475dece25");
+
+    state_.create_asset(name, amount, source, height, txid);
+    
+    amount_t amount_to_transfer = 5;
+    state_.create_balance_entry(asset_id, amount_to_transfer, source, destination, height + 1, txid );
+
+    REQUIRE(state_.get_balance(asset_id, source) == amount - amount_to_transfer);
+    REQUIRE(state_.get_balance(asset_id, destination) == amount_to_transfer);
+
+    state_.rollback_to(height);
+
+    REQUIRE(state_.get_balance(asset_id, source) == amount);
+    REQUIRE(state_.get_balance(asset_id, destination) == 0);
+
+}
 
 TEST_CASE("[state_get_assets_by_address] ") {
 
     // state state_(0);
-    state state_;
+    memory_state state_;
     state_.set_initial_asset_id(0);
 
     std::string name = "Test";
@@ -189,7 +283,7 @@ TEST_CASE("[state_get_assets_by_address] ") {
 TEST_CASE("[state_get_all_asset_addresses] ") {
 
     // state state_(0);
-    state state_;
+    memory_state state_;
     state_.set_initial_asset_id(0);
 
     std::string name = "Test";

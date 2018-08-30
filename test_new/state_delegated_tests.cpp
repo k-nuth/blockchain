@@ -19,7 +19,7 @@
 
 #include "doctest.h"
 
-#include <bitprim/keoken/state.hpp>
+#include <bitprim/keoken/memory_state.hpp>
 #include <bitprim/keoken/state_delegated.hpp>
 
 using namespace bitprim::keoken;
@@ -31,7 +31,7 @@ using libbitcoin::wallet::payment_address;
 TEST_CASE("[state_delegated_asset_id_exists_empty] ") {
 
     state_delegated state_;
-    state st;
+    memory_state st;
     bind_to_state(st, state_);
     state_.set_initial_asset_id(0);
 
@@ -42,7 +42,7 @@ TEST_CASE("[state_delegated_asset_id_exists_empty] ") {
 TEST_CASE("[state_delegated_asset_id_exists_not_empty] ") {
 
     state_delegated state_;
-    state st;
+    memory_state st;
     bind_to_state(st, state_);
     state_.set_initial_asset_id(0);
 
@@ -50,7 +50,7 @@ TEST_CASE("[state_delegated_asset_id_exists_not_empty] ") {
     amount_t amount = 1559;
     size_t height = 456;
     payment_address addr("moNQd8TVGogcLsmPzNN2QdFwDfcAZFfUCr");
-    const hash_digest txid = hash_literal("8b4b9487199ed6668cf6135f29f832c215ab8d32a32c323923594e7475dece25");
+    hash_digest const txid = hash_literal("8b4b9487199ed6668cf6135f29f832c215ab8d32a32c323923594e7475dece25");
 
     state_.create_asset(name, amount, addr, height, txid);
     
@@ -60,7 +60,7 @@ TEST_CASE("[state_delegated_asset_id_exists_not_empty] ") {
 TEST_CASE("[state_delegated_get_assets_empty] ") {
 
     state_delegated state_;
-    state st;
+    memory_state st;
     bind_to_state(st, state_);
     state_.set_initial_asset_id(1);
 
@@ -72,7 +72,7 @@ TEST_CASE("[state_delegated_get_assets_empty] ") {
 TEST_CASE("[state_delegated_get_assets_not_empty] ") {
 
     state_delegated state_;
-    state st;
+    memory_state st;
     bind_to_state(st, state_);
     state_.set_initial_asset_id(0);
 
@@ -81,7 +81,7 @@ TEST_CASE("[state_delegated_get_assets_not_empty] ") {
     amount_t amount = 1559;
     size_t height = 456;
     payment_address addr("moNQd8TVGogcLsmPzNN2QdFwDfcAZFfUCr");
-    const hash_digest txid = hash_literal("8b4b9487199ed6668cf6135f29f832c215ab8d32a32c323923594e7475dece25");
+    hash_digest const txid = hash_literal("8b4b9487199ed6668cf6135f29f832c215ab8d32a32c323923594e7475dece25");
 
     state_.create_asset(name, amount, addr, height, txid);
 
@@ -99,7 +99,7 @@ TEST_CASE("[state_delegated_get_assets_not_empty] ") {
 TEST_CASE("[state_delegated_create_asset] ") {
 
     state_delegated state_;
-    state st;
+    memory_state st;
     bind_to_state(st, state_);
     state_.set_initial_asset_id(0);
 
@@ -107,7 +107,7 @@ TEST_CASE("[state_delegated_create_asset] ") {
     amount_t amount = 1559;
     size_t height = 456;
     payment_address addr("moNQd8TVGogcLsmPzNN2QdFwDfcAZFfUCr");
-    const hash_digest txid = hash_literal("8b4b9487199ed6668cf6135f29f832c215ab8d32a32c323923594e7475dece25");
+    hash_digest const txid = hash_literal("8b4b9487199ed6668cf6135f29f832c215ab8d32a32c323923594e7475dece25");
 
     state_.create_asset(name, amount, addr, height, txid);
     
@@ -128,7 +128,7 @@ TEST_CASE("[state_delegated_create_asset] ") {
 TEST_CASE("[state_delegated_create_balance_entry] ") {
 
     state_delegated state_;
-    state st;
+    memory_state st;
     bind_to_state(st, state_);
     state_.set_initial_asset_id(0);
 
@@ -137,7 +137,7 @@ TEST_CASE("[state_delegated_create_balance_entry] ") {
     size_t height = 456;
     payment_address source("moNQd8TVGogcLsmPzNN2QdFwDfcAZFfUCr");
     payment_address destination("1CK6KHY6MHgYvmRQ4PAafKYDrg1ejbH1cE");
-    const hash_digest txid = hash_literal("8b4b9487199ed6668cf6135f29f832c215ab8d32a32c323923594e7475dece25");
+    hash_digest const txid = hash_literal("8b4b9487199ed6668cf6135f29f832c215ab8d32a32c323923594e7475dece25");
 
     state_.create_asset(name, amount, source, height, txid);
     
@@ -157,7 +157,7 @@ TEST_CASE("[state_delegated_create_balance_entry] ") {
 TEST_CASE("[state_delegated_get_assets_by_address] ") {
 
     state_delegated state_;
-    state st;
+    memory_state st;
     bind_to_state(st, state_);
     state_.set_initial_asset_id(0);
 
@@ -166,7 +166,7 @@ TEST_CASE("[state_delegated_get_assets_by_address] ") {
     size_t height = 456;
     payment_address source("moNQd8TVGogcLsmPzNN2QdFwDfcAZFfUCr");
     payment_address destination("1CK6KHY6MHgYvmRQ4PAafKYDrg1ejbH1cE");
-    const hash_digest txid = hash_literal("8b4b9487199ed6668cf6135f29f832c215ab8d32a32c323923594e7475dece25");
+    hash_digest const txid = hash_literal("8b4b9487199ed6668cf6135f29f832c215ab8d32a32c323923594e7475dece25");
 
     state_.create_asset(name, amount, source, height, txid);
     
@@ -198,7 +198,7 @@ TEST_CASE("[state_delegated_get_assets_by_address] ") {
 TEST_CASE("[state_delegated_get_all_asset_addresses] ") {
 
     state_delegated state_;
-    state st;
+    memory_state st;
     bind_to_state(st, state_);
     state_.set_initial_asset_id(0);
 
@@ -208,7 +208,7 @@ TEST_CASE("[state_delegated_get_all_asset_addresses] ") {
     size_t height = 456;
     payment_address source("moNQd8TVGogcLsmPzNN2QdFwDfcAZFfUCr");
     payment_address destination("1CK6KHY6MHgYvmRQ4PAafKYDrg1ejbH1cE");
-    const hash_digest txid = hash_literal("8b4b9487199ed6668cf6135f29f832c215ab8d32a32c323923594e7475dece25");
+    hash_digest const txid = hash_literal("8b4b9487199ed6668cf6135f29f832c215ab8d32a32c323923594e7475dece25");
 
     state_.create_asset(name, amount, source, height, txid);
     

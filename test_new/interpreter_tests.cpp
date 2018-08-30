@@ -26,7 +26,7 @@
 #include <bitcoin/bitcoin/utility/istream_reader.hpp>
 
 #include <bitprim/keoken/interpreter.hpp>
-#include <bitprim/keoken/state.hpp>
+#include <bitprim/keoken/memory_state.hpp>
 #include <bitprim/keoken/transaction_extractor.hpp>
 
 using namespace bitprim::keoken;
@@ -82,10 +82,10 @@ TEST_CASE("[interpreter_tx_without_output] ") {
 
     blk_t chain;
     // state st(1);
-    state st;
+    memory_state st;
     st.set_initial_asset_id(1);
 
-    interpreter<state, blk_t> interpreter(st, chain);
+    interpreter<memory_state, blk_t> interpreter(st, chain);
 
      data_chunk raw_tx = to_chunk(base16_literal(
         "0100000001f08e44a96bfb5ae63eda1a6620adae37ee37ee4777fb0336e1bbbc"
@@ -108,10 +108,10 @@ TEST_CASE("[interpreter_tx_create_asset_invalid] ") {
     blk_t chain;
 
     // state st(1);
-    state st;
+    memory_state st;
     st.set_initial_asset_id(1);
 
-    interpreter<state, blk_t> interpreter(st, chain);
+    interpreter<memory_state, blk_t> interpreter(st, chain);
 
     data_chunk raw_tx = to_chunk(base16_literal("01000000016ef955ef813fd167438ef35d862d9dcb299672b22ccbc20da598f5ddc59d69aa000000006a473044022056f0511deaaf7485d7f17ec953ad7f6ede03a73c957f98629d290f890aee165602207f1f1a4c04eadeafcd3f4eacd0bb85a45803ef715bfc9a3375fed472212b67fb4121036735a1fe1b39fbe39e629a6dd680bf00b13aefe40d9f3bb6f863d2c4094ddd0effffffff02a007052a010000001976a9140ef6dfde07323619edd2440ca0a54d311df1ee8b88ac00000000000000001b6a0400004b5014000000004269747072696d0000000000000f424000000000"));
 
@@ -132,10 +132,10 @@ TEST_CASE("[interpreter_tx_create_asset_valid] ") {
     blk_t chain(tx);
 
     // state st(1);
-    state st;
+    memory_state st;
     st.set_initial_asset_id(1);
 
-    interpreter<state, blk_t> interpreter(st, chain);
+    interpreter<memory_state, blk_t> interpreter(st, chain);
 
     auto const& ret = st.get_assets();
     REQUIRE(ret.size() == 0);
@@ -151,7 +151,7 @@ TEST_CASE("[interpreter_tx_send_token_insufficient_money] ") {
     using blk_t = fast_chain_dummy_return_true;
     
     // state st(2);
-    state st;
+    memory_state st;
     st.set_initial_asset_id(2);
 
 
@@ -160,7 +160,7 @@ TEST_CASE("[interpreter_tx_send_token_insufficient_money] ") {
     tx.from_data(raw_tx);
 
     blk_t chain1(tx);
-    interpreter<state, blk_t> interpreter1_(st, chain1);
+    interpreter<memory_state, blk_t> interpreter1_(st, chain1);
     interpreter1_.process(1550,tx);
 
     data_chunk raw_send_tx = to_chunk(base16_literal("01000000011e572671f2cff67190785b52e72dc221b1c3a092159b70ec14bc2f433c4dcb2f000000006b48304502210084c05aa0d2a60f69045b46179cff207fde8003ea07a90a75d934ec35d6a46a3a02205b328724e736d9400b3f13ac6e0e49462048dfc2c9a7bd1be9944aa9baa455144121036735a1fe1b39fbe39e629a6dd680bf00b13aefe40d9f3bb6f863d2c4094ddd0effffffff03204e0000000000001976a914071ed73aa65c19f86c88a29a789210fafc8d675188ac606b042a010000001976a9140ef6dfde07323619edd2440ca0a54d311df1ee8b88ac0000000000000000176a0400004b50100000000100000002000000000000006400000000"));
@@ -168,7 +168,7 @@ TEST_CASE("[interpreter_tx_send_token_insufficient_money] ") {
     tx_send.from_data(raw_send_tx);
 
     blk_t chain2(tx_send);
-    interpreter<state, blk_t> interpreter2_(st, chain2);
+    interpreter<memory_state, blk_t> interpreter2_(st, chain2);
 
     REQUIRE(interpreter2_.process(1550,tx_send) == error::insufficient_money);
 }

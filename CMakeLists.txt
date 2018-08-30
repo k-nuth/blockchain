@@ -293,7 +293,7 @@ set(bitprim_blockchain_sources_just_bitprim
 if (WITH_KEOKEN)
   set(bitprim_blockchain_sources_just_bitprim 
     ${bitprim_blockchain_sources_just_bitprim}         
-    src/bitprim/keoken/state.cpp
+    src/bitprim/keoken/memory_state.cpp
   )
 endif()
 
