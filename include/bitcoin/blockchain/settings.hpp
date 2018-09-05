@@ -54,7 +54,11 @@ public:
     bool bip66;
     bool bip65;
     bool bip90;
+
+#if defined(WITH_REMOTE_BLOCKCHAIN)
     config::endpoint replier;
+#endif // defined(WITH_REMOTE_BLOCKCHAIN)
+
     bool bip68;
     bool bip112;
     bool bip113;
