@@ -47,7 +47,16 @@ public:
     typedef handle1<chain::history_compact::list> history_fetch_handler;
     typedef handle1<chain::stealth_compact::list> stealth_fetch_handler;
     typedef handle2<size_t, size_t> transaction_index_fetch_handler;
+#ifdef WITH_KEOKEN
+    //TODO SHARED POINTER
+    typedef std::function<void (const code&, std::vector <libbitcoin::transaction_const_ptr>& ) > keoken_history_fetch_handler;
+    typedef std::function<void (const code&, std::vector <libbitcoin::transaction_const_ptr>& ) > block_keoken_fetch_handler;
+    virtual void fetch_keoken_history(const short_hash& address_hash, size_t limit,
+        size_t from_height, keoken_history_fetch_handler handler) const = 0;
 
+    virtual void fetch_block_keoken(const hash_digest& hash, bool witness,
+    block_keoken_fetch_handler handler) const = 0;
+#endif
     typedef handle1<std::vector<hash_digest>> confirmed_transactions_fetch_handler;
 
     // Smart pointer parameters must not be passed by reference.
@@ -84,7 +93,6 @@ public:
         transaction_handler;
 
     using for_each_tx_handler = std::function<void(code const&, size_t, chain::transaction const&)>;
-
 
     using mempool_mini_hash_map = std::unordered_map<mini_hash, chain::transaction>;
 
