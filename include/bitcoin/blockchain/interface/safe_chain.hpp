@@ -49,8 +49,8 @@ public:
     typedef handle2<size_t, size_t> transaction_index_fetch_handler;
 #ifdef WITH_KEOKEN
     //TODO SHARED POINTER
-    typedef std::function<void (const code&, std::vector <libbitcoin::transaction_const_ptr>& ) > keoken_history_fetch_handler;
-    typedef std::function<void (const code&, std::vector <libbitcoin::transaction_const_ptr>& ) > block_keoken_fetch_handler;
+    typedef std::function<void (const code&, const std::shared_ptr <std::vector <libbitcoin::transaction_const_ptr>> ) > keoken_history_fetch_handler;
+    typedef std::function<void (const code&,  header_const_ptr, size_t,  const std::shared_ptr <std::vector <libbitcoin::transaction_const_ptr>> , uint64_t ) > block_keoken_fetch_handler;
     virtual void fetch_keoken_history(const short_hash& address_hash, size_t limit,
         size_t from_height, keoken_history_fetch_handler handler) const = 0;
 
