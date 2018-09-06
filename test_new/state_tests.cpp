@@ -99,7 +99,7 @@ TEST_CASE("[state_get_assets_empty_after_rollback] ") {
     REQUIRE(state_.get_assets().size() == 1);
     // ----------------------------------------
 
-    state_.rollback_to(height - 1);
+    state_.remove_up_to(height - 1);
 
     REQUIRE(state_.get_assets().size() == 0);
 }
@@ -233,7 +233,7 @@ TEST_CASE("[state_create_balance_entry_after_rollback] ") {
     REQUIRE(state_.get_balance(asset_id, source) == amount - amount_to_transfer);
     REQUIRE(state_.get_balance(asset_id, destination) == amount_to_transfer);
 
-    state_.rollback_to(height);
+    state_.remove_up_to(height + 1);
 
     REQUIRE(state_.get_balance(asset_id, source) == amount);
     REQUIRE(state_.get_balance(asset_id, destination) == 0);

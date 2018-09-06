@@ -59,7 +59,7 @@ public:
     // ---------------------------------------------------------------------------------
     void set_initial_asset_id(asset_id_t asset_id_initial);
     void reset();
-    void rollback_to(size_t height);
+    void remove_up_to(size_t height);
 
     void create_asset(std::string asset_name, amount_t asset_amount, 
                       payment_address owner,

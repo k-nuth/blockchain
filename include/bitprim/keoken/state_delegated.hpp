@@ -37,7 +37,7 @@ struct state_delegated {
 
     using set_initial_asset_id_func = std::function<void(asset_id_t /*asset_id_initial*/)>;
     using reset_func = std::function<void()>;
-    using rollback_to_func = std::function<void(size_t /*height*/)>;
+    using remove_up_to_func = std::function<void(size_t /*height*/)>;
     using create_asset_func = std::function<void(std::string /*asset_name*/, amount_t /*asset_amount*/, bc::wallet::payment_address const& /*owner*/, size_t /*block_height*/, libbitcoin::hash_digest const& /*txid*/)>;
     using create_balance_entry_func = std::function<void(asset_id_t /*asset_id*/, amount_t /*asset_amount*/, bc::wallet::payment_address const& /*source*/, bc::wallet::payment_address const& /*target*/, size_t /*block_height*/, libbitcoin::hash_digest const& /*txid*/)>;
     using asset_id_exists_func = std::function<bool(asset_id_t /*id*/)>;
@@ -56,7 +56,7 @@ struct state_delegated {
     // ---------------------------------------------------------------------------------
     set_initial_asset_id_func set_initial_asset_id;
     reset_func reset;
-    rollback_to_func rollback_to;
+    remove_up_to_func remove_up_to;
 
     create_asset_func create_asset;
     create_balance_entry_func create_balance_entry;
@@ -81,7 +81,7 @@ void bind_to_state(State& st, state_delegated& st_del) {
 
     st_del.set_initial_asset_id = std::bind(&State::set_initial_asset_id, &st, _1);
     st_del.reset = std::bind(&State::reset, &st);
-    st_del.rollback_to = std::bind(&State::rollback_to, &st, _1);
+    st_del.remove_up_to = std::bind(&State::remove_up_to, &st, _1);
 
     st_del.create_asset         = std::bind(&State::create_asset, &st, _1, _2, _3, _4, _5);
     st_del.create_balance_entry = std::bind(&State::create_balance_entry, &st, _1, _2, _3, _4, _5, _6);
