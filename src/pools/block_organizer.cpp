@@ -92,6 +92,10 @@ bool block_organizer::stop()
 // This is called from block_chain::organize.
 void block_organizer::organize(block_const_ptr block, result_handler handler)
 {
+#ifdef WITH_MEASUREMENTS    
+    measurement_create_entry(block);
+#endif // WITH_MEASUREMENTS
+
     // Critical Section
     ///////////////////////////////////////////////////////////////////////////
     mutex_.lock_high_priority();
@@ -125,6 +129,24 @@ void block_organizer::organize(block_const_ptr block, result_handler handler)
     mutex_.unlock_high_priority();
     ///////////////////////////////////////////////////////////////////////////
 
+#ifdef WITH_MEASUREMENTS
+    measurement_update_if([](block_measurement_elem_t& e){
+        e.t8 = std::chrono::high_resolution_clock::now();
+    });
+#endif // WITH_MEASUREMENTS
+
+    LOG_FATAL(LOG_BLOCKCHAIN) << "[MEASUREMENT] - block hash: " << encode_hash(block_organizing_->hash()) << "\n"
+                              << "                height:     " << block_measurement_elem_.height << "\n"
+                              << "                stage:      " << block_measurement_elem_.stage << "\n"
+                              << "                t1 - t0:    " << std::chrono::duration_cast<std::chrono::nanoseconds>(block_measurement_elem_.t1 - block_measurement_elem_.t0).count() << "\n"
+                              << "                t2 - t1:    " << std::chrono::duration_cast<std::chrono::nanoseconds>(block_measurement_elem_.t2 - block_measurement_elem_.t1).count() << "\n"
+                              << "                t3 - t2:    " << std::chrono::duration_cast<std::chrono::nanoseconds>(block_measurement_elem_.t3 - block_measurement_elem_.t2).count() << "\n"
+                              << "                t4 - t3:    " << std::chrono::duration_cast<std::chrono::nanoseconds>(block_measurement_elem_.t4 - block_measurement_elem_.t3).count() << "\n"
+                              << "                t5 - t4:    " << std::chrono::duration_cast<std::chrono::nanoseconds>(block_measurement_elem_.t5 - block_measurement_elem_.t4).count() << "\n"
+                              << "                t6 - t5:    " << std::chrono::duration_cast<std::chrono::nanoseconds>(block_measurement_elem_.t6 - block_measurement_elem_.t5).count() << "\n"
+                              << "                t7 - t6:    " << std::chrono::duration_cast<std::chrono::nanoseconds>(block_measurement_elem_.t7 - block_measurement_elem_.t6).count() << "\n"
+                              << "                t8 - t7:    " << std::chrono::duration_cast<std::chrono::nanoseconds>(block_measurement_elem_.t8 - block_measurement_elem_.t7).count();
+
     // Invoke caller handler outside of critical section.
     handler(ec);
 }
@@ -144,6 +166,13 @@ void block_organizer::signal_completion(const code& ec)
 void block_organizer::handle_check(const code& ec, block_const_ptr block,
     result_handler handler)
 {
+
+#ifdef WITH_MEASUREMENTS    
+    measurement_update_if([](block_measurement_elem_t& e){
+        e.t1 = std::chrono::high_resolution_clock::now();
+    });
+#endif // WITH_MEASUREMENTS
+
     if (stopped())
     {
         handler(error::service_stopped);
@@ -182,6 +211,14 @@ void block_organizer::handle_check(const code& ec, block_const_ptr block,
         std::bind(&block_organizer::handle_accept,
             this, _1, branch, handler);
 
+
+#ifdef WITH_MEASUREMENTS    
+    measurement_update_if([](block_measurement_elem_t& e){
+        e.t2 = std::chrono::high_resolution_clock::now();
+    });
+#endif // WITH_MEASUREMENTS
+
+
     // Checks that are dependent on chain state and prevouts.
     validator_.accept(branch, accept_handler);
 }
@@ -190,6 +227,13 @@ void block_organizer::handle_check(const code& ec, block_const_ptr block,
 void block_organizer::handle_accept(const code& ec, branch::ptr branch,
     result_handler handler)
 {
+
+#ifdef WITH_MEASUREMENTS    
+    measurement_update_if([](block_measurement_elem_t& e){
+        e.t3 = std::chrono::high_resolution_clock::now();
+    });
+#endif // WITH_MEASUREMENTS
+
     if (stopped())
     {
         handler(error::service_stopped);
@@ -214,6 +258,13 @@ void block_organizer::handle_accept(const code& ec, branch::ptr branch,
 void block_organizer::handle_connect(const code& ec, branch::ptr branch,
     result_handler handler)
 {
+
+#ifdef WITH_MEASUREMENTS
+    measurement_update_if([](block_measurement_elem_t& e){
+        e.t4 = std::chrono::high_resolution_clock::now();
+    });
+#endif // WITH_MEASUREMENTS
+
     if (stopped())
     {
         handler(error::service_stopped);
@@ -269,6 +320,13 @@ void block_organizer::handle_connect(const code& ec, branch::ptr branch,
         std::bind(&block_organizer::handle_reorganized,
             this, _1, branch, out_blocks, handler);
 
+#ifdef WITH_MEASUREMENTS
+    measurement_update_if([](block_measurement_elem_t& e){
+        e.t5 = std::chrono::high_resolution_clock::now();
+    });
+#endif // WITH_MEASUREMENTS
+
+
     // Replace! Switch!
     //#########################################################################
     // Incoming blocks must have median_time_past set.
@@ -283,6 +341,14 @@ void block_organizer::handle_reorganized(const code& ec,
     branch::const_ptr branch, block_const_ptr_list_ptr outgoing,
     result_handler handler)
 {
+
+#ifdef WITH_MEASUREMENTS
+    measurement_update_if([](block_measurement_elem_t& e){
+        e.t6 = std::chrono::high_resolution_clock::now();
+    });
+#endif // WITH_MEASUREMENTS
+
+
     if (ec)
     {
         LOG_FATAL(LOG_BLOCKCHAIN)
@@ -298,6 +364,12 @@ void block_organizer::handle_reorganized(const code& ec,
 
     // v3 reorg block order is reverse of v2, branch.back() is the new top.
     notify(branch->height(), branch->blocks(), outgoing);
+
+#ifdef WITH_MEASUREMENTS
+    measurement_update_if([](block_measurement_elem_t& e){
+        e.t7 = std::chrono::high_resolution_clock::now();
+    });
+#endif // WITH_MEASUREMENTS
 
     handler(error::success);
 }

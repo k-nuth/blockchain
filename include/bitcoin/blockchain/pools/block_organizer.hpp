@@ -35,6 +35,27 @@
 namespace libbitcoin {
 namespace blockchain {
 
+#ifdef WITH_MEASUREMENTS
+    struct block_measurement_elem_t {
+        // hash_digest hash;
+        size_t height = 0;
+        size_t stage = 0;
+        std::chrono::time_point<std::chrono::high_resolution_clock> t0 = {};     // organize first step
+        std::chrono::time_point<std::chrono::high_resolution_clock> t1 = {};     // block_organizer::handle_check
+        std::chrono::time_point<std::chrono::high_resolution_clock> t2 = {};     // block_organizer::handle_check BEFORE calling `validator_.accept(branch, accept_handler);`
+        std::chrono::time_point<std::chrono::high_resolution_clock> t3 = {};     // block_organizer::handle_accept
+        std::chrono::time_point<std::chrono::high_resolution_clock> t4 = {};     // block_organizer::handle_connect
+        std::chrono::time_point<std::chrono::high_resolution_clock> t5 = {};     // block_organizer::handle_connect BEFORE calling `fast_chain_.reorganize`
+        std::chrono::time_point<std::chrono::high_resolution_clock> t6 = {};     // block_organizer::handle_reorganized
+        std::chrono::time_point<std::chrono::high_resolution_clock> t7 = {};     // block_organizer::handle_reorganized BEFORE calling `handler(error::success);`
+        std::chrono::time_point<std::chrono::high_resolution_clock> t8 = {};
+        std::chrono::time_point<std::chrono::high_resolution_clock> t9 = {};
+        std::chrono::time_point<std::chrono::high_resolution_clock> t10 = {};
+        std::chrono::time_point<std::chrono::high_resolution_clock> t11 = {};
+        std::chrono::time_point<std::chrono::high_resolution_clock> t12 = {};
+    };
+#endif // WITH_MEASUREMENTS
+
 /// This class is thread safe.
 /// Organises blocks via the block pool to the blockchain.
 class BCB_API block_organizer
@@ -95,6 +116,75 @@ private:
     block_pool block_pool_;
     validate_block validator_;
     reorganize_subscriber::ptr subscriber_;
+
+
+#ifdef WITH_MEASUREMENTS
+    // std::vector<block_measurement_elem_t> block_measurement_data;
+    // std::unordered_map<hash_digest, block_measurement_elem_t> block_measurement_data_;
+    // std::atomic<size_t> height_counter_ = 0;
+    // std::mutex measurement_mutex_;
+    size_t height_counter_ = 0;
+    block_const_ptr block_organizing_;
+    block_measurement_elem_t block_measurement_elem_;
+
+    void measurement_create_entry(block_const_ptr block) {
+        block_organizing_ = block;
+        block_measurement_elem_.height = height_counter_;
+        height_counter_++;
+        block_measurement_elem_.stage = 0;
+        block_measurement_elem_.t0 = std::chrono::high_resolution_clock::now();
+
+        // {
+        //     std::lock_guard<std::mutex> lock(measurement_mutex_);
+        //     // auto res = block_measurement_data_.insert(hash, {height_counter_, 0, std::chrono::high_resolution_clock::now()});
+        //     auto res = block_measurement_data_.emplace(hash, block_measurement_elem_t{});
+        //     if (res.second) {
+        //         res.first->second.height = height_counter_;
+        //         height_counter_++;
+        //         res.first->second.stage = 0;
+        //         res.first->second.t0 = std::chrono::high_resolution_clock::now();
+        //         return;
+        //     } 
+        // }
+        // LOG_FATAL(LOG_BLOCKCHAIN) << "[MEASUREMENT] - hash: " << encode_hash(hash) << " failed to be inserted in measurement data...";
+    }
+
+    template <typename F>
+    void measurement_update_if(F f) {
+        f(block_measurement_elem_);
+    }
+
+    // return static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::microseconds>(now.time_since_epoch()).count());
+
+    // template <typename F>
+    // void measurement_update_if(hash_digest hash, F f) {
+    //     {
+    //         std::lock_guard<std::mutex> lock(measurement_mutex_);
+    //         auto it = block_measurement_data_.find(hash);
+    //         if (it != block_measurement_data_.end()) {
+    //             f(it->second);
+    //             return;
+    //         } 
+    //     }
+    //     LOG_FATAL(LOG_BLOCKCHAIN) << "[MEASUREMENT] - hash: " << encode_hash(hash) << " not found in measurement data...";
+    // }
+
+    // void measurement_create_entry(hash_digest hash) {
+    //     {
+    //         std::lock_guard<std::mutex> lock(measurement_mutex_);
+    //         // auto res = block_measurement_data_.insert(hash, {height_counter_, 0, std::chrono::high_resolution_clock::now()});
+    //         auto res = block_measurement_data_.emplace(hash, block_measurement_elem_t{});
+    //         if (res.second) {
+    //             res.first->second.height = height_counter_;
+    //             height_counter_++;
+    //             res.first->second.stage = 0;
+    //             res.first->second.t0 = std::chrono::high_resolution_clock::now();
+    //             return;
+    //         } 
+    //     }
+    //     LOG_FATAL(LOG_BLOCKCHAIN) << "[MEASUREMENT] - hash: " << encode_hash(hash) << " failed to be inserted in measurement data...";
+    // }    
+#endif // WITH_MEASUREMENTS
 };
 
 } // namespace blockchain

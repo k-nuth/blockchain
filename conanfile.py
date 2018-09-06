@@ -42,7 +42,8 @@ class BitprimBlockchainConan(BitprimConanFile):
                "fix_march": [True, False],
                "verbose": [True, False],
                "keoken": [True, False],
-               "mining": [True, False]
+               "mining": [True, False],
+               "measurements": [True, False]
     }
     # "with_remote_database": [True, False],
 
@@ -56,7 +57,8 @@ class BitprimBlockchainConan(BitprimConanFile):
         "fix_march=False", \
         "verbose=False", \
         "keoken=False", \
-        "mining=False"
+        "mining=False", \
+        "measurements=False"
 
     # "with_remote_database=False"
 
@@ -113,9 +115,12 @@ class BitprimBlockchainConan(BitprimConanFile):
             self.options["*"].keoken = self.options.keoken
 
         self.options["*"].mining = self.options.mining
+        self.options["*"].measurements = self.options.measurements
+
         self.options["*"].currency = self.options.currency
         self.output.info("Compiling for currency: %s" % (self.options.currency,))
         self.output.info("Compiling with mining optimizations: %s" % (self.options.mining,))
+        self.output.info("Compiling with measurements: %s" % (self.options.measurements,))
 
     def package_id(self):
         self.info.options.with_tests = "ANY"
@@ -145,6 +150,7 @@ class BitprimBlockchainConan(BitprimConanFile):
         cmake.definitions["WITH_KEOKEN"] = option_on_off(self.is_keoken)
         cmake.definitions["CURRENCY"] = self.options.currency
         cmake.definitions["WITH_MINING"] = option_on_off(self.options.mining)
+        cmake.definitions["WITH_MEASUREMENTS"] = option_on_off(self.options.measurements)
 
         if self.settings.compiler != "Visual Studio":
             cmake.definitions["CONAN_CXX_FLAGS"] = cmake.definitions.get("CONAN_CXX_FLAGS", "") + " -Wno-deprecated-declarations"

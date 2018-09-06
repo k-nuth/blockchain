@@ -81,6 +81,14 @@ if (WITH_MINING)
   add_definitions(-DWITH_MINING)
 endif()
 
+# Implement --with-mining and declare WITH_MEASUREMENTS.
+#------------------------------------------------------------------------------
+option(WITH_MEASUREMENTS "Measurements enabled." OFF)
+if (WITH_MEASUREMENTS)
+  message(STATUS "Bitprim: MEASUREMENTS enabled")
+  add_definitions(-DWITH_MEASUREMENTS)
+endif()
+
 
 # Implement --JUST_BITPRIM_SOURCES for linting.
 #------------------------------------------------------------------------------
