@@ -128,7 +128,7 @@ private:
     block_measurement_elem_t block_measurement_elem_;
 
     void measurement_create_entry(block_const_ptr block) {
-        block_organizing_ = block;
+        // block_organizing_ = block;
         block_measurement_elem_.height = height_counter_;
         height_counter_++;
         block_measurement_elem_.stage = 0;
