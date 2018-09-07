@@ -153,38 +153,9 @@ private:
     void measurement_update_if(F f) {
         f(block_measurement_elem_);
     }
+   
+#endif // WITH_MEASUREMENT
 
-    // return static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::microseconds>(now.time_since_epoch()).count());
-
-    // template <typename F>
-    // void measurement_update_if(hash_digest hash, F f) {
-    //     {
-    //         std::lock_guard<std::mutex> lock(measurement_mutex_);
-    //         auto it = block_measurement_data_.find(hash);
-    //         if (it != block_measurement_data_.end()) {
-    //             f(it->second);
-    //             return;
-    //         } 
-    //     }
-    //     LOG_FATAL(LOG_BLOCKCHAIN) << "[MEASUREMENT] - hash: " << encode_hash(hash) << " not found in measurement data...";
-    // }
-
-    // void measurement_create_entry(hash_digest hash) {
-    //     {
-    //         std::lock_guard<std::mutex> lock(measurement_mutex_);
-    //         // auto res = block_measurement_data_.insert(hash, {height_counter_, 0, std::chrono::high_resolution_clock::now()});
-    //         auto res = block_measurement_data_.emplace(hash, block_measurement_elem_t{});
-    //         if (res.second) {
-    //             res.first->second.height = height_counter_;
-    //             height_counter_++;
-    //             res.first->second.stage = 0;
-    //             res.first->second.t0 = std::chrono::high_resolution_clock::now();
-    //             return;
-    //         } 
-    //     }
-    //     LOG_FATAL(LOG_BLOCKCHAIN) << "[MEASUREMENT] - hash: " << encode_hash(hash) << " failed to be inserted in measurement data...";
-    // }    
-#endif // WITH_MEASUREMENTS
 };
 
 } // namespace blockchain
