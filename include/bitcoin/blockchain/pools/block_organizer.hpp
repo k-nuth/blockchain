@@ -124,11 +124,14 @@ private:
     // std::atomic<size_t> height_counter_ = 0;
     // std::mutex measurement_mutex_;
     size_t height_counter_ = 0;
-    block_const_ptr block_organizing_;
+    // block_const_ptr block_organizing_;
+    hash_digest block_hash_;
     block_measurement_elem_t block_measurement_elem_;
 
-    void measurement_create_entry(block_const_ptr block) {
+    // void measurement_create_entry(block_const_ptr block) {
+    void measurement_create_entry(hash_digest const& hash) {
         // block_organizing_ = block;
+        block_hash_ = hash;
         block_measurement_elem_.height = height_counter_;
         height_counter_++;
         block_measurement_elem_.stage = 0;

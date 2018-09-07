@@ -92,8 +92,11 @@ bool block_organizer::stop()
 // This is called from block_chain::organize.
 void block_organizer::organize(block_const_ptr block, result_handler handler)
 {
-#ifdef WITH_MEASUREMENTS    
-    measurement_create_entry(block);
+#ifdef WITH_MEASUREMENTS
+    LOG_INFO(LOG_BLOCKCHAIN) << "[MEASUREMENT block organize] block: " << static_cast<bool>(block);
+    if (block) {
+        measurement_create_entry(block->hash());
+    }
 #endif // WITH_MEASUREMENTS
 
     // Critical Section
@@ -146,7 +149,8 @@ void block_organizer::organize(block_const_ptr block, result_handler handler)
     //                           << "                t7 - t6:    " << std::chrono::duration_cast<std::chrono::nanoseconds>(block_measurement_elem_.t7 - block_measurement_elem_.t6).count() << "\n"
     //                           << "                t8 - t7:    " << std::chrono::duration_cast<std::chrono::nanoseconds>(block_measurement_elem_.t8 - block_measurement_elem_.t7).count();
 
-    LOG_INFO(LOG_BLOCKCHAIN) << "[MEASUREMENT block organize]\t" << encode_hash(block_organizing_->hash()) << "\t"
+    // LOG_INFO(LOG_BLOCKCHAIN) << "[MEASUREMENT block organize]\t" << encode_hash(block_organizing_->hash()) << "\t"
+    LOG_INFO(LOG_BLOCKCHAIN) << "[MEASUREMENT block organize]\t" << encode_hash(block_hash_) << "\t"
                               << block_measurement_elem_.height << "\t"
                               << std::chrono::duration_cast<std::chrono::nanoseconds>(block_measurement_elem_.t1 - block_measurement_elem_.t0).count() << "\t"
                               << std::chrono::duration_cast<std::chrono::nanoseconds>(block_measurement_elem_.t2 - block_measurement_elem_.t1).count() << "\t"
