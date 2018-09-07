@@ -133,19 +133,33 @@ void block_organizer::organize(block_const_ptr block, result_handler handler)
     measurement_update_if([](block_measurement_elem_t& e){
         e.t8 = std::chrono::high_resolution_clock::now();
     });
-#endif // WITH_MEASUREMENTS
 
-    LOG_FATAL(LOG_BLOCKCHAIN) << "[MEASUREMENT] - block hash: " << encode_hash(block_organizing_->hash()) << "\n"
-                              << "                height:     " << block_measurement_elem_.height << "\n"
-                              << "                stage:      " << block_measurement_elem_.stage << "\n"
-                              << "                t1 - t0:    " << std::chrono::duration_cast<std::chrono::nanoseconds>(block_measurement_elem_.t1 - block_measurement_elem_.t0).count() << "\n"
-                              << "                t2 - t1:    " << std::chrono::duration_cast<std::chrono::nanoseconds>(block_measurement_elem_.t2 - block_measurement_elem_.t1).count() << "\n"
-                              << "                t3 - t2:    " << std::chrono::duration_cast<std::chrono::nanoseconds>(block_measurement_elem_.t3 - block_measurement_elem_.t2).count() << "\n"
-                              << "                t4 - t3:    " << std::chrono::duration_cast<std::chrono::nanoseconds>(block_measurement_elem_.t4 - block_measurement_elem_.t3).count() << "\n"
-                              << "                t5 - t4:    " << std::chrono::duration_cast<std::chrono::nanoseconds>(block_measurement_elem_.t5 - block_measurement_elem_.t4).count() << "\n"
-                              << "                t6 - t5:    " << std::chrono::duration_cast<std::chrono::nanoseconds>(block_measurement_elem_.t6 - block_measurement_elem_.t5).count() << "\n"
-                              << "                t7 - t6:    " << std::chrono::duration_cast<std::chrono::nanoseconds>(block_measurement_elem_.t7 - block_measurement_elem_.t6).count() << "\n"
-                              << "                t8 - t7:    " << std::chrono::duration_cast<std::chrono::nanoseconds>(block_measurement_elem_.t8 - block_measurement_elem_.t7).count();
+    // LOG_FATAL(LOG_BLOCKCHAIN) << "[MEASUREMENT] - block hash: " << encode_hash(block_organizing_->hash()) << "\n"
+    //                           << "                height:     " << block_measurement_elem_.height << "\n"
+    //                           << "                stage:      " << block_measurement_elem_.stage << "\n"
+    //                           << "                t1 - t0:    " << std::chrono::duration_cast<std::chrono::nanoseconds>(block_measurement_elem_.t1 - block_measurement_elem_.t0).count() << "\n"
+    //                           << "                t2 - t1:    " << std::chrono::duration_cast<std::chrono::nanoseconds>(block_measurement_elem_.t2 - block_measurement_elem_.t1).count() << "\n"
+    //                           << "                t3 - t2:    " << std::chrono::duration_cast<std::chrono::nanoseconds>(block_measurement_elem_.t3 - block_measurement_elem_.t2).count() << "\n"
+    //                           << "                t4 - t3:    " << std::chrono::duration_cast<std::chrono::nanoseconds>(block_measurement_elem_.t4 - block_measurement_elem_.t3).count() << "\n"
+    //                           << "                t5 - t4:    " << std::chrono::duration_cast<std::chrono::nanoseconds>(block_measurement_elem_.t5 - block_measurement_elem_.t4).count() << "\n"
+    //                           << "                t6 - t5:    " << std::chrono::duration_cast<std::chrono::nanoseconds>(block_measurement_elem_.t6 - block_measurement_elem_.t5).count() << "\n"
+    //                           << "                t7 - t6:    " << std::chrono::duration_cast<std::chrono::nanoseconds>(block_measurement_elem_.t7 - block_measurement_elem_.t6).count() << "\n"
+    //                           << "                t8 - t7:    " << std::chrono::duration_cast<std::chrono::nanoseconds>(block_measurement_elem_.t8 - block_measurement_elem_.t7).count();
+
+    LOG_INFO(LOG_BLOCKCHAIN) << "[MEASUREMENT block organize]\t" << encode_hash(block_organizing_->hash()) << "\t"
+                              << block_measurement_elem_.height << "\t"
+                              << std::chrono::duration_cast<std::chrono::nanoseconds>(block_measurement_elem_.t1 - block_measurement_elem_.t0).count() << "\t"
+                              << std::chrono::duration_cast<std::chrono::nanoseconds>(block_measurement_elem_.t2 - block_measurement_elem_.t1).count() << "\t"
+                              << std::chrono::duration_cast<std::chrono::nanoseconds>(block_measurement_elem_.t3 - block_measurement_elem_.t2).count() << "\t"
+                              << std::chrono::duration_cast<std::chrono::nanoseconds>(block_measurement_elem_.t4 - block_measurement_elem_.t3).count() << "\t"
+                              << std::chrono::duration_cast<std::chrono::nanoseconds>(block_measurement_elem_.t5 - block_measurement_elem_.t4).count() << "\t"
+                              << std::chrono::duration_cast<std::chrono::nanoseconds>(block_measurement_elem_.t6 - block_measurement_elem_.t5).count() << "\t"
+                              << std::chrono::duration_cast<std::chrono::nanoseconds>(block_measurement_elem_.t7 - block_measurement_elem_.t6).count() << "\t"
+                              << std::chrono::duration_cast<std::chrono::nanoseconds>(block_measurement_elem_.t8 - block_measurement_elem_.t7).count() << "\t"
+                              << std::chrono::duration_cast<std::chrono::nanoseconds>(block_measurement_elem_.t8 - block_measurement_elem_.t0).count();
+
+
+#endif // WITH_MEASUREMENTS
 
     // Invoke caller handler outside of critical section.
     handler(ec);
