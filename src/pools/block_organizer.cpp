@@ -93,9 +93,11 @@ bool block_organizer::stop()
 void block_organizer::organize(block_const_ptr block, result_handler handler)
 {
 #ifdef WITH_MEASUREMENTS
-    LOG_INFO(LOG_BLOCKCHAIN) << "[MEASUREMENT block organize] block: " << static_cast<bool>(block);
+    // LOG_INFO(LOG_BLOCKCHAIN) << "[MEASUREMENT block organize] block: " << static_cast<bool>(block);
     if (block) {
         measurement_create_entry(block->hash());
+    } else {
+        LOG_INFO(LOG_BLOCKCHAIN) << "[MEASUREMENT block organize] block: " << static_cast<bool>(block);        
     }
 #endif // WITH_MEASUREMENTS
 

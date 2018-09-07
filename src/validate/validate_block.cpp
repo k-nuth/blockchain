@@ -165,9 +165,9 @@ void validate_block::accept(branch::const_ptr branch,
         return;
     }
 
-// #ifdef WITH_MEASUREMENTS
-//     t1 = std::chrono::high_resolution_clock::now();
-// #endif // WITH_MEASUREMENTS
+#ifdef WITH_MEASUREMENTS
+    measurement_elem_.t1 = std::chrono::high_resolution_clock::now();
+#endif // WITH_MEASUREMENTS
 
     // Populate block state for the top block (others are valid).
     block_populator_.populate(branch,
@@ -178,9 +178,9 @@ void validate_block::accept(branch::const_ptr branch,
 void validate_block::handle_populated(const code& ec, block_const_ptr block,
     result_handler handler) const
 {
-// #ifdef WITH_MEASUREMENTS
-//     t2 = std::chrono::high_resolution_clock::now();
-// #endif // WITH_MEASUREMENTS
+#ifdef WITH_MEASUREMENTS
+    measurement_elem_.t2 = std::chrono::high_resolution_clock::now();
+#endif // WITH_MEASUREMENTS
 
     if (stopped())
     {
@@ -198,9 +198,9 @@ void validate_block::handle_populated(const code& ec, block_const_ptr block,
     const auto error_code = block->accept(false);
 
 
-// #ifdef WITH_MEASUREMENTS
-//     t3 = std::chrono::high_resolution_clock::now();
-// #endif // WITH_MEASUREMENTS
+#ifdef WITH_MEASUREMENTS
+    measurement_elem_.t3 = std::chrono::high_resolution_clock::now();
+#endif // WITH_MEASUREMENTS
 
     if (error_code)
     {
@@ -232,27 +232,27 @@ void validate_block::handle_populated(const code& ec, block_const_ptr block,
     const auto buckets = std::min(priority_dispatch_.size(), count);
     BITCOIN_ASSERT(buckets != 0);
 
-// #ifdef WITH_MEASUREMENTS
-//     LOG_INFO(LOG_BLOCKCHAIN) << "[MEASUREMENT handle_populated] priority_dispatch_.size(): " << priority_dispatch_.size();
-//     LOG_INFO(LOG_BLOCKCHAIN) << "[MEASUREMENT handle_populated] block->transactions().size(): " << count;
-//     LOG_INFO(LOG_BLOCKCHAIN) << "[MEASUREMENT handle_populated] buckets: " << buckets;
-// #endif // WITH_MEASUREMENTS
+#ifdef WITH_MEASUREMENTS
+    LOG_INFO(LOG_BLOCKCHAIN) << "[MEASUREMENT handle_populated] priority_dispatch_.size(): " << priority_dispatch_.size();
+    LOG_INFO(LOG_BLOCKCHAIN) << "[MEASUREMENT handle_populated] block->transactions().size(): " << count;
+    LOG_INFO(LOG_BLOCKCHAIN) << "[MEASUREMENT handle_populated] buckets: " << buckets;
+#endif // WITH_MEASUREMENTS
 
     const auto join_handler = synchronize(std::move(complete_handler), buckets,
         NAME "_accept");
 
-// #ifdef WITH_MEASUREMENTS
-//     t4 = std::chrono::high_resolution_clock::now();
-// #endif // WITH_MEASUREMENTS
+#ifdef WITH_MEASUREMENTS
+    measurement_elem_.t4 = std::chrono::high_resolution_clock::now();
+#endif // WITH_MEASUREMENTS
 
 
     for (size_t bucket = 0; bucket < buckets; ++bucket) {
         priority_dispatch_.concurrent(&validate_block::accept_transactions, this, block, bucket, buckets, sigops, bip16, bip141, join_handler);
     }
 
-// #ifdef WITH_MEASUREMENTS
-//     t5 = std::chrono::high_resolution_clock::now();
-// #endif // WITH_MEASUREMENTS
+#ifdef WITH_MEASUREMENTS
+    measurement_elem_.t5 = std::chrono::high_resolution_clock::now();
+#endif // WITH_MEASUREMENTS
 
 }
 
@@ -261,11 +261,11 @@ void validate_block::accept_transactions(block_const_ptr block, size_t bucket,
     result_handler handler) const
 {
 
-// #ifdef WITH_MEASUREMENTS
-//     auto t0_local = std::chrono::high_resolution_clock::now();
-//     LOG_INFO(LOG_BLOCKCHAIN) << "[MEASUREMENT accept_transactions] buckets: " << buckets;
-//     LOG_INFO(LOG_BLOCKCHAIN) << "[MEASUREMENT accept_transactions] bucket: " << bucket;
-// #endif // WITH_MEASUREMENTS
+#ifdef WITH_MEASUREMENTS
+    auto t0_local = std::chrono::high_resolution_clock::now();
+    LOG_INFO(LOG_BLOCKCHAIN) << "[MEASUREMENT accept_transactions] buckets: " << buckets;
+    LOG_INFO(LOG_BLOCKCHAIN) << "[MEASUREMENT accept_transactions] bucket: " << bucket;
+#endif // WITH_MEASUREMENTS
 
 #ifdef BITPRIM_CURRENCY_BCH
     bip141 = false;
@@ -289,12 +289,12 @@ void validate_block::accept_transactions(block_const_ptr block, size_t bucket,
         *sigops += transaction.signature_operations(bip16, bip141);
     }
 
-// #ifdef WITH_MEASUREMENTS
-//     auto t1_local = std::chrono::high_resolution_clock::now();
+#ifdef WITH_MEASUREMENTS
+    auto t1_local = std::chrono::high_resolution_clock::now();
 
-//     LOG_INFO(LOG_BLOCKCHAIN) << "[MEASUREMENT accept_transactions]\t" << encode_hash(block->hash()) << "\t"
-//                               << std::chrono::duration_cast<std::chrono::nanoseconds>(t1_local - t0_local).count();
-// #endif // WITH_MEASUREMENTS
+    LOG_INFO(LOG_BLOCKCHAIN) << "[MEASUREMENT accept_transactions]\t" << encode_hash(block->hash()) << "\t"
+                              << std::chrono::duration_cast<std::chrono::nanoseconds>(t1_local - t0_local).count();
+#endif // WITH_MEASUREMENTS
 
 
     handler(ec);
@@ -304,9 +304,9 @@ void validate_block::handle_accepted(const code& ec, block_const_ptr block,
     atomic_counter_ptr sigops, bool bip141, result_handler handler) const
 {
 
-// #ifdef WITH_MEASUREMENTS
-//     t6 = std::chrono::high_resolution_clock::now();
-// #endif // WITH_MEASUREMENTS
+#ifdef WITH_MEASUREMENTS
+    measurement_elem_.t6 = std::chrono::high_resolution_clock::now();
+#endif // WITH_MEASUREMENTS
 
     if (ec)
     {
@@ -322,18 +322,18 @@ void validate_block::handle_accepted(const code& ec, block_const_ptr block,
     const auto exceeded = *sigops > max_sigops;
 #endif
 
-// #ifdef WITH_MEASUREMENTS
-//     t7 = std::chrono::high_resolution_clock::now();
-//     LOG_INFO(LOG_BLOCKCHAIN) << "[MEASUREMENT block accept]" << "\t"
-//                               << std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count() << "\t"
-//                               << std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count() << "\t"
-//                               << std::chrono::duration_cast<std::chrono::nanoseconds>(t3 - t2).count() << "\t"
-//                               << std::chrono::duration_cast<std::chrono::nanoseconds>(t4 - t3).count() << "\t"
-//                               << std::chrono::duration_cast<std::chrono::nanoseconds>(t5 - t4).count() << "\t"
-//                               << std::chrono::duration_cast<std::chrono::nanoseconds>(t6 - t5).count() << "\t"
-//                               << std::chrono::duration_cast<std::chrono::nanoseconds>(t7 - t6).count() << "\t"
-//                               << std::chrono::duration_cast<std::chrono::nanoseconds>(t7 - t0).count();
-// #endif // WITH_MEASUREMENTS
+#ifdef WITH_MEASUREMENTS
+    measurement_elem_.t7 = std::chrono::high_resolution_clock::now();
+    LOG_INFO(LOG_BLOCKCHAIN) << "[MEASUREMENT block accept]" << "\t"
+                              << std::chrono::duration_cast<std::chrono::nanoseconds>(measurement_elem_.t1 - measurement_elem_.t0).count() << "\t"
+                              << std::chrono::duration_cast<std::chrono::nanoseconds>(measurement_elem_.t2 - measurement_elem_.t1).count() << "\t"
+                              << std::chrono::duration_cast<std::chrono::nanoseconds>(measurement_elem_.t3 - measurement_elem_.t2).count() << "\t"
+                              << std::chrono::duration_cast<std::chrono::nanoseconds>(measurement_elem_.t4 - measurement_elem_.t3).count() << "\t"
+                              << std::chrono::duration_cast<std::chrono::nanoseconds>(measurement_elem_.t5 - measurement_elem_.t4).count() << "\t"
+                              << std::chrono::duration_cast<std::chrono::nanoseconds>(measurement_elem_.t6 - measurement_elem_.t5).count() << "\t"
+                              << std::chrono::duration_cast<std::chrono::nanoseconds>(measurement_elem_.t7 - measurement_elem_.t6).count() << "\t"
+                              << std::chrono::duration_cast<std::chrono::nanoseconds>(measurement_elem_.t7 - measurement_elem_.t0).count();
+#endif // WITH_MEASUREMENTS
 
     handler(exceeded ? error::block_embedded_sigop_limit : error::success);
 }
