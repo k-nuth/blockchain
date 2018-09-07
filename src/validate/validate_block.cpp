@@ -141,9 +141,9 @@ void validate_block::handle_checked(const code& ec, block_const_ptr block,
 void validate_block::accept(branch::const_ptr branch,
     result_handler handler) const
 {
-// #ifdef WITH_MEASUREMENTS
-//     t0 = std::chrono::high_resolution_clock::now();
-// #endif // WITH_MEASUREMENTS
+#ifdef WITH_MEASUREMENTS
+    block_measurement_elem_.t0 = std::chrono::high_resolution_clock::now();
+#endif // WITH_MEASUREMENTS
 
     const auto block = branch->top();
     BITCOIN_ASSERT(block);

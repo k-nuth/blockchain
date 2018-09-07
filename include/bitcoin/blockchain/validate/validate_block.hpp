@@ -33,6 +33,19 @@
 namespace libbitcoin {
 namespace blockchain {
 
+#ifdef WITH_MEASUREMENTS
+    struct block_measurement_elem_t {
+        std::chrono::time_point<std::chrono::high_resolution_clock> t0 = {};
+        std::chrono::time_point<std::chrono::high_resolution_clock> t1 = {};
+        std::chrono::time_point<std::chrono::high_resolution_clock> t2 = {};
+        std::chrono::time_point<std::chrono::high_resolution_clock> t3 = {};
+        std::chrono::time_point<std::chrono::high_resolution_clock> t4 = {};
+        std::chrono::time_point<std::chrono::high_resolution_clock> t5 = {};
+        std::chrono::time_point<std::chrono::high_resolution_clock> t6 = {};
+        std::chrono::time_point<std::chrono::high_resolution_clock> t7 = {};
+    };
+#endif // WITH_MEASUREMENTS
+
 /// This class is NOT thread safe.
 class BCB_API validate_block
 {
@@ -91,15 +104,7 @@ private:
 
 
 #ifdef WITH_MEASUREMENTS
-    // mutable block_const_ptr block_organizing_;
-    mutable std::chrono::time_point<std::chrono::high_resolution_clock> t0 = {};
-    // mutable std::chrono::time_point<std::chrono::high_resolution_clock> t1 = {};
-    // mutable std::chrono::time_point<std::chrono::high_resolution_clock> t2 = {};
-    // mutable std::chrono::time_point<std::chrono::high_resolution_clock> t3 = {};
-    // mutable std::chrono::time_point<std::chrono::high_resolution_clock> t4 = {};
-    // mutable std::chrono::time_point<std::chrono::high_resolution_clock> t5 = {};
-    // mutable std::chrono::time_point<std::chrono::high_resolution_clock> t6 = {};
-    // mutable std::chrono::time_point<std::chrono::high_resolution_clock> t7 = {};
+    mutable block_measurement_elem_t block_measurement_elem_;
 #endif // WITH_MEASUREMENTS    
 
 };
