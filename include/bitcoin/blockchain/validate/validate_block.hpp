@@ -34,7 +34,7 @@ namespace libbitcoin {
 namespace blockchain {
 
 #ifdef WITH_MEASUREMENTS
-    struct block_measurement_elem_t {
+    struct validate_block_measurement_elem_t {
         std::chrono::time_point<std::chrono::high_resolution_clock> t0 = {};
         std::chrono::time_point<std::chrono::high_resolution_clock> t1 = {};
         std::chrono::time_point<std::chrono::high_resolution_clock> t2 = {};
@@ -104,7 +104,7 @@ private:
 
 
 #ifdef WITH_MEASUREMENTS
-    mutable block_measurement_elem_t block_measurement_elem_;
+    mutable validate_block_measurement_elem_t measurement_elem_;
 #endif // WITH_MEASUREMENTS    
 
 };
