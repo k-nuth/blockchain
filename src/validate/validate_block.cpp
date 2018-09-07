@@ -232,11 +232,11 @@ void validate_block::handle_populated(const code& ec, block_const_ptr block,
     const auto buckets = std::min(priority_dispatch_.size(), count);
     BITCOIN_ASSERT(buckets != 0);
 
-#ifdef WITH_MEASUREMENTS
-    LOG_INFO(LOG_BLOCKCHAIN) << "[MEASUREMENT handle_populated] priority_dispatch_.size(): " << priority_dispatch_.size();
-    LOG_INFO(LOG_BLOCKCHAIN) << "[MEASUREMENT handle_populated] block->transactions().size(): " << count;
-    LOG_INFO(LOG_BLOCKCHAIN) << "[MEASUREMENT handle_populated] buckets: " << buckets;
-#endif // WITH_MEASUREMENTS
+// #ifdef WITH_MEASUREMENTS
+//     LOG_INFO(LOG_BLOCKCHAIN) << "[MEASUREMENT handle_populated] priority_dispatch_.size(): " << priority_dispatch_.size();
+//     LOG_INFO(LOG_BLOCKCHAIN) << "[MEASUREMENT handle_populated] block->transactions().size(): " << count;
+//     LOG_INFO(LOG_BLOCKCHAIN) << "[MEASUREMENT handle_populated] buckets: " << buckets;
+// #endif // WITH_MEASUREMENTS
 
     const auto join_handler = synchronize(std::move(complete_handler), buckets,
         NAME "_accept");
@@ -261,11 +261,11 @@ void validate_block::accept_transactions(block_const_ptr block, size_t bucket,
     result_handler handler) const
 {
 
-#ifdef WITH_MEASUREMENTS
-    auto t0_local = std::chrono::high_resolution_clock::now();
-    LOG_INFO(LOG_BLOCKCHAIN) << "[MEASUREMENT accept_transactions] buckets: " << buckets;
-    LOG_INFO(LOG_BLOCKCHAIN) << "[MEASUREMENT accept_transactions] bucket: " << bucket;
-#endif // WITH_MEASUREMENTS
+// #ifdef WITH_MEASUREMENTS
+//     auto t0_local = std::chrono::high_resolution_clock::now();
+//     // LOG_INFO(LOG_BLOCKCHAIN) << "[MEASUREMENT accept_transactions] buckets: " << buckets;
+//     // LOG_INFO(LOG_BLOCKCHAIN) << "[MEASUREMENT accept_transactions] bucket: " << bucket;
+// #endif // WITH_MEASUREMENTS
 
 #ifdef BITPRIM_CURRENCY_BCH
     bip141 = false;
@@ -289,12 +289,12 @@ void validate_block::accept_transactions(block_const_ptr block, size_t bucket,
         *sigops += transaction.signature_operations(bip16, bip141);
     }
 
-#ifdef WITH_MEASUREMENTS
-    auto t1_local = std::chrono::high_resolution_clock::now();
+// #ifdef WITH_MEASUREMENTS
+//     auto t1_local = std::chrono::high_resolution_clock::now();
 
-    LOG_INFO(LOG_BLOCKCHAIN) << "[MEASUREMENT accept_transactions]\t" << encode_hash(block->hash()) << "\t"
-                              << std::chrono::duration_cast<std::chrono::nanoseconds>(t1_local - t0_local).count();
-#endif // WITH_MEASUREMENTS
+//     LOG_INFO(LOG_BLOCKCHAIN) << "[MEASUREMENT accept_transactions]\t" << encode_hash(block->hash()) << "\t"
+//                               << std::chrono::duration_cast<std::chrono::nanoseconds>(t1_local - t0_local).count();
+// #endif // WITH_MEASUREMENTS
 
 
     handler(ec);

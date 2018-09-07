@@ -134,22 +134,8 @@ private:
         block_hash_ = hash;
         block_measurement_elem_.height = height_counter_;
         height_counter_++;
-        block_measurement_elem_.stage = 0;
+        // block_measurement_elem_.stage = 0;
         block_measurement_elem_.t0 = std::chrono::high_resolution_clock::now();
-
-        // {
-        //     std::lock_guard<std::mutex> lock(measurement_mutex_);
-        //     // auto res = block_measurement_data_.insert(hash, {height_counter_, 0, std::chrono::high_resolution_clock::now()});
-        //     auto res = block_measurement_data_.emplace(hash, block_measurement_elem_t{});
-        //     if (res.second) {
-        //         res.first->second.height = height_counter_;
-        //         height_counter_++;
-        //         res.first->second.stage = 0;
-        //         res.first->second.t0 = std::chrono::high_resolution_clock::now();
-        //         return;
-        //     } 
-        // }
-        // LOG_FATAL(LOG_BLOCKCHAIN) << "[MEASUREMENT] - hash: " << encode_hash(hash) << " failed to be inserted in measurement data...";
     }
 
     template <typename F>
