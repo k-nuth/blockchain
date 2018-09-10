@@ -40,6 +40,7 @@ Rancher/Docker:
 Para restaurar la DB:
     cp --reflink /data/restapi-fullnode-database-bch-mainnet/_data/database-snapshot/* /bitprim/database/bch-mainnet
     cp --reflink /data/restapi-fullnode-database-bch-mainnet/_data/database-snapshot/* .  
+    cp /data/restapi-fullnode-database-bch-mainnet/_data/database-snapshot/* .  
 
 pip install conan --user
 export PATH=$PATH:/root/.local/bin/
@@ -67,6 +68,10 @@ conan install bitprim-node-cint/0.14.0@bitprim/testing -o shared=True -o *:measu
 cd bin
 
 scp root@ovh-insight-test-1.dev.bitprim.org:/bitprim/fer/blocks_and_txs_from_545619_raw.txt .
+scp root@ovh-insight-test-1.dev.bitprim.org:/bitprim/log/restapi-bch-mainnet-debug.log  .
+
+
+
 
 
 
@@ -92,9 +97,9 @@ lib, *.so -> ./lib
 
 
 rm transaction_flooder_2.cpp
-vi transaction_flooder_2.cpp
+nano transaction_flooder_2.cpp
 
-rm -rf include lib transaction_flooder_2.o transaction_flooder_2  conaninfo.txt conanbuildinfo.txt conan_imports_manifest.txt log.txt deploy_manifest.txt archive  bn
+rm -rf include lib transaction_flooder_2.o transaction_flooder_2  conaninfo.txt conanbuildinfo.txt conan_imports_manifest.txt deploy_manifest.txt archive  bn
 conan install . -s build_type=Release
 g++ -O3 -march=native -std=c++11 -Iinclude -c transaction_flooder_2.cpp
 g++ -O3 -march=native -Llib -o transaction_flooder_2 transaction_flooder_2.o -lbitprim-node-cint -lpthread
@@ -105,19 +110,32 @@ export LD_LIBRARY_PATH="$PWD/lib:$LD_LIBRARY_PATH"
 
 
 ./transaction_flooder_2
-./transaction_flooder_2 > log.txt
+./transaction_flooder_2 > log5.txt
 ./transaction_flooder_2  2>log.txt
 
 # /bitprim/database/bch-mainnet
 
 
 scp root@ovh-rancher-bitprim-4.dev.bitprim.org:/bitprim/bin/log.txt .
-
+scp root@ovh-rancher-bitprim-4.dev.bitprim.org:/bitprim/log/restapi-bch-mainnet-debug.log .
 
 
 
 ------------------------------------
 log-anal.py > log2.txt
+
+
+------------------------------------
+Todo en la misma máquina, con File System BTRFS?
+log.txt         Primera prueba, cp --reflink
+log2.txt        cp SIN reflink
+log3.txt        cp SIN reflink, SIN flush_writes
+log4.txt        IDEM log3.txt,, agregando log de inputs y block size
+log5.txt        IDEM log4.txt, pero enviando TXs antes de los bloques
+log6.txt        IDEM log5.txt, network.threads = 20
+log7.txt        IDEM log6.txt, chain.cores = 20
+
+
 */
 
 
@@ -234,19 +252,19 @@ void test_full(executor_t exec, std::string const& file_path) {
         // std::cout << "str: " << str << std::endl;
 
         if (str.find(std::string("-T-")) == 0) {
-            // str = str.substr(3);
-            // ++tx_count;
-            // ++tx_count_last_time;
-            // std::vector<uint8_t> tx_bytes(str.size() / 2);
-            // hex2bin(str.c_str(), tx_bytes.data());
-            // std::reverse(tx_bytes.begin(), tx_bytes.end());
+            str = str.substr(3);
+            ++tx_count;
+            ++tx_count_last_time;
+            std::vector<uint8_t> tx_bytes(str.size() / 2);
+            hex2bin(str.c_str(), tx_bytes.data());
+            std::reverse(tx_bytes.begin(), tx_bytes.end());
 
-            // auto tx = chain_transaction_factory_from_data(31402, tx_bytes.data(), tx_bytes.size());
-            // auto is_valid = chain_transaction_is_valid(tx);
-            // // if (is_valid == 0) {
-            // //     std::cout << "Invalid Transaction. Transaction data: " << str << std::endl;
-            // // }
-            // chain_organize_transaction(chain, nullptr, tx, organize_transaction_handler);
+            auto tx = chain_transaction_factory_from_data(31402, tx_bytes.data(), tx_bytes.size());
+            auto is_valid = chain_transaction_is_valid(tx);
+            // if (is_valid == 0) {
+            //     std::cout << "Invalid Transaction. Transaction data: " << str << std::endl;
+            // }
+            chain_organize_transaction(chain, nullptr, tx, organize_transaction_handler);
 
         } else if (str.find(std::string("-B-")) == 0) {
 
@@ -272,8 +290,11 @@ void test_full(executor_t exec, std::string const& file_path) {
             }
 
             uint64_t txquant = chain_block_transaction_count(block);
+            uint64_t inputsquant = chain_block_total_inputs(block, 1);
+            // uint64_t blocksize = chain_block_serialized_size(block);
 
-            std::cout << "***************** txquant\t" << txquant << '\t' << std::flush;
+            // std::cout << "***************** txquant\t" << txquant << '\t' << std::flush;
+            std::cout << "***************** txquant\t" << txquant << '\t' << "inputsquant\t" << inputsquant << '\t' << "blocksize\t" << block_bytes.size() << '\t' << std::flush;
 
             chain_organize_block(chain, nullptr, block, organize_block_handler);
             
@@ -315,9 +336,9 @@ void test_full(executor_t exec, std::string const& file_path) {
     }
 
     std::cout << "---------------------------------------------------------------------------" << std::endl;
-    // std::cout << "transactions total:   " << tx_count << std::endl;
-    // std::cout << "transactions valid:   " << transactions_valid << std::endl;
-    // std::cout << "transactions invalid: " << transactions_invalid << std::endl;
+    std::cout << "transactions total:   " << tx_count << std::endl;
+    std::cout << "transactions valid:   " << transactions_valid << std::endl;
+    std::cout << "transactions invalid: " << transactions_invalid << std::endl;
     std::cout << "blocks total:         " << block_count<< std::endl;
     std::cout << "blocks valid:         " << blocks_valid << std::endl;
     std::cout << "blocks invalid:       " << blocks_invalid << std::endl;

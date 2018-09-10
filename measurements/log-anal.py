@@ -1,19 +1,30 @@
-# "\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\* txquant\t[0-9]+\t2018-09-07T19:[0-9][0-9]:[0-9][0-9].[0-9][0-9][0-9][0-9][0-9][0-9]\sINFO\s\[blockchain\]\s\[MEASUREMENT\sblock\saccept\]\t[0-9]+\t[0-9]+\t[0-9]+\t[0-9]+\t[0-9]+\t[0-9]+\t[0-9]+\t[0-9]+\n2018-09-07T19:[0-9][0-9]:[0-9][0-9].[0-9][0-9][0-9][0-9][0-9][0-9]\sINFO\s\[blockchain\]\s\[MEASUREMENT\sblock\sorganize\]\t\w+\t[0-9]+\t[0-9]+\t[0-9]+\t[0-9]+\t[0-9]+\t[0-9]+\t[0-9]+\t[0-9]+\t[0-9]+\t[0-9]+"
-
-# ***************** txquant	230	2018-09-07T19:07:39.018719 INFO [blockchain] [MEASUREMENT block accept]	217045	2289659397	537878	12544	4019136	816403	3189	2295265592
-# 2018-09-07T19:07:42.725984 INFO [blockchain] [MEASUREMENT block organize]	000000000000000001103f9db52a59bedd7bb36cf79c1a72f974141de1ed1102	94047596327808	6550294	86805	2295424195	17283394	14507	3689779806	20339	30992	6009190332
-
-
 import re
 
-fname = "/home/fernando/log.txt"
-reg1 = "\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\* txquant\t([0-9]+)\t2018-09-07T19:[0-9][0-9]:[0-9][0-9].[0-9][0-9][0-9][0-9][0-9][0-9]\sINFO\s\[blockchain\]\s\[MEASUREMENT\sblock\saccept\]\t([0-9]+)\t([0-9]+)\t([0-9]+)\t([0-9]+)\t([0-9]+)\t([0-9]+)\t([0-9]+)\t([0-9]+)"
-reg2 = "2018-09-07T19:[0-9][0-9]:[0-9][0-9].[0-9][0-9][0-9][0-9][0-9][0-9]\sINFO\s\[blockchain\]\s\[MEASUREMENT\sblock\sorganize\]\t(\w+)\t([0-9]+)\t([0-9]+)\t([0-9]+)\t([0-9]+)\t([0-9]+)\t([0-9]+)\t([0-9]+)\t([0-9]+)\t([0-9]+)\t([0-9]+)"
+# reg1 = "\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\stxquant\t([0-9]+)\t[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]T[0-9][0-9]:[0-9][0-9]:[0-9][0-9].[0-9][0-9][0-9][0-9][0-9][0-9]\sINFO\s\[blockchain\]\s\[MEASUREMENT\sblock\saccept\]\t([0-9]+)\t([0-9]+)\t([0-9]+)\t([0-9]+)\t([0-9]+)\t([0-9]+)\t([0-9]+)\t([0-9]+)"
+reg1 = "\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\stxquant\t([0-9]+)\tinputsquant\t([0-9]+)\tblocksize\t([0-9]+)\t[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]T[0-9][0-9]:[0-9][0-9]:[0-9][0-9].[0-9][0-9][0-9][0-9][0-9][0-9]\sINFO\s\[blockchain\]\s\[MEASUREMENT\sblock\saccept\]\t([0-9]+)\t([0-9]+)\t([0-9]+)\t([0-9]+)\t([0-9]+)\t([0-9]+)\t([0-9]+)\t([0-9]+)"
+reg2 = "[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]T[0-9][0-9]:[0-9][0-9]:[0-9][0-9].[0-9][0-9][0-9][0-9][0-9][0-9]\sINFO\s\[blockchain\]\s\[MEASUREMENT\sblock\sorganize\]\t(\w+)\t([0-9]+)\t([0-9]+)\t([0-9]+)\t([0-9]+)\t([0-9]+)\t([0-9]+)\t([0-9]+)\t([0-9]+)\t([0-9]+)\t([0-9]+)"
+
+# fname = "/home/fernando/log.txt"
+# fname = "./log2.txt"
+# fname = "./log3.txt"
+# fname = "./log4.txt"
+# fname = "./log5.txt"
+# fname = "./log6.txt"
+fname = "./log7.txt"
 
 with open(fname) as f:
     content = f.readlines()
 content = [x.strip() for x in content] 
 # print(content)
+
+start_height = 545619
+
+print('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}'.format(
+    'block hash', 'block height', 
+    'tx count', 'inputs count', 'block size', 
+    'check', 'handle check', 'accept', 'connect', 'handle connect', 'reorg', 'handle reorg', 'call handler', 'total',
+    "t1 - t0  accept part", "t2 - t1 populate", "t3 - t2 handle_populated block->accept()", "t4 - t3 handle_populated other", "t5 - t4 handle_populated for", "t6 - t5 accept_transactions", "t7 - t6 handle_accepted", "total")
+)
 
 for i in xrange(0, len(content), 2):
     # print(content[i])
@@ -29,7 +40,14 @@ for i in xrange(0, len(content), 2):
     z = list(x[0]) + list(y[0])
     # print(z)
 
-    print('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}'.format(z[9], z[0], z[1], z[2], z[3], z[4], z[5], z[6], z[7], z[8], z[11], z[12], z[13], z[14], z[15], z[16], z[17], z[18], z[19]))
+    print('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}'.format(
+        z[11], start_height, 
+        z[0], z[1], z[2], 
+        z[13], z[14], z[15], z[16], z[17], z[18], z[19], z[20], z[21], 
+        z[3], z[4], z[5], z[6], z[7], z[8], z[9], z[10])
+    )
+
+    start_height = start_height + 1
 
 
 
