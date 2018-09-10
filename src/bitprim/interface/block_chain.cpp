@@ -85,6 +85,20 @@ void block_chain::for_each_transaction_non_coinbase(size_t from, size_t to, bool
     }
 }
 #ifdef WITH_KEOKEN
+
+void block_chain::get_to_keo_transaction(libbitcoin::hash_digest hash, std::shared_ptr<std::vector<transaction_const_ptr>> keoken_txs) const {
+   fetch_transaction(hash, true, false,
+              [&](const libbitcoin::code &ec,
+                  libbitcoin::transaction_const_ptr tx_ptr, size_t index,
+                  size_t height) {
+                  if (ec == libbitcoin::error::success) {
+                      auto keoken_data = bitprim::keoken::first_keoken_output(*tx_ptr);
+                      if(!keoken_data.empty())
+                          (*keoken_txs).push_back(tx_ptr);
+                  }
+          });
+}
+
 void block_chain::fetch_keoken_history(const short_hash& address_hash, size_t limit,
     size_t from_height, keoken_history_fetch_handler handler) const
 {
@@ -102,23 +116,12 @@ void block_chain::fetch_keoken_history(const short_hash& address_hash, size_t li
 */
     auto history_compact_list =  database_.history().get(address_hash, limit, from_height);
 
-
-
     for (const auto & history : history_compact_list) {
-        //boost::latch latch(2);
-        fetch_transaction(history.point.hash(), true, false,
-            [&](const libbitcoin::code &ec,
-                libbitcoin::transaction_const_ptr tx_ptr, size_t index,
-                size_t height) {
-                if (ec == libbitcoin::error::success) {
-                    auto keoken_data = bitprim::keoken::first_keoken_output(*tx_ptr);
-                    if(!keoken_data.empty())
-                        (*keoken_txs).push_back(tx_ptr);
-                }
-                //latch.count_down();
-        });
-//        latch.count_down_and_wait();
-        
+        if((*keoken_txs).empty())
+            get_to_keo_transaction(history.point.hash(), keoken_txs);
+        else
+            if(history.point.hash() != keoken_txs->back()->hash())
+                get_to_keo_transaction(history.point.hash(), keoken_txs);
     }
 
     handler(error::success, keoken_txs);

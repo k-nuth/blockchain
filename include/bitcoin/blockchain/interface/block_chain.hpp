@@ -388,6 +388,9 @@ public:
 
     virtual void fetch_block_keoken(const hash_digest& hash, bool witness,
         block_keoken_fetch_handler handler) const override;
+
+    virtual void get_to_keo_transaction(libbitcoin::hash_digest hash,
+      std::shared_ptr<std::vector<transaction_const_ptr>> keoken_txs) const override;
 #endif
 
 protected:
