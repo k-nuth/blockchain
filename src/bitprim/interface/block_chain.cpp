@@ -138,7 +138,7 @@ void block_chain::fetch_block_keoken(const hash_digest& hash, bool witness,
     auto keoken_txs = std::make_shared<std::vector<transaction_const_ptr>>();
     if (stopped())
     {
-        handler(error::service_stopped, nullptr, 0, keoken_txs ,0);
+        handler(error::service_stopped, nullptr, 0, keoken_txs , 0, 0);
         return;
     }
 
@@ -146,7 +146,7 @@ void block_chain::fetch_block_keoken(const hash_digest& hash, bool witness,
 
     if (!block_result)
     {
-        handler(error::not_found, nullptr, 0, keoken_txs ,0);
+        handler(error::not_found, nullptr, 0, keoken_txs , 0, 0);
         return;
     }
 
@@ -164,7 +164,7 @@ void block_chain::fetch_block_keoken(const hash_digest& hash, bool witness,
 
         if (!tx_result)
         {
-            handler(error::operation_failed_17, nullptr, 0,keoken_txs, 0);
+            handler(error::operation_failed_17, nullptr, 0,keoken_txs, 0, 0);
             return;
         }
 
@@ -176,7 +176,7 @@ void block_chain::fetch_block_keoken(const hash_digest& hash, bool witness,
             (*keoken_txs).push_back(std::make_shared<const libbitcoin::message::transaction>(tx_result.transaction(witness)));
     }
 
-    handler(error::success, message, height, keoken_txs, block_result.serialized_size());
+    handler(error::success, message, height, keoken_txs, block_result.serialized_size(), tx_hashes.size());
 
 }
 
