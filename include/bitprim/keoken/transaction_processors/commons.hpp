@@ -33,7 +33,7 @@ enum class message_type_t {
 
 
 template <typename Fastchain>
-bc::wallet::payment_address get_first_input_addr(Fastchain const& fast_chain, bc::chain::transaction const& tx) {
+bc::wallet::payment_address get_first_input_addr(Fastchain const& fast_chain, bc::chain::transaction const& tx, bool testnet = false) {
     auto const& owner_input = tx.inputs()[0];
 
     bc::chain::output out_output;
@@ -46,25 +46,25 @@ bc::wallet::payment_address get_first_input_addr(Fastchain const& fast_chain, bc
         return bc::wallet::payment_address{};
     }
 
-    return out_output.address();
+    return out_output.address(testnet);
 }
 
 template <typename Fastchain>
-std::pair<bc::wallet::payment_address, bc::wallet::payment_address> get_send_tokens_addrs(Fastchain const& fast_chain, bc::chain::transaction const& tx) {
+std::pair<bc::wallet::payment_address, bc::wallet::payment_address> get_send_tokens_addrs(Fastchain const& fast_chain, bc::chain::transaction const& tx, bool testnet = false) {
     auto source = get_first_input_addr(fast_chain, tx);
     if ( ! source) {
         return {bc::wallet::payment_address{}, bc::wallet::payment_address{}};
     }
 
-    auto it = std::find_if(tx.outputs().begin(), tx.outputs().end(), [&source](bc::chain::output const& o) {
-        return o.address() && o.address() != source;
+    auto it = std::find_if(tx.outputs().begin(), tx.outputs().end(), [&source, &testnet](bc::chain::output const& o) {
+        return o.address(testnet) && o.address(testnet) != source;
     });
 
     if (it == tx.outputs().end()) {
         return {std::move(source), bc::wallet::payment_address{}};        
     }
 
-    return {std::move(source), it->address()};
+    return {std::move(source), it->address(testnet)};
 }
 
 } // namespace keoken
