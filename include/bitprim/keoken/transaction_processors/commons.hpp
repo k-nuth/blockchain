@@ -51,7 +51,7 @@ bc::wallet::payment_address get_first_input_addr(Fastchain const& fast_chain, bc
 
 template <typename Fastchain>
 std::pair<bc::wallet::payment_address, bc::wallet::payment_address> get_send_tokens_addrs(Fastchain const& fast_chain, bc::chain::transaction const& tx, bool testnet = false) {
-    auto source = get_first_input_addr(fast_chain, tx);
+    auto source = get_first_input_addr(fast_chain, tx, testnet);
     if ( ! source) {
         return {bc::wallet::payment_address{}, bc::wallet::payment_address{}};
     }
