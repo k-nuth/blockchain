@@ -1,7 +1,6 @@
 import re
 
-# reg1 = "\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\stxquant\t([0-9]+)\t[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]T[0-9][0-9]:[0-9][0-9]:[0-9][0-9].[0-9][0-9][0-9][0-9][0-9][0-9]\sINFO\s\[blockchain\]\s\[MEASUREMENT\sblock\saccept\]\t([0-9]+)\t([0-9]+)\t([0-9]+)\t([0-9]+)\t([0-9]+)\t([0-9]+)\t([0-9]+)\t([0-9]+)"
-reg1 = "\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\stxquant\t([0-9]+)\tinputsquant\t([0-9]+)\tblocksize\t([0-9]+)\t[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]T[0-9][0-9]:[0-9][0-9]:[0-9][0-9].[0-9][0-9][0-9][0-9][0-9][0-9]\sINFO\s\[blockchain\]\s\[MEASUREMENT\sblock\saccept\]\t([0-9]+)\t([0-9]+)\t([0-9]+)\t([0-9]+)\t([0-9]+)\t([0-9]+)\t([0-9]+)\t([0-9]+)"
+reg1 = "\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\stxquant\t([0-9]+)\tinputsquant\t([0-9]+)\tblocksize\t([0-9]+)\t[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]T[0-9][0-9]:[0-9][0-9]:[0-9][0-9].[0-9][0-9][0-9][0-9][0-9][0-9]\sINFO\s\[blockchain\]\s\[MEASUREMENT\sblock\saccept\]\t([\-0-9]+)\t([\-0-9]+)\t([\-0-9]+)\t([\-0-9]+)\t([\-0-9]+)\t([\-0-9]+)\t([\-0-9]+)\t([0-9]+)"
 reg2 = "[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]T[0-9][0-9]:[0-9][0-9]:[0-9][0-9].[0-9][0-9][0-9][0-9][0-9][0-9]\sINFO\s\[blockchain\]\s\[MEASUREMENT\sblock\sorganize\]\t(\w+)\t([0-9]+)\t([0-9]+)\t([0-9]+)\t([0-9]+)\t([0-9]+)\t([0-9]+)\t([0-9]+)\t([0-9]+)\t([0-9]+)\t([0-9]+)"
 
 # fname = "/home/fernando/log.txt"
@@ -10,7 +9,14 @@ reg2 = "[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]T[0-9][0-9]:[0-9][0-9]:[0-9][0
 # fname = "./log4.txt"
 # fname = "./log5.txt"
 # fname = "./log6.txt"
-fname = "./log7.txt"
+# fname = "./log7.txt"
+# fname = "./log8.txt"
+# fname = "./log9.txt"
+# fname = "./log10.txt"
+# fname = "./log11.txt"
+# fname = "./log12.txt"
+fname = "./log13.txt"
+# fname = "./log14.txt"
 
 with open(fname) as f:
     content = f.readlines()
@@ -26,6 +32,8 @@ print('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{
     "t1 - t0  accept part", "t2 - t1 populate", "t3 - t2 handle_populated block->accept()", "t4 - t3 handle_populated other", "t5 - t4 handle_populated for", "t6 - t5 accept_transactions", "t7 - t6 handle_accepted", "total")
 )
 
+res = []
+
 for i in xrange(0, len(content), 2):
     # print(content[i])
     x = re.findall(reg1, content[i])
@@ -37,7 +45,15 @@ for i in xrange(0, len(content), 2):
     y = re.findall(reg2, content[i+1])
     # print(y)
 
-    z = list(x[0]) + list(y[0])
+    try:
+        z = list(x[0]) + list(y[0])
+    except:
+        print(i)
+        print(start_height)
+        print(x)
+        print(y)
+        break
+
     # print(z)
 
     print('{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}'.format(

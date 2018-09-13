@@ -42,6 +42,9 @@ Para restaurar la DB:
     cp --reflink /data/restapi-fullnode-database-bch-mainnet/_data/database-snapshot/* .  
     cp /data/restapi-fullnode-database-bch-mainnet/_data/database-snapshot/* .  
 
+    Server Curasao
+        cp /home/ubuntu/db_backup/bch-mainnet/* .
+
 pip install conan --user
 export PATH=$PATH:/root/.local/bin/
 pip install cpuid --user
@@ -63,7 +66,7 @@ conan remove bitprim-blockchain -f
 conan remove bitprim-node-cint -f
 conan remove bitprim-node -f
 conan create . bitprim-blockchain/0.14.0@bitprim/testing -o measurements=True -s build_type=Release
-conan install bitprim-node-cint/0.14.0@bitprim/testing -o shared=True -o *:measurements=True -s build_type=Release
+conan install bitprim-node-cint/0.14.0@bitprim/testing -o shared=True -o "*:measurements=True" -s build_type=Release
 
 cd bin
 
@@ -96,28 +99,39 @@ lib, *.so -> ./lib
 
 
 
-rm transaction_flooder_2.cpp
-nano transaction_flooder_2.cpp
+rm transaction_flooder_blk_txs.cpp
+vi transaction_flooder_blk_txs.cpp
 
-rm -rf include lib transaction_flooder_2.o transaction_flooder_2  conaninfo.txt conanbuildinfo.txt conan_imports_manifest.txt deploy_manifest.txt archive  bn
+rm -rf include lib *.o transaction_flooder_only_blks transaction_flooder_blk_txs  conaninfo.txt conanbuildinfo.txt conan_imports_manifest.txt deploy_manifest.txt archive  bn
 conan install . -s build_type=Release
-g++ -O3 -march=native -std=c++11 -Iinclude -c transaction_flooder_2.cpp
-g++ -O3 -march=native -Llib -o transaction_flooder_2 transaction_flooder_2.o -lbitprim-node-cint -lpthread
-# g++ -g -std=c++11 -Iinclude -c transaction_flooder_2.cpp
-# g++ -g -Llib -o transaction_flooder_2 transaction_flooder_2.o -lbitprim-node-cint -lpthread
+g++ -O3 -march=native -std=c++11 -Iinclude -c transaction_flooder_blk_txs.cpp
+g++ -O3 -march=native -Llib -o transaction_flooder_only_blks transaction_flooder_blk_txs.o -lbitprim-node-cint -lpthread
+rm *.o
+g++ -DWITH_TXS -O3 -march=native -std=c++11 -Iinclude -c transaction_flooder_blk_txs.cpp
+g++ -DWITH_TXS -O3 -march=native -Llib -o transaction_flooder_blk_txs transaction_flooder_blk_txs.o -lbitprim-node-cint -lpthread
+
+
+
+# g++ -g -std=c++11 -Iinclude -c transaction_flooder_blk_txs.cpp
+# g++ -g -Llib -o transaction_flooder_blk_txs transaction_flooder_blk_txs.o -lbitprim-node-cint -lpthread
 
 export LD_LIBRARY_PATH="$PWD/lib:$LD_LIBRARY_PATH"
 
 
-./transaction_flooder_2
-./transaction_flooder_2 > log5.txt
-./transaction_flooder_2  2>log.txt
+./transaction_flooder_blk_txs
+./transaction_flooder_blk_txs > log5.txt
+./transaction_flooder_blk_txs  2>log.txt
 
 # /bitprim/database/bch-mainnet
 
 
 scp root@ovh-rancher-bitprim-4.dev.bitprim.org:/bitprim/bin/log.txt .
 scp root@ovh-rancher-bitprim-4.dev.bitprim.org:/bitprim/log/restapi-bch-mainnet-debug.log .
+
+
+scp ubuntu@190.123.23.7:/home/ubuntu/fer2/bin/log8.txt .
+
+
 
 
 
@@ -252,6 +266,7 @@ void test_full(executor_t exec, std::string const& file_path) {
         // std::cout << "str: " << str << std::endl;
 
         if (str.find(std::string("-T-")) == 0) {
+#ifdef WITH_TXS
             str = str.substr(3);
             ++tx_count;
             ++tx_count_last_time;
@@ -265,6 +280,7 @@ void test_full(executor_t exec, std::string const& file_path) {
             //     std::cout << "Invalid Transaction. Transaction data: " << str << std::endl;
             // }
             chain_organize_transaction(chain, nullptr, tx, organize_transaction_handler);
+#endif // WITH_TXS
 
         } else if (str.find(std::string("-B-")) == 0) {
 
@@ -326,7 +342,10 @@ void test_full(executor_t exec, std::string const& file_path) {
         // }
     }
 
+#ifdef WITH_TXS
     std::cout << "read_transactions_from_file - tx count:        " << tx_count << std::endl;
+#endif // WITH_TXS            
+
     std::cout << "read_transactions_from_file - block count:     " << block_count << std::endl;
     std::cout << "Finished reading the Transactions file, ready for validation process\nWarming up...\n";
     std::cout << "Transaction Organization process finished. Press Ctrl-C to end the program.\n";
@@ -336,9 +355,11 @@ void test_full(executor_t exec, std::string const& file_path) {
     }
 
     std::cout << "---------------------------------------------------------------------------" << std::endl;
+#ifdef WITH_TXS
     std::cout << "transactions total:   " << tx_count << std::endl;
     std::cout << "transactions valid:   " << transactions_valid << std::endl;
     std::cout << "transactions invalid: " << transactions_invalid << std::endl;
+#endif // WITH_TXS            
     std::cout << "blocks total:         " << block_count<< std::endl;
     std::cout << "blocks valid:         " << blocks_valid << std::endl;
     std::cout << "blocks invalid:       " << blocks_invalid << std::endl;
