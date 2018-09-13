@@ -81,9 +81,9 @@ if (WITH_MINING)
   add_definitions(-DBITPRIM_WITH_MINING)
 endif()
 
-# Implement --with-mining and declare WITH_MINING.
+# Implement --use-domain and declare USE_DOMAIN.
 #------------------------------------------------------------------------------
-option(USE_DOMAIN "Mining enabled." OFF)
+option(USE_DOMAIN "Domain enabled." OFF)
 if (USE_DOMAIN)
   message(STATUS "Bitprim: Using Domain enabled")
   add_definitions(-DBITPRIM_USE_DOMAIN)
