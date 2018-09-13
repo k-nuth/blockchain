@@ -29,7 +29,14 @@
 #include <unordered_set>
 #include <bitcoin/bitcoin.hpp>
 #include <bitcoin/database.hpp>
+
+
+#ifdef BITPRIM_USE_DOMAIN
+#include <bitcoin/infrastructure/math/sip_hash.hpp>
+#else
 #include <bitcoin/bitcoin/math/sip_hash.hpp>
+#endif // BITPRIM_USE_DOMAIN
+
 #include <bitcoin/bitcoin/multi_crypto_support.hpp>
 #include <bitcoin/blockchain/settings.hpp>
 #include <bitcoin/blockchain/populate/populate_chain_state.hpp>
@@ -84,14 +91,14 @@ block_chain::block_chain(threadpool& pool,
     , dispatch_(priority_pool_, NAME "_priority")
     , transaction_organizer_(validation_mutex_, dispatch_, pool, *this, chain_settings)
     , block_organizer_(validation_mutex_, dispatch_, pool, *this, chain_settings, relay_transactions)
-#ifdef WITH_MINING
+#ifdef BITPRIM_WITH_MINING
     , chosen_size_(0)
     , chosen_sigops_(0)
     , chosen_unconfirmed_()
     , chosen_spent_()
     , gbt_mutex_()
     , gbt_ready_(true)
-#endif // WITH_MINING    
+#endif // BITPRIM_WITH_MINING    
 {
 }
 
@@ -299,7 +306,7 @@ void block_chain::push(transaction_const_ptr tx, dispatcher&,
     handler(database_.push(*tx, chain_state()->enabled_forks()));
 }
 
-#ifdef WITH_MINING
+#ifdef BITPRIM_WITH_MINING
 //Mark every previous output of the transaction as TEMPORARY SPENT
 void block_chain::append_spend(transaction_const_ptr tx) {
     std::vector<prev_output> prev_outputs;
@@ -547,7 +554,7 @@ void block_chain::remove_mined_txs_from_chosen_list(block_const_ptr blk){
     gbt_ready_ = true;
 
 }
-#endif // WITH_MINING
+#endif // BITPRIM_WITH_MINING
 
 void block_chain::fetch_unconfirmed_transaction(const hash_digest& hash, 
     transaction_unconfirmed_fetch_handler handler) const
