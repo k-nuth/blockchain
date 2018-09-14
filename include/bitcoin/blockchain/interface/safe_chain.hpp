@@ -101,84 +101,63 @@ public:
     // Node Queries.
     // ------------------------------------------------------------------------
 
-    virtual void fetch_block(size_t height, bool witness,
-        block_fetch_handler handler) const = 0;
+#ifdef BITPRIM_DB_LEGACY
+    virtual void fetch_block(size_t height, bool witness, block_fetch_handler handler) const = 0;
 
-    virtual void fetch_block(const hash_digest& hash, bool witness,
-        block_fetch_handler handler) const = 0;
+    virtual void fetch_block(const hash_digest& hash, bool witness, block_fetch_handler handler) const = 0;
 
-    virtual void fetch_block_header(size_t height,
-        block_header_fetch_handler handler) const = 0;
+    virtual void fetch_block_header(size_t height, block_header_fetch_handler handler) const = 0;
 
-    virtual void fetch_block_header(const hash_digest& hash,
-        block_header_fetch_handler handler) const = 0;
+    virtual void fetch_block_header(const hash_digest& hash, block_header_fetch_handler handler) const = 0;
+#endif // BITPRIM_DB_LEGACY
 
-    virtual bool get_block_hash(hash_digest& out_hash,
-        size_t height) const = 0;
+    virtual bool get_block_hash(hash_digest& out_hash, size_t height) const = 0;
 
-    //OLD previo al merge de Feb2017
-    // virtual void fetch_merkle_block(size_t height, transaction_hashes_fetch_handler handler) const = 0;
     virtual void fetch_merkle_block(size_t height, merkle_block_fetch_handler handler) const = 0;
 
+    virtual void fetch_merkle_block(const hash_digest& hash, merkle_block_fetch_handler handler) const = 0;
 
+    virtual void fetch_compact_block(size_t height, compact_block_fetch_handler handler) const = 0;
 
-    virtual void fetch_merkle_block(const hash_digest& hash,
-        merkle_block_fetch_handler handler) const = 0;
+    virtual void fetch_compact_block(const hash_digest& hash, compact_block_fetch_handler handler) const = 0;
 
-    virtual void fetch_compact_block(size_t height,
-        compact_block_fetch_handler handler) const = 0;
+    virtual void fetch_block_height(const hash_digest& hash, block_height_fetch_handler handler) const = 0;
 
-    virtual void fetch_compact_block(const hash_digest& hash,
-        compact_block_fetch_handler handler) const = 0;
+    virtual void fetch_block_header_txs_size(const hash_digest& hash, block_header_txs_size_fetch_handler handler) const = 0;
 
-    virtual void fetch_block_height(const hash_digest& hash,
-        block_height_fetch_handler handler) const = 0;
+    virtual void fetch_block_hash_timestamp(size_t height, block_hash_time_fetch_handler handler) const = 0;
 
-    virtual void fetch_block_header_txs_size(const hash_digest& hash,
-        block_header_txs_size_fetch_handler handler) const = 0;
+    virtual void fetch_last_height(last_height_fetch_handler handler) const = 0;
 
-    virtual void fetch_block_hash_timestamp(size_t height,
-        block_hash_time_fetch_handler handler) const = 0;
+    virtual void fetch_transaction(const hash_digest& hash, bool require_confirmed, bool witness, transaction_fetch_handler handler) const = 0;
 
-    virtual void fetch_last_height(
-        last_height_fetch_handler handler) const = 0;
+    virtual void fetch_transaction_position(const hash_digest& hash, bool require_confirmed, transaction_index_fetch_handler handler) const = 0;
 
-    virtual void fetch_transaction(const hash_digest& hash,
-        bool require_confirmed, bool witness,
-        transaction_fetch_handler handler) const = 0;
+    virtual void fetch_locator_block_hashes(get_blocks_const_ptr locator, const hash_digest& threshold, size_t limit, inventory_fetch_handler handler) const = 0;
 
-    virtual void fetch_transaction_position(const hash_digest& hash,
-        bool require_confirmed,
-        transaction_index_fetch_handler handler) const = 0;
+    virtual void fetch_locator_block_headers(get_headers_const_ptr locator, const hash_digest& threshold, size_t limit, locator_block_headers_fetch_handler handler) const = 0;
 
-    virtual void fetch_locator_block_hashes(get_blocks_const_ptr locator,
-        const hash_digest& threshold, size_t limit,
-        inventory_fetch_handler handler) const = 0;
-
-    virtual void fetch_locator_block_headers(get_headers_const_ptr locator,
-        const hash_digest& threshold, size_t limit,
-        locator_block_headers_fetch_handler handler) const = 0;
-
-    virtual void fetch_block_locator(const chain::block::indexes& heights,
-        block_locator_fetch_handler handler) const = 0;
+    virtual void fetch_block_locator(const chain::block::indexes& heights, block_locator_fetch_handler handler) const = 0;
 
     void for_each_transaction(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const;
+
     void for_each_transaction_non_coinbase(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const;
 
     // Server Queries.
     //-------------------------------------------------------------------------
 
-    virtual void fetch_spend(const chain::output_point& outpoint,
-        spend_fetch_handler handler) const = 0;
+#ifdef BITPRIM_DB_SPENDS
+    virtual void fetch_spend(const chain::output_point& outpoint, spend_fetch_handler handler) const = 0;
+#endif // BITPRIM_DB_SPENDS
 
-    virtual void fetch_history(const short_hash& address_hash, size_t limit,
-        size_t from_height, history_fetch_handler handler) const = 0;
+#ifdef BITPRIM_DB_HISTORY
+    virtual void fetch_history(const short_hash& address_hash, size_t limit, size_t from_height, history_fetch_handler handler) const = 0;
+    virtual void fetch_confirmed_transactions(const short_hash& address_hash, size_t limit, size_t from_height, confirmed_transactions_fetch_handler handler) const = 0;
+#endif // BITPRIM_DB_HISTORY
 
-    virtual void fetch_confirmed_transactions(const short_hash& address_hash, size_t limit,
-                                              size_t from_height, confirmed_transactions_fetch_handler handler) const = 0;
-
-    virtual void fetch_stealth(const binary& filter, size_t from_height,
-        stealth_fetch_handler handler) const = 0;
+#ifdef BITPRIM_DB_STEALTH
+    virtual void fetch_stealth(const binary& filter, size_t from_height, stealth_fetch_handler handler) const = 0;
+#endif // BITPRIM_DB_STEALTH
 
     // Transaction Pool.
     //-------------------------------------------------------------------------
@@ -189,11 +168,10 @@ public:
 #ifdef BITPRIM_DB_TRANSACTION_UNCONFIRMED
     virtual std::vector<mempool_transaction_summary> get_mempool_transactions(std::vector<std::string> const& payment_addresses, bool use_testnet_rules, bool witness) const = 0;
     virtual std::vector<mempool_transaction_summary> get_mempool_transactions(std::string const& payment_address, bool use_testnet_rules, bool witness) const = 0;
+    virtual mempool_mini_hash_map get_mempool_mini_hash_map(message::compact_block const& block) const = 0;
+    virtual void fill_tx_list_from_mempool(message::compact_block const& block, size_t& mempool_count, std::vector<chain::transaction>& txn_available, std::unordered_map<uint64_t, uint16_t> const& shorttxids) const = 0;
 #endif // BITPRIM_DB_TRANSACTION_UNCONFIRMED
 
-    virtual mempool_mini_hash_map get_mempool_mini_hash_map(message::compact_block const& block) const = 0;
-
-    virtual void fill_tx_list_from_mempool(message::compact_block const& block, size_t& mempool_count, std::vector<chain::transaction>& txn_available, std::unordered_map<uint64_t, uint16_t> const& shorttxids) const = 0;
   
     // Filters.
     //-------------------------------------------------------------------------

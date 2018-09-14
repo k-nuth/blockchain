@@ -55,11 +55,12 @@ bool is_transaction_pool(branch::const_ptr branch) {
     return branch->empty();
 }
 
+#ifdef BITPRIM_DB_LEGACY
 bool populate_chain_state::get_bits(uint32_t& out_bits, size_t height, branch::const_ptr branch) const {
     // branch returns false only if the height is out of range.
-    return branch->get_bits(out_bits, height) ||
-        fast_chain_.get_bits(out_bits, height);
+    return branch->get_bits(out_bits, height) || fast_chain_.get_bits(out_bits, height);
 }
+#endif // BITPRIM_DB_LEGACY
 
 bool populate_chain_state::get_version(uint32_t& out_version, size_t height, branch::const_ptr branch) const {
     // branch returns false only if the height is out of range.

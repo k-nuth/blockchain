@@ -21,6 +21,7 @@
 namespace libbitcoin {
 namespace blockchain {
 
+#ifdef BITPRIM_DB_LEGACY
 void block_chain::for_each_transaction(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const {
 #ifdef BITPRIM_CURRENCY_BCH
     witness = false;    //TODO(fernando): see what to do with those things!
@@ -80,6 +81,7 @@ void block_chain::for_each_transaction_non_coinbase(size_t from, size_t to, bool
         ++from;
     }
 }
+#endif // BITPRIM_DB_LEGACY
 
 } // namespace blockchain
 } // namespace libbitcoin

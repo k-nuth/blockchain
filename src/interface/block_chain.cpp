@@ -114,6 +114,7 @@ uint32_t get_clock_now() {
     return static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::microseconds>(now.time_since_epoch()).count());
 }
 
+#ifdef BITPRIM_DB_LEGACY
 bool block_chain::get_gaps(block_database::heights& out_gaps) const
 {
     database_.blocks().gaps(out_gaps);
@@ -265,6 +266,7 @@ bool block_chain::get_transaction_position(size_t& out_height,
     out_position = result.position();
     return true;
 }
+#endif // BITPRIM_DB_LEGACY
 
 ////transaction_ptr block_chain::get_transaction(size_t& out_block_height,
 ////    const hash_digest& hash, bool require_confirmed) const
@@ -717,6 +719,7 @@ block_chain::~block_chain()
 // Blocks are and transactions returned const because they don't change and
 // this eliminates the need to copy the cached items.
 
+#ifdef BITPRIM_DB_LEGACY
 void block_chain::fetch_block(size_t height, bool witness,
     block_fetch_handler handler) const
 {
@@ -960,6 +963,7 @@ void block_chain::fetch_merkle_block(const hash_digest& hash,
         result.transaction_count(), result.transaction_hashes(), data_chunk{});
     handler(error::success, merkle, result.height());
 }
+#endif // BITPRIM_DB_LEGACY
 
 void block_chain::fetch_compact_block(size_t height,
     compact_block_fetch_handler handler) const
@@ -993,6 +997,7 @@ void block_chain::fetch_compact_block(const hash_digest& hash, compact_block_fet
     });
 }
 
+#ifdef BITPRIM_DB_LEGACY
 void block_chain::fetch_block_height(const hash_digest& hash,
     block_height_fetch_handler handler) const
 {
@@ -1074,6 +1079,7 @@ void block_chain::fetch_transaction(const hash_digest& hash,
         result.transaction(witness));
     handler(error::success, tx, result.position(), result.height());
 }
+#endif // BITPRIM_DB_LEGACY
 
 
 hash_digest generate_merkle_root(std::vector<chain::transaction> transactions) {
@@ -1193,7 +1199,6 @@ std::vector<libbitcoin::blockchain::mempool_transaction_summary> block_chain::ge
 
     return ret;
 }
-#endif // BITPRIM_DB_TRANSACTION_UNCONFIRMED
 
 /*
    def get_siphash_keys(self):
@@ -1262,8 +1267,6 @@ void block_chain::fill_tx_list_from_mempool(message::compact_block const& block,
     });
 }
 
-
-
 safe_chain::mempool_mini_hash_map block_chain::get_mempool_mini_hash_map(message::compact_block const& block) const {
 #ifdef BITPRIM_CURRENCY_BCH
      bool witness = false;
@@ -1301,13 +1304,13 @@ safe_chain::mempool_mini_hash_map block_chain::get_mempool_mini_hash_map(message
     return mempool;
 }
 
-#ifdef BITPRIM_DB_TRANSACTION_UNCONFIRMED
 std::vector<libbitcoin::blockchain::mempool_transaction_summary> block_chain::get_mempool_transactions(std::string const& payment_address, bool use_testnet_rules, bool witness) const{
     std::vector<std::string> addresses = {payment_address};
     return get_mempool_transactions(addresses, use_testnet_rules, witness);
 }
 #endif // BITPRIM_DB_TRANSACTION_UNCONFIRMED
 
+#ifdef BITPRIM_DB_LEGACY
 // This is same as fetch_transaction but skips deserializing the tx payload.
 void block_chain::fetch_transaction_position(const hash_digest& hash,
     bool require_confirmed, transaction_index_fetch_handler handler) const
@@ -1517,13 +1520,13 @@ void block_chain::fetch_block_locator(const block::indexes& heights,
 
     handler(error::success, message);
 }
+#endif // BITPRIM_DB_LEGACY
 
 // Server Queries.
 //-----------------------------------------------------------------------------
 
-void block_chain::fetch_spend(const chain::output_point& outpoint,
-    spend_fetch_handler handler) const
-{
+#ifdef BITPRIM_DB_SPENDS
+void block_chain::fetch_spend(const chain::output_point& outpoint, spend_fetch_handler handler) const {
     if (stopped())
     {
         handler(error::service_stopped, {});
@@ -1540,44 +1543,40 @@ void block_chain::fetch_spend(const chain::output_point& outpoint,
 
     handler(error::success, std::move(point));
 }
+#endif // BITPRIM_DB_SPENDS
 
-void block_chain::fetch_history(const short_hash& address_hash, size_t limit,
-    size_t from_height, history_fetch_handler handler) const
-{
-    if (stopped())
-    {
+#ifdef BITPRIM_DB_HISTORY
+void block_chain::fetch_history(const short_hash& address_hash, size_t limit, size_t from_height, history_fetch_handler handler) const {
+    if (stopped()) {
         handler(error::service_stopped, {});
         return;
     }
 
-    handler(error::success, database_.history().get(address_hash, limit,
-        from_height));
+    handler(error::success, database_.history().get(address_hash, limit, from_height));
 }
 
-void block_chain::fetch_confirmed_transactions(const short_hash& address_hash, size_t limit,
-                                               size_t from_height, confirmed_transactions_fetch_handler handler) const
-{
-    if (stopped())
-    {
+void block_chain::fetch_confirmed_transactions(const short_hash& address_hash, size_t limit, size_t from_height, confirmed_transactions_fetch_handler handler) const {
+    if (stopped()) {
         handler(error::service_stopped, {});
         return;
     }
 
-    handler(error::success, database_.history().get_txns(address_hash, limit,
-                                                    from_height));
+    handler(error::success, database_.history().get_txns(address_hash, limit, from_height));
 }
+#endif // BITPRIM_DB_HISTORY
 
-void block_chain::fetch_stealth(const binary& filter, size_t from_height,
-    stealth_fetch_handler handler) const
+
+#ifdef BITPRIM_DB_STEALTH
+void block_chain::fetch_stealth(const binary& filter, size_t from_height, stealth_fetch_handler handler) const
 {
-    if (stopped())
-    {
+    if (stopped()) {
         handler(error::service_stopped, {});
         return;
     }
 
     handler(error::success, database_.stealth().scan(filter, from_height));
 }
+#endif // BITPRIM_DB_STEALTH
 
 // Transaction Pool.
 //-----------------------------------------------------------------------------
@@ -1629,6 +1628,7 @@ void block_chain::filter_blocks(get_data_ptr message,
     handler(error::success);
 }
 
+#ifdef BITPRIM_DB_LEGACY
 // This filters against all transactions (confirmed and unconfirmed).
 void block_chain::filter_transactions(get_data_ptr message,
     result_handler handler) const
@@ -1653,6 +1653,7 @@ void block_chain::filter_transactions(get_data_ptr message,
 
     handler(error::success);
 }
+#endif // BITPRIM_DB_LEGACY
 
 // Subscribers.
 //-----------------------------------------------------------------------------

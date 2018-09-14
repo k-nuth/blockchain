@@ -38,20 +38,15 @@ using namespace bc::database;
 populate_base::populate_base(dispatcher& dispatch, const fast_chain& chain)
   : dispatch_(dispatch),
     fast_chain_(chain)
-{
-}
+{}
 
 // This is the only necessary file system read in block/tx validation.
-void populate_base::populate_duplicate(size_t branch_height,
-    const chain::transaction& tx, bool require_confirmed) const
-{
+void populate_base::populate_duplicate(size_t branch_height, const chain::transaction& tx, bool require_confirmed) const {
     tx.validation.duplicate = fast_chain_.get_is_unspent_transaction(
         tx.hash(), branch_height, require_confirmed);
 }
 
-void populate_base::populate_pooled(const chain::transaction& tx,
-    uint32_t forks) const
-{
+void populate_base::populate_pooled(const chain::transaction& tx, uint32_t forks) const {
     size_t height;
     size_t position;
 
