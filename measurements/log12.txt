@@ -1,24 +1,3 @@
-2018-09-11T01:16:07.863207 INFO [node] ================= startup  ==================
-2018-09-11T01:16:07.863283 INFO [node] Using config file: "/bitprim/conf/node-mainnet-2.cfg"
-2018-09-11T01:16:07.863294 INFO [node] Node version: 0.14.0
-2018-09-11T01:16:07.863323 INFO [node] Currency: BCH - Bitcoin Cash
-2018-09-11T01:16:07.863332 INFO [node] Compiled for microarchitecture: skylake
-2018-09-11T01:16:07.863339 INFO [node] Network: Mainnet (3908297187)
-2018-09-11T01:16:07.863350 INFO [node] Configured to use 48 cores
-2018-09-11T01:16:07.863440 INFO [node] Press CTRL-C to stop the node.
-2018-09-11T01:16:07.863448 INFO [node] Please wait while the node is starting...
-2018-09-11T01:16:07.876030 INFO [network] Starting manual session.
-2018-09-11T01:16:07.876595 INFO [node] Seeding is complete.
-2018-09-11T01:16:07.876658 INFO [node] Node start height is (545618).
-2018-09-11T01:16:07.876699 INFO [node] Starting inbound session on port (8334).
-2018-09-11T01:16:07.876726 INFO [network] Not configured for accepting incoming connections.
-2018-09-11T01:16:07.876744 INFO [network] Not configured for generating outbound connections.
-2018-09-11T01:16:07.876754 INFO [node] Node is started.
-***** Transactions File: '/bitprim/fer/blocks_and_txs_from_545619_raw.txt'
-Initializing the node...
-***** NODE STARTED, PRESS ENTER TO CONTINUE
-***** ENTER PRESSED
-Start reading the Transactions/Blocks file...
 ***************** txquant	230	inputsquant	767	blocksize	175998	2018-09-11T01:17:07.553043 INFO [blockchain] [MEASUREMENT block accept]	251219	42471817	384897	7495	1167140	1654079	1722	45938369
 2018-09-11T01:17:08.932123 INFO [blockchain] [MEASUREMENT block organize]	000000000000000001103f9db52a59bedd7bb36cf79c1a72f974141de1ed1102	15690864	2812732	998713	46024259	8860844	9903	1370060489	13695	44641	1428825276
 ***************** txquant	2565	inputsquant	2725	blocksize	606884	2018-09-11T01:17:09.180061 INFO [blockchain] [MEASUREMENT block accept]	160856	190236026	1679509	3541	544049	6235787	1125	198860893
@@ -1333,12 +1312,3 @@ Start reading the Transactions/Blocks file...
 2018-09-11T01:31:02.471021 INFO [blockchain] [MEASUREMENT block organize]	00000000000000000154fce21cb1f6c5f8a344c41bcbed1c4b6f42e400e1099a	15691519	22072322	16434	107157715	19395998	5540	109051350	7976	56733	257764068
 ***************** txquant	259	inputsquant	994	blocksize	177782	2018-09-11T01:31:02.488526 INFO [blockchain] [MEASUREMENT block accept]	80759	4139471	333438	2540	373331	2722448	1101	7653088
 2018-09-11T01:31:02.565897 INFO [blockchain] [MEASUREMENT block organize]	000000000000000000cf315f0db0270b8adee97a643e987e3249b60cc6a3d8ed	15691520	2989475	408988	7702790	17722409	7630	59560096	9414	16968	88417770
-read_transactions_from_file - block count:     657
-Finished reading the Transactions file, ready for validation process
-Warming up...
-Transaction Organization process finished. Press Ctrl-C to end the program.
----------------------------------------------------------------------------
-blocks total:         657
-blocks valid:         657
-blocks invalid:       0
----------------------------------------------------------------------------
