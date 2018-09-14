@@ -68,8 +68,11 @@ public:
         block_header_fetch_handler;
     typedef std::function<void(const code&, transaction_const_ptr, size_t,
         size_t)> transaction_fetch_handler;
-    typedef std::function<void(const code&, transaction_const_ptr)> 
-        transaction_unconfirmed_fetch_handler;
+
+#ifdef BITPRIM_DB_TRANSACTION_UNCONFIRMED
+    using transaction_unconfirmed_fetch_handler = std::function<void(const code&, transaction_const_ptr)>;
+#endif // BITPRIM_DB_TRANSACTION_UNCONFIRMED
+
     typedef std::function<void(const code&, headers_ptr)>
         locator_block_headers_fetch_handler;
     typedef std::function<void(const code&, get_headers_ptr)>
@@ -181,12 +184,12 @@ public:
     //-------------------------------------------------------------------------
 
     virtual void fetch_template(merkle_block_fetch_handler handler) const = 0;
-    virtual void fetch_mempool(size_t count_limit, uint64_t minimum_fee,
-        inventory_fetch_handler handler) const = 0;
-    virtual std::vector<mempool_transaction_summary> get_mempool_transactions(std::vector<std::string> const& payment_addresses,
-                                                                     bool use_testnet_rules, bool witness) const = 0;
-    virtual std::vector<mempool_transaction_summary> get_mempool_transactions(std::string const& payment_address,
-                                                                     bool use_testnet_rules, bool witness) const = 0;
+    virtual void fetch_mempool(size_t count_limit, uint64_t minimum_fee, inventory_fetch_handler handler) const = 0;
+
+#ifdef BITPRIM_DB_TRANSACTION_UNCONFIRMED
+    virtual std::vector<mempool_transaction_summary> get_mempool_transactions(std::vector<std::string> const& payment_addresses, bool use_testnet_rules, bool witness) const = 0;
+    virtual std::vector<mempool_transaction_summary> get_mempool_transactions(std::string const& payment_address, bool use_testnet_rules, bool witness) const = 0;
+#endif // BITPRIM_DB_TRANSACTION_UNCONFIRMED
 
     virtual mempool_mini_hash_map get_mempool_mini_hash_map(message::compact_block const& block) const = 0;
 

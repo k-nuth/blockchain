@@ -556,8 +556,8 @@ void block_chain::remove_mined_txs_from_chosen_list(block_const_ptr blk){
 }
 #endif // BITPRIM_WITH_MINING
 
-void block_chain::fetch_unconfirmed_transaction(const hash_digest& hash, 
-    transaction_unconfirmed_fetch_handler handler) const
+#ifdef BITPRIM_DB_TRANSACTION_UNCONFIRMED
+void block_chain::fetch_unconfirmed_transaction(const hash_digest& hash, transaction_unconfirmed_fetch_handler handler) const
 {
     if (stopped())
     {
@@ -576,6 +576,7 @@ void block_chain::fetch_unconfirmed_transaction(const hash_digest& hash,
     const auto tx = std::make_shared<const transaction>(result.transaction());
     handler(error::success, tx);
 }
+#endif // BITPRIM_DB_TRANSACTION_UNCONFIRMED
 
 
 
@@ -1109,6 +1110,7 @@ hash_digest generate_merkle_root(std::vector<chain::transaction> transactions) {
     return merkle.front();
 }
 
+#ifdef BITPRIM_DB_TRANSACTION_UNCONFIRMED
 //TODO(fernando): refactor!!!
 std::vector<libbitcoin::blockchain::mempool_transaction_summary> block_chain::get_mempool_transactions(std::vector<std::string> const& payment_addresses, bool use_testnet_rules, bool witness) const {
 /*          "    \"address\"  (string) The base58check encoded address\n"
@@ -1191,6 +1193,7 @@ std::vector<libbitcoin::blockchain::mempool_transaction_summary> block_chain::ge
 
     return ret;
 }
+#endif // BITPRIM_DB_TRANSACTION_UNCONFIRMED
 
 /*
    def get_siphash_keys(self):
@@ -1298,11 +1301,12 @@ safe_chain::mempool_mini_hash_map block_chain::get_mempool_mini_hash_map(message
     return mempool;
 }
 
-
+#ifdef BITPRIM_DB_TRANSACTION_UNCONFIRMED
 std::vector<libbitcoin::blockchain::mempool_transaction_summary> block_chain::get_mempool_transactions(std::string const& payment_address, bool use_testnet_rules, bool witness) const{
     std::vector<std::string> addresses = {payment_address};
     return get_mempool_transactions(addresses, use_testnet_rules, witness);
 }
+#endif // BITPRIM_DB_TRANSACTION_UNCONFIRMED
 
 // This is same as fetch_transaction but skips deserializing the tx payload.
 void block_chain::fetch_transaction_position(const hash_digest& hash,

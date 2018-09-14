@@ -226,12 +226,14 @@ public:
     void fetch_transaction(const hash_digest& hash, bool require_confirmed,
         bool witness, transaction_fetch_handler handler) const override;
 
+#ifdef BITPRIM_DB_TRANSACTION_UNCONFIRMED
     /// fetch unconfirmed transaction by hash.
-    void fetch_unconfirmed_transaction(const hash_digest& hash,
-        transaction_unconfirmed_fetch_handler handler) const;
+    void fetch_unconfirmed_transaction(const hash_digest& hash, transaction_unconfirmed_fetch_handler handler) const;
 
     std::vector<mempool_transaction_summary> get_mempool_transactions(std::vector<std::string> const& payment_addresses, bool use_testnet_rules, bool witness) const override;
     std::vector<mempool_transaction_summary> get_mempool_transactions(std::string const& payment_address, bool use_testnet_rules, bool witness) const override;
+#endif // BITPRIM_DB_TRANSACTION_UNCONFIRMED
+
 
     /// fetch position and height within block of transaction by hash.
     void fetch_transaction_position(const hash_digest& hash,
