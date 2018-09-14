@@ -10,7 +10,8 @@ reg2 = "[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]T[0-9][0-9]:[0-9][0-9]:[0-9][0
 # fname = "./log4.txt"
 # fname = "./log5.txt"
 # fname = "./log6.txt"
-fname = "./log7.txt"
+# fname = "./log7.txt"
+fname = "./log11.txt"
 
 with open(fname) as f:
     content = f.readlines()

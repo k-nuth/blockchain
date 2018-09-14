@@ -42,7 +42,7 @@ Para restaurar la DB:
     cp --reflink /data/restapi-fullnode-database-bch-mainnet/_data/database-snapshot/* .  
     cp /data/restapi-fullnode-database-bch-mainnet/_data/database-snapshot/* .  
 
-pip install conan --user
+pip install conan --user --upgrade
 export PATH=$PATH:/root/.local/bin/
 pip install cpuid --user
 
@@ -118,6 +118,9 @@ export LD_LIBRARY_PATH="$PWD/lib:$LD_LIBRARY_PATH"
 
 scp root@ovh-rancher-bitprim-4.dev.bitprim.org:/bitprim/bin/log.txt .
 scp root@ovh-rancher-bitprim-4.dev.bitprim.org:/bitprim/log/restapi-bch-mainnet-debug.log .
+
+
+scp ubuntu@190.123.23.7:/home/ubuntu/fer2/bin/log11.txt .
 
 
 
