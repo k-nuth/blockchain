@@ -963,41 +963,33 @@ void block_chain::fetch_merkle_block(const hash_digest& hash,
         result.transaction_count(), result.transaction_hashes(), data_chunk{});
     handler(error::success, merkle, result.height());
 }
-#endif // BITPRIM_DB_LEGACY
 
-void block_chain::fetch_compact_block(size_t height,
-    compact_block_fetch_handler handler) const
-{
+void block_chain::fetch_compact_block(size_t height, compact_block_fetch_handler handler) const {
     // TODO: implement compact blocks.
     handler(error::not_implemented, {}, 0);
 }
 
-void block_chain::fetch_compact_block(const hash_digest& hash, compact_block_fetch_handler handler) const
-{
+void block_chain::fetch_compact_block(const hash_digest& hash, compact_block_fetch_handler handler) const {
 #ifdef BITPRIM_CURRENCY_BCH
     bool witness = false;
 #else
     bool witness = true;
 #endif
-    if (stopped())
-    {
+    if (stopped()) {
         handler(error::service_stopped, {},0);
         return;
     }
     
     fetch_block(hash, witness,[&handler](const code& ec, block_const_ptr message, size_t height) {
-            
         if (ec == error::success) {
             auto blk_ptr = std::make_shared<compact_block>(compact_block::factory_from_block(*message));
             handler(error::success, blk_ptr, height);
         } else {
             handler(ec, nullptr, height);
         }
-        
     });
 }
 
-#ifdef BITPRIM_DB_LEGACY
 void block_chain::fetch_block_height(const hash_digest& hash,
     block_height_fetch_handler handler) const
 {
@@ -1601,11 +1593,10 @@ void block_chain::fetch_mempool(size_t count_limit, uint64_t minimum_fee,
 // Filters.
 //-----------------------------------------------------------------------------
 
+#ifdef BITPRIM_DB_LEGACY
 // This may execute up to 500 queries.
 // This filters against the block pool and then the block chain.
-void block_chain::filter_blocks(get_data_ptr message,
-    result_handler handler) const
-{
+void block_chain::filter_blocks(get_data_ptr message, result_handler handler) const {
     if (stopped())
     {
         handler(error::service_stopped);
@@ -1628,7 +1619,6 @@ void block_chain::filter_blocks(get_data_ptr message,
     handler(error::success);
 }
 
-#ifdef BITPRIM_DB_LEGACY
 // This filters against all transactions (confirmed and unconfirmed).
 void block_chain::filter_transactions(get_data_ptr message,
     result_handler handler) const
@@ -1658,20 +1648,17 @@ void block_chain::filter_transactions(get_data_ptr message,
 // Subscribers.
 //-----------------------------------------------------------------------------
 
-void block_chain::subscribe_blockchain(reorganize_handler&& handler)
-{
+void block_chain::subscribe_blockchain(reorganize_handler&& handler) {
     // Pass this through to the organizer, which issues the notifications.
     block_organizer_.subscribe(std::move(handler));
 }
 
-void block_chain::subscribe_transaction(transaction_handler&& handler)
-{
+void block_chain::subscribe_transaction(transaction_handler&& handler) {
     // Pass this through to the tx organizer, which issues the notifications.
     transaction_organizer_.subscribe(std::move(handler));
 }
 
-void block_chain::unsubscribe()
-{
+void block_chain::unsubscribe() {
     block_organizer_.unsubscribe();
     transaction_organizer_.unsubscribe();
 }
@@ -1702,27 +1689,27 @@ void block_chain::organize(transaction_const_ptr tx, result_handler handler)
 // Properties (thread safe).
 // ----------------------------------------------------------------------------
 
-bool block_chain::is_stale() const
-{
+bool block_chain::is_stale() const {
     // If there is no limit set the chain is never considered stale.
-    if (notify_limit_seconds_ == 0)
+    if (notify_limit_seconds_ == 0) {
         return false;
+    }
 
     const auto top = last_block_.load();
+
     // BITPRIM: get the last block if there is no cache
     uint32_t last_timestamp = 0;
-    if (!top)
-    {
+#ifdef BITPRIM_DB_LEGACY    
+    if ( ! top) {
         size_t last_height;
-        if (get_last_height(last_height))
-        {
+        if (get_last_height(last_height)) {
             chain::header last_header;
-            if (get_header(last_header, last_height))
-            {
+            if (get_header(last_header, last_height)) {
                 last_timestamp = last_header.timestamp();
             }
         }
     }
+#endif // BITPRIM_DB_LEGACY    
     const auto timestamp = top ? top->header().timestamp() : last_timestamp;
     return timestamp < floor_subtract(zulu_time(), notify_limit_seconds_);
 }

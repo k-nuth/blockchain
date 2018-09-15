@@ -111,8 +111,7 @@ void populate_block::populate_coinbase(branch::const_ptr branch,
     // hard fork that destroys unspent outputs in case of hash collision.
     // The tx duplicate check must apply to coinbase txs, handled here.
     //*************************************************************************
-    if (!state->is_enabled(rule_fork::allow_collisions))
-    {
+    if ( ! state->is_enabled(rule_fork::allow_collisions)) {
         populate_base::populate_duplicate(branch->height(), coinbase, true);
         ////populate_duplicate(branch, coinbase);
     }

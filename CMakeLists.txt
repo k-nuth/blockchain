@@ -524,8 +524,6 @@ if (WITH_TESTS)
   # _add_tests(bitprim_blockchain_test "blockchain" transaction_pool_tests) # validate_block_tests) # no test cases
 
   _add_tests(bitprim_blockchain_test 
-    fast_chain_tests
-    safe_chain_tests
     block_entry_tests
     block_pool_tests
     branch_tests
@@ -533,6 +531,14 @@ if (WITH_TESTS)
     validate_block_tests
     validate_transaction_tests
   )
+
+  if (DB_LEGACY)
+    _add_tests(bitprim_blockchain_test 
+      fast_chain_tests
+      safe_chain_tests
+    )
+  endif()
+
 endif()
 
 if (WITH_TESTS_NEW)

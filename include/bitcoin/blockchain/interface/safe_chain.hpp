@@ -109,7 +109,6 @@ public:
     virtual void fetch_block_header(size_t height, block_header_fetch_handler handler) const = 0;
 
     virtual void fetch_block_header(const hash_digest& hash, block_header_fetch_handler handler) const = 0;
-#endif // BITPRIM_DB_LEGACY
 
     virtual bool get_block_hash(hash_digest& out_hash, size_t height) const = 0;
 
@@ -142,6 +141,7 @@ public:
     void for_each_transaction(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const;
 
     void for_each_transaction_non_coinbase(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const;
+#endif // BITPRIM_DB_LEGACY
 
     // Server Queries.
     //-------------------------------------------------------------------------
@@ -176,11 +176,11 @@ public:
     // Filters.
     //-------------------------------------------------------------------------
 
-    virtual void filter_blocks(get_data_ptr message,
-        result_handler handler) const = 0;
+#ifdef BITPRIM_DB_LEGACY
+    virtual void filter_blocks(get_data_ptr message, result_handler handler) const = 0;
 
-    virtual void filter_transactions(get_data_ptr message,
-        result_handler handler) const = 0;
+    virtual void filter_transactions(get_data_ptr message, result_handler handler) const = 0;
+#endif // BITPRIM_DB_LEGACY
 
     // Subscribers.
     //-------------------------------------------------------------------------
@@ -211,9 +211,11 @@ public:
     virtual void remove_mined_txs_from_chosen_list(block_const_ptr blk) = 0;
 #endif // BITPRIM_WITH_MINING
 
+#ifdef BITPRIM_DB_LEGACY
     //TODO(Mario) temporary duplication 
     /// Get a determination of whether the block hash exists in the store.
     virtual bool get_block_exists_safe(const hash_digest& block_hash) const = 0;
+#endif // BITPRIM_DB_LEGACY
 
 };
 

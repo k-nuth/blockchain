@@ -88,17 +88,25 @@ bool create_database(database::settings& out_database)
 
     // Table optimization parameters, reduced for speed and more collision.
     out_database.file_growth_rate = 42;
+#ifdef BITPRIM_DB_LEGACY
     out_database.block_table_buckets = 42;
     out_database.transaction_table_buckets = 42;
+#endif // BITPRIM_DB_LEGACY
+#ifdef BITPRIM_DB_SPEND
     out_database.spend_table_buckets = 42;
+#endif // BITPRIM_DB_SPEND
+#ifdef BITPRIM_DB_HISTORY
     out_database.history_table_buckets = 42;
+#endif // BITPRIM_DB_HISTORY
+#ifdef BITPRIM_DB_TRANSACTION_UNCONFIRMED
     out_database.transaction_unconfirmed_table_buckets = 42;
+#endif // BITPRIM_DB_TRANSACTION_UNCONFIRMED
 
     error_code ec;
     remove_all(out_database.directory, ec);
     database::data_base database(out_database);
-    return create_directories(out_database.directory, ec) &&
-        database.create(chain::block::genesis_mainnet());
+    return create_directories(out_database.directory, ec) 
+            && database.create(chain::block::genesis_mainnet());
 }
 
 chain::block read_block(const std::string hex)
@@ -112,6 +120,7 @@ chain::block read_block(const std::string hex)
 
 BOOST_AUTO_TEST_SUITE(fast_chain_tests)
 
+#ifdef BITPRIM_DB_LEGACY
 BOOST_AUTO_TEST_CASE(block_chain__insert__flushed__expected)
 {
     START_BLOCKCHAIN(instance, true);
@@ -441,6 +450,7 @@ BOOST_AUTO_TEST_CASE(block_chain__get_is_unspent_transaction__spent_below_fork__
 {
     // TODO: generate spent tx test vector.
 }
+#endif // BITPRIM_DB_LEGACY
 
 ////BOOST_AUTO_TEST_CASE(block_chain__get_transaction__exists__true)
 ////{
@@ -476,17 +486,16 @@ BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE(safe_chain_tests)
 
+
+#ifdef BITPRIM_DB_LEGACY
+
 // fetch_block
 
-static int fetch_block_by_height_result(block_chain& instance,
-    block_const_ptr block, size_t height)
-{
+static 
+int fetch_block_by_height_result(block_chain& instance, block_const_ptr block, size_t height) {
     std::promise<code> promise;
-    const auto handler = [=, &promise](code ec, block_const_ptr result_block,
-        size_t result_height)
-    {
-        if (ec)
-        {
+    const auto handler = [=, &promise](code ec, block_const_ptr result_block, size_t result_height) {
+        if (ec) {
             promise.set_value(ec);
             return;
         }
@@ -722,6 +731,7 @@ BOOST_AUTO_TEST_CASE(block_chain__fetch_merkle_block2__not_exists__error_not_fou
     BOOST_REQUIRE_EQUAL(fetch_merkle_block_by_hash_result(instance, block1, 1), error::not_found);
 }
 
+
 // TODO: fetch_block_height
 // TODO: fetch_last_height
 // TODO: fetch_transaction
@@ -804,6 +814,7 @@ BOOST_AUTO_TEST_CASE(block_chain__fetch_locator_block_headers__limited__sequenti
     const auto locator = std::make_shared<const message::get_headers>();
     BOOST_REQUIRE_EQUAL(fetch_locator_block_headers(instance, locator, null_hash, 2), error::success);
 }
+#endif // BITPRIM_DB_LEGACY
 
 // TODO: fetch_template
 // TODO: fetch_mempool

@@ -193,7 +193,6 @@ public:
 
     /// fetch hashes of transactions for a block, by block hash.
     void fetch_merkle_block(const hash_digest& hash, merkle_block_fetch_handler handler) const override;
-#endif // BITPRIM_DB_LEGACY
 
     /// fetch compact block by block height.
     void fetch_compact_block(size_t height, compact_block_fetch_handler handler) const override;
@@ -210,15 +209,6 @@ public:
     /// fetch transaction by hash.
     void fetch_transaction(const hash_digest& hash, bool require_confirmed, bool witness, transaction_fetch_handler handler) const override;
 
-#ifdef BITPRIM_DB_TRANSACTION_UNCONFIRMED
-    /// fetch unconfirmed transaction by hash.
-    void fetch_unconfirmed_transaction(const hash_digest& hash, transaction_unconfirmed_fetch_handler handler) const;
-
-    std::vector<mempool_transaction_summary> get_mempool_transactions(std::vector<std::string> const& payment_addresses, bool use_testnet_rules, bool witness) const override;
-    std::vector<mempool_transaction_summary> get_mempool_transactions(std::string const& payment_address, bool use_testnet_rules, bool witness) const override;
-#endif // BITPRIM_DB_TRANSACTION_UNCONFIRMED
-
-
     /// fetch position and height within block of transaction by hash.
     void fetch_transaction_position(const hash_digest& hash, bool require_confirmed, transaction_index_fetch_handler handler) const override;
 
@@ -230,6 +220,16 @@ public:
 
     /// fetch a block locator relative to the current top and threshold.
     void fetch_block_locator(const chain::block::indexes& heights, block_locator_fetch_handler handler) const override;
+#endif // BITPRIM_DB_LEGACY
+
+#ifdef BITPRIM_DB_TRANSACTION_UNCONFIRMED
+    /// fetch unconfirmed transaction by hash.
+    void fetch_unconfirmed_transaction(const hash_digest& hash, transaction_unconfirmed_fetch_handler handler) const;
+
+    std::vector<mempool_transaction_summary> get_mempool_transactions(std::vector<std::string> const& payment_addresses, bool use_testnet_rules, bool witness) const override;
+    std::vector<mempool_transaction_summary> get_mempool_transactions(std::string const& payment_address, bool use_testnet_rules, bool witness) const override;
+#endif // BITPRIM_DB_TRANSACTION_UNCONFIRMED
+
 
 #ifdef BITPRIM_DB_LEGACY
     // Bitprim non-virtual functions.
@@ -302,12 +302,13 @@ public:
     // Filters.
     //-------------------------------------------------------------------------
 
+#ifdef BITPRIM_DB_LEGACY
     /// Filter out block by hash that exist in the block pool or store.
     void filter_blocks(get_data_ptr message, result_handler handler) const override;
 
     /// Filter out confirmed and unconfirmed transactions by hash.
-    void filter_transactions(get_data_ptr message,
-        result_handler handler) const override;
+    void filter_transactions(get_data_ptr message, result_handler handler) const override;
+#endif // BITPRIM_DB_LEGACY
 
     // Subscribers.
     //-------------------------------------------------------------------------
