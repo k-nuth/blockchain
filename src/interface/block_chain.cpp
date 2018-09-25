@@ -271,28 +271,14 @@ bool block_chain::get_transaction_position(size_t& out_height,
 
 #ifdef BITPRIM_DB_NEW
 bool block_chain::get_utxo(chain::output& out_output, size_t& out_height, uint32_t& out_median_time_past, bool& out_coinbase, chain::output_point const& outpoint, size_t branch_height) const {
-    std::cout << "get_utxo 1\n";
     auto entry = database_.utxo_db().get(outpoint);
-    std::cout << "get_utxo 2\n";
-    if ( ! entry.is_valid()) {
-        std::cout << "get_utxo 3\n";
-
-        return false;
-    }
-    std::cout << "get_utxo 4\n";
-
-    if (entry.height() > branch_height) {
-    std::cout << "get_utxo 5\n";
-        return false;
-    }
-    std::cout << "get_utxo 6\n";
+    if ( ! entry.is_valid()) return false;
+    if (entry.height() > branch_height) return false;
 
     out_output = entry.output();
     out_height = entry.height();
     out_median_time_past = entry.median_time_past();
     out_coinbase = entry.coinbase();
-
-    std::cout << "get_utxo 7\n";
 
     return true;
 }

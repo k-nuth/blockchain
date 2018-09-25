@@ -114,9 +114,7 @@ public:
 
 #ifdef BITPRIM_DB_NEW
     /// Get the output that is referenced by the outpoint in the UTXO Set.
-    // utxo_entry get_utxo(chain::output_point const& outpoint) const override;
     bool get_utxo(chain::output& out_output, size_t& out_height, uint32_t& out_median_time_past, bool& out_coinbase, chain::output_point const& outpoint, size_t branch_height) const override;
-
 #endif// BITPRIM_DB_NEW
 
     /////// Get the transaction of the given hash and its block height.
