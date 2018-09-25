@@ -42,6 +42,7 @@ populate_base::populate_base(dispatcher& dispatch, const fast_chain& chain)
 
 // This is the only necessary file system read in block/tx validation.
 void populate_base::populate_duplicate(size_t branch_height, const chain::transaction& tx, bool require_confirmed) const {
+//TODO(fernando): check how to replace it with UTXO
 #ifdef BITPRIM_DB_LEGACY    
     tx.validation.duplicate = fast_chain_.get_is_unspent_transaction(tx.hash(), branch_height, require_confirmed);
 #endif // BITPRIM_DB_LEGACY    

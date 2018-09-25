@@ -243,6 +243,7 @@ bool block_chain::get_output_is_confirmed(chain::output& out_output, size_t& out
                                                out_coinbase, out_is_confirmed, outpoint, branch_height, require_confirmed);
 }
 
+//TODO(fernando): check how to replace it with UTXO
 bool block_chain::get_is_unspent_transaction(const hash_digest& hash,
     size_t branch_height, bool require_confirmed) const
 {
@@ -1651,6 +1652,7 @@ void block_chain::filter_transactions(get_data_ptr message,
 
     for (auto it = inventories.begin(); it != inventories.end();)
     {
+        //TODO(fernando): check how to replace it with UTXO
         if (it->is_transaction_type() &&
             get_is_unspent_transaction(it->hash(), max_size_t, false))
             it = inventories.erase(it);
