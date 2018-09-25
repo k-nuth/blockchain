@@ -81,6 +81,13 @@ public:
     virtual bool get_transaction_position(size_t& out_height, size_t& out_position, const hash_digest& hash, bool require_confirmed) const = 0;
 #endif // BITPRIM_DB_LEGACY
 
+
+#ifdef BITPRIM_DB_NEW
+    /// Get the output that is referenced by the outpoint in the UTXO Set.
+    virtual bool get_utxo(chain::output& out_output, size_t& out_height, uint32_t& out_median_time_past, bool& out_coinbase, chain::output_point const& outpoint, size_t branch_height) const = 0;
+#endif// BITPRIM_DB_NEW
+
+
     /////// Get the transaction of the given hash and its block height.
     ////virtual transaction_ptr get_transaction(size_t& out_block_height,
     ////    const hash_digest& hash, bool require_confirmed) const = 0;

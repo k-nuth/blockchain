@@ -66,9 +66,7 @@ void populate_base::populate_pooled(const chain::transaction& tx, uint32_t forks
 // Unspent outputs are cached by the store. If the cache is large enough this
 // may never hit the file system. However on high RAM systems the file system
 // is faster than the cache due to reduced paging of the memory-mapped file.
-void populate_base::populate_prevout(size_t branch_height,
-    const output_point& outpoint, bool require_confirmed) const
-{
+void populate_base::populate_prevout(size_t branch_height, output_point const& outpoint, bool require_confirmed) const {
     // The previous output will be cached on the input's outpoint.
     auto& prevout = outpoint.validation;
 
@@ -81,7 +79,12 @@ void populate_base::populate_prevout(size_t branch_height,
         return;
     }
 
-#ifdef BITPRIM_DB_LEGACY
+#if defined(BITPRIM_DB_NEW)
+    //TODO(fernando): check the value of the parameters: branch_height and require_confirmed
+    if ( ! fast_chain_.get_utxo(prevout.cache, prevout.height, prevout.median_time_past, prevout.coinbase, outpoint, branch_height)) {
+        return;
+    }
+#elif defined(BITPRIM_DB_LEGACY)
     // Get the prevout/cache (and spender height) and its metadata.
     // The output (prevout.cache) is populated only if the return is true.
     if ( ! fast_chain_.get_output(prevout.cache, prevout.height,
@@ -89,7 +92,7 @@ void populate_base::populate_prevout(size_t branch_height,
         require_confirmed)) {
         return;
     }
-#endif // BITPRIM_DB_LEGACY    
+#endif
 
     //*************************************************************************
     // CONSENSUS: The genesis block coinbase may not be spent. This is the

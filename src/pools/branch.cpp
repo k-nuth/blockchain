@@ -216,8 +216,7 @@ void branch::populate_spent(const output_point& outpoint) const
 }
 
 // TODO: absorb into the main chain for speed and code consolidation.
-void branch::populate_prevout(const output_point& outpoint) const
-{
+void branch::populate_prevout(const output_point& outpoint) const {
     auto& prevout = outpoint.validation;
 
     // In case this input is a coinbase or the prevout is spent.
@@ -235,18 +234,14 @@ void branch::populate_prevout(const output_point& outpoint) const
     const auto& blocks = *blocks_;
 
     // Reverse iterate because of BIP30.
-    for (size_t forward = 0; forward < count; ++forward)
-    {
+    for (size_t forward = 0; forward < count; ++forward) {
         const size_t index = count - forward - 1u;
         const auto& txs = blocks[index]->transactions();
         prevout.coinbase = true;
 
-        for (const auto& tx: txs)
-        {
+        for (const auto& tx: txs) {
             // Found the prevout at or below the indexed block.
-            if (outpoint.hash() == tx.hash() &&
-                outpoint.index() < tx.outputs().size())
-            {
+            if (outpoint.hash() == tx.hash() && outpoint.index() < tx.outputs().size()) {
                 prevout.height = height_at(index);
                 prevout.median_time_past = median_time_past_at(index);
                 prevout.cache = tx.outputs()[outpoint.index()];

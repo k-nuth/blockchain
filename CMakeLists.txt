@@ -515,6 +515,7 @@ if (WITH_TESTS)
     test/transaction_pool.cpp
     test/validate_block.cpp
     test/validate_transaction.cpp
+    test/utxo.cpp
     test/main.cpp
   )
 
@@ -538,6 +539,13 @@ if (WITH_TESTS)
       safe_chain_tests
     )
   endif()
+
+  if (DB_NEW)
+    _add_tests(bitprim_blockchain_test 
+      utxo_tests
+    )
+  endif()
+
 
 endif()
 
