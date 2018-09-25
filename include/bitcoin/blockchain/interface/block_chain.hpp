@@ -128,11 +128,13 @@ public:
     // ------------------------------------------------------------------------
     // Thread safe, insert does not set sequential lock.
 
+#ifdef BITPRIM_DB_LEGACY
     /// Create flush lock if flush_writes is true, and set sequential lock.
     bool begin_insert() const override;
 
     /// Clear flush lock if flush_writes is true, and clear sequential lock.
     bool end_insert() const override;
+#endif // BITPRIM_DB_LEGACY
 
     /// Insert a block to the blockchain, height is checked for existence.
     /// Reads and reorgs are undefined when chain is gapped.

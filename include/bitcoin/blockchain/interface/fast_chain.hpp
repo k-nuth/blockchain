@@ -96,11 +96,13 @@ public:
     // Writers.
     // ------------------------------------------------------------------------
 
+#ifdef BITPRIM_DB_LEGACY
     /// Create flush lock if flush_writes is true, and set sequential lock.
     virtual bool begin_insert() const = 0;
 
     /// Clear flush lock if flush_writes is true, and clear sequential lock.
     virtual bool end_insert() const = 0;
+#endif // BITPRIM_DB_LEGACY
 
     /// Insert a block to the blockchain, height is checked for existence.
     virtual bool insert(block_const_ptr block, size_t height) = 0;

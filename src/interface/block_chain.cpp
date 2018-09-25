@@ -302,24 +302,21 @@ bool block_chain::get_utxo(chain::output& out_output, size_t& out_height, uint32
 // Writers
 // ----------------------------------------------------------------------------
 
-bool block_chain::begin_insert() const
-{
+#ifdef BITPRIM_DB_LEGACY
+bool block_chain::begin_insert() const {
     return database_.begin_insert();
 }
 
-bool block_chain::end_insert() const
-{
+bool block_chain::end_insert() const {
     return database_.end_insert();
 }
+#endif // BITPRIM_DB_LEGACY
 
-bool block_chain::insert(block_const_ptr block, size_t height)
-{
+bool block_chain::insert(block_const_ptr block, size_t height) {
     return database_.insert(*block, height) == error::success;
 }
 
-void block_chain::push(transaction_const_ptr tx, dispatcher&,
-    result_handler handler)
-{
+void block_chain::push(transaction_const_ptr tx, dispatcher&, result_handler handler) {
     last_transaction_.store(tx);
 
     // Transaction push is currently sequential so dispatch is not used.
