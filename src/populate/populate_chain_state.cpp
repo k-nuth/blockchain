@@ -57,37 +57,21 @@ bool is_transaction_pool(branch::const_ptr branch) {
 
 bool populate_chain_state::get_bits(uint32_t& out_bits, size_t height, branch::const_ptr branch) const {
     // branch returns false only if the height is out of range.
-    return branch->get_bits(out_bits, height) 
-#ifdef BITPRIM_DB_LEGACY
-            || fast_chain_.get_bits(out_bits, height)
-#endif // BITPRIM_DB_LEGACY
-            ;
+    return branch->get_bits(out_bits, height) || fast_chain_.get_bits(out_bits, height);
 }
 
 bool populate_chain_state::get_version(uint32_t& out_version, size_t height, branch::const_ptr branch) const {
     // branch returns false only if the height is out of range.
-    return branch->get_version(out_version, height) 
-#ifdef BITPRIM_DB_LEGACY    
-            || fast_chain_.get_version(out_version, height)
-#endif // BITPRIM_DB_LEGACY
-            ;
+    return branch->get_version(out_version, height) || fast_chain_.get_version(out_version, height);
 }
 
 bool populate_chain_state::get_timestamp(uint32_t& out_timestamp, size_t height, branch::const_ptr branch) const {
     // branch returns false only if the height is out of range.
-    return branch->get_timestamp(out_timestamp, height) 
-#ifdef BITPRIM_DB_LEGACY    
-        || fast_chain_.get_timestamp(out_timestamp, height)
-#endif // BITPRIM_DB_LEGACY
-        ;
+    return branch->get_timestamp(out_timestamp, height) || fast_chain_.get_timestamp(out_timestamp, height);
 }
 
 bool populate_chain_state::get_block_hash(hash_digest& out_hash, size_t height, branch::const_ptr branch) const {
-    return branch->get_block_hash(out_hash, height) 
-#ifdef BITPRIM_DB_LEGACY    
-        || fast_chain_.get_block_hash(out_hash, height)
-#endif // BITPRIM_DB_LEGACY
-        ;
+    return branch->get_block_hash(out_hash, height) || fast_chain_.get_block_hash(out_hash, height);
 }
 
 bool populate_chain_state::populate_bits(chain_state::data& data, const chain_state::map& map, branch::const_ptr branch) const {
@@ -216,21 +200,17 @@ bool populate_chain_state::populate_all(chain_state::data& data,
 chain_state::ptr populate_chain_state::populate() const {
     size_t top;
 
-#ifdef BITPRIM_DB_LEGACY
     if ( ! fast_chain_.get_last_height(top)) {
         return {};
     }
-#else
-    return {};
-#endif // BITPRIM_DB_LEGACY
 
     chain_state::data data;
     data.hash = null_hash;
     data.height = safe_add(top, size_t(1));
 
     // Use an empty branch to represent the transaction pool.
-    if (!populate_all(data, std::make_shared<branch>(top))) {
-        return{};
+    if ( ! populate_all(data, std::make_shared<branch>(top))) {
+        return {};
     }
 
     return std::make_shared<chain_state>(std::move(data), checkpoints_, configured_forks_

@@ -211,11 +211,9 @@ public:
     virtual void remove_mined_txs_from_chosen_list(block_const_ptr blk) = 0;
 #endif // BITPRIM_WITH_MINING
 
-#ifdef BITPRIM_DB_LEGACY
     //TODO(Mario) temporary duplication 
     /// Get a determination of whether the block hash exists in the store.
-    virtual bool get_block_exists_safe(const hash_digest& block_hash) const = 0;
-#endif // BITPRIM_DB_LEGACY
+    virtual bool get_block_exists_safe(hash_digest const & block_hash) const = 0;
 
 };
 
