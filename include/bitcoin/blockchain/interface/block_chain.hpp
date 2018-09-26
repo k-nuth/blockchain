@@ -262,9 +262,11 @@ public:
     /// fetch the set of block headers indicated by the block locator.
     void fetch_locator_block_headers(get_headers_const_ptr locator, const hash_digest& threshold, size_t limit, locator_block_headers_fetch_handler handler) const override;
 
+#endif // BITPRIM_DB_LEGACY
+
     /// fetch a block locator relative to the current top and threshold.
     void fetch_block_locator(const chain::block::indexes& heights, block_locator_fetch_handler handler) const override;
-#endif // BITPRIM_DB_LEGACY
+
 
 #ifdef BITPRIM_DB_TRANSACTION_UNCONFIRMED
     /// fetch unconfirmed transaction by hash.

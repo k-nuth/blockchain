@@ -1599,6 +1599,32 @@ void block_chain::fetch_block_locator(const block::indexes& heights,
 }
 #endif // BITPRIM_DB_LEGACY
 
+#ifdef BITPRIM_DB_NEW
+// This may generally execute 29+ queries.
+void block_chain::fetch_block_locator(block::indexes const& heights, block_locator_fetch_handler handler) const {
+    if (stopped()) {
+        handler(error::service_stopped, nullptr);
+        return;
+    }
+
+    // Caller can cast get_headers down to get_blocks.
+    auto message = std::make_shared<get_headers>();
+    auto& hashes = message->start_hashes();
+    hashes.reserve(heights.size());
+
+    for (auto const height : heights) {
+        auto const result = database_.utxo_db().get_header(height);
+        if ( ! result.is_valid()) {
+            handler(error::not_found, nullptr);
+            break;
+        }
+        hashes.push_back(result.hash());
+    }
+
+    handler(error::success, message);
+}
+#endif // BITPRIM_DB_NEW
+
 // Server Queries.
 //-----------------------------------------------------------------------------
 
