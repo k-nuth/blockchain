@@ -1185,6 +1185,71 @@ std::vector<libbitcoin::blockchain::mempool_transaction_summary> block_chain::ge
     return ret;
 }
 
+std::vector<chain::transaction> block_chain::get_wallets_mempool_transactions(std::vector<std::string> const& payment_addresses, bool use_testnet_rules, bool witness) const {
+
+#ifdef BITPRIM_CURRENCY_BCH
+    witness = false;
+#endif
+
+    uint8_t encoding_p2kh;
+    uint8_t encoding_p2sh;
+    if (use_testnet_rules){
+        encoding_p2kh = libbitcoin::wallet::payment_address::testnet_p2kh;
+        encoding_p2sh = libbitcoin::wallet::payment_address::testnet_p2sh;
+    } else {
+        encoding_p2kh = libbitcoin::wallet::payment_address::mainnet_p2kh;
+        encoding_p2sh = libbitcoin::wallet::payment_address::mainnet_p2sh;
+    }
+
+    std::vector<chain::transaction> ret;
+    std::unordered_set<libbitcoin::wallet::payment_address> addrs;
+    for (const auto & payment_address : payment_addresses) {
+        libbitcoin::wallet::payment_address address(payment_address);
+        if (address){
+            addrs.insert(address);
+        }
+    }
+
+    database_.transactions_unconfirmed().for_each_result([&](libbitcoin::database::transaction_unconfirmed_result const &tx_res) {
+        auto tx = tx_res.transaction(witness);
+        tx.recompute_hash();
+        
+        // Only insert the transaction once. Avoid duplicating the tx if serveral wallets are used in the same tx, and if the same wallet is the input and output addr.
+        bool inserted = false;
+
+        size_t i = 0;
+        for (auto iter_output = tx.outputs().begin(); (iter_output != tx.outputs().end() && !inserted); ++iter_output) {
+        
+            const auto tx_addresses = libbitcoin::wallet::payment_address::extract((*iter_output).script(), encoding_p2kh, encoding_p2sh);
+
+            for (auto iter_addr = tx_addresses.begin(); (iter_addr != tx_addresses.end() && !inserted); ++iter_addr) {
+                if (*iter_addr && addrs.find(*iter_addr) != addrs.end()) {
+                    ret.push_back(tx);
+                    inserted = true;
+                }
+            }
+            ++i;
+        }
+
+        i = 0;
+        for (auto iter_input = tx.inputs().begin(); (iter_input != tx.inputs().end() && !inserted); ++iter_input) {
+            // TODO: payment_addrress::extract should use the prev_output script instead of the input script
+            // see https://github.com/bitprim/bitprim-core/blob/v0.10.0/src/wallet/payment_address.cpp#L505
+            const auto tx_addresses = libbitcoin::wallet::payment_address::extract((*iter_input).script(), encoding_p2kh, encoding_p2sh);
+            for (auto iter_addr = tx_addresses.begin(); (iter_addr != tx_addresses.end() && !inserted); ++iter_addr) {
+                if (*iter_addr && addrs.find(*iter_addr) != addrs.end()) {
+                    ret.push_back(tx);
+                    inserted = true;
+                }
+            }
+            ++i;
+        }
+        return true;
+    });
+
+    return ret;
+}
+
 /*
    def get_siphash_keys(self):
         header_nonce = self.header.serialize()
