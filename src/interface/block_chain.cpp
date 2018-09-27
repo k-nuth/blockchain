@@ -273,14 +273,17 @@ bool block_chain::get_transaction_position(size_t& out_height,
 // }
 
 bool block_chain::get_block_exists(hash_digest const& block_hash) const {
+    // asm("int $3");  //TODO(fernando): remover
     return database_.utxo_db().get_header(block_hash).first.is_valid();
 }
 
 bool block_chain::get_block_exists_safe(hash_digest const& block_hash) const {
+    // asm("int $3");  //TODO(fernando): remover
     return get_block_exists(block_hash);
 }
 
 bool block_chain::get_block_hash(hash_digest& out_hash, size_t height) const {
+    // asm("int $3");  //TODO(fernando): remover
     auto const result = database_.utxo_db().get_header(height);
     if ( ! result.is_valid()) return false;
     out_hash = result.hash();
@@ -288,6 +291,7 @@ bool block_chain::get_block_hash(hash_digest& out_hash, size_t height) const {
 }
 
 bool block_chain::get_branch_work(uint256_t& out_work, uint256_t const& maximum, size_t from_height) const {
+    // asm("int $3");  //TODO(fernando): remover
     size_t top;
     if ( ! get_last_height(top)) return false;
 
@@ -302,11 +306,13 @@ bool block_chain::get_branch_work(uint256_t& out_work, uint256_t const& maximum,
 }
 
 bool block_chain::get_header(chain::header& out_header, size_t height) const {
+    // asm("int $3");  //TODO(fernando): remover
     out_header = database_.utxo_db().get_header(height);
     return out_header.is_valid();
 }
 
 bool block_chain::get_height(size_t& out_height, hash_digest const& block_hash) const {
+    // asm("int $3");  //TODO(fernando): remover
     auto result = database_.utxo_db().get_header(block_hash);
     if ( ! result.first.is_valid()) return false;
     out_height = result.second;
@@ -314,6 +320,7 @@ bool block_chain::get_height(size_t& out_height, hash_digest const& block_hash) 
 }
 
 bool block_chain::get_bits(uint32_t& out_bits, size_t height) const {
+    // asm("int $3");  //TODO(fernando): remover
     auto result = database_.utxo_db().get_header(height);
     if ( ! result.is_valid()) return false;
     out_bits = result.bits();
@@ -321,6 +328,7 @@ bool block_chain::get_bits(uint32_t& out_bits, size_t height) const {
 }
 
 bool block_chain::get_timestamp(uint32_t& out_timestamp, size_t height) const {
+    // asm("int $3");  //TODO(fernando): remover
     auto result = database_.utxo_db().get_header(height);
     if ( ! result.is_valid()) return false;
     out_timestamp = result.timestamp();
@@ -328,6 +336,7 @@ bool block_chain::get_timestamp(uint32_t& out_timestamp, size_t height) const {
 }
 
 bool block_chain::get_version(uint32_t& out_version, size_t height) const {
+    // asm("int $3");  //TODO(fernando): remover
     auto result = database_.utxo_db().get_header(height);
     if ( ! result.is_valid()) return false;
     out_version = result.version();
@@ -335,6 +344,7 @@ bool block_chain::get_version(uint32_t& out_version, size_t height) const {
 }
 
 bool block_chain::get_last_height(size_t& out_height) const {
+    // asm("int $3");  //TODO(fernando): remover
     uint32_t temp;
     auto res = database_.utxo_db().get_last_height(temp);
     out_height = temp;
@@ -342,6 +352,7 @@ bool block_chain::get_last_height(size_t& out_height) const {
 }
 
 bool block_chain::get_utxo(chain::output& out_output, size_t& out_height, uint32_t& out_median_time_past, bool& out_coinbase, chain::output_point const& outpoint, size_t branch_height) const {
+    // asm("int $3");  //TODO(fernando): remover
     auto entry = database_.utxo_db().get(outpoint);
     if ( ! entry.is_valid()) return false;
     if (entry.height() > branch_height) return false;
@@ -1568,9 +1579,10 @@ void block_chain::fetch_locator_block_headers(get_headers_const_ptr locator,
 }
 
 // This may generally execute 29+ queries.
-void block_chain::fetch_block_locator(const block::indexes& heights,
-    block_locator_fetch_handler handler) const
-{
+void block_chain::fetch_block_locator(const block::indexes& heights, block_locator_fetch_handler handler) const {
+
+    // asm("int $3");  //TODO(fernando): remover
+
     if (stopped())
     {
         handler(error::service_stopped, nullptr);
@@ -1602,6 +1614,7 @@ void block_chain::fetch_block_locator(const block::indexes& heights,
 #ifdef BITPRIM_DB_NEW
 // This may generally execute 29+ queries.
 void block_chain::fetch_block_locator(block::indexes const& heights, block_locator_fetch_handler handler) const {
+    // asm("int $3");  //TODO(fernando): remover
     if (stopped()) {
         handler(error::service_stopped, nullptr);
         return;
@@ -1708,6 +1721,7 @@ void block_chain::fetch_mempool(size_t count_limit, uint64_t minimum_fee,
 // This may execute up to 500 queries.
 // This filters against the block pool and then the block chain.
 void block_chain::filter_blocks(get_data_ptr message, result_handler handler) const {
+    // asm("int $3");  //TODO(fernando): remover
     if (stopped())
     {
         handler(error::service_stopped);
@@ -1761,6 +1775,7 @@ void block_chain::filter_transactions(get_data_ptr message,
 // This may execute up to 500 queries.
 // This filters against the block pool and then the block chain.
 void block_chain::filter_blocks(get_data_ptr message, result_handler handler) const {
+    // asm("int $3");  //TODO(fernando): remover
     if (stopped()) {
         handler(error::service_stopped);
         return;
@@ -1838,7 +1853,6 @@ bool block_chain::is_stale() const {
 
     // BITPRIM: get the last block if there is no cache
     uint32_t last_timestamp = 0;
-// #ifdef BITPRIM_DB_LEGACY
     if ( ! top) {
         size_t last_height;
         if (get_last_height(last_height)) {
@@ -1848,7 +1862,6 @@ bool block_chain::is_stale() const {
             }
         }
     }
-// #endif // BITPRIM_DB_LEGACY    
     const auto timestamp = top ? top->header().timestamp() : last_timestamp;
     return timestamp < floor_subtract(zulu_time(), notify_limit_seconds_);
 }

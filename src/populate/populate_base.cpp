@@ -42,16 +42,23 @@ populate_base::populate_base(dispatcher& dispatch, const fast_chain& chain)
 
 // This is the only necessary file system read in block/tx validation.
 void populate_base::populate_duplicate(size_t branch_height, const chain::transaction& tx, bool require_confirmed) const {
-//TODO(fernando): check how to replace it with UTXO
 #ifdef BITPRIM_DB_LEGACY    
     tx.validation.duplicate = fast_chain_.get_is_unspent_transaction(tx.hash(), branch_height, require_confirmed);
-#endif // BITPRIM_DB_LEGACY    
+#else
+    //TODO(fernando): check how to replace it with UTXO
+    // asm("int $3");  //TODO(fernando): remover
+    //TODO(fernando): implement this!
+    // std::cout << "tx.validation.duplicate: " << tx.validation.duplicate << std::endl;
+    tx.validation.duplicate = false;
+#endif // BITPRIM_DB_LEGACY
 }
 
 void populate_base::populate_pooled(const chain::transaction& tx, uint32_t forks) const {
     size_t height;
     size_t position;
 
+    //TODO(fernando): implement this!
+    // asm("int $3");  //TODO(fernando): remover
 #ifdef BITPRIM_DB_LEGACY
     if (fast_chain_.get_transaction_position(height, position, tx.hash(), false) && (position == transaction_database::unconfirmed)) {
         tx.validation.pooled = true;
