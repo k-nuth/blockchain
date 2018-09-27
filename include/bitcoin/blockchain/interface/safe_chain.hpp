@@ -177,9 +177,9 @@ public:
     // Filters.
     //-------------------------------------------------------------------------
 
-#ifdef BITPRIM_DB_LEGACY
     virtual void filter_blocks(get_data_ptr message, result_handler handler) const = 0;
 
+#ifdef BITPRIM_DB_LEGACY
     virtual void filter_transactions(get_data_ptr message, result_handler handler) const = 0;
 #endif // BITPRIM_DB_LEGACY
 

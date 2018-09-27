@@ -1757,6 +1757,33 @@ void block_chain::filter_transactions(get_data_ptr message,
 }
 #endif // BITPRIM_DB_LEGACY
 
+#ifdef BITPRIM_DB_NEW
+// This may execute up to 500 queries.
+// This filters against the block pool and then the block chain.
+void block_chain::filter_blocks(get_data_ptr message, result_handler handler) const {
+    if (stopped()) {
+        handler(error::service_stopped);
+        return;
+    }
+
+    // Filter through block pool first.
+    block_organizer_.filter(message);
+    auto& inventories = message->inventories();
+    auto const& utxo_db = database_.utxo_db();
+
+    for (auto it = inventories.begin(); it != inventories.end();) {
+        if (it->is_block_type() && utxo_db.get_header(it->hash()).first.is_valid()) {
+            it = inventories.erase(it);
+        } else {
+            ++it;
+        }
+    }
+
+    handler(error::success);
+}
+#endif // BITPRIM_DB_NEW
+
+
 // Subscribers.
 //-----------------------------------------------------------------------------
 
