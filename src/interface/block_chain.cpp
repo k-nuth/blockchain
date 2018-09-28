@@ -1648,7 +1648,7 @@ void block_chain::fetch_locator_block_headers(get_headers_const_ptr locator, has
         // If end precedes begin floor_subtract will handle below.
         if (result.first.is_valid()) {
             // end = std::min(result.height(), end);
-            end = std::min(result.second, end);
+            end = std::min(size_t(result.second), end);
         }
     }
 
@@ -1661,7 +1661,7 @@ void block_chain::fetch_locator_block_headers(get_headers_const_ptr locator, has
         // If begin exceeds end floor_subtract will handle below.
         if (result.first.is_valid()) {
             // begin = std::max(result.height(), begin);
-            begin = std::max(result.second, begin);
+            begin = std::max(size_t(result.second), begin);
         }
     }
 
@@ -1921,6 +1921,7 @@ bool block_chain::is_stale() const {
 
     auto const top = last_block_.load();
 
+    // TODO(fernando): refactor this!
     // BITPRIM: get the last block if there is no cache
     uint32_t last_timestamp = 0;
     if ( ! top) {

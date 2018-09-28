@@ -281,15 +281,9 @@ void block_organizer::handle_connect(const code& ec, branch::ptr branch,
 
 // private
 // Outgoing blocks must have median_time_past set.
-void block_organizer::handle_reorganized(const code& ec,
-    branch::const_ptr branch, block_const_ptr_list_ptr outgoing,
-    result_handler handler)
-{
-    if (ec)
-    {
-        LOG_FATAL(LOG_BLOCKCHAIN)
-            << "Failure writing block to store, is now corrupted: "
-            << ec.message();
+void block_organizer::handle_reorganized(const code& ec, branch::const_ptr branch, block_const_ptr_list_ptr outgoing, result_handler handler) {
+    if (ec) {
+        LOG_FATAL(LOG_BLOCKCHAIN) << "Failure writing block to store, is now corrupted: " << ec.message();
         handler(ec);
         return;
     }
@@ -308,30 +302,23 @@ void block_organizer::handle_reorganized(const code& ec,
 //-----------------------------------------------------------------------------
 
 // private
-void block_organizer::notify(size_t branch_height,
-    block_const_ptr_list_const_ptr branch,
-    block_const_ptr_list_const_ptr original)
-{
+void block_organizer::notify(size_t branch_height, block_const_ptr_list_const_ptr branch, block_const_ptr_list_const_ptr original) {
     // This invokes handlers within the criticial section (deadlock risk).
     subscriber_->invoke(error::success, branch_height, branch, original);
 }
 
-void block_organizer::subscribe(reorganize_handler&& handler)
-{
-    subscriber_->subscribe(std::move(handler),
-        error::service_stopped, 0, {}, {});
+void block_organizer::subscribe(reorganize_handler&& handler) {
+    subscriber_->subscribe(std::move(handler), error::service_stopped, 0, {}, {});
 }
 
-void block_organizer::unsubscribe()
-{
+void block_organizer::unsubscribe() {
     subscriber_->relay(error::success, 0, {}, {});
 }
 
 // Queries.
 //-----------------------------------------------------------------------------
 
-void block_organizer::filter(get_data_ptr message) const
-{
+void block_organizer::filter(get_data_ptr message) const {
     block_pool_.filter(message);
 }
 
@@ -339,8 +326,7 @@ void block_organizer::filter(get_data_ptr message) const
 //-----------------------------------------------------------------------------
 
 // TODO: store this in the block pool and avoid this query.
-bool block_organizer::set_branch_height(branch::ptr branch)
-{
+bool block_organizer::set_branch_height(branch::ptr branch) {
     size_t height;
 
 // #ifdef BITPRIM_DB_LEGACY
