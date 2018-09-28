@@ -56,7 +56,7 @@ public:
     virtual void fetch_block_keoken(const hash_digest& hash, bool witness,
       block_keoken_fetch_handler handler) const = 0;
 
-    virtual void get_to_keo_transaction(libbitcoin::hash_digest hash,
+    virtual void convert_to_keo_transaction(const hash_digest& hash,
       std::shared_ptr<std::vector<transaction_const_ptr>> keoken_txs) const = 0;
 #endif
     typedef handle1<std::vector<hash_digest>> confirmed_transactions_fetch_handler;

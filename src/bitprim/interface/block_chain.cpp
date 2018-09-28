@@ -86,7 +86,7 @@ void block_chain::for_each_transaction_non_coinbase(size_t from, size_t to, bool
 }
 #ifdef WITH_KEOKEN
 
-void block_chain::get_to_keo_transaction(libbitcoin::hash_digest hash, std::shared_ptr<std::vector<transaction_const_ptr>> keoken_txs) const {
+void block_chain::convert_to_keo_transaction(const libbitcoin::hash_digest& hash, std::shared_ptr<std::vector<transaction_const_ptr>> keoken_txs) const {
    fetch_transaction(hash, true, false,
               [&](const libbitcoin::code &ec,
                   libbitcoin::transaction_const_ptr tx_ptr, size_t index,
@@ -118,10 +118,10 @@ void block_chain::fetch_keoken_history(const short_hash& address_hash, size_t li
 
     for (const auto & history : history_compact_list) {
         if((*keoken_txs).empty())
-            get_to_keo_transaction(history.point.hash(), keoken_txs);
+            convert_to_keo_transaction(history.point.hash(), keoken_txs);
         else
             if(history.point.hash() != keoken_txs->back()->hash())
-                get_to_keo_transaction(history.point.hash(), keoken_txs);
+                convert_to_keo_transaction(history.point.hash(), keoken_txs);
     }
 
     handler(error::success, keoken_txs);
