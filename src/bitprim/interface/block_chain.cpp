@@ -18,6 +18,10 @@
  */
 #include <bitcoin/blockchain/interface/block_chain.hpp>
 
+#ifdef WITH_KEOKEN
+#include <bitprim/keoken/transaction_extractor.hpp>
+#endif
+
 namespace libbitcoin {
 namespace blockchain {
 
@@ -80,6 +84,104 @@ void block_chain::for_each_transaction_non_coinbase(size_t from, size_t to, bool
         ++from;
     }
 }
+#ifdef WITH_KEOKEN
+
+void block_chain::convert_to_keo_transaction(const libbitcoin::hash_digest& hash, std::shared_ptr<std::vector<transaction_const_ptr>> keoken_txs) const {
+   fetch_transaction(hash, true, false,
+              [&](const libbitcoin::code &ec,
+                  libbitcoin::transaction_const_ptr tx_ptr, size_t index,
+                  size_t height) {
+                  if (ec == libbitcoin::error::success) {
+                      auto keoken_data = bitprim::keoken::first_keoken_output(*tx_ptr);
+                      if(!keoken_data.empty())
+                          (*keoken_txs).push_back(tx_ptr);
+                  }
+          });
+}
+
+void block_chain::fetch_keoken_history(const short_hash& address_hash, size_t limit,
+    size_t from_height, keoken_history_fetch_handler handler) const
+{
+    auto keoken_txs = std::make_shared<std::vector<transaction_const_ptr>>();
+    if (stopped())
+    {
+        handler(error::service_stopped, keoken_txs);
+        return;
+    }
+
+//TODO RESTRICT MINIMUM HEIGHT (define bitprim::starting_keoken_height)
+/*
+    if(from_height < bitprim::starting_keoken_height)
+        from_height = bitprim::starting_keoken_height;
+*/
+    auto history_compact_list =  database_.history().get(address_hash, limit, from_height);
+
+    for (const auto & history : history_compact_list) {
+        if((*keoken_txs).empty())
+            convert_to_keo_transaction(history.point.hash(), keoken_txs);
+        else
+            if(history.point.hash() != keoken_txs->back()->hash())
+                convert_to_keo_transaction(history.point.hash(), keoken_txs);
+    }
+
+    handler(error::success, keoken_txs);
+}
+
+
+void block_chain::fetch_block_keoken(const hash_digest& hash, bool witness,
+    block_keoken_fetch_handler handler) const
+{
+#ifdef BITPRIM_CURRENCY_BCH
+    witness = false;
+#endif
+
+    auto keoken_txs = std::make_shared<std::vector<transaction_const_ptr>>();
+    if (stopped())
+    {
+        handler(error::service_stopped, nullptr, 0, keoken_txs , 0, 0);
+        return;
+    }
+
+    const auto block_result = database_.blocks().get(hash);
+
+    if (!block_result)
+    {
+        handler(error::not_found, nullptr, 0, keoken_txs , 0, 0);
+        return;
+    }
+
+    const auto height = block_result.height();
+    const auto message = std::make_shared<const libbitcoin::message::header>(block_result.header());
+    const auto tx_hashes = block_result.transaction_hashes();
+    const auto& tx_store = database_.transactions();
+    DEBUG_ONLY(size_t position = 0;)
+
+
+
+    for (const auto& hash: tx_hashes)
+    {
+        const auto tx_result = tx_store.get(hash, max_size_t, true);
+
+        if (!tx_result)
+        {
+            handler(error::operation_failed_17, nullptr, 0,keoken_txs, 0, 0);
+            return;
+        }
+
+        BITCOIN_ASSERT(tx_result.height() == height);
+        BITCOIN_ASSERT(tx_result.position() == position++);
+        const libbitcoin::chain::transaction& tx_ptr = tx_result.transaction(witness);
+        auto keoken_data = bitprim::keoken::first_keoken_output(tx_ptr);
+        if(!keoken_data.empty())
+            (*keoken_txs).push_back(std::make_shared<const libbitcoin::message::transaction>(tx_result.transaction(witness)));
+    }
+
+    handler(error::success, message, height, keoken_txs, block_result.serialized_size(), tx_hashes.size());
+
+}
+
+
+#endif
 
 } // namespace blockchain
 } // namespace libbitcoin

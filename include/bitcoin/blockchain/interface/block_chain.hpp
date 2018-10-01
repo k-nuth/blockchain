@@ -382,6 +382,17 @@ public:
     void remove_mined_txs_from_chosen_list(block_const_ptr blk) override;
 #endif // WITH_MINING
 
+#ifdef WITH_KEOKEN    
+    virtual void fetch_keoken_history(const short_hash& address_hash, size_t limit,
+        size_t from_height, keoken_history_fetch_handler handler) const override;
+
+    virtual void fetch_block_keoken(const hash_digest& hash, bool witness,
+        block_keoken_fetch_handler handler) const override;
+
+    virtual void convert_to_keo_transaction(const hash_digest& hash,
+      std::shared_ptr<std::vector<transaction_const_ptr>> keoken_txs) const override;
+#endif
+
 protected:
 
     /// Determine if work should terminate early with service stopped code.
