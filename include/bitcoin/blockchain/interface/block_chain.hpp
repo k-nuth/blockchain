@@ -233,7 +233,7 @@ public:
     std::vector<mempool_transaction_summary> get_mempool_transactions(std::vector<std::string> const& payment_addresses, bool use_testnet_rules, bool witness) const override;
     std::vector<mempool_transaction_summary> get_mempool_transactions(std::string const& payment_address, bool use_testnet_rules, bool witness) const override;
 
-    std::vector<chain::transaction> get_wallets_mempool_transactions(std::vector<std::string> const& payment_addresses, bool use_testnet_rules, bool witness) const;
+    std::vector<chain::transaction> get_mempool_transactions_from_wallets(std::vector<std::string> const& payment_addresses, bool use_testnet_rules, bool witness) const;
 
     /// fetch position and height within block of transaction by hash.
     void fetch_transaction_position(const hash_digest& hash,

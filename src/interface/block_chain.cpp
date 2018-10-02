@@ -1185,7 +1185,7 @@ std::vector<libbitcoin::blockchain::mempool_transaction_summary> block_chain::ge
     return ret;
 }
 
-std::vector<chain::transaction> block_chain::get_wallets_mempool_transactions(std::vector<std::string> const& payment_addresses, bool use_testnet_rules, bool witness) const {
+std::vector<chain::transaction> block_chain::get_mempool_transactions_from_wallets(std::vector<std::string> const& payment_addresses, bool use_testnet_rules, bool witness) const {
 
 #ifdef BITPRIM_CURRENCY_BCH
     witness = false;
