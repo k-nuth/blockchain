@@ -1617,6 +1617,98 @@ void block_chain::fetch_confirmed_transactions(const short_hash& address_hash, s
                                                     from_height));
 }
 
+std::vector<std::tuple<std::string, libbitcoin::hash_digest, uint32_t, uint64_t, libbitcoin::chain::script>> block_chain::get_utxos(libbitcoin::wallet::payment_address const& address, bool use_testnet) const
+{
+
+#ifdef BITPRIM_CURRENCY_BCH
+    bool witness = false;
+#else
+    bool witness = true;
+#endif
+
+  std::vector<std::tuple<std::string, libbitcoin::hash_digest, uint32_t, uint64_t, libbitcoin::chain::script>> temp_result, result;
+
+    boost::latch latch(2);
+  fetch_history(address, INT_MAX, 0, [&](const libbitcoin::code &ec,
+                                               libbitcoin::chain::history_compact::list history_compact_list) {
+    if (ec == libbitcoin::error::success) {
+      for (const auto & history : history_compact_list) {
+        if (history.kind == libbitcoin::chain::point_kind::output) {
+          // It's outpoint
+          boost::latch latch2(2);
+          fetch_spend(history.point, [&](const libbitcoin::code &ec, libbitcoin::chain::input_point input) {
+            if (ec == libbitcoin::error::not_found) {
+              // Output not spent
+              // We need to fetch the txn to get the script
+              boost::latch latch3(2);
+              fetch_transaction(history.point.hash(), false, witness,
+                                      [&](const libbitcoin::code &ec, libbitcoin::transaction_const_ptr tx_ptr, size_t index,
+                                          size_t height) {
+                                        if (ec == libbitcoin::error::success) {
+                                          temp_result.push_back(std::make_tuple(address.encoded(), history.point.hash(), history.point.index(), history.value, tx_ptr->outputs().at(history.point.index()).script()));
+                                        }
+                                        latch3.count_down();
+                                      });
+              latch3.count_down_and_wait();
+            }
+            latch2.count_down();
+          });
+          latch2.count_down_and_wait();
+        }
+      }
+    }
+    latch.count_down();
+  });
+  latch.count_down_and_wait();
+
+
+  auto unconfirmed = get_mempool_transactions(address.encoded(), use_testnet, witness);
+  for ( auto const& temp : temp_result ) {
+    bool used = false;
+    for(auto const& dependant : unconfirmed) {
+      if ( libbitcoin::encode_hash(std::get<1>(temp)) == dependant.previous_output_hash()) {
+        used = true;
+      }
+    }
+    if(!used)
+      result.push_back(temp);
+  }
+
+  for (auto const& r : unconfirmed) {
+    if(std::stoi (r.satoshis(), nullptr, 10) > 0) {
+      bool used = false;
+
+      for(auto const& dependant : unconfirmed) {
+        if (dependant.previous_output_hash() == r.hash()) {
+          used = true;
+        }
+      }
+
+      if (!used) {
+        boost::latch latch3(2);
+        libbitcoin::hash_digest hash;
+        libbitcoin::decode_hash(hash,r.hash());
+        fetch_transaction(hash, false, witness,
+                                [&](const libbitcoin::code &ec,
+                                    libbitcoin::transaction_const_ptr tx_ptr,
+                                    size_t index,
+                                    size_t height) {
+                                  if (ec == libbitcoin::error::success) {
+                                    libbitcoin::hash_digest hash;
+                                    libbitcoin::decode_hash(hash,  r.hash());
+                                    result.push_back(std::make_tuple(r.address(), hash, r.index(), std::stoi (r.satoshis(), nullptr, 10), tx_ptr->outputs().at(r.index()).script()));
+                                  }
+                                  latch3.count_down();
+                                });
+        latch3.count_down_and_wait();
+      }
+    }
+  }
+
+  return result;
+}
+
+
 void block_chain::fetch_stealth(const binary& filter, size_t from_height,
     stealth_fetch_handler handler) const
 {
