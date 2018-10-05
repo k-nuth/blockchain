@@ -239,13 +239,11 @@ void block_organizer::handle_connect(const code& ec, branch::ptr branch,
     const auto first_height = branch->height() + 1u;
     top_block.start_notify = asio::steady_clock::now();
 
-// #ifdef BITPRIM_DB_LEGACY
     // The chain query will stop if it reaches work level.
     if ( ! fast_chain_.get_branch_work(threshold, work, first_height)) {
         handler(error::operation_failed_18);
         return;
     }
-// #endif // BITPRIM_DB_LEGACY    
 
     // TODO: consider relay of pooled blocks by modifying subscriber semantics.
     if (work <= threshold)

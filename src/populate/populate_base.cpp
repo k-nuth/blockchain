@@ -100,7 +100,6 @@ void populate_base::populate_prevout(size_t branch_height, output_point const& o
         require_confirmed)) {
         return;
     }
-#endif
 
     //*************************************************************************
     // CONSENSUS: The genesis block coinbase may not be spent. This is the
@@ -110,6 +109,8 @@ void populate_base::populate_prevout(size_t branch_height, output_point const& o
     if (prevout.height == 0) {
         return;
     }
+#endif
+
 
     // BUGBUG: Spends are not marked as spent by unconfirmed transactions.
     // So tx pool transactions currently have no double spend limitation.
