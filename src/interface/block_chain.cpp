@@ -274,7 +274,7 @@ bool block_chain::get_transaction_position(size_t& out_height,
 
 bool block_chain::get_block_exists(hash_digest const& block_hash) const {
     // asm("int $3");  //TODO(fernando): remover
-    return database_.utxo_db().get_header(block_hash).first.is_valid();
+    return database_.internal_db().get_header(block_hash).first.is_valid();
 }
 
 bool block_chain::get_block_exists_safe(hash_digest const& block_hash) const {
@@ -284,7 +284,7 @@ bool block_chain::get_block_exists_safe(hash_digest const& block_hash) const {
 
 bool block_chain::get_block_hash(hash_digest& out_hash, size_t height) const {
     // asm("int $3");  //TODO(fernando): remover
-    auto const result = database_.utxo_db().get_header(height);
+    auto const result = database_.internal_db().get_header(height);
     if ( ! result.is_valid()) return false;
     out_hash = result.hash();
     return true;
@@ -297,7 +297,7 @@ bool block_chain::get_branch_work(uint256_t& out_work, uint256_t const& maximum,
 
     out_work = 0;
     for (uint32_t height = from_height; height <= top && out_work < maximum; ++height) {
-        auto const result = database_.utxo_db().get_header(height);
+        auto const result = database_.internal_db().get_header(height);
         if ( ! result.is_valid()) return false;
         out_work += chain::header::proof(result.bits());
     }
@@ -307,13 +307,13 @@ bool block_chain::get_branch_work(uint256_t& out_work, uint256_t const& maximum,
 
 bool block_chain::get_header(chain::header& out_header, size_t height) const {
     // asm("int $3");  //TODO(fernando): remover
-    out_header = database_.utxo_db().get_header(height);
+    out_header = database_.internal_db().get_header(height);
     return out_header.is_valid();
 }
 
 bool block_chain::get_height(size_t& out_height, hash_digest const& block_hash) const {
     // asm("int $3");  //TODO(fernando): remover
-    auto result = database_.utxo_db().get_header(block_hash);
+    auto result = database_.internal_db().get_header(block_hash);
     if ( ! result.first.is_valid()) return false;
     out_height = result.second;
     return true;
@@ -321,7 +321,7 @@ bool block_chain::get_height(size_t& out_height, hash_digest const& block_hash) 
 
 bool block_chain::get_bits(uint32_t& out_bits, size_t height) const {
     // asm("int $3");  //TODO(fernando): remover
-    auto result = database_.utxo_db().get_header(height);
+    auto result = database_.internal_db().get_header(height);
     if ( ! result.is_valid()) return false;
     out_bits = result.bits();
     return true;
@@ -329,7 +329,7 @@ bool block_chain::get_bits(uint32_t& out_bits, size_t height) const {
 
 bool block_chain::get_timestamp(uint32_t& out_timestamp, size_t height) const {
     // asm("int $3");  //TODO(fernando): remover
-    auto result = database_.utxo_db().get_header(height);
+    auto result = database_.internal_db().get_header(height);
     if ( ! result.is_valid()) return false;
     out_timestamp = result.timestamp();
     return true;
@@ -337,7 +337,7 @@ bool block_chain::get_timestamp(uint32_t& out_timestamp, size_t height) const {
 
 bool block_chain::get_version(uint32_t& out_version, size_t height) const {
     // asm("int $3");  //TODO(fernando): remover
-    auto result = database_.utxo_db().get_header(height);
+    auto result = database_.internal_db().get_header(height);
     if ( ! result.is_valid()) return false;
     out_version = result.version();
     return true;
@@ -346,13 +346,13 @@ bool block_chain::get_version(uint32_t& out_version, size_t height) const {
 bool block_chain::get_last_height(size_t& out_height) const {
     // asm("int $3");  //TODO(fernando): remover
     uint32_t temp;
-    auto res = database_.utxo_db().get_last_height(temp);
+    auto res = database_.internal_db().get_last_height(temp);
     out_height = temp;
     return succeed(res);
 }
 
 bool block_chain::get_utxo(chain::output& out_output, size_t& out_height, uint32_t& out_median_time_past, bool& out_coinbase, chain::output_point const& outpoint, size_t branch_height) const {
-    auto entry = database_.utxo_db().get_utxo(outpoint);
+    auto entry = database_.internal_db().get_utxo(outpoint);
     if ( ! entry.is_valid()) return false;
     if (entry.height() > branch_height) return false;
 
@@ -1625,7 +1625,7 @@ void block_chain::fetch_locator_block_headers(get_headers_const_ptr locator, has
     // If no start block is on our chain we start with block 0.
     size_t start = 0;
     for (auto const& hash: locator->start_hashes()) {
-        auto const result = database_.utxo_db().get_header(hash);
+        auto const result = database_.internal_db().get_header(hash);
         if (result.first.is_valid()) {
             start = result.second; //result.height();
             break;
@@ -1641,7 +1641,7 @@ void block_chain::fetch_locator_block_headers(get_headers_const_ptr locator, has
     // Find the upper threshold block height (peer-specified).
     if (locator->stop_hash() != null_hash) {
         // If the stop block is not on chain we treat it as a null stop.
-        auto const result = database_.utxo_db().get_header(locator->stop_hash());
+        auto const result = database_.internal_db().get_header(locator->stop_hash());
 
         // Otherwise limit the end height to the stop block height.
         // If end precedes begin floor_subtract will handle below.
@@ -1654,7 +1654,7 @@ void block_chain::fetch_locator_block_headers(get_headers_const_ptr locator, has
     // Find the lower threshold block height (self-specified).
     if (threshold != null_hash) {
         // If the threshold is not on chain we ignore it.
-        auto const result = database_.utxo_db().get_header(threshold);
+        auto const result = database_.internal_db().get_header(threshold);
 
         // Otherwise limit the begin height to the threshold block height.
         // If begin exceeds end floor_subtract will handle below.
@@ -1669,7 +1669,7 @@ void block_chain::fetch_locator_block_headers(get_headers_const_ptr locator, has
 
     // Build the hash list until we hit end or the blockchain top.
     for (auto height = begin; height < end; ++height) {
-        auto const result = database_.utxo_db().get_header(height);
+        auto const result = database_.internal_db().get_header(height);
 
         // If not found then we are at our top.
         if ( ! result.is_valid()) {
@@ -1695,7 +1695,7 @@ void block_chain::fetch_block_locator(block::indexes const& heights, block_locat
     hashes.reserve(heights.size());
 
     for (auto const height : heights) {
-        auto const result = database_.utxo_db().get_header(height);
+        auto const result = database_.internal_db().get_header(height);
         if ( ! result.is_valid()) {
             handler(error::not_found, nullptr);
             break;
@@ -1853,10 +1853,10 @@ void block_chain::filter_blocks(get_data_ptr message, result_handler handler) co
     // Filter through block pool first.
     block_organizer_.filter(message);
     auto& inventories = message->inventories();
-    auto const& utxo_db = database_.utxo_db();
+    auto const& internal_db = database_.internal_db();
 
     for (auto it = inventories.begin(); it != inventories.end();) {
-        if (it->is_block_type() && utxo_db.get_header(it->hash()).first.is_valid()) {
+        if (it->is_block_type() && internal_db.get_header(it->hash()).first.is_valid()) {
             it = inventories.erase(it);
         } else {
             ++it;
