@@ -1617,7 +1617,7 @@ void block_chain::fetch_confirmed_transactions(const short_hash& address_hash, s
                                                     from_height));
 }
 
-std::vector<std::tuple<std::string, libbitcoin::hash_digest, uint32_t, uint64_t, libbitcoin::chain::script>> block_chain::get_utxos(libbitcoin::wallet::payment_address const& address, bool use_testnet) const
+std::vector<std::tuple<std::string, libbitcoin::hash_digest, uint32_t, uint64_t, libbitcoin::chain::script, size_t>> block_chain::get_utxos(libbitcoin::wallet::payment_address const& address, bool use_testnet) const
 {
 
 #ifdef BITPRIM_CURRENCY_BCH
@@ -1626,7 +1626,7 @@ std::vector<std::tuple<std::string, libbitcoin::hash_digest, uint32_t, uint64_t,
     bool witness = true;
 #endif
 
-  std::vector<std::tuple<std::string, libbitcoin::hash_digest, uint32_t, uint64_t, libbitcoin::chain::script>> temp_result, result;
+  std::vector<std::tuple<std::string, libbitcoin::hash_digest, uint32_t, uint64_t, libbitcoin::chain::script, size_t>> temp_result, result;
 
     boost::latch latch(2);
   fetch_history(address, INT_MAX, 0, [&](const libbitcoin::code &ec,
@@ -1645,7 +1645,7 @@ std::vector<std::tuple<std::string, libbitcoin::hash_digest, uint32_t, uint64_t,
                                       [&](const libbitcoin::code &ec, libbitcoin::transaction_const_ptr tx_ptr, size_t index,
                                           size_t height) {
                                         if (ec == libbitcoin::error::success) {
-                                          temp_result.push_back(std::make_tuple(address.encoded(), history.point.hash(), history.point.index(), history.value, tx_ptr->outputs().at(history.point.index()).script()));
+                                          temp_result.push_back(std::make_tuple(address.encoded(), history.point.hash(), history.point.index(), history.value, tx_ptr->outputs().at(history.point.index()).script(), history.height));
                                         }
                                         latch3.count_down();
                                       });
@@ -1696,7 +1696,7 @@ std::vector<std::tuple<std::string, libbitcoin::hash_digest, uint32_t, uint64_t,
                                   if (ec == libbitcoin::error::success) {
                                     libbitcoin::hash_digest hash;
                                     libbitcoin::decode_hash(hash,  r.hash());
-                                    result.push_back(std::make_tuple(r.address(), hash, r.index(), std::stoi (r.satoshis(), nullptr, 10), tx_ptr->outputs().at(r.index()).script()));
+                                    result.push_back(std::make_tuple(r.address(), hash, r.index(), std::stoi (r.satoshis(), nullptr, 10), tx_ptr->outputs().at(r.index()).script(), std::numeric_limits<uint64_t>::max() ));
                                   }
                                   latch3.count_down();
                                 });

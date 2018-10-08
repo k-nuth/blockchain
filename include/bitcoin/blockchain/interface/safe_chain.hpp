@@ -205,7 +205,7 @@ public:
 
     virtual void fill_tx_list_from_mempool(message::compact_block const& block, size_t& mempool_count, std::vector<chain::transaction>& txn_available, std::unordered_map<uint64_t, uint16_t> const& shorttxids) const = 0;
 
-    virtual std::vector<std::tuple<std::string, libbitcoin::hash_digest, uint32_t, uint64_t, libbitcoin::chain::script>> get_utxos(libbitcoin::wallet::payment_address const& address, bool use_testnet = false) const = 0;
+    virtual std::vector<std::tuple<std::string, libbitcoin::hash_digest, uint32_t, uint64_t, libbitcoin::chain::script, size_t>> get_utxos(libbitcoin::wallet::payment_address const& address, bool use_testnet = false) const = 0;
 
     // Filters.
     //-------------------------------------------------------------------------

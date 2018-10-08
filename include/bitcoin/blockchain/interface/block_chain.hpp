@@ -309,7 +309,7 @@ public:
     void fetch_mempool(size_t count_limit, uint64_t minimum_fee,
         inventory_fetch_handler handler) const override;
 
-    std::vector<std::tuple<std::string, libbitcoin::hash_digest, uint32_t, uint64_t, libbitcoin::chain::script>> get_utxos(libbitcoin::wallet::payment_address const& address, bool use_testnet =  false) const override;
+    std::vector<std::tuple<std::string, libbitcoin::hash_digest, uint32_t, uint64_t, libbitcoin::chain::script, size_t>> get_utxos(libbitcoin::wallet::payment_address const& address, bool use_testnet =  false) const override;
 
     mempool_mini_hash_map get_mempool_mini_hash_map(message::compact_block const& block) const override;
 
