@@ -110,7 +110,7 @@ void block_chain::fetch_keoken_history(const short_hash& address_hash, size_t li
         return;
     }
 
-//TODO RESTRICT MINIMUM HEIGHT (define bitprim::starting_keoken_height)
+//TODO (rama): RESTRICT MINIMUM HEIGHT (define bitprim::starting_keoken_height)
 /*
     if(from_height < bitprim::starting_keoken_height)
         from_height = bitprim::starting_keoken_height;
