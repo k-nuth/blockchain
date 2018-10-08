@@ -115,6 +115,9 @@ uint32_t get_clock_now() {
 }
 
 #ifdef BITPRIM_DB_LEGACY
+inline
+void block_chain::prune_reorg_async() {}
+
 bool block_chain::get_gaps(block_database::heights& out_gaps) const
 {
     database_.blocks().gaps(out_gaps);
@@ -266,6 +269,12 @@ bool block_chain::get_transaction_position(size_t& out_height,
 
 
 #ifdef BITPRIM_DB_NEW
+
+void block_chain::prune_reorg_async() {
+    dispatch_.concurrent([this](){
+        database_.prune_reorg();
+    });
+}
 
 // bool block_chain::get_gaps(block_database::heights& out_gaps) const {
 //     database_.blocks().gaps(out_gaps);

@@ -154,6 +154,9 @@ public:
     bool get_utxo(chain::output& out_output, size_t& out_height, uint32_t& out_median_time_past, bool& out_coinbase, chain::output_point const& outpoint, size_t branch_height) const override;
 #endif// BITPRIM_DB_NEW
 
+    void prune_reorg_async() override;
+
+
     /////// Get the transaction of the given hash and its block height.
     ////transaction_ptr get_transaction(size_t& out_block_height,
     ////    const hash_digest& hash, bool require_confirmed) const;

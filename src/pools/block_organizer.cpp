@@ -160,7 +160,6 @@ void block_organizer::handle_check(const code& ec, block_const_ptr block,
     // Get the path through the block forest to the new block.
     const auto branch = block_pool_.get_path(block);
 
-// #ifdef BITPRIM_DB_LEGACY
     //*************************************************************************
     // CONSENSUS: This is the same check performed by satoshi, yet it will
     // produce a chain split in the case of a hash collision. This is because
@@ -172,7 +171,6 @@ void block_organizer::handle_check(const code& ec, block_const_ptr block,
         handler(error::duplicate_block);
         return;
     }
-// #endif // BITPRIM_DB_LEGACY
 
     if ( ! set_branch_height(branch)) {
         handler(error::orphan_block);
@@ -293,6 +291,8 @@ void block_organizer::handle_reorganized(const code& ec, branch::const_ptr branc
     // v3 reorg block order is reverse of v2, branch.back() is the new top.
     notify(branch->height(), branch->blocks(), outgoing);
 
+    fast_chain_.prune_reorg_async();
+
     handler(error::success);
 }
 
@@ -327,14 +327,10 @@ void block_organizer::filter(get_data_ptr message) const {
 bool block_organizer::set_branch_height(branch::ptr branch) {
     size_t height;
 
-// #ifdef BITPRIM_DB_LEGACY
     // Get blockchain parent of the oldest branch block.
     if ( ! fast_chain_.get_height(height, branch->hash())) {
         return false;
     }
-// #else
-    // return false;
-// #endif // BITPRIM_DB_LEGACY
 
     branch->set_height(height);
     return true;

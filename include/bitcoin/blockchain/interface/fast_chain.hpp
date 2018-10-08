@@ -40,6 +40,7 @@ public:
     // Readers.
     // ------------------------------------------------------------------------
 
+
 #ifdef BITPRIM_DB_LEGACY
     /// Get the set of block gaps in the chain.
     virtual bool get_gaps(database::block_database::heights& out_gaps) const = 0;
@@ -117,6 +118,8 @@ public:
     /// Get the output that is referenced by the outpoint in the UTXO Set.
     virtual bool get_utxo(chain::output& out_output, size_t& out_height, uint32_t& out_median_time_past, bool& out_coinbase, chain::output_point const& outpoint, size_t branch_height) const = 0;
 #endif// BITPRIM_DB_NEW
+
+    virtual void prune_reorg_async() = 0;
 
 
     /////// Get the transaction of the given hash and its block height.
