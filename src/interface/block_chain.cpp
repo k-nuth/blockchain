@@ -271,9 +271,11 @@ bool block_chain::get_transaction_position(size_t& out_height,
 #ifdef BITPRIM_DB_NEW
 
 void block_chain::prune_reorg_async() {
-    dispatch_.concurrent([this](){
-        database_.prune_reorg();
-    });
+    if ( ! is_stale()) {
+        dispatch_.concurrent([this](){
+            database_.prune_reorg();
+        });
+    }
 }
 
 // bool block_chain::get_gaps(block_database::heights& out_gaps) const {
