@@ -31,6 +31,22 @@
 #include <bitcoin/blockchain/settings.hpp>
 #include <bitcoin/blockchain/validate/validate_input.hpp>
 
+extern std::atomic<size_t> global_get_utxo;
+extern std::atomic<size_t> global_get_utxo_2a;
+extern std::atomic<size_t> global_get_utxo_2b;
+extern std::atomic<size_t> global_get_utxo_2c;
+extern std::atomic<size_t> global_get_utxo_3;
+extern std::atomic<size_t> global_get_utxo_4;
+extern std::atomic<size_t> global_get_utxo_5;
+extern std::atomic<size_t> global_get_utxo_6;
+extern std::atomic<size_t> global_get_utxo_7;
+extern std::atomic<size_t> global_get_utxo_8;
+
+extern std::atomic<size_t> get_utxo_count_0;
+extern std::atomic<size_t> get_utxo_count_1;
+extern std::atomic<size_t> get_utxo_count_2;
+extern std::atomic<size_t> get_utxo_count_3;
+
 namespace libbitcoin {
 namespace blockchain {
 
@@ -176,6 +192,34 @@ void validate_block::handle_populated(const code& ec, block_const_ptr block,
         handler(ec);
         return;
     }
+
+    const auto height = block->validation.state->height();
+
+    if (encode_hash(block->hash()) == "000000000000000000812c14e92e484f1beb97456799d8d07e7afe46930ac0d6") {
+        LOG_INFO(LOG_BLOCKCHAIN) << "This is the block I want to measure";
+    }
+
+    if (encode_hash(block->hash()) == "000000000000000001007e32c6337e2fdd79e8cd0a3307c5c852c71028c7ceb8") {
+        LOG_INFO(LOG_BLOCKCHAIN) << "This is the block I want to measure";
+    }
+
+    // asm("int $3");  //TODO(fernando): remover
+    LOG_INFO(LOG_BLOCKCHAIN)
+        << "Block [" << height << "][" << encode_hash(block->hash()) << "]" << '\n'
+        << " - global_get_utxo:    " << global_get_utxo   << '\n'
+        << " - global_get_utxo_2a: " << global_get_utxo_2a << '\n'
+        << " - global_get_utxo_2b: " << global_get_utxo_2b << '\n'
+        << " - global_get_utxo_2c: " << global_get_utxo_2c << '\n'
+        << " - global_get_utxo_3:  " << global_get_utxo_3 << '\n'
+        << " - global_get_utxo_4:  " << global_get_utxo_4 << '\n'
+        << " - global_get_utxo_5:  " << global_get_utxo_5 << '\n'
+        << " - global_get_utxo_6:  " << global_get_utxo_6 << '\n'
+        << " - global_get_utxo_7:  " << global_get_utxo_7 << '\n'
+        << " - global_get_utxo_8:  " << global_get_utxo_8 << '\n'
+        << " - get_utxo_count_0:   " << get_utxo_count_0  << '\n'
+        << " - get_utxo_count_1:   " << get_utxo_count_1  << '\n'
+        << " - get_utxo_count_2:   " << get_utxo_count_2  << '\n'
+        << " - get_utxo_count_3:   " << get_utxo_count_3;
 
     // Run contextual block non-tx checks (sets start time).
     const auto error_code = block->accept(false);

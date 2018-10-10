@@ -25,6 +25,22 @@
 #include <bitcoin/blockchain/interface/fast_chain.hpp>
 #include <bitcoin/blockchain/pools/branch.hpp>
 
+std::atomic<size_t> global_get_utxo(0);
+std::atomic<size_t> global_get_utxo_2a(0);
+std::atomic<size_t> global_get_utxo_2b(0);
+std::atomic<size_t> global_get_utxo_2c(0);
+std::atomic<size_t> global_get_utxo_3(0);
+std::atomic<size_t> global_get_utxo_4(0);
+std::atomic<size_t> global_get_utxo_5(0);
+std::atomic<size_t> global_get_utxo_6(0);
+std::atomic<size_t> global_get_utxo_7(0);
+std::atomic<size_t> global_get_utxo_8(0);
+
+std::atomic<size_t> get_utxo_count_0(0);
+std::atomic<size_t> get_utxo_count_1(0);
+std::atomic<size_t> get_utxo_count_2(0);
+std::atomic<size_t> get_utxo_count_3(0);
+
 namespace libbitcoin {
 namespace blockchain {
 
@@ -69,6 +85,23 @@ void populate_block::populate(branch::const_ptr branch,
         handler(error::success);
         return;
     }
+
+    // asm("int $3");  //TODO(fernando): remover
+    global_get_utxo = 0;
+    global_get_utxo_2a = 0;
+    global_get_utxo_2b = 0;
+    global_get_utxo_2c = 0;
+    global_get_utxo_3 = 0;
+    global_get_utxo_4 = 0;
+    global_get_utxo_5 = 0;
+    global_get_utxo_6 = 0;
+    global_get_utxo_7 = 0;
+    global_get_utxo_8 = 0;
+    get_utxo_count_0 = 0;
+    get_utxo_count_1 = 0;
+    get_utxo_count_2 = 0;
+    get_utxo_count_3 = 0;
+
 
     auto const buckets = std::min(dispatch_.size(), non_coinbase_inputs);
     auto const join_handler = synchronize(std::move(handler), buckets, NAME);
