@@ -155,7 +155,7 @@ void populate_block::populate_coinbase(branch::const_ptr branch, block_const_ptr
 void populate_block::populate_transactions(branch::const_ptr branch, size_t bucket, size_t buckets, result_handler handler) const {
 
     // TODO(fernando): check how to replace it with UTXO
-    asm("int $3");  //TODO(fernando): remover
+    // asm("int $3");  //TODO(fernando): remover
 
     BITCOIN_ASSERT(bucket < buckets);
     auto const block = branch->top();
