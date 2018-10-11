@@ -23,6 +23,8 @@
 #include <bitcoin/bitcoin.hpp>
 #include <bitcoin/blockchain/interface/fast_chain.hpp>
 
+extern std::atomic<size_t> global_get_utxo;
+
 namespace libbitcoin {
 namespace blockchain {
 
@@ -30,6 +32,7 @@ using namespace bc::chain;
 using namespace bc::database;
 
 #define NAME "populate_base"
+
 
 // Database access is limited to:
 // spend: { spender }
@@ -88,10 +91,19 @@ void populate_base::populate_prevout(size_t branch_height, output_point const& o
     }
 
 #if defined(BITPRIM_DB_NEW)
+    auto t0 = std::chrono::high_resolution_clock::now();
     //TODO(fernando): check the value of the parameters: branch_height and require_confirmed
     if ( ! fast_chain_.get_utxo(prevout.cache, prevout.height, prevout.median_time_past, prevout.coinbase, outpoint, branch_height)) {
+        auto t1 = std::chrono::high_resolution_clock::now();
+        auto const elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0);
+        global_get_utxo += static_cast<size_t>(elapsed.count());
         return;
     }
+    auto t1 = std::chrono::high_resolution_clock::now();
+    auto const elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0);
+    global_get_utxo += static_cast<size_t>(elapsed.count());
+
+
 #elif defined(BITPRIM_DB_LEGACY)
     // Get the prevout/cache (and spender height) and its metadata.
     // The output (prevout.cache) is populated only if the return is true.
