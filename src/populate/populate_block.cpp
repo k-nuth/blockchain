@@ -35,16 +35,12 @@ using namespace bc::machine;
 
 // Database access is limited to calling populate_base.
 
-populate_block::populate_block(dispatcher& dispatch, const fast_chain& chain,
-    bool relay_transactions)
-  : populate_base(dispatch, chain),
-    relay_transactions_(relay_transactions)
-{
-}
+populate_block::populate_block(dispatcher& dispatch, fast_chain const& chain, bool relay_transactions)
+    : populate_base(dispatch, chain)
+    , relay_transactions_(relay_transactions)
+{}
 
-void populate_block::populate(branch::const_ptr branch,
-    result_handler&& handler) const
-{
+void populate_block::populate(branch::const_ptr branch, result_handler&& handler) const {
     auto const block = branch->top();
     BITCOIN_ASSERT(block);
 
@@ -52,8 +48,7 @@ void populate_block::populate(branch::const_ptr branch,
     BITCOIN_ASSERT(state);
 
     // Return if this blocks is under a checkpoint, block state not requried.
-    if (state->is_under_checkpoint())
-    {
+    if (state->is_under_checkpoint()) {
         handler(error::success);
         return;
     }
@@ -64,8 +59,7 @@ void populate_block::populate(branch::const_ptr branch,
     auto const non_coinbase_inputs = block->total_inputs(false);
 
     // Return if there are no non-coinbase inputs to validate.
-    if (non_coinbase_inputs == 0)
-    {
+    if (non_coinbase_inputs == 0) {
         handler(error::success);
         return;
     }
@@ -80,9 +74,7 @@ void populate_block::populate(branch::const_ptr branch,
 }
 
 // Initialize the coinbase input for subsequent validation.
-void populate_block::populate_coinbase(branch::const_ptr branch,
-    block_const_ptr block) const
-{
+void populate_block::populate_coinbase(branch::const_ptr branch, block_const_ptr block) const {
     auto const& txs = block->transactions();
     auto const state = block->validation.state;
     BITCOIN_ASSERT(!txs.empty());
@@ -125,6 +117,10 @@ void populate_block::populate_coinbase(branch::const_ptr branch,
 ////}
 
 void populate_block::populate_transactions(branch::const_ptr branch, size_t bucket, size_t buckets, result_handler handler) const {
+
+    // TODO(fernando): check how to replace it with UTXO
+    asm("int $3");  //TODO(fernando): remover
+
     BITCOIN_ASSERT(bucket < buckets);
     auto const block = branch->top();
     auto const branch_height = branch->height();
