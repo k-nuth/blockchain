@@ -234,11 +234,19 @@ void populate_block::populate_prevout(branch::const_ptr branch, const output_poi
 
     // Populate the previous output even if it is spent.
     if ( ! outpoint.validation.cache.is_valid()) {
+
+        LOG_INFO(LOG_BLOCKCHAIN)
+            << "populate_block::populate_prevout - global_branch_populate_prevout:  " << global_branch_populate_prevout;
+
         auto t0 = std::chrono::high_resolution_clock::now();
         branch->populate_prevout(outpoint);
         auto t1 = std::chrono::high_resolution_clock::now();
         auto const elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0);
         global_branch_populate_prevout += static_cast<size_t>(elapsed.count());
+
+        LOG_INFO(LOG_BLOCKCHAIN)
+            << "populate_block::populate_prevout - global_branch_populate_prevout:  " << global_branch_populate_prevout;
+
     }
 }
 
