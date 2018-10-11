@@ -57,6 +57,23 @@ populate_block::populate_block(dispatcher& dispatch, fast_chain const& chain, bo
     , relay_transactions_(relay_transactions)
 {}
 
+local_utxo_t create_local_utxo_set(chain::block const& block) {
+    //TODO(fernando): confirm if there is a validation to check that the coinbase tx is not spend, before this.
+    //                we avoid to insert the coinbase in the local utxo set
+
+    local_utxo_t res;
+    res.reserve(block.transactions().size());
+    for (auto const& tx : block.transactions()) {
+        auto const& outputs = tx.outputs();
+        for (uint32_t idx = 0; idx < outputs.size(); ++idx) {
+            auto const& output = outputs[idx];
+            res.emplace(output_point{tx.hash(), idx}, std::addressof(output));
+        }
+    }
+    return res;
+}
+
+
 void populate_block::populate(branch::const_ptr branch, result_handler&& handler) const {
     auto const block = branch->top();
     BITCOIN_ASSERT(block);
@@ -103,11 +120,20 @@ void populate_block::populate(branch::const_ptr branch, result_handler&& handler
     auto const buckets = std::min(dispatch_.size(), non_coinbase_inputs);
     auto const join_handler = synchronize(std::move(handler), buckets, NAME);
     BITCOIN_ASSERT(buckets != 0);
+    // LOG_INFO(LOG_BLOCKCHAIN) << "populate_block::populate - buckets:  " << buckets;
 
-    LOG_INFO(LOG_BLOCKCHAIN) << "populate_block::populate - buckets:  " << buckets;
+
+    auto t0 = std::chrono::high_resolution_clock::now();
+
+    auto local_utxo = create_local_utxo_set(*block);
+
+    auto t1 = std::chrono::high_resolution_clock::now();
+    auto const elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0);
+    LOG_INFO(LOG_BLOCKCHAIN) << "create_local_utxo_set elapsed:  " << elapsed.count();
+
 
     for (size_t bucket = 0; bucket < buckets; ++bucket) {
-        dispatch_.concurrent(&populate_block::populate_transactions, this, branch, bucket, buckets, join_handler);
+        dispatch_.concurrent(&populate_block::populate_transactions, this, branch, bucket, buckets, local_utxo, join_handler);
     }
 }
 
@@ -154,7 +180,8 @@ void populate_block::populate_coinbase(branch::const_ptr branch, block_const_ptr
 ////        branch->populate_duplicate(tx);
 ////}
 
-void populate_block::populate_transactions(branch::const_ptr branch, size_t bucket, size_t buckets, result_handler handler) const {
+
+void populate_block::populate_transactions(branch::const_ptr branch, size_t bucket, size_t buckets, local_utxo_t const& local_utxo, result_handler handler) const {
 
     // TODO(fernando): check how to replace it with UTXO
     // asm("int $3");  //TODO(fernando): remover
@@ -204,6 +231,22 @@ void populate_block::populate_transactions(branch::const_ptr branch, size_t buck
 #endif
     }
 
+    // // Must skip coinbase here as it is already accounted for.
+    // for (auto tx = txs.begin() + 1; tx != txs.end(); ++tx) {
+    //     auto const& inputs = tx->inputs();
+
+    //     for (size_t input_index = 0; input_index < inputs.size(); ++input_index, ++input_position) {
+    //         if (input_position % buckets != bucket) {
+    //             continue;
+    //         }
+
+    //         auto const& input = inputs[input_index];
+    //         auto const& prevout = input.previous_output();
+    //         populate_base::populate_prevout(branch_height, prevout, true);
+    //         populate_prevout(branch, prevout);
+    //     }
+    // }
+
     // Must skip coinbase here as it is already accounted for.
     for (auto tx = txs.begin() + 1; tx != txs.end(); ++tx) {
         auto const& inputs = tx->inputs();
@@ -215,8 +258,8 @@ void populate_block::populate_transactions(branch::const_ptr branch, size_t buck
 
             auto const& input = inputs[input_index];
             auto const& prevout = input.previous_output();
-            populate_base::populate_prevout(branch_height, prevout, true);
-            populate_prevout(branch, prevout);
+            populate_base::populate_prevout(branch_height, prevout, true);  //Populate from Database
+            populate_prevout(branch, prevout, local_utxo);                              //Populate from Block
         }
     }
 
@@ -225,30 +268,24 @@ void populate_block::populate_transactions(branch::const_ptr branch, size_t buck
 
 
 
-void populate_block::populate_prevout(branch::const_ptr branch, const output_point& outpoint) const {
+void populate_block::populate_prevout(branch::const_ptr branch, output_point const& outpoint, local_utxo_t const& local_utxo) const {
     if ( ! outpoint.validation.spent) {
-        auto t0 = std::chrono::high_resolution_clock::now();
+        // auto t0 = std::chrono::high_resolution_clock::now();
         branch->populate_spent(outpoint);
-        auto t1 = std::chrono::high_resolution_clock::now();
-        auto const elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0);
-        global_branch_populate_spent += static_cast<size_t>(elapsed.count());
+        // auto t1 = std::chrono::high_resolution_clock::now();
+        // auto const elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0);
+        // global_branch_populate_spent += static_cast<size_t>(elapsed.count());
     }
 
     // Populate the previous output even if it is spent.
     if ( ! outpoint.validation.cache.is_valid()) {
-
-        // LOG_INFO(LOG_BLOCKCHAIN)
-        //     << "populate_block::populate_prevout - global_branch_populate_prevout:  " << global_branch_populate_prevout;
-
         auto t0 = std::chrono::high_resolution_clock::now();
-        branch->populate_prevout(outpoint);
+
+        branch->populate_prevout(outpoint, local_utxo);
+
         auto t1 = std::chrono::high_resolution_clock::now();
         auto const elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0);
         global_branch_populate_prevout += static_cast<size_t>(elapsed.count());
-
-        // LOG_INFO(LOG_BLOCKCHAIN)
-        //     << "populate_block::populate_prevout - global_branch_populate_prevout:  " << global_branch_populate_prevout;
-
     }
 }
 

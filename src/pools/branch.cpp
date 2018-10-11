@@ -121,7 +121,7 @@ uint32_t branch::median_time_past_at(size_t index) const {
 uint256_t branch::work() const {
     uint256_t total;
     // Not using accumulator here avoids repeated copying of uint256 object.
-    for (auto block: *blocks_) {
+    for (auto block : *blocks_) {
         total += block->proof();
     }
     return total;
@@ -156,7 +156,7 @@ uint256_t branch::work() const {
 ////}
 
 // TODO: convert to a direct block pool query when the branch goes away.
-void branch::populate_spent(const output_point& outpoint) const {
+void branch::populate_spent(output_point const& outpoint) const {
     auto& prevout = outpoint.validation;
 
     // Assuming (1) block.check() validates against internal double spends
@@ -228,6 +228,69 @@ void branch::populate_prevout(output_point const& outpoint) const {
         }
     }
 }
+
+//TODO(fernando): use the type alias instead of the std::unord...
+
+// TODO: absorb into the main chain for speed and code consolidation.
+void branch::populate_prevout(output_point const& outpoint, std::unordered_map<point, output const*> const& local_utxo) const {
+    auto& prevout = outpoint.validation;
+
+    // In case this input is a coinbase or the prevout is spent.
+    prevout.cache = chain::output{};
+    prevout.coinbase = false;
+    prevout.height = 0;
+    prevout.median_time_past = 0;
+
+    // If the input is a coinbase there is no prevout to populate.
+    if (outpoint.is_null()) {
+        return;
+    }
+
+    // Get the input's previous output and its validation metadata.
+    auto const count = size();
+
+    if (count == 0) {
+        asm("int $3");  //TODO(fernando): remover
+    }
+
+    if (count > 1) {
+        asm("int $3");  //TODO(fernando): remover
+    }
+
+
+    auto const& blocks = *blocks_;
+
+    // Reverse iterate because of BIP30.
+    for (size_t forward = 0; forward < count; ++forward) {
+        size_t const index = count - forward - 1u;
+        auto const& txs = blocks[index]->transactions();
+
+        prevout.coinbase = false;
+        // auto it = local_utxo.find(static_cast<point>(outpoint));
+        auto it = local_utxo.find(outpoint);
+        if (it == local_utxo.end()) {
+            prevout.height = height_at(index);
+            prevout.median_time_past = median_time_past_at(index);
+            // prevout.cache = tx.outputs()[outpoint.index()];
+            prevout.cache = *it->second;
+            prevout.coinbase = it->first.hash() == txs[0].hash();
+            return;
+        }
+
+        // prevout.coinbase = true;
+        // for (auto const& tx: txs) {
+        //     // Found the prevout at or below the indexed block.
+        //     if (outpoint.hash() == tx.hash() && outpoint.index() < tx.outputs().size()) {
+        //         prevout.height = height_at(index);
+        //         prevout.median_time_past = median_time_past_at(index);
+        //         prevout.cache = tx.outputs()[outpoint.index()];
+        //         return;
+        //     }
+        //     prevout.coinbase = false;
+        // }
+    }
+}
+
 
 // TODO: absorb into the main chain for speed and code consolidation.
 // The bits of the block at the given height in the branch.

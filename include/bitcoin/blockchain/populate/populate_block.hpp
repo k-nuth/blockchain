@@ -29,30 +29,28 @@
 namespace libbitcoin {
 namespace blockchain {
 
+// using local_utxo_t = std::unordered_map<point, output>;
+using local_utxo_t = std::unordered_map<chain::point, chain::output const*>;
+
 /// This class is NOT thread safe.
-class BCB_API populate_block
-  : public populate_base
-{
+class BCB_API populate_block  : public populate_base {
 public:
-    populate_block(dispatcher& dispatch, const fast_chain& chain,
-        bool relay_transactions);
+    populate_block(dispatcher& dispatch, fast_chain const& chain, bool relay_transactions);
 
     /// Populate validation state for the top block.
     void populate(branch::const_ptr branch, result_handler&& handler) const;
 
 protected:
-    typedef branch::const_ptr branch_ptr;
+    using branch_ptr = branch::const_ptr;
 
-    void populate_coinbase(branch::const_ptr branch,
-        block_const_ptr block) const;
+    void populate_coinbase(branch::const_ptr branch, block_const_ptr block) const;
 
     ////void populate_duplicate(branch_ptr branch, const chain::transaction& tx) const;
-
-    void populate_transactions(branch::const_ptr branch, size_t bucket, size_t buckets, result_handler handler) const;
-    void populate_prevout(branch_ptr branch, const chain::output_point& outpoint) const;
+    void populate_transactions(branch::const_ptr branch, size_t bucket, size_t buckets, local_utxo_t const& local_utxo, result_handler handler) const;
+    void populate_prevout(branch_ptr branch, chain::output_point const& outpoint, local_utxo_t const& local_utxo) const;
 
 private:
-    const bool relay_transactions_;
+    bool const relay_transactions_;
 };
 
 } // namespace blockchain
