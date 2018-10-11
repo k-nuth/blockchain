@@ -268,7 +268,7 @@ void branch::populate_prevout(output_point const& outpoint, std::unordered_map<p
         prevout.coinbase = false;
         // auto it = local_utxo.find(static_cast<point>(outpoint));
         auto it = local_utxo.find(outpoint);
-        if (it == local_utxo.end()) {
+        if (it != local_utxo.end()) {
             prevout.height = height_at(index);
             prevout.median_time_past = median_time_past_at(index);
             // prevout.cache = tx.outputs()[outpoint.index()];
