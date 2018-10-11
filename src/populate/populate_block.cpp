@@ -35,7 +35,8 @@ std::atomic<size_t> global_get_utxo_5(0);
 std::atomic<size_t> global_get_utxo_6(0);
 std::atomic<size_t> global_get_utxo_7(0);
 std::atomic<size_t> global_get_utxo_8(0);
-
+std::atomic<size_t> global_branch_populate_spent(0);
+std::atomic<size_t> global_branch_populate_prevout(0);
 std::atomic<size_t> get_utxo_count_0(0);
 std::atomic<size_t> get_utxo_count_1(0);
 std::atomic<size_t> get_utxo_count_2(0);
@@ -91,6 +92,8 @@ void populate_block::populate(branch::const_ptr branch, result_handler&& handler
     global_get_utxo_6 = 0;
     global_get_utxo_7 = 0;
     global_get_utxo_8 = 0;
+    global_branch_populate_spent = 0;
+    global_branch_populate_prevout = 0;
     get_utxo_count_0 = 0;
     get_utxo_count_1 = 0;
     get_utxo_count_2 = 0;
@@ -178,18 +181,25 @@ void populate_block::populate_transactions(branch::const_ptr branch, size_t buck
         // However the hit is necessary in preventing store tx duplication
         // unless tx relay is disabled. In that case duplication is unlikely.
         //---------------------------------------------------------------------
+
+        //TODO(fernando): check again why this is not implemented?
+#ifdef BITPRIM_DB_LEGACY
         if (relay_transactions_) {
             populate_base::populate_pooled(tx, forks);
         }
+#endif
 
         //*********************************************************************
         // CONSENSUS: Satoshi implemented allow collisions in Nov 2015. This is
         // a hard fork that destroys unspent outputs in case of hash collision.
         //*********************************************************************
+        //TODO(fernando): check again why this is not implemented?
+#ifdef BITPRIM_DB_LEGACY    
         if ( ! collide) {
             populate_base::populate_duplicate(branch->height(), tx, true);
             ////populate_duplicate(branch, coinbase);
         }
+#endif
     }
 
     // Must skip coinbase here as it is already accounted for.
@@ -211,13 +221,25 @@ void populate_block::populate_transactions(branch::const_ptr branch, size_t buck
     handler(error::success);
 }
 
+
+
 void populate_block::populate_prevout(branch::const_ptr branch, const output_point& outpoint) const {
-    if (!outpoint.validation.spent)
+    if ( ! outpoint.validation.spent) {
+        auto t0 = std::chrono::high_resolution_clock::now();
         branch->populate_spent(outpoint);
+        auto t1 = std::chrono::high_resolution_clock::now();
+        auto const elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0);
+        global_branch_populate_spent += static_cast<size_t>(elapsed.count());
+    }
 
     // Populate the previous output even if it is spent.
-    if (!outpoint.validation.cache.is_valid())
+    if ( ! outpoint.validation.cache.is_valid()) {
+        auto t0 = std::chrono::high_resolution_clock::now();
         branch->populate_prevout(outpoint);
+        auto t1 = std::chrono::high_resolution_clock::now();
+        auto const elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0);
+        global_branch_populate_prevout += static_cast<size_t>(elapsed.count());
+    }
 }
 
 } // namespace blockchain

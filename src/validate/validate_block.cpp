@@ -41,7 +41,8 @@ extern std::atomic<size_t> global_get_utxo_5;
 extern std::atomic<size_t> global_get_utxo_6;
 extern std::atomic<size_t> global_get_utxo_7;
 extern std::atomic<size_t> global_get_utxo_8;
-
+extern std::atomic<size_t> global_branch_populate_spent;
+extern std::atomic<size_t> global_branch_populate_prevout;
 extern std::atomic<size_t> get_utxo_count_0;
 extern std::atomic<size_t> get_utxo_count_1;
 extern std::atomic<size_t> get_utxo_count_2;
@@ -216,6 +217,10 @@ void validate_block::handle_populated(const code& ec, block_const_ptr block,
         << " - global_get_utxo_6:  " << global_get_utxo_6 << '\n'
         << " - global_get_utxo_7:  " << global_get_utxo_7 << '\n'
         << " - global_get_utxo_8:  " << global_get_utxo_8 << '\n'
+
+        << " - global_branch_populate_spent:  " << global_branch_populate_spent << '\n'
+        << " - global_branch_populate_prevout:  " << global_branch_populate_prevout << '\n'
+
         << " - get_utxo_count_0:   " << get_utxo_count_0  << '\n'
         << " - get_utxo_count_1:   " << get_utxo_count_1  << '\n'
         << " - get_utxo_count_2:   " << get_utxo_count_2  << '\n'
