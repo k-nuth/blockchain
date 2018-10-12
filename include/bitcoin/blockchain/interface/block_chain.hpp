@@ -70,42 +70,10 @@ public:
     /// Get the set of block gaps in the chain.
     bool get_gaps(database::block_database::heights& out_gaps) const override;
 
-    /// Get a determination of whether the block hash exists in the store.
-    bool get_block_exists(const hash_digest& block_hash) const override;
-
-    /// Get a determination of whether the block hash exists in the store.
-    bool get_block_exists_safe(const hash_digest& block_hash) const override;
-
-    /// Get the hash of the block if it exists.
-    bool get_block_hash(hash_digest& out_hash, size_t height) const override;
-
-    /// Get the work of the branch starting at the given height.
-    bool get_branch_work(uint256_t& out_work, const uint256_t& maximum, size_t height) const override;
-
-    /// Get the header of the block at the given height.
-    bool get_header(chain::header& out_header, size_t height) const override;
-
-    /// Get the height of the block with the given hash.
-    bool get_height(size_t& out_height, const hash_digest& block_hash) const override;
-
-    /// Get the bits of the block with the given height.
-    bool get_bits(uint32_t& out_bits, size_t height) const override;
-
-    /// Get the timestamp of the block with the given height.
-    bool get_timestamp(uint32_t& out_timestamp, size_t height) const override;
-
-    /// Get the version of the block with the given height.
-    bool get_version(uint32_t& out_version, size_t height) const override;
-
-    /// Get height of latest block.
-    bool get_last_height(size_t& out_height) const override;
-
     /// Get the output that is referenced by the outpoint.
     bool get_output(chain::output& out_output, size_t& out_height, uint32_t& out_median_time_past, bool& out_coinbase, const chain::output_point& outpoint, size_t branch_height, bool require_confirmed) const override;
 
     bool get_output_is_confirmed(chain::output& out_output, size_t& out_height, bool& out_coinbase, bool& out_is_confirmed, const chain::output_point& outpoint, size_t branch_height, bool require_confirmed) const;
-
-
 
     //TODO(fernando): check how to replace it with UTXO
     /// Determine if an unspent transaction exists with the given hash.
@@ -117,17 +85,16 @@ public:
 
 #ifdef BITPRIM_DB_NEW
 
-    // /// Get the set of block gaps in the chain.
-    // bool get_gaps(database::block_database::heights& out_gaps) const override;
+    /// Get the output that is referenced by the outpoint in the UTXO Set.
+    bool get_utxo(chain::output& out_output, size_t& out_height, uint32_t& out_median_time_past, bool& out_coinbase, chain::output_point const& outpoint, size_t branch_height) const override;
+#endif// BITPRIM_DB_NEW
 
-    /// Get a determination of whether the block hash exists in the store.
+
+        /// Get a determination of whether the block hash exists in the store.
     bool get_block_exists(const hash_digest& block_hash) const override;
 
     /// Get a determination of whether the block hash exists in the store.
     bool get_block_exists_safe(const hash_digest& block_hash) const override;
-
-    /// Get the hash of the block if it exists.
-    bool get_block_hash(hash_digest& out_hash, size_t height) const override;
 
     /// Get the work of the branch starting at the given height.
     bool get_branch_work(uint256_t& out_work, const uint256_t& maximum, size_t height) const override;
@@ -150,11 +117,11 @@ public:
     /// Get height of latest block.
     bool get_last_height(size_t& out_height) const override;
 
-    /// Get the output that is referenced by the outpoint in the UTXO Set.
-    bool get_utxo(chain::output& out_output, size_t& out_height, uint32_t& out_median_time_past, bool& out_coinbase, chain::output_point const& outpoint, size_t branch_height) const override;
-#endif// BITPRIM_DB_NEW
 
     void prune_reorg_async() override;
+
+    /// Get the hash of the block if it exists.
+    bool get_block_hash(hash_digest& out_hash, size_t height) const override;
 
 
     /////// Get the transaction of the given hash and its block height.
@@ -227,14 +194,6 @@ public:
 
     void fetch_block_header_txs_size(const hash_digest& hash, block_header_txs_size_fetch_handler handler) const override;
 
-    void fetch_block_hash_timestamp(size_t height, block_hash_time_fetch_handler handler) const override;
-
-    /// fetch block header by height.
-    void fetch_block_header(size_t height, block_header_fetch_handler handler) const override;
-
-    /// fetch block header by hash.
-    void fetch_block_header(const hash_digest& hash, block_header_fetch_handler handler) const override;
-
     /// fetch hashes of transactions for a block, by block height.
     void fetch_merkle_block(size_t height, merkle_block_fetch_handler handler) const override;
 
@@ -247,11 +206,6 @@ public:
     /// fetch compact block by block hash.
     void fetch_compact_block(const hash_digest& hash, compact_block_fetch_handler handler) const override;
 
-    /// fetch height of block by hash.
-    void fetch_block_height(const hash_digest& hash, block_height_fetch_handler handler) const override;
-
-    /// fetch height of latest block.
-    void fetch_last_height(last_height_fetch_handler handler) const override;
 
     /// fetch transaction by hash.
     void fetch_transaction(const hash_digest& hash, bool require_confirmed, bool witness, transaction_fetch_handler handler) const override;
@@ -269,6 +223,20 @@ public:
 
     /// fetch a block locator relative to the current top and threshold.
     void fetch_block_locator(const chain::block::indexes& heights, block_locator_fetch_handler handler) const override;
+
+    /// fetch height of latest block.
+    void fetch_last_height(last_height_fetch_handler handler) const override;
+
+        /// fetch block header by height.
+    void fetch_block_header(size_t height, block_header_fetch_handler handler) const override;
+
+    /// fetch block header by hash.
+    void fetch_block_header(const hash_digest& hash, block_header_fetch_handler handler) const override;
+
+    /// fetch height of block by hash.
+    void fetch_block_height(const hash_digest& hash, block_height_fetch_handler handler) const override;
+    
+    void fetch_block_hash_timestamp(size_t height, block_hash_time_fetch_handler handler) const override;
 
 
 #ifdef BITPRIM_DB_TRANSACTION_UNCONFIRMED

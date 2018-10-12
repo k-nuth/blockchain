@@ -249,13 +249,13 @@ void branch::populate_prevout(output_point const& outpoint, std::unordered_map<p
     // Get the input's previous output and its validation metadata.
     auto const count = size();
 
-    if (count == 0) {
+    /*if (count == 0) {
         asm("int $3");  //TODO(fernando): remover
     }
 
     if (count > 1) {
         asm("int $3");  //TODO(fernando): remover
-    }
+    }*/
 
 
     auto const& blocks = *blocks_;

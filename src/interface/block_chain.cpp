@@ -284,17 +284,17 @@ void block_chain::prune_reorg_async() {
 // }
 
 bool block_chain::get_block_exists(hash_digest const& block_hash) const {
-    // asm("int $3");  //TODO(fernando): remover
+    
     return database_.internal_db().get_header(block_hash).first.is_valid();
 }
 
 bool block_chain::get_block_exists_safe(hash_digest const& block_hash) const {
-    // asm("int $3");  //TODO(fernando): remover
+   
     return get_block_exists(block_hash);
 }
 
 bool block_chain::get_block_hash(hash_digest& out_hash, size_t height) const {
-    // asm("int $3");  //TODO(fernando): remover
+   
     auto const result = database_.internal_db().get_header(height);
     if ( ! result.is_valid()) return false;
     out_hash = result.hash();
@@ -302,7 +302,7 @@ bool block_chain::get_block_hash(hash_digest& out_hash, size_t height) const {
 }
 
 bool block_chain::get_branch_work(uint256_t& out_work, uint256_t const& maximum, size_t from_height) const {
-    // asm("int $3");  //TODO(fernando): remover
+    
     size_t top;
     if ( ! get_last_height(top)) return false;
 
@@ -317,13 +317,12 @@ bool block_chain::get_branch_work(uint256_t& out_work, uint256_t const& maximum,
 }
 
 bool block_chain::get_header(chain::header& out_header, size_t height) const {
-    // asm("int $3");  //TODO(fernando): remover
     out_header = database_.internal_db().get_header(height);
     return out_header.is_valid();
 }
 
 bool block_chain::get_height(size_t& out_height, hash_digest const& block_hash) const {
-    // asm("int $3");  //TODO(fernando): remover
+   
     auto result = database_.internal_db().get_header(block_hash);
     if ( ! result.first.is_valid()) return false;
     out_height = result.second;
@@ -331,7 +330,7 @@ bool block_chain::get_height(size_t& out_height, hash_digest const& block_hash) 
 }
 
 bool block_chain::get_bits(uint32_t& out_bits, size_t height) const {
-    // asm("int $3");  //TODO(fernando): remover
+   
     auto result = database_.internal_db().get_header(height);
     if ( ! result.is_valid()) return false;
     out_bits = result.bits();
@@ -339,7 +338,7 @@ bool block_chain::get_bits(uint32_t& out_bits, size_t height) const {
 }
 
 bool block_chain::get_timestamp(uint32_t& out_timestamp, size_t height) const {
-    // asm("int $3");  //TODO(fernando): remover
+   
     auto result = database_.internal_db().get_header(height);
     if ( ! result.is_valid()) return false;
     out_timestamp = result.timestamp();
@@ -347,7 +346,7 @@ bool block_chain::get_timestamp(uint32_t& out_timestamp, size_t height) const {
 }
 
 bool block_chain::get_version(uint32_t& out_version, size_t height) const {
-    // asm("int $3");  //TODO(fernando): remover
+  
     auto result = database_.internal_db().get_header(height);
     if ( ! result.is_valid()) return false;
     out_version = result.version();
@@ -355,7 +354,7 @@ bool block_chain::get_version(uint32_t& out_version, size_t height) const {
 }
 
 bool block_chain::get_last_height(size_t& out_height) const {
-    // asm("int $3");  //TODO(fernando): remover
+ 
     uint32_t temp;
     auto res = database_.internal_db().get_last_height(temp);
     out_height = temp;
@@ -1071,7 +1070,7 @@ void block_chain::fetch_merkle_block(hash_digest const& hash,
 }
 
 void block_chain::fetch_compact_block(size_t height, compact_block_fetch_handler handler) const {
-    // TODO: implement compact blocks.
+    // TODO (Mario): implement compact blocks.
     handler(error::not_implemented, {}, 0);
 }
 
@@ -1180,6 +1179,10 @@ void block_chain::fetch_transaction(hash_digest const& hash,
 #endif // BITPRIM_DB_LEGACY
 
 
+
+
+
+//TODO (Mario) : Review and move to proper location
 hash_digest generate_merkle_root(std::vector<chain::transaction> transactions) {
     if (transactions.empty())
         return null_hash;
@@ -1591,8 +1594,6 @@ void block_chain::fetch_locator_block_headers(get_headers_const_ptr locator,
 // This may generally execute 29+ queries.
 void block_chain::fetch_block_locator(const block::indexes& heights, block_locator_fetch_handler handler) const {
 
-    // asm("int $3");  //TODO(fernando): remover
-
     if (stopped())
     {
         handler(error::service_stopped, nullptr);
@@ -1622,6 +1623,114 @@ void block_chain::fetch_block_locator(const block::indexes& heights, block_locat
 #endif // BITPRIM_DB_LEGACY
 
 #ifdef BITPRIM_DB_NEW
+
+
+void block_chain::fetch_block_hash_timestamp(size_t height, block_hash_time_fetch_handler handler) const
+{
+    if (stopped())
+    {
+        handler(error::service_stopped, null_hash, 0, 0);
+        return;
+    }
+
+    auto const result = database_.internal_db().get_header(height);
+
+    if ( ! result.is_valid() )
+    {
+        handler(error::not_found, null_hash, 0, 0);
+        return;
+    }
+
+    handler(error::success, result.hash(), result.timestamp(), height);
+
+}
+
+
+void block_chain::fetch_block_height(hash_digest const& hash,
+    block_height_fetch_handler handler) const
+{
+    if (stopped())
+    {
+        handler(error::service_stopped, {});
+        return;
+    }
+
+    auto const result = database_.internal_db().get_header(hash);
+
+    if ( ! result.first.is_valid() )
+    {
+        handler(error::not_found, 0);
+        return;
+    }
+
+    handler(error::success, result.second);
+}
+
+
+void block_chain::fetch_block_header(size_t height,
+    block_header_fetch_handler handler) const
+{
+    if (stopped())
+    {
+        handler(error::service_stopped, nullptr, 0);
+        return;
+    }
+
+    auto const result = database_.internal_db().get_header(height);
+
+    if (!result.is_valid())
+    {
+        handler(error::not_found, nullptr, 0);
+        return;
+    }
+
+    auto const message = std::make_shared<header>(std::move(result));
+    handler(error::success, message, height);
+}
+
+void block_chain::fetch_block_header(hash_digest const& hash,
+    block_header_fetch_handler handler) const
+{
+    if (stopped())
+    {
+        handler(error::service_stopped, nullptr, 0);
+        return;
+    }
+    
+    auto const result = database_.internal_db().get_header(hash);
+
+    if ( ! result.first.is_valid() )
+    {
+        handler(error::not_found, nullptr, 0);
+        return;
+    }
+
+    auto const message = std::make_shared<header>(std::move(result.first));
+    handler(error::success, message, result.second);
+}
+
+
+void block_chain::fetch_last_height(last_height_fetch_handler handler) const
+{
+    if (stopped())
+    {
+        handler(error::service_stopped, {});
+        return;
+    }
+
+    uint32_t last_height;
+
+    if ( database_.internal_db().get_last_height(last_height) != database::result_code::success )
+    {
+        handler(error::not_found, 0);
+        return;
+    }
+
+    handler(error::success, last_height);
+}
+
+
+
 // This may execute over 2000 queries.
 void block_chain::fetch_locator_block_headers(get_headers_const_ptr locator, hash_digest const& threshold, size_t limit, locator_block_headers_fetch_handler handler) const {
     if (stopped()) {
@@ -1694,7 +1803,7 @@ void block_chain::fetch_locator_block_headers(get_headers_const_ptr locator, has
 
 // This may generally execute 29+ queries.
 void block_chain::fetch_block_locator(block::indexes const& heights, block_locator_fetch_handler handler) const {
-    // asm("int $3");  //TODO(fernando): remover
+    
     if (stopped()) {
         handler(error::service_stopped, nullptr);
         return;
@@ -1801,7 +1910,7 @@ void block_chain::fetch_mempool(size_t count_limit, uint64_t minimum_fee,
 // This may execute up to 500 queries.
 // This filters against the block pool and then the block chain.
 void block_chain::filter_blocks(get_data_ptr message, result_handler handler) const {
-    // asm("int $3");  //TODO(fernando): remover
+    
     if (stopped())
     {
         handler(error::service_stopped);
@@ -1855,7 +1964,7 @@ void block_chain::filter_transactions(get_data_ptr message,
 // This may execute up to 500 queries.
 // This filters against the block pool and then the block chain.
 void block_chain::filter_blocks(get_data_ptr message, result_handler handler) const {
-    // asm("int $3");  //TODO(fernando): remover
+    
     if (stopped()) {
         handler(error::service_stopped);
         return;

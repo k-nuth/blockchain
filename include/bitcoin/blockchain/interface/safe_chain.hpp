@@ -106,12 +106,6 @@ public:
 
     virtual void fetch_block(const hash_digest& hash, bool witness, block_fetch_handler handler) const = 0;
 
-    virtual void fetch_block_header(size_t height, block_header_fetch_handler handler) const = 0;
-
-    virtual void fetch_block_header(const hash_digest& hash, block_header_fetch_handler handler) const = 0;
-
-    virtual bool get_block_hash(hash_digest& out_hash, size_t height) const = 0;
-
     virtual void fetch_merkle_block(size_t height, merkle_block_fetch_handler handler) const = 0;
 
     virtual void fetch_merkle_block(const hash_digest& hash, merkle_block_fetch_handler handler) const = 0;
@@ -120,13 +114,7 @@ public:
 
     virtual void fetch_compact_block(const hash_digest& hash, compact_block_fetch_handler handler) const = 0;
 
-    virtual void fetch_block_height(const hash_digest& hash, block_height_fetch_handler handler) const = 0;
-
     virtual void fetch_block_header_txs_size(const hash_digest& hash, block_header_txs_size_fetch_handler handler) const = 0;
-
-    virtual void fetch_block_hash_timestamp(size_t height, block_hash_time_fetch_handler handler) const = 0;
-
-    virtual void fetch_last_height(last_height_fetch_handler handler) const = 0;
 
     virtual void fetch_transaction(const hash_digest& hash, bool require_confirmed, bool witness, transaction_fetch_handler handler) const = 0;
 
@@ -143,6 +131,17 @@ public:
 
     virtual void fetch_block_locator(const chain::block::indexes& heights, block_locator_fetch_handler handler) const = 0;
 
+    virtual void fetch_last_height(last_height_fetch_handler handler) const = 0;
+
+    virtual void fetch_block_header(size_t height, block_header_fetch_handler handler) const = 0;
+
+    virtual void fetch_block_header(const hash_digest& hash, block_header_fetch_handler handler) const = 0;
+
+    virtual bool get_block_hash(hash_digest& out_hash, size_t height) const = 0;
+
+    virtual void fetch_block_height(const hash_digest& hash, block_height_fetch_handler handler) const = 0;
+
+    virtual void fetch_block_hash_timestamp(size_t height, block_hash_time_fetch_handler handler) const = 0;
 
     // Server Queries.
     //-------------------------------------------------------------------------
