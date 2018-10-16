@@ -25,23 +25,6 @@
 #include <bitcoin/blockchain/interface/fast_chain.hpp>
 #include <bitcoin/blockchain/pools/branch.hpp>
 
-std::atomic<size_t> global_get_utxo(0);
-std::atomic<size_t> global_get_utxo_2a(0);
-std::atomic<size_t> global_get_utxo_2b(0);
-std::atomic<size_t> global_get_utxo_2c(0);
-std::atomic<size_t> global_get_utxo_3(0);
-std::atomic<size_t> global_get_utxo_4(0);
-std::atomic<size_t> global_get_utxo_5(0);
-std::atomic<size_t> global_get_utxo_6(0);
-std::atomic<size_t> global_get_utxo_7(0);
-std::atomic<size_t> global_get_utxo_8(0);
-std::atomic<size_t> global_branch_populate_spent(0);
-std::atomic<size_t> global_branch_populate_prevout(0);
-std::atomic<size_t> get_utxo_count_0(0);
-std::atomic<size_t> get_utxo_count_1(0);
-std::atomic<size_t> get_utxo_count_2(0);
-std::atomic<size_t> get_utxo_count_3(0);
-
 namespace libbitcoin {
 namespace blockchain {
 
@@ -97,25 +80,6 @@ void populate_block::populate(branch::const_ptr branch, result_handler&& handler
         handler(error::success);
         return;
     }
-
-    // asm("int $3");  //TODO(fernando): remover
-    global_get_utxo = 0;
-    global_get_utxo_2a = 0;
-    global_get_utxo_2b = 0;
-    global_get_utxo_2c = 0;
-    global_get_utxo_3 = 0;
-    global_get_utxo_4 = 0;
-    global_get_utxo_5 = 0;
-    global_get_utxo_6 = 0;
-    global_get_utxo_7 = 0;
-    global_get_utxo_8 = 0;
-    global_branch_populate_spent = 0;
-    global_branch_populate_prevout = 0;
-    get_utxo_count_0 = 0;
-    get_utxo_count_1 = 0;
-    get_utxo_count_2 = 0;
-    get_utxo_count_3 = 0;
-
 
     auto const buckets = std::min(dispatch_.size(), non_coinbase_inputs);
     auto const join_handler = synchronize(std::move(handler), buckets, NAME);
@@ -270,22 +234,12 @@ void populate_block::populate_transactions(branch::const_ptr branch, size_t buck
 
 void populate_block::populate_prevout(branch::const_ptr branch, output_point const& outpoint, local_utxo_t const& local_utxo) const {
     if ( ! outpoint.validation.spent) {
-        // auto t0 = std::chrono::high_resolution_clock::now();
         branch->populate_spent(outpoint);
-        // auto t1 = std::chrono::high_resolution_clock::now();
-        // auto const elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0);
-        // global_branch_populate_spent += static_cast<size_t>(elapsed.count());
     }
 
     // Populate the previous output even if it is spent.
     if ( ! outpoint.validation.cache.is_valid()) {
-        auto t0 = std::chrono::high_resolution_clock::now();
-
         branch->populate_prevout(outpoint, local_utxo);
-
-        auto t1 = std::chrono::high_resolution_clock::now();
-        auto const elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0);
-        global_branch_populate_prevout += static_cast<size_t>(elapsed.count());
     }
 }
 
