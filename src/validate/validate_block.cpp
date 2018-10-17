@@ -177,6 +177,16 @@ void validate_block::handle_populated(const code& ec, block_const_ptr block,
         return;
     }
 
+    const auto height = block->validation.state->height();
+
+    if (encode_hash(block->hash()) == "000000000000000000812c14e92e484f1beb97456799d8d07e7afe46930ac0d6") {
+        LOG_INFO(LOG_BLOCKCHAIN) << "This is the block I want to measure";
+    }
+
+    if (encode_hash(block->hash()) == "000000000000000001007e32c6337e2fdd79e8cd0a3307c5c852c71028c7ceb8") {
+        LOG_INFO(LOG_BLOCKCHAIN) << "This is the block I want to measure";
+    }
+
     // Run contextual block non-tx checks (sets start time).
     const auto error_code = block->accept(false);
 

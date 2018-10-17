@@ -42,7 +42,17 @@ class BitprimBlockchainConan(BitprimConanFile):
                "fix_march": [True, False],
                "verbose": [True, False],
                "keoken": [True, False],
-               "mining": [True, False]
+               "mining": [True, False],
+               "use_domain": [True, False],
+               "db_transaction_unconfirmed": [True, False],
+               "db_spends": [True, False],
+               "db_history": [True, False],
+               "db_stealth": [True, False],
+               "db_unspent_libbitcoin": [True, False],
+               "db_legacy": [True, False],
+               "db_new": [True, False],
+               "cxxflags": "ANY",
+               "cflags": "ANY",
     }
     # "with_remote_database": [True, False],
 
@@ -56,7 +66,18 @@ class BitprimBlockchainConan(BitprimConanFile):
         "fix_march=False", \
         "verbose=False", \
         "keoken=False", \
-        "mining=False"
+        "mining=False", \
+        "use_domain=False", \
+        "db_transaction_unconfirmed=True", \
+        "db_spends=True", \
+        "db_history=True", \
+        "db_stealth=True", \
+        "db_unspent_libbitcoin=True", \
+        "db_legacy=True", \
+        "db_new=False", \
+        "cxxflags=_DUMMY_", \
+        "cflags=_DUMMY_"
+
 
     # "with_remote_database=False"
 
@@ -73,12 +94,9 @@ class BitprimBlockchainConan(BitprimConanFile):
     def requirements(self):
         self.requires("boost/1.66.0@bitprim/stable")
         self.requires("bitprim-database/0.X@%s/%s" % (self.user, self.channel))
-        # reqs = ["bitprim-database/0.X@%s/%s"]
 
         if self.options.with_consensus:
             self.requires.add("bitprim-consensus/0.X@%s/%s" % (self.user, self.channel))
-            # reqs.append("bitprim-consensus/0.X@%s/%s")
-        # self.bitprim_requires(reqs)
 
     def config_options(self):
         if self.settings.arch != "x86_64":
@@ -112,6 +130,15 @@ class BitprimBlockchainConan(BitprimConanFile):
         else:
             self.options["*"].keoken = self.options.keoken
 
+        self.options["*"].db_transaction_unconfirmed = self.options.db_transaction_unconfirmed
+        self.options["*"].db_spends = self.options.db_spends
+        self.options["*"].db_history = self.options.db_history
+        self.options["*"].db_stealth = self.options.db_stealth
+        self.options["*"].db_unspent_libbitcoin = self.options.db_unspent_libbitcoin
+        self.options["*"].db_legacy = self.options.db_legacy
+        self.options["*"].db_new = self.options.db_new
+
+        self.options["*"].use_domain = self.options.use_domain
         self.options["*"].mining = self.options.mining
         self.options["*"].currency = self.options.currency
         self.output.info("Compiling for currency: %s" % (self.options.currency,))
@@ -122,6 +149,8 @@ class BitprimBlockchainConan(BitprimConanFile):
         self.info.options.with_tools = "ANY"
         self.info.options.verbose = "ANY"
         self.info.options.fix_march = "ANY"
+        self.info.options.cxxflags = "ANY"
+        self.info.options.cflags = "ANY"
 
         #For Bitprim Packages libstdc++ and libstdc++11 are the same
         if self.settings.compiler == "gcc" or self.settings.compiler == "clang":
@@ -145,12 +174,27 @@ class BitprimBlockchainConan(BitprimConanFile):
         cmake.definitions["WITH_KEOKEN"] = option_on_off(self.is_keoken)
         cmake.definitions["CURRENCY"] = self.options.currency
         cmake.definitions["WITH_MINING"] = option_on_off(self.options.mining)
+        cmake.definitions["USE_DOMAIN"] = option_on_off(self.options.use_domain)
+
+        cmake.definitions["DB_TRANSACTION_UNCONFIRMED"] = option_on_off(self.options.db_transaction_unconfirmed)
+        cmake.definitions["DB_SPENDS"] = option_on_off(self.options.db_spends)
+        cmake.definitions["DB_HISTORY"] = option_on_off(self.options.db_history)
+        cmake.definitions["DB_STEALTH"] = option_on_off(self.options.db_stealth)
+        cmake.definitions["DB_UNSPENT_LIBBITCOIN"] = option_on_off(self.options.db_unspent_libbitcoin)
+        cmake.definitions["DB_LEGACY"] = option_on_off(self.options.db_legacy)
+        cmake.definitions["DB_NEW"] = option_on_off(self.options.db_new)
 
         if self.settings.compiler != "Visual Studio":
             cmake.definitions["CONAN_CXX_FLAGS"] = cmake.definitions.get("CONAN_CXX_FLAGS", "") + " -Wno-deprecated-declarations"
 
         if self.settings.compiler == "Visual Studio":
             cmake.definitions["CONAN_CXX_FLAGS"] = cmake.definitions.get("CONAN_CXX_FLAGS", "") + " /DBOOST_CONFIG_SUPPRESS_OUTDATED_MESSAGE"
+
+        if self.options.cxxflags != "_DUMMY_":
+            cmake.definitions["CONAN_CXX_FLAGS"] = cmake.definitions.get("CONAN_CXX_FLAGS", "") + " " + str(self.options.cxxflags)
+        if self.options.cflags != "_DUMMY_":
+            cmake.definitions["CONAN_C_FLAGS"] = cmake.definitions.get("CONAN_C_FLAGS", "") + " " + str(self.options.cflags)
+
 
         cmake.definitions["MICROARCHITECTURE"] = self.options.microarchitecture
         cmake.definitions["BITPRIM_PROJECT_VERSION"] = self.version

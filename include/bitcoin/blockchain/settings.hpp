@@ -22,7 +22,13 @@
 #include <cstdint>
 #include <boost/filesystem.hpp>
 #include <bitcoin/bitcoin.hpp>
+
+#ifdef BITPRIM_USE_DOMAIN
+#include <bitcoin/infrastructure/config/endpoint.hpp>
+#else
 #include <bitcoin/bitcoin/config/endpoint.hpp>
+#endif // BITPRIM_USE_DOMAIN
+
 #include <bitcoin/blockchain/define.hpp>
 
 namespace libbitcoin { namespace blockchain {

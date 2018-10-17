@@ -42,8 +42,7 @@ protected:
 
     void populate_pooled(const chain::transaction& tx, uint32_t forks) const;
 
-    void populate_prevout(size_t maximum_height,
-        const chain::output_point& outpoint, bool require_confirmed) const;
+    void populate_prevout(size_t maximum_height, const chain::output_point& outpoint, bool require_confirmed) const;
 
     // This is thread safe.
     dispatcher& dispatch_;

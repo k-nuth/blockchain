@@ -34,27 +34,22 @@ using namespace bc::config;
 
 // This will be eliminated once weak block headers are moved to the store.
 branch::branch(size_t height)
-  : height_(height),
-    blocks_(std::make_shared<block_const_ptr_list>())
-{
-}
+    : height_(height)
+    , blocks_(std::make_shared<block_const_ptr_list>())
+{}
 
-void branch::set_height(size_t height)
-{
+void branch::set_height(size_t height) {
     height_ = height;
 }
 
 // Front is the top of the chain plus one, back is the top of the branch.
-bool branch::push_front(block_const_ptr block)
-{
-    const auto linked = [this](block_const_ptr block)
-    {
-        const auto& front = blocks_->front()->header();
+bool branch::push_front(block_const_ptr block) {
+    auto const linked = [this](block_const_ptr block) {
+        auto const& front = blocks_->front()->header();
         return front.previous_block_hash() == block->hash();
     };
 
-    if (empty() || linked(block))
-    {
+    if (empty() || linked(block)) {
         blocks_->insert(blocks_->begin(), block);
         return true;
     }
@@ -62,64 +57,52 @@ bool branch::push_front(block_const_ptr block)
     return false;
 }
 
-block_const_ptr branch::top() const
-{
+block_const_ptr branch::top() const {
     return empty() ? nullptr : blocks_->back();
 }
 
-size_t branch::top_height() const
-{
+size_t branch::top_height() const {
     return height() + size();
 }
 
-block_const_ptr_list_const_ptr branch::blocks() const
-{
+block_const_ptr_list_const_ptr branch::blocks() const {
     return blocks_;
 }
 
-bool branch::empty() const
-{
+bool branch::empty() const {
     return blocks_->empty();
 }
 
-size_t branch::size() const
-{
+size_t branch::size() const {
     return blocks_->size();
 }
 
-size_t branch::height() const
-{
+size_t branch::height() const {
     return height_;
 }
 
-hash_digest branch::hash() const
-{
-    return empty() ? null_hash :
-        blocks_->front()->header().previous_block_hash();
+hash_digest branch::hash() const {
+    return empty() ? null_hash : blocks_->front()->header().previous_block_hash();
 }
 
-config::checkpoint branch::fork_point() const
-{
-    return{ hash(), height() };
+config::checkpoint branch::fork_point() const {
+    return {hash(), height()};
 }
 
 // private
-size_t branch::index_of(size_t height) const
-{
+size_t branch::index_of(size_t height) const {
     // The member height_ is the height of the fork point, not the first block.
     return safe_subtract(safe_subtract(height, height_), size_t(1));
 }
 
 // private
-size_t branch::height_at(size_t index) const
-{
+size_t branch::height_at(size_t index) const {
     // The height of the blockchain branch point plus zero-based index.
     return safe_add(safe_add(index, height_), size_t(1));
 }
 
 // private
-uint32_t branch::median_time_past_at(size_t index) const
-{
+uint32_t branch::median_time_past_at(size_t index) const {
     BITCOIN_ASSERT(index < size());
     return (*blocks_)[index]->header().validation.median_time_past;
 }
@@ -135,14 +118,12 @@ uint32_t branch::median_time_past_at(size_t index) const
 // of lower work blocks could meet both above criteria. However this requires
 // the same amount of work as a shorter segment, so an attacker gains no
 // advantage from that option, and it will be caught in validation.
-uint256_t branch::work() const
-{
+uint256_t branch::work() const {
     uint256_t total;
-
     // Not using accumulator here avoids repeated copying of uint256 object.
-    for (auto block: *blocks_)
+    for (auto block : *blocks_) {
         total += block->proof();
-
+    }
     return total;
 }
 
@@ -155,19 +136,19 @@ uint256_t branch::work() const
 // consensus break which would only apply to a reorg at height less than BIP34.
 ////void branch::populate_duplicate(const chain::transaction& tx) const
 ////{
-////    const auto outer = [&tx](size_t total, block_const_ptr block)
+////    auto const outer = [&tx](size_t total, block_const_ptr block)
 ////    {
-////        const auto hashes = [&tx](const transaction& block_tx)
+////        auto const hashes = [&tx](const transaction& block_tx)
 ////        {
 ////            return block_tx.hash() == tx.hash();
 ////        };
 ////
-////        const auto& txs = block->transactions();
+////        auto const& txs = block->transactions();
 ////        return total + std::count_if(txs.begin(), txs.end(), hashes);
 ////    };
 ////
 ////    // Counting all is easier than excluding self and terminating early.
-////    const auto count = std::accumulate(blocks_->begin(), blocks_->end(),
+////    auto const count = std::accumulate(blocks_->begin(), blocks_->end(),
 ////        size_t(0), outer);
 ////
 ////    BITCOIN_ASSERT(count > 0);
@@ -175,8 +156,7 @@ uint256_t branch::work() const
 ////}
 
 // TODO: convert to a direct block pool query when the branch goes away.
-void branch::populate_spent(const output_point& outpoint) const
-{
+void branch::populate_spent(output_point const& outpoint) const {
     auto& prevout = outpoint.validation;
 
     // Assuming (1) block.check() validates against internal double spends
@@ -184,28 +164,24 @@ void branch::populate_spent(const output_point& outpoint) const
     // the top block here. Under these assumptions spends in the top block
     // could only be double spent by a spend in a preceding block. Excluding
     // the top block requires that we consider 1 collision spent (vs. > 1).
-    if (size() < 2u)
-    {
+    if (size() < 2u) {
         prevout.spent = false;
         prevout.confirmed = false;
         return;
     }
 
     // TODO: use hash table storage of block's inputs for block pool entries.
-    const auto blocks = [&outpoint](block_const_ptr block)
-    {
-        const auto transactions = [&outpoint](const transaction& tx)
-        {
-            const auto prevout_match = [&outpoint](const input& input)
-            {
+    auto const blocks = [&outpoint](block_const_ptr block) {
+        auto const transactions = [&outpoint](const transaction& tx) {
+            auto const prevout_match = [&outpoint](const input& input) {
                 return input.previous_output() == outpoint;
             };
 
-            const auto& ins = tx.inputs();
+            auto const& ins = tx.inputs();
             return std::any_of(ins.begin(), ins.end(), prevout_match);
         };
 
-        const auto& txs = block->transactions();
+        auto const& txs = block->transactions();
         BITCOIN_ASSERT_MSG(!txs.empty(), "empty block in branch");
         return std::any_of(txs.begin() + 1, txs.end(), transactions);
     };
@@ -216,8 +192,7 @@ void branch::populate_spent(const output_point& outpoint) const
 }
 
 // TODO: absorb into the main chain for speed and code consolidation.
-void branch::populate_prevout(const output_point& outpoint) const
-{
+void branch::populate_prevout(output_point const& outpoint) const {
     auto& prevout = outpoint.validation;
 
     // In case this input is a coinbase or the prevout is spent.
@@ -227,48 +202,107 @@ void branch::populate_prevout(const output_point& outpoint) const
     prevout.median_time_past = 0;
 
     // If the input is a coinbase there is no prevout to populate.
-    if (outpoint.is_null())
+    if (outpoint.is_null()) {
         return;
+    }
 
     // Get the input's previous output and its validation metadata.
-    const auto count = size();
-    const auto& blocks = *blocks_;
+    auto const count = size();
+    auto const& blocks = *blocks_;
 
     // Reverse iterate because of BIP30.
-    for (size_t forward = 0; forward < count; ++forward)
-    {
-        const size_t index = count - forward - 1u;
-        const auto& txs = blocks[index]->transactions();
+    for (size_t forward = 0; forward < count; ++forward) {
+        size_t const index = count - forward - 1u;
+        auto const& txs = blocks[index]->transactions();
         prevout.coinbase = true;
 
-        for (const auto& tx: txs)
-        {
+        for (auto const& tx: txs) {
             // Found the prevout at or below the indexed block.
-            if (outpoint.hash() == tx.hash() &&
-                outpoint.index() < tx.outputs().size())
-            {
+            if (outpoint.hash() == tx.hash() && outpoint.index() < tx.outputs().size()) {
                 prevout.height = height_at(index);
                 prevout.median_time_past = median_time_past_at(index);
                 prevout.cache = tx.outputs()[outpoint.index()];
                 return;
             }
-
             prevout.coinbase = false;
         }
     }
 }
 
+//TODO(fernando): use the type alias instead of the std::unord...
+
+// TODO: absorb into the main chain for speed and code consolidation.
+void branch::populate_prevout(output_point const& outpoint, std::unordered_map<point, output const*> const& local_utxo) const {
+    auto& prevout = outpoint.validation;
+
+    // In case this input is a coinbase or the prevout is spent.
+    prevout.cache = chain::output{};
+    prevout.coinbase = false;
+    prevout.height = 0;
+    prevout.median_time_past = 0;
+
+    // If the input is a coinbase there is no prevout to populate.
+    if (outpoint.is_null()) {
+        return;
+    }
+
+    // Get the input's previous output and its validation metadata.
+    auto const count = size();
+
+    /*if (count == 0) {
+        asm("int $3");  //TODO(fernando): remover
+    }
+
+    if (count > 1) {
+        asm("int $3");  //TODO(fernando): remover
+    }*/
+
+
+    auto const& blocks = *blocks_;
+
+    // Reverse iterate because of BIP30.
+    for (size_t forward = 0; forward < count; ++forward) {
+        size_t const index = count - forward - 1u;
+        auto const& txs = blocks[index]->transactions();
+
+        prevout.coinbase = false;
+        // auto it = local_utxo.find(static_cast<point>(outpoint));
+        auto it = local_utxo.find(outpoint);
+        if (it != local_utxo.end()) {
+            prevout.height = height_at(index);
+            prevout.median_time_past = median_time_past_at(index);
+            // prevout.cache = tx.outputs()[outpoint.index()];
+            prevout.cache = *it->second;
+            prevout.coinbase = it->first.hash() == txs[0].hash();
+            return;
+        }
+
+        // prevout.coinbase = true;
+        // for (auto const& tx: txs) {
+        //     // Found the prevout at or below the indexed block.
+        //     if (outpoint.hash() == tx.hash() && outpoint.index() < tx.outputs().size()) {
+        //         prevout.height = height_at(index);
+        //         prevout.median_time_past = median_time_past_at(index);
+        //         prevout.cache = tx.outputs()[outpoint.index()];
+        //         return;
+        //     }
+        //     prevout.coinbase = false;
+        // }
+    }
+}
+
+
 // TODO: absorb into the main chain for speed and code consolidation.
 // The bits of the block at the given height in the branch.
-bool branch::get_bits(uint32_t& out_bits, size_t height) const
-{
-    if (height <= height_)
+bool branch::get_bits(uint32_t& out_bits, size_t height) const {
+    if (height <= height_) {
         return false;
+    }
 
-    const auto block = (*blocks_)[index_of(height)];
-
-    if (!block)
+    auto const block = (*blocks_)[index_of(height)];
+    if ( ! block) {
         return false;
+    }
 
     out_bits = block->header().bits();
     return true;
@@ -276,15 +310,16 @@ bool branch::get_bits(uint32_t& out_bits, size_t height) const
 
 // TODO: absorb into the main chain for speed and code consolidation.
 // The version of the block at the given height in the branch.
-bool branch::get_version(uint32_t& out_version, size_t height) const
-{
-    if (height <= height_)
+bool branch::get_version(uint32_t& out_version, size_t height) const {
+    if (height <= height_) {
         return false;
+    }
 
-    const auto block = (*blocks_)[index_of(height)];
+    auto const block = (*blocks_)[index_of(height)];
 
-    if (!block)
+    if ( ! block) {
         return false;
+    }
 
     out_version = block->header().version();
     return true;
@@ -292,15 +327,16 @@ bool branch::get_version(uint32_t& out_version, size_t height) const
 
 // TODO: absorb into the main chain for speed and code consolidation.
 // The timestamp of the block at the given height in the branch.
-bool branch::get_timestamp(uint32_t& out_timestamp, size_t height) const
-{
-    if (height <= height_)
+bool branch::get_timestamp(uint32_t& out_timestamp, size_t height) const {
+    if (height <= height_) {
         return false;
+    }
 
-    const auto block = (*blocks_)[index_of(height)];
+    auto const block = (*blocks_)[index_of(height)];
 
-    if (!block)
+    if ( ! block) {
         return false;
+    }
 
     out_timestamp = block->header().timestamp();
     return true;
@@ -308,15 +344,16 @@ bool branch::get_timestamp(uint32_t& out_timestamp, size_t height) const
 
 // TODO: convert to a direct block pool query when the branch goes away.
 // The hash of the block at the given height if it exists in the branch.
-bool branch::get_block_hash(hash_digest& out_hash, size_t height) const
-{
-    if (height <= height_)
+bool branch::get_block_hash(hash_digest& out_hash, size_t height) const {
+    if (height <= height_) {
         return false;
+    }
 
-    const auto block = (*blocks_)[index_of(height)];
+    auto const block = (*blocks_)[index_of(height)];
 
-    if (!block)
+    if ( ! block) {
         return false;
+    }
 
     out_hash = block->hash();
     return true;

@@ -66,21 +66,38 @@ public:
     // ------------------------------------------------------------------------
     // Thread safe, unprotected by sequential lock.
 
+#ifdef BITPRIM_DB_LEGACY
     /// Get the set of block gaps in the chain.
     bool get_gaps(database::block_database::heights& out_gaps) const override;
 
-    /// Get a determination of whether the block hash exists in the store.
+    /// Get the output that is referenced by the outpoint.
+    bool get_output(chain::output& out_output, size_t& out_height, uint32_t& out_median_time_past, bool& out_coinbase, const chain::output_point& outpoint, size_t branch_height, bool require_confirmed) const override;
+
+    bool get_output_is_confirmed(chain::output& out_output, size_t& out_height, bool& out_coinbase, bool& out_is_confirmed, const chain::output_point& outpoint, size_t branch_height, bool require_confirmed) const;
+
+    //TODO(fernando): check how to replace it with UTXO
+    /// Determine if an unspent transaction exists with the given hash.
+    bool get_is_unspent_transaction(const hash_digest& hash, size_t branch_height, bool require_confirmed) const override;
+
+    /// Get position data for a transaction.
+    bool get_transaction_position(size_t& out_height, size_t& out_position, const hash_digest& hash, bool require_confirmed) const override;
+#endif// BITPRIM_DB_LEGACY
+
+#ifdef BITPRIM_DB_NEW
+
+    /// Get the output that is referenced by the outpoint in the UTXO Set.
+    bool get_utxo(chain::output& out_output, size_t& out_height, uint32_t& out_median_time_past, bool& out_coinbase, chain::output_point const& outpoint, size_t branch_height) const override;
+#endif// BITPRIM_DB_NEW
+
+
+        /// Get a determination of whether the block hash exists in the store.
     bool get_block_exists(const hash_digest& block_hash) const override;
 
     /// Get a determination of whether the block hash exists in the store.
     bool get_block_exists_safe(const hash_digest& block_hash) const override;
 
-    /// Get the hash of the block if it exists.
-    bool get_block_hash(hash_digest& out_hash, size_t height) const override;
-
     /// Get the work of the branch starting at the given height.
-    bool get_branch_work(uint256_t& out_work, const uint256_t& maximum,
-        size_t height) const override;
+    bool get_branch_work(uint256_t& out_work, const uint256_t& maximum, size_t height) const override;
 
     /// Get the header of the block at the given height.
     bool get_header(chain::header& out_header, size_t height) const override;
@@ -89,34 +106,23 @@ public:
     bool get_height(size_t& out_height, const hash_digest& block_hash) const override;
 
     /// Get the bits of the block with the given height.
-    bool get_bits(uint32_t& out_bits, const size_t& height) const override;
+    bool get_bits(uint32_t& out_bits, size_t height) const override;
 
     /// Get the timestamp of the block with the given height.
-    bool get_timestamp(uint32_t& out_timestamp, const size_t& height) const override;
+    bool get_timestamp(uint32_t& out_timestamp, size_t height) const override;
 
     /// Get the version of the block with the given height.
-    bool get_version(uint32_t& out_version, const size_t& height) const override;
+    bool get_version(uint32_t& out_version, size_t height) const override;
 
     /// Get height of latest block.
     bool get_last_height(size_t& out_height) const override;
 
-    /// Get the output that is referenced by the outpoint.
-    bool get_output(chain::output& out_output, size_t& out_height,
-        uint32_t& out_median_time_past, bool& out_coinbase,
-        const chain::output_point& outpoint, size_t branch_height,
-        bool require_confirmed) const override;
 
-    bool get_output_is_confirmed(chain::output& out_output, size_t& out_height,
-        bool& out_coinbase, bool& out_is_confirmed, const chain::output_point& outpoint,
-        size_t branch_height, bool require_confirmed) const;
+    void prune_reorg_async() override;
 
-    /// Determine if an unspent transaction exists with the given hash.
-    bool get_is_unspent_transaction(const hash_digest& hash,
-        size_t branch_height, bool require_confirmed) const override;
+    /// Get the hash of the block if it exists.
+    bool get_block_hash(hash_digest& out_hash, size_t height) const override;
 
-    /// Get position data for a transaction.
-    bool get_transaction_position(size_t& out_height, size_t& out_position,
-        const hash_digest& hash, bool require_confirmed) const override;
 
     /////// Get the transaction of the given hash and its block height.
     ////transaction_ptr get_transaction(size_t& out_block_height,
@@ -126,11 +132,13 @@ public:
     // ------------------------------------------------------------------------
     // Thread safe, insert does not set sequential lock.
 
+#ifdef BITPRIM_DB_LEGACY
     /// Create flush lock if flush_writes is true, and set sequential lock.
     bool begin_insert() const override;
 
     /// Clear flush lock if flush_writes is true, and clear sequential lock.
     bool end_insert() const override;
+#endif // BITPRIM_DB_LEGACY
 
     /// Insert a block to the blockchain, height is checked for existence.
     /// Reads and reorgs are undefined when chain is gapped.
@@ -177,82 +185,72 @@ public:
     // Node Queries.
     // ------------------------------------------------------------------------
 
+#ifdef BITPRIM_DB_LEGACY
     /// fetch a block by height.
-    void fetch_block(size_t height, bool witness,
-        block_fetch_handler handler) const override;
+    void fetch_block(size_t height, bool witness, block_fetch_handler handler) const override;
 
     /// fetch a block by hash.
-    void fetch_block(const hash_digest& hash, bool witness,
-        block_fetch_handler handler) const override;
+    void fetch_block(const hash_digest& hash, bool witness, block_fetch_handler handler) const override;
 
-    void fetch_block_header_txs_size(const hash_digest& hash,
-        block_header_txs_size_fetch_handler handler) const override;
-
-    void fetch_block_hash_timestamp(size_t height,
-        block_hash_time_fetch_handler handler) const override;
-
-    /// fetch block header by height.
-    // virtual      // OLD previo a merge de Feb2017 
-    void fetch_block_header(size_t height, block_header_fetch_handler handler) const override;
-
-
-    /// fetch block header by hash.
-    void fetch_block_header(const hash_digest& hash,
-        block_header_fetch_handler handler) const override;
+    void fetch_block_header_txs_size(const hash_digest& hash, block_header_txs_size_fetch_handler handler) const override;
 
     /// fetch hashes of transactions for a block, by block height.
     void fetch_merkle_block(size_t height, merkle_block_fetch_handler handler) const override;
 
     /// fetch hashes of transactions for a block, by block hash.
-    void fetch_merkle_block(const hash_digest& hash,
-        merkle_block_fetch_handler handler) const override;
+    void fetch_merkle_block(const hash_digest& hash, merkle_block_fetch_handler handler) const override;
 
     /// fetch compact block by block height.
-    void fetch_compact_block(size_t height,
-        compact_block_fetch_handler handler) const override;
+    void fetch_compact_block(size_t height, compact_block_fetch_handler handler) const override;
 
     /// fetch compact block by block hash.
-    void fetch_compact_block(const hash_digest& hash,
-        compact_block_fetch_handler handler) const override;
+    void fetch_compact_block(const hash_digest& hash, compact_block_fetch_handler handler) const override;
 
-    /// fetch height of block by hash.
-    void fetch_block_height(const hash_digest& hash,
-        block_height_fetch_handler handler) const override;
-
-    /// fetch height of latest block.
-    void fetch_last_height(last_height_fetch_handler handler) const override;
 
     /// fetch transaction by hash.
-    void fetch_transaction(const hash_digest& hash, bool require_confirmed,
-        bool witness, transaction_fetch_handler handler) const override;
-
-    /// fetch unconfirmed transaction by hash.
-    void fetch_unconfirmed_transaction(const hash_digest& hash,
-        transaction_unconfirmed_fetch_handler handler) const;
-
-    std::vector<mempool_transaction_summary> get_mempool_transactions(std::vector<std::string> const& payment_addresses, bool use_testnet_rules, bool witness) const override;
-    std::vector<mempool_transaction_summary> get_mempool_transactions(std::string const& payment_address, bool use_testnet_rules, bool witness) const override;
+    void fetch_transaction(const hash_digest& hash, bool require_confirmed, bool witness, transaction_fetch_handler handler) const override;
 
     std::vector<chain::transaction> get_mempool_transactions_from_wallets(std::vector<wallet::payment_address> const& payment_addresses, bool use_testnet_rules, bool witness) const;
 
     /// fetch position and height within block of transaction by hash.
-    void fetch_transaction_position(const hash_digest& hash,
-        bool require_confirmed, transaction_index_fetch_handler handler) const override;
+    void fetch_transaction_position(const hash_digest& hash, bool require_confirmed, transaction_index_fetch_handler handler) const override;
 
     /// fetch the set of block hashes indicated by the block locator.
-    void fetch_locator_block_hashes(get_blocks_const_ptr locator,
-        const hash_digest& threshold, size_t limit,
-        inventory_fetch_handler handler) const override;
+    void fetch_locator_block_hashes(get_blocks_const_ptr locator, const hash_digest& threshold, size_t limit, inventory_fetch_handler handler) const override;
+
+#endif // BITPRIM_DB_LEGACY
 
     /// fetch the set of block headers indicated by the block locator.
-    void fetch_locator_block_headers(get_headers_const_ptr locator,
-        const hash_digest& threshold, size_t limit,
-        locator_block_headers_fetch_handler handler) const override;
+    void fetch_locator_block_headers(get_headers_const_ptr locator, const hash_digest& threshold, size_t limit, locator_block_headers_fetch_handler handler) const override;
 
     /// fetch a block locator relative to the current top and threshold.
-    void fetch_block_locator(const chain::block::indexes& heights,
-        block_locator_fetch_handler handler) const override;
+    void fetch_block_locator(const chain::block::indexes& heights, block_locator_fetch_handler handler) const override;
 
+    /// fetch height of latest block.
+    void fetch_last_height(last_height_fetch_handler handler) const override;
+
+        /// fetch block header by height.
+    void fetch_block_header(size_t height, block_header_fetch_handler handler) const override;
+
+    /// fetch block header by hash.
+    void fetch_block_header(const hash_digest& hash, block_header_fetch_handler handler) const override;
+
+    /// fetch height of block by hash.
+    void fetch_block_height(const hash_digest& hash, block_height_fetch_handler handler) const override;
+    
+    void fetch_block_hash_timestamp(size_t height, block_hash_time_fetch_handler handler) const override;
+
+
+#ifdef BITPRIM_DB_TRANSACTION_UNCONFIRMED
+    /// fetch unconfirmed transaction by hash.
+    void fetch_unconfirmed_transaction(const hash_digest& hash, transaction_unconfirmed_fetch_handler handler) const;
+
+    std::vector<mempool_transaction_summary> get_mempool_transactions(std::vector<std::string> const& payment_addresses, bool use_testnet_rules, bool witness) const override;
+    std::vector<mempool_transaction_summary> get_mempool_transactions(std::string const& payment_address, bool use_testnet_rules, bool witness) const override;
+#endif // BITPRIM_DB_TRANSACTION_UNCONFIRMED
+
+
+#ifdef BITPRIM_DB_LEGACY
     // Bitprim non-virtual functions.
     //-------------------------------------------------------------------------
     template <typename I>
@@ -273,6 +271,7 @@ public:
             ++f;
         }
     }
+#endif // BITPRIM_DB_LEGACY    
 
     void for_each_transaction(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const;
 
@@ -283,21 +282,24 @@ public:
     // Server Queries.
     //-------------------------------------------------------------------------
 
+#ifdef BITPRIM_DB_SPENDS
     /// fetch the inpoint (spender) of an outpoint.
-    void fetch_spend(const chain::output_point& outpoint,
-        spend_fetch_handler handler) const override;
+    void fetch_spend(const chain::output_point& outpoint, spend_fetch_handler handler) const override;
+#endif // BITPRIM_DB_SPENDS
 
+#ifdef BITPRIM_DB_HISTORY
     /// fetch outputs, values and spends for an address_hash.
-    void fetch_history(const short_hash& address_hash, size_t limit,
-        size_t from_height, history_fetch_handler handler) const override;
+    void fetch_history(const short_hash& address_hash, size_t limit, size_t from_height, history_fetch_handler handler) const override;
 
     /// Fetch all the txns used by the wallet
-    void fetch_confirmed_transactions(const short_hash& address_hash, size_t limit,
-                                      size_t from_height, confirmed_transactions_fetch_handler handler) const override;
+    void fetch_confirmed_transactions(const short_hash& address_hash, size_t limit, size_t from_height, confirmed_transactions_fetch_handler handler) const override;
+#endif // BITPRIM_DB_HISTORY
 
+
+#ifdef BITPRIM_DB_STEALTH
     /// fetch stealth results.
-    void fetch_stealth(const binary& filter, size_t from_height,
-        stealth_fetch_handler handler) const override;
+    void fetch_stealth(const binary& filter, size_t from_height, stealth_fetch_handler handler) const override;
+#endif // BITPRIM_DB_STEALTH
 
     // Transaction Pool.
     //-------------------------------------------------------------------------
@@ -306,13 +308,14 @@ public:
     void fetch_template(merkle_block_fetch_handler handler) const override;
 
     /// Fetch an inventory vector for a rational "mempool" message response.
-    void fetch_mempool(size_t count_limit, uint64_t minimum_fee,
-        inventory_fetch_handler handler) const override;
+    void fetch_mempool(size_t count_limit, uint64_t minimum_fee, inventory_fetch_handler handler) const override;
 
 
+#ifdef BITPRIM_DB_TRANSACTION_UNCONFIRMED
     mempool_mini_hash_map get_mempool_mini_hash_map(message::compact_block const& block) const override;
-
     void fill_tx_list_from_mempool(message::compact_block const& block, size_t& mempool_count, std::vector<chain::transaction>& txn_available, std::unordered_map<uint64_t, uint16_t> const& shorttxids) const override;
+#endif // BITPRIM_DB_TRANSACTION_UNCONFIRMED
+
 
 
     // Filters.
@@ -321,9 +324,10 @@ public:
     /// Filter out block by hash that exist in the block pool or store.
     void filter_blocks(get_data_ptr message, result_handler handler) const override;
 
+#ifdef BITPRIM_DB_LEGACY
     /// Filter out confirmed and unconfirmed transactions by hash.
-    void filter_transactions(get_data_ptr message,
-        result_handler handler) const override;
+    void filter_transactions(get_data_ptr message, result_handler handler) const override;
+#endif // BITPRIM_DB_LEGACY
 
     // Subscribers.
     //-------------------------------------------------------------------------
@@ -360,7 +364,7 @@ public:
     /// Get a reference to the blockchain configuration settings.
     const settings& chain_settings() const;
 
-#ifdef WITH_MINING
+#ifdef BITPRIM_WITH_MINING
     struct tx_benefit {
         double benefit;
         size_t tx_sigops;
@@ -382,7 +386,7 @@ public:
     std::vector<block_chain::tx_benefit> get_gbt_tx_list() const;
     bool add_to_chosen_list(transaction_const_ptr tx) override;
     void remove_mined_txs_from_chosen_list(block_const_ptr blk) override;
-#endif // WITH_MINING
+#endif // BITPRIM_WITH_MINING
 
 #ifdef WITH_KEOKEN    
     virtual void fetch_keoken_history(const short_hash& address_hash, size_t limit,
@@ -450,7 +454,7 @@ private:
     transaction_organizer transaction_organizer_;
     block_organizer block_organizer_;
 
-#ifdef WITH_MINING
+#ifdef BITPRIM_WITH_MINING
     bool get_transaction_is_confirmed(libbitcoin::hash_digest tx_hash);
     void append_spend(transaction_const_ptr tx);
     void remove_spend(libbitcoin::hash_digest const& hash);
@@ -468,7 +472,7 @@ private:
     std::unordered_map<hash_digest, std::vector<prev_output>> chosen_spent_;
     mutable std::mutex gbt_mutex_; // Protect chosen unconfirmed transaction list
     std::atomic_bool gbt_ready_; // Getblocktemplate ready
-#endif // WITH_MINING
+#endif // BITPRIM_WITH_MINING
 
 #endif // WITH_BLOCKCHAIN_REQUESTER
 };

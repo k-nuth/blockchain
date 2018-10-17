@@ -78,7 +78,71 @@ endif()
 option(WITH_MINING "Mining enabled." OFF)
 if (WITH_MINING)
   message(STATUS "Bitprim: MINING enabled")
-  add_definitions(-DWITH_MINING)
+  add_definitions(-DBITPRIM_WITH_MINING)
+endif()
+
+# Implement --use-domain and declare USE_DOMAIN.
+#------------------------------------------------------------------------------
+option(USE_DOMAIN "Domain enabled." OFF)
+if (USE_DOMAIN)
+  message(STATUS "Bitprim: Using Domain enabled")
+  add_definitions(-DBITPRIM_USE_DOMAIN)
+endif()
+
+# Implement and declare DB_TRANSACTION_UNCONFIRMED.
+#------------------------------------------------------------------------------
+option(DB_TRANSACTION_UNCONFIRMED "DB Transactions Unconfirmed enabled." OFF)
+if (DB_TRANSACTION_UNCONFIRMED)
+  message(STATUS "Bitprim: DB Transactions Unconfirmed enabled")
+  add_definitions(-DBITPRIM_DB_TRANSACTION_UNCONFIRMED)
+endif()
+
+# Implement and declare DB_SPENDS.
+#------------------------------------------------------------------------------
+option(DB_SPENDS "DB Spends enabled." OFF)
+if (DB_SPENDS)
+  message(STATUS "Bitprim: DB Spends enabled")
+  add_definitions(-DBITPRIM_DB_SPENDS)
+endif()
+
+# Implement and declare DB_HISTORY.
+#------------------------------------------------------------------------------
+option(DB_HISTORY "DB History enabled." OFF)
+if (DB_HISTORY)
+  message(STATUS "Bitprim: DB History enabled")
+  add_definitions(-DBITPRIM_DB_HISTORY)
+endif()
+
+# Implement and declare DB_STEALTH.
+#------------------------------------------------------------------------------
+option(DB_STEALTH "DB Stealth enabled." OFF)
+if (DB_STEALTH)
+  message(STATUS "Bitprim: DB Stealth enabled")
+  add_definitions(-DBITPRIM_DB_STEALTH)
+endif()
+
+# Implement and declare DB_UNSPENT_LIBBITCOIN.
+#------------------------------------------------------------------------------
+option(DB_UNSPENT_LIBBITCOIN "DB Unspent Libbitcoin enabled." OFF)
+if (DB_UNSPENT_LIBBITCOIN)
+  message(STATUS "Bitprim: DB Unspent Libbitcoin enabled")
+  add_definitions(-DBITPRIM_DB_UNSPENT_LIBBITCOIN)
+endif()
+
+# Implement and declare DB_LEGACY.
+#------------------------------------------------------------------------------
+option(DB_LEGACY "DB Legacy enabled." OFF)
+if (DB_LEGACY)
+  message(STATUS "Bitprim: DB Legacy enabled")
+  add_definitions(-DBITPRIM_DB_LEGACY)
+endif()
+
+# Implement and declare DB_NEW.
+#------------------------------------------------------------------------------
+option(DB_NEW "DB New enabled." OFF)
+if (DB_NEW)
+  message(STATUS "Bitprim: DB New enabled")
+  add_definitions(-DBITPRIM_DB_NEW)
 endif()
 
 
@@ -451,6 +515,7 @@ if (WITH_TESTS)
     test/transaction_pool.cpp
     test/validate_block.cpp
     test/validate_transaction.cpp
+    test/utxo.cpp
     test/main.cpp
   )
 
@@ -460,8 +525,6 @@ if (WITH_TESTS)
   # _add_tests(bitprim_blockchain_test "blockchain" transaction_pool_tests) # validate_block_tests) # no test cases
 
   _add_tests(bitprim_blockchain_test 
-    fast_chain_tests
-    safe_chain_tests
     block_entry_tests
     block_pool_tests
     branch_tests
@@ -469,6 +532,21 @@ if (WITH_TESTS)
     validate_block_tests
     validate_transaction_tests
   )
+
+  if (DB_LEGACY)
+    _add_tests(bitprim_blockchain_test 
+      fast_chain_tests
+      safe_chain_tests
+    )
+  endif()
+
+  if (DB_NEW)
+    _add_tests(bitprim_blockchain_test 
+      utxo_tests
+    )
+  endif()
+
+
 endif()
 
 if (WITH_TESTS_NEW)

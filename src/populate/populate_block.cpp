@@ -35,25 +35,37 @@ using namespace bc::machine;
 
 // Database access is limited to calling populate_base.
 
-populate_block::populate_block(dispatcher& dispatch, const fast_chain& chain,
-    bool relay_transactions)
-  : populate_base(dispatch, chain),
-    relay_transactions_(relay_transactions)
-{
+populate_block::populate_block(dispatcher& dispatch, fast_chain const& chain, bool relay_transactions)
+    : populate_base(dispatch, chain)
+    , relay_transactions_(relay_transactions)
+{}
+
+local_utxo_t create_local_utxo_set(chain::block const& block) {
+    //TODO(fernando): confirm if there is a validation to check that the coinbase tx is not spend, before this.
+    //                we avoid to insert the coinbase in the local utxo set
+
+    local_utxo_t res;
+    res.reserve(block.transactions().size());
+    for (auto const& tx : block.transactions()) {
+        auto const& outputs = tx.outputs();
+        for (uint32_t idx = 0; idx < outputs.size(); ++idx) {
+            auto const& output = outputs[idx];
+            res.emplace(output_point{tx.hash(), idx}, std::addressof(output));
+        }
+    }
+    return res;
 }
 
-void populate_block::populate(branch::const_ptr branch,
-    result_handler&& handler) const
-{
-    const auto block = branch->top();
+
+void populate_block::populate(branch::const_ptr branch, result_handler&& handler) const {
+    auto const block = branch->top();
     BITCOIN_ASSERT(block);
 
-    const auto state = block->validation.state;
+    auto const state = block->validation.state;
     BITCOIN_ASSERT(state);
 
     // Return if this blocks is under a checkpoint, block state not requried.
-    if (state->is_under_checkpoint())
-    {
+    if (state->is_under_checkpoint()) {
         handler(error::success);
         return;
     }
@@ -61,37 +73,45 @@ void populate_block::populate(branch::const_ptr branch,
     // Handle the coinbase as a special case tx.
     populate_coinbase(branch, block);
 
-    const auto non_coinbase_inputs = block->total_inputs(false);
+    auto const non_coinbase_inputs = block->total_inputs(false);
 
     // Return if there are no non-coinbase inputs to validate.
-    if (non_coinbase_inputs == 0)
-    {
+    if (non_coinbase_inputs == 0) {
         handler(error::success);
         return;
     }
 
-    const auto buckets = std::min(dispatch_.size(), non_coinbase_inputs);
-    const auto join_handler = synchronize(std::move(handler), buckets, NAME);
+    auto const buckets = std::min(dispatch_.size(), non_coinbase_inputs);
+    auto const join_handler = synchronize(std::move(handler), buckets, NAME);
     BITCOIN_ASSERT(buckets != 0);
+    // LOG_INFO(LOG_BLOCKCHAIN) << "populate_block::populate - buckets:  " << buckets;
 
-    for (size_t bucket = 0; bucket < buckets; ++bucket)
-        dispatch_.concurrent(&populate_block::populate_transactions,
-            this, branch, bucket, buckets, join_handler);
+
+    auto t0 = std::chrono::high_resolution_clock::now();
+
+    auto local_utxo = create_local_utxo_set(*block);
+
+    auto t1 = std::chrono::high_resolution_clock::now();
+    auto const elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0);
+    LOG_INFO(LOG_BLOCKCHAIN) << "create_local_utxo_set elapsed:  " << elapsed.count();
+
+
+    for (size_t bucket = 0; bucket < buckets; ++bucket) {
+        dispatch_.concurrent(&populate_block::populate_transactions, this, branch, bucket, buckets, local_utxo, join_handler);
+    }
 }
 
 // Initialize the coinbase input for subsequent validation.
-void populate_block::populate_coinbase(branch::const_ptr branch,
-    block_const_ptr block) const
-{
-    const auto& txs = block->transactions();
-    const auto state = block->validation.state;
+void populate_block::populate_coinbase(branch::const_ptr branch, block_const_ptr block) const {
+    auto const& txs = block->transactions();
+    auto const state = block->validation.state;
     BITCOIN_ASSERT(!txs.empty());
 
-    const auto& coinbase = txs.front();
+    auto const& coinbase = txs.front();
     BITCOIN_ASSERT(coinbase.is_coinbase());
 
     // A coinbase tx guarantees exactly one input.
-    const auto& input = coinbase.inputs().front();
+    auto const& input = coinbase.inputs().front();
     auto& prevout = input.previous_output().validation;
 
     // A coinbase input cannot be a double spend since it originates coin.
@@ -111,8 +131,7 @@ void populate_block::populate_coinbase(branch::const_ptr branch,
     // hard fork that destroys unspent outputs in case of hash collision.
     // The tx duplicate check must apply to coinbase txs, handled here.
     //*************************************************************************
-    if (!state->is_enabled(rule_fork::allow_collisions))
-    {
+    if ( ! state->is_enabled(rule_fork::allow_collisions)) {
         populate_base::populate_duplicate(branch->height(), coinbase, true);
         ////populate_duplicate(branch, coinbase);
     }
@@ -125,26 +144,27 @@ void populate_block::populate_coinbase(branch::const_ptr branch,
 ////        branch->populate_duplicate(tx);
 ////}
 
-void populate_block::populate_transactions(branch::const_ptr branch,
-    size_t bucket, size_t buckets, result_handler handler) const
-{
+
+void populate_block::populate_transactions(branch::const_ptr branch, size_t bucket, size_t buckets, local_utxo_t const& local_utxo, result_handler handler) const {
+
+    // TODO(fernando): check how to replace it with UTXO
+    // asm("int $3");  //TODO(fernando): remover
+
     BITCOIN_ASSERT(bucket < buckets);
-    const auto block = branch->top();
-    const auto branch_height = branch->height();
-    const auto& txs = block->transactions();
+    auto const block = branch->top();
+    auto const branch_height = branch->height();
+    auto const& txs = block->transactions();
     size_t input_position = 0;
 
-    const auto state = block->validation.state;
-    const auto forks = state->enabled_forks();
-    const auto collide = state->is_enabled(rule_fork::allow_collisions);
+    auto const state = block->validation.state;
+    auto const forks = state->enabled_forks();
+    auto const collide = state->is_enabled(rule_fork::allow_collisions);
 
     // Must skip coinbase here as it is already accounted for.
-    const auto first = bucket == 0 ? buckets : bucket;
+    auto const first = bucket == 0 ? buckets : bucket;
 
-    for (auto position = first; position < txs.size();
-        position = ceiling_add(position, buckets))
-    {
-        const auto& tx = txs[position];
+    for (auto position = first; position < txs.size(); position = ceiling_add(position, buckets)) {
+        auto const& tx = txs[position];
 
         //---------------------------------------------------------------------
         // This prevents output validation and full tx deposit respectively.
@@ -154,50 +174,73 @@ void populate_block::populate_transactions(branch::const_ptr branch,
         // However the hit is necessary in preventing store tx duplication
         // unless tx relay is disabled. In that case duplication is unlikely.
         //---------------------------------------------------------------------
-        if (relay_transactions_)
+
+        //TODO(fernando): check again why this is not implemented?
+#ifdef BITPRIM_DB_LEGACY
+        if (relay_transactions_) {
             populate_base::populate_pooled(tx, forks);
+        }
+#endif
 
         //*********************************************************************
         // CONSENSUS: Satoshi implemented allow collisions in Nov 2015. This is
         // a hard fork that destroys unspent outputs in case of hash collision.
         //*********************************************************************
-        if (!collide)
-        {
+        //TODO(fernando): check again why this is not implemented?
+#ifdef BITPRIM_DB_LEGACY    
+        if ( ! collide) {
             populate_base::populate_duplicate(branch->height(), tx, true);
             ////populate_duplicate(branch, coinbase);
         }
+#endif
     }
 
+    // // Must skip coinbase here as it is already accounted for.
+    // for (auto tx = txs.begin() + 1; tx != txs.end(); ++tx) {
+    //     auto const& inputs = tx->inputs();
+
+    //     for (size_t input_index = 0; input_index < inputs.size(); ++input_index, ++input_position) {
+    //         if (input_position % buckets != bucket) {
+    //             continue;
+    //         }
+
+    //         auto const& input = inputs[input_index];
+    //         auto const& prevout = input.previous_output();
+    //         populate_base::populate_prevout(branch_height, prevout, true);
+    //         populate_prevout(branch, prevout);
+    //     }
+    // }
+
     // Must skip coinbase here as it is already accounted for.
-    for (auto tx = txs.begin() + 1; tx != txs.end(); ++tx)
-    {
-        const auto& inputs = tx->inputs();
+    for (auto tx = txs.begin() + 1; tx != txs.end(); ++tx) {
+        auto const& inputs = tx->inputs();
 
-        for (size_t input_index = 0; input_index < inputs.size();
-            ++input_index, ++input_position)
-        {
-            if (input_position % buckets != bucket)
+        for (size_t input_index = 0; input_index < inputs.size(); ++input_index, ++input_position) {
+            if (input_position % buckets != bucket) {
                 continue;
+            }
 
-            const auto& input = inputs[input_index];
-            const auto& prevout = input.previous_output();
-            populate_base::populate_prevout(branch_height, prevout, true);
-            populate_prevout(branch, prevout);
+            auto const& input = inputs[input_index];
+            auto const& prevout = input.previous_output();
+            populate_base::populate_prevout(branch_height, prevout, true);  //Populate from Database
+            populate_prevout(branch, prevout, local_utxo);                              //Populate from Block
         }
     }
 
     handler(error::success);
 }
 
-void populate_block::populate_prevout(branch::const_ptr branch,
-    const output_point& outpoint) const
-{
-    if (!outpoint.validation.spent)
+
+
+void populate_block::populate_prevout(branch::const_ptr branch, output_point const& outpoint, local_utxo_t const& local_utxo) const {
+    if ( ! outpoint.validation.spent) {
         branch->populate_spent(outpoint);
+    }
 
     // Populate the previous output even if it is spent.
-    if (!outpoint.validation.cache.is_valid())
-        branch->populate_prevout(outpoint);
+    if ( ! outpoint.validation.cache.is_valid()) {
+        branch->populate_prevout(outpoint, local_utxo);
+    }
 }
 
 } // namespace blockchain
