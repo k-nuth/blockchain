@@ -210,6 +210,8 @@ public:
     /// fetch transaction by hash.
     void fetch_transaction(const hash_digest& hash, bool require_confirmed, bool witness, transaction_fetch_handler handler) const override;
 
+    std::vector<chain::transaction> get_mempool_transactions_from_wallets(std::vector<wallet::payment_address> const& payment_addresses, bool use_testnet_rules, bool witness) const;
+
     /// fetch position and height within block of transaction by hash.
     void fetch_transaction_position(const hash_digest& hash, bool require_confirmed, transaction_index_fetch_handler handler) const override;
 
@@ -385,6 +387,17 @@ public:
     bool add_to_chosen_list(transaction_const_ptr tx) override;
     void remove_mined_txs_from_chosen_list(block_const_ptr blk) override;
 #endif // BITPRIM_WITH_MINING
+
+#ifdef WITH_KEOKEN    
+    virtual void fetch_keoken_history(const short_hash& address_hash, size_t limit,
+        size_t from_height, keoken_history_fetch_handler handler) const override;
+
+    virtual void fetch_block_keoken(const hash_digest& hash, bool witness,
+        block_keoken_fetch_handler handler) const override;
+
+    virtual void convert_to_keo_transaction(const hash_digest& hash,
+      std::shared_ptr<std::vector<transaction_const_ptr>> keoken_txs) const override;
+#endif
 
 protected:
 
