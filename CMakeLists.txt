@@ -91,7 +91,7 @@ endif()
 
 # Implement and declare DB_TRANSACTION_UNCONFIRMED.
 #------------------------------------------------------------------------------
-option(DB_TRANSACTION_UNCONFIRMED "DB Transactions Unconfirmed enabled." OFF)
+option(DB_TRANSACTION_UNCONFIRMED "DB Transactions Unconfirmed enabled." ON)
 if (DB_TRANSACTION_UNCONFIRMED)
   message(STATUS "Bitprim: DB Transactions Unconfirmed enabled")
   add_definitions(-DBITPRIM_DB_TRANSACTION_UNCONFIRMED)
@@ -99,7 +99,7 @@ endif()
 
 # Implement and declare DB_SPENDS.
 #------------------------------------------------------------------------------
-option(DB_SPENDS "DB Spends enabled." OFF)
+option(DB_SPENDS "DB Spends enabled." ON)
 if (DB_SPENDS)
   message(STATUS "Bitprim: DB Spends enabled")
   add_definitions(-DBITPRIM_DB_SPENDS)
@@ -107,7 +107,7 @@ endif()
 
 # Implement and declare DB_HISTORY.
 #------------------------------------------------------------------------------
-option(DB_HISTORY "DB History enabled." OFF)
+option(DB_HISTORY "DB History enabled." ON)
 if (DB_HISTORY)
   message(STATUS "Bitprim: DB History enabled")
   add_definitions(-DBITPRIM_DB_HISTORY)
@@ -115,7 +115,7 @@ endif()
 
 # Implement and declare DB_STEALTH.
 #------------------------------------------------------------------------------
-option(DB_STEALTH "DB Stealth enabled." OFF)
+option(DB_STEALTH "DB Stealth enabled." ON)
 if (DB_STEALTH)
   message(STATUS "Bitprim: DB Stealth enabled")
   add_definitions(-DBITPRIM_DB_STEALTH)
@@ -123,7 +123,7 @@ endif()
 
 # Implement and declare DB_UNSPENT_LIBBITCOIN.
 #------------------------------------------------------------------------------
-option(DB_UNSPENT_LIBBITCOIN "DB Unspent Libbitcoin enabled." OFF)
+option(DB_UNSPENT_LIBBITCOIN "DB Unspent Libbitcoin enabled." ON)
 if (DB_UNSPENT_LIBBITCOIN)
   message(STATUS "Bitprim: DB Unspent Libbitcoin enabled")
   add_definitions(-DBITPRIM_DB_UNSPENT_LIBBITCOIN)
@@ -131,7 +131,7 @@ endif()
 
 # Implement and declare DB_LEGACY.
 #------------------------------------------------------------------------------
-option(DB_LEGACY "DB Legacy enabled." OFF)
+option(DB_LEGACY "DB Legacy enabled." ON)
 if (DB_LEGACY)
   message(STATUS "Bitprim: DB Legacy enabled")
   add_definitions(-DBITPRIM_DB_LEGACY)

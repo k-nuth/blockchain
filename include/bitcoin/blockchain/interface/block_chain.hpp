@@ -90,7 +90,7 @@ public:
 #endif// BITPRIM_DB_NEW
 
 
-        /// Get a determination of whether the block hash exists in the store.
+    /// Get a determination of whether the block hash exists in the store.
     bool get_block_exists(const hash_digest& block_hash) const override;
 
     /// Get a determination of whether the block hash exists in the store.
