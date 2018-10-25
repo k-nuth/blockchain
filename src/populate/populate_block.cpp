@@ -87,13 +87,13 @@ void populate_block::populate(branch::const_ptr branch, result_handler&& handler
     // LOG_INFO(LOG_BLOCKCHAIN) << "populate_block::populate - buckets:  " << buckets;
 
 
-    auto t0 = std::chrono::high_resolution_clock::now();
+    //auto t0 = std::chrono::high_resolution_clock::now();
 
     auto local_utxo = create_local_utxo_set(*block);
 
-    auto t1 = std::chrono::high_resolution_clock::now();
-    auto const elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0);
-    LOG_INFO(LOG_BLOCKCHAIN) << "create_local_utxo_set elapsed:  " << elapsed.count();
+    //auto t1 = std::chrono::high_resolution_clock::now();
+    //auto const elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0);
+    //LOG_INFO(LOG_BLOCKCHAIN) << "create_local_utxo_set elapsed:  " << elapsed.count();
 
 
     for (size_t bucket = 0; bucket < buckets; ++bucket) {
