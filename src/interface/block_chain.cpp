@@ -373,6 +373,8 @@ bool block_chain::get_utxo(chain::output& out_output, size_t& out_height, uint32
 
     return true;
 }
+
+
 #endif// BITPRIM_DB_NEW
 
 
@@ -1178,7 +1180,255 @@ void block_chain::fetch_transaction(hash_digest const& hash,
 }
 #endif // BITPRIM_DB_LEGACY
 
+#ifdef BITPRIM_DB_NEW_BLOCKS
 
+void block_chain::fetch_block(size_t height, bool witness,
+    block_fetch_handler handler) const
+{
+#ifdef BITPRIM_CURRENCY_BCH
+    witness = false;
+#endif
+    if (stopped())
+    {
+        handler(error::service_stopped, nullptr, 0);
+        return;
+    }
+
+    auto const cached = last_block_.load();
+
+    // Try the cached block first.
+    if (cached && cached->validation.state &&
+        cached->validation.state->height() == height)
+    {
+        handler(error::success, cached, height);
+        return;
+    }
+
+    auto const block_result = database_.internal_db().get_block(height);
+
+    if (!block_result.is_valid())
+    {
+        handler(error::not_found, nullptr, 0);
+        return;
+    }
+
+    auto const result = std::make_shared<const block>(block_result);
+
+    handler(error::success, result, height);
+}
+
+void block_chain::fetch_block(hash_digest const& hash, bool witness,
+    block_fetch_handler handler) const
+{
+#ifdef BITPRIM_CURRENCY_BCH
+    witness = false;
+#endif
+    if (stopped())
+    {
+        handler(error::service_stopped, nullptr, 0);
+        return;
+    }
+
+    auto const cached = last_block_.load();
+
+    // Try the cached block first.
+    if (cached && cached->validation.state && cached->hash() == hash)
+    {
+        handler(error::success, cached, cached->validation.state->height());
+        return;
+    }
+
+    auto const block_result = database_.internal_db().get_block(hash);
+
+    if (!block_result.first.is_valid())
+    {
+        handler(error::not_found, nullptr, 0);
+        return;
+    }
+
+    auto const height = block_result.second; 
+
+    auto const result = std::make_shared<const block>(block_result.first);
+
+    handler(error::success, result, height);
+}
+
+void block_chain::fetch_block_header_txs_size(hash_digest const& hash,
+    block_header_txs_size_fetch_handler handler) const
+{
+    if (stopped())
+    {
+        handler(error::service_stopped, nullptr, 0, std::make_shared<hash_list>(hash_list()),0);
+        return;
+    }
+
+    auto const block_result = database_.internal_db().get_block(hash);
+
+    if (!block_result.first.is_valid())
+    {
+        handler(error::not_found, nullptr, 0, std::make_shared<hash_list>(hash_list()),0);
+        return;
+    }
+
+    auto const height = block_result.second; 
+    auto const result = std::make_shared<const header>(block_result.first.header());
+    auto const tx_hashes = std::make_shared<hash_list>(block_result.first.to_hashes());
+    //TODO encapsulate header and tx_list
+    handler(error::success, result, height, tx_hashes, block_result.first.serialized_size());
+}
+
+
+// void block_chain::fetch_merkle_block(size_t height, transaction_hashes_fetch_handler handler) const
+void block_chain::fetch_merkle_block(size_t height, merkle_block_fetch_handler handler) const
+{
+    if (stopped())
+    {
+        handler(error::service_stopped, nullptr, 0);
+        return;
+    }
+
+    auto const block_result = database_.internal_db().get_block(height);
+
+    if (!block_result.is_valid())
+    {
+        handler(error::not_found, nullptr, 0);
+        return;
+    }
+
+    auto const merkle = std::make_shared<merkle_block>(block_result.header(),
+        block_result.transactions().size(), block_result.to_hashes(), data_chunk{});
+    handler(error::success, merkle, height);
+}
+
+void block_chain::fetch_merkle_block(hash_digest const& hash,
+    merkle_block_fetch_handler handler) const
+{
+    if (stopped())
+    {
+        handler(error::service_stopped, nullptr, 0);
+        return;
+    }
+
+    auto const block_result = database_.internal_db().get_block(hash);
+
+    if (!block_result.first.is_valid())
+    {
+        handler(error::not_found, nullptr, 0);
+        return;
+    }
+
+    auto const merkle = std::make_shared<merkle_block>(block_result.first.header(),
+        block_result.first.transactions().size(), block_result.first.to_hashes(), data_chunk{});
+    handler(error::success, merkle, block_result.second);
+}
+
+void block_chain::fetch_compact_block(size_t height, compact_block_fetch_handler handler) const {
+    // TODO (Mario): implement compact blocks.
+    handler(error::not_implemented, {}, 0);
+}
+
+void block_chain::fetch_compact_block(hash_digest const& hash, compact_block_fetch_handler handler) const {
+#ifdef BITPRIM_CURRENCY_BCH
+    bool witness = false;
+#else
+    bool witness = true;
+#endif
+    if (stopped()) {
+        handler(error::service_stopped, {},0);
+        return;
+    }
+    
+    fetch_block(hash, witness,[&handler](const code& ec, block_const_ptr message, size_t height) {
+        if (ec == error::success) {
+            auto blk_ptr = std::make_shared<compact_block>(compact_block::factory_from_block(*message));
+            handler(error::success, blk_ptr, height);
+        } else {
+            handler(ec, nullptr, height);
+        }
+    });
+}
+
+// This may execute over 500 queries.
+void block_chain::fetch_locator_block_hashes(get_blocks_const_ptr locator,
+    hash_digest const& threshold, size_t limit,
+    inventory_fetch_handler handler) const
+{
+    if (stopped())
+    {
+        handler(error::service_stopped, nullptr);
+        return;
+    }
+
+    // This is based on the idea that looking up by block hash to get heights
+    // will be much faster than hashing each retrieved block to test for stop.
+
+    // Find the start block height.
+    // If no start block is on our chain we start with block 0.
+    uint32_t start = 0;
+    for (auto const& hash: locator->start_hashes())
+    {
+        auto const result = database_.internal_db().get_block(hash);
+        if (result.first.is_valid())
+        {
+            start = result.second;
+            break;
+        }
+    }
+
+    // The begin block requested is always one after the start block.
+    auto begin = safe_add(start, uint32_t(1));
+
+    // The maximum number of headers returned is 500.
+    auto end = safe_add(begin, uint32_t(limit));
+
+    // Find the upper threshold block height (peer-specified).
+    if (locator->stop_hash() != null_hash)
+    {
+        // If the stop block is not on chain we treat it as a null stop.
+        auto const result = database_.internal_db().get_block(locator->stop_hash());
+
+        // Otherwise limit the end height to the stop block height.
+        // If end precedes begin floor_subtract will handle below.
+        if (result.first.is_valid())
+            end = std::min(result.second, end);
+    }
+
+    // Find the lower threshold block height (self-specified).
+    if (threshold != null_hash)
+    {
+        // If the threshold is not on chain we ignore it.
+        auto const result = database_.internal_db().get_block(threshold);
+
+        // Otherwise limit the begin height to the threshold block height.
+        // If begin exceeds end floor_subtract will handle below.
+        if (result.first.is_valid())
+            begin = std::max(result.second, begin);
+    }
+
+    auto hashes = std::make_shared<inventory>();
+    hashes->inventories().reserve(floor_subtract(end, begin));
+
+    // Build the hash list until we hit end or the blockchain top.
+    for (auto height = begin; height < end; ++height)
+    {
+        auto const result = database_.internal_db().get_block(height);
+
+        // If not found then we are at our top.
+        if (!result.is_valid())
+        {
+            hashes->inventories().shrink_to_fit();
+            break;
+        }
+
+        static auto const id = inventory::type_id::block;
+        hashes->inventories().emplace_back(id, result.header().hash());
+    }
+
+    handler(error::success, std::move(hashes));
+}
+
+
+#endif //BITPRIM_DB_NEW_BLOCKS
 
 
 

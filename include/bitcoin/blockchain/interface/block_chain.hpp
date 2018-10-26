@@ -220,6 +220,34 @@ public:
 
 #endif // BITPRIM_DB_LEGACY
 
+
+#ifdef BITPRIM_DB_NEW_BLOCKS
+
+    /// fetch a block by height.
+    void fetch_block(size_t height, bool witness, block_fetch_handler handler) const override;
+
+    /// fetch a block by hash.
+    void fetch_block(const hash_digest& hash, bool witness, block_fetch_handler handler) const override;
+
+    void fetch_block_header_txs_size(const hash_digest& hash, block_header_txs_size_fetch_handler handler) const override;
+
+    /// fetch hashes of transactions for a block, by block height.
+    void fetch_merkle_block(size_t height, merkle_block_fetch_handler handler) const override;
+
+    /// fetch hashes of transactions for a block, by block hash.
+    void fetch_merkle_block(const hash_digest& hash, merkle_block_fetch_handler handler) const override;
+
+    /// fetch compact block by block height.
+    void fetch_compact_block(size_t height, compact_block_fetch_handler handler) const override;
+
+    /// fetch compact block by block hash.
+    void fetch_compact_block(const hash_digest& hash, compact_block_fetch_handler handler) const override;
+
+    /// fetch the set of block hashes indicated by the block locator.
+    void fetch_locator_block_hashes(get_blocks_const_ptr locator, const hash_digest& threshold, size_t limit, inventory_fetch_handler handler) const override;
+
+#endif // BITPRIM_DB_NEW_BLOCKS
+
     /// fetch the set of block headers indicated by the block locator.
     void fetch_locator_block_headers(get_headers_const_ptr locator, const hash_digest& threshold, size_t limit, locator_block_headers_fetch_handler handler) const override;
 
