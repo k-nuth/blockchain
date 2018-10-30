@@ -195,7 +195,10 @@ code validate_input::verify_script(const transaction& tx, uint32_t input_index,
     // const auto prevout_value = prevout.cache.value();
 
     // Wire serialization is cached in support of large numbers of inputs.
-    const auto tx_data = tx.to_data(true, witness, false);
+
+    //TODO(fernando): implement BITPRIM_CACHED_RPC_DATA (See bitprim-domain) for the last parameter (unconfirmed = false).
+    // const auto tx_data = tx.to_data(true, witness, false);
+    const auto tx_data = tx.to_data(true, witness);
 
 #ifdef BITPRIM_CURRENCY_BCH
     auto res = consensus::verify_script(tx_data.data(),

@@ -417,8 +417,8 @@ private:
     // Locking helpers.
     // ------------------------------------------------------------------------
 
-    template <typename Reader>
-    void read_serial(const Reader& reader) const;
+    template <typename R>
+    void read_serial(R const& reader) const;
 
     template <typename Handler, typename... Args>
     bool finish_read(handle sequence, Handler handler, Args... args) const;
