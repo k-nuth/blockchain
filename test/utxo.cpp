@@ -96,6 +96,10 @@ bool create_database(database::settings& out_database)
     out_database.transaction_table_buckets = 42;
 #endif // BITPRIM_DB_LEGACY
 
+#ifdef BITPRIM_DB_NEW
+    out_database.db_max_size = 16106127360;
+#endif
+
     error_code ec;
     remove_all(out_database.directory, ec);
     database::data_base database(out_database);
