@@ -72,8 +72,9 @@ public:
 #ifdef BITPRIM_CURRENCY_BCH
     // size_t uahf_height;                             //2017-Aug-01 hard fork, defaults to 478559 (Mainnet)
     // size_t daa_height;                              //2017-Nov-13 hard fork, defaults to 504031 (Mainnet)
-    uint64_t monolith_activation_time;              //2018-May-15 hard fork, defaults to 1526400000
-    uint64_t magnetic_anomaly_activation_time;      //2018-Nov-15 hard fork, defaults to 1542300000
+    // uint64_t monolith_activation_time;              //2018-May-15 hard fork, defaults to 1526400000
+    uint64_t magnetic_anomaly_activation_time;         //2018-Nov-15 hard fork, defaults to 1542300000
+    uint64_t great_wall_activation_time;               //2019-May-15 hard fork, defaults to 1557921600
 #endif //BITPRIM_CURRENCY_BCH
 
 
