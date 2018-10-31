@@ -185,7 +185,7 @@ public:
     // Node Queries.
     // ------------------------------------------------------------------------
 
-#ifdef BITPRIM_DB_LEGACY
+#if defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_DB_NEW_BLOCKS) 
     /// fetch a block by height.
     void fetch_block(size_t height, bool witness, block_fetch_handler handler) const override;
 
@@ -206,6 +206,12 @@ public:
     /// fetch compact block by block hash.
     void fetch_compact_block(const hash_digest& hash, compact_block_fetch_handler handler) const override;
 
+    /// fetch the set of block hashes indicated by the block locator.
+    void fetch_locator_block_hashes(get_blocks_const_ptr locator, const hash_digest& threshold, size_t limit, inventory_fetch_handler handler) const override;
+
+#endif // BITPRIM_DB_LEGACY || BITPRIM_DB_NEW_BLOCKS
+
+#ifdef BITPRIM_DB_LEGACY
 
     /// fetch transaction by hash.
     void fetch_transaction(const hash_digest& hash, bool require_confirmed, bool witness, transaction_fetch_handler handler) const override;
@@ -215,10 +221,7 @@ public:
     /// fetch position and height within block of transaction by hash.
     void fetch_transaction_position(const hash_digest& hash, bool require_confirmed, transaction_index_fetch_handler handler) const override;
 
-    /// fetch the set of block hashes indicated by the block locator.
-    void fetch_locator_block_hashes(get_blocks_const_ptr locator, const hash_digest& threshold, size_t limit, inventory_fetch_handler handler) const override;
-
-#endif // BITPRIM_DB_LEGACY
+#endif
 
     /// fetch the set of block headers indicated by the block locator.
     void fetch_locator_block_headers(get_headers_const_ptr locator, const hash_digest& threshold, size_t limit, locator_block_headers_fetch_handler handler) const override;
@@ -276,7 +279,6 @@ public:
     void for_each_transaction(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const;
 
     void for_each_transaction_non_coinbase(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const;
-
 
 
     // Server Queries.
