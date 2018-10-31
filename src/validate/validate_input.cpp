@@ -36,8 +36,7 @@ using namespace bc::machine;
 using namespace bc::consensus;
 
 // TODO: map bc policy flags.
-uint32_t validate_input::convert_flags(uint32_t native_forks)
-{
+uint32_t validate_input::convert_flags(uint32_t native_forks) {
     uint32_t flags = verify_flags_none;
 
     if (script::is_enabled(native_forks, rule_fork::bip16_rule))
@@ -64,21 +63,30 @@ uint32_t validate_input::convert_flags(uint32_t native_forks)
         flags |= verify_flags_nulldummy;
     }
 
-    // Obligatory flags used on the 2018-May-15 BCH hard fork
-    if (script::is_enabled(native_forks, rule_fork::cash_monolith_opcodes)) {
-        flags |= verify_flags_script_enable_monolith_opcodes;
-    }
+    // // Obligatory flags used on the 2018-May-15 BCH hard fork
+    // if (script::is_enabled(native_forks, rule_fork::cash_monolith_opcodes)) {
+    //     flags |= verify_flags_script_enable_monolith_opcodes;
+    // }
 
     // We make sure this node will have replay protection during the next hard fork.
     if (script::is_enabled(native_forks, rule_fork::cash_replay_protection)) {
         flags |= verify_flags_script_enable_replay_protection;
     }
-#else //BITPRIM_CURRENCY_BCH
-    if (script::is_enabled(native_forks, rule_fork::bip141_rule))
-        flags |= verify_flags_witness;
 
-    if (script::is_enabled(native_forks, rule_fork::bip147_rule))
+    if (script::is_enabled(native_forks, rule_fork::cash_checkdatasig)) {
+        flags |= verify_flags_script_enable_checkdatasig;
+    }
+
+
+
+#else //BITPRIM_CURRENCY_BCH
+    if (script::is_enabled(native_forks, rule_fork::bip141_rule)) {
+        flags |= verify_flags_witness;
+    }
+
+    if (script::is_enabled(native_forks, rule_fork::bip147_rule)) {
         flags |= verify_flags_nulldummy;
+    }
 #endif
     return flags;
 }
