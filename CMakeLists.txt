@@ -547,10 +547,13 @@ if (WITH_TESTS)
     )
   endif()
 
+
   if (DB_NEW)
-    _add_tests(bitprim_blockchain_test 
-      utxo_tests
-    )
+    if (NOT UNIX)
+      _add_tests(bitprim_blockchain_test 
+        utxo_tests
+      )
+    endif()
   endif()
 
 
