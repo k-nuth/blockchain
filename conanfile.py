@@ -80,7 +80,11 @@ class BitprimBlockchainConan(BitprimConanFile):
         return self.options.currency == "BCH" and self.options.get_safe("keoken")
 
     def requirements(self):
-        self.requires("boost/1.66.0@bitprim/stable")
+        if self.options.use_domain:
+            self.requires("boost/1.68.0@bitprim/stable")
+        else:
+            self.requires("boost/1.66.0@bitprim/stable")
+
         self.requires("bitprim-database/0.X@%s/%s" % (self.user, self.channel))
 
         if self.options.with_consensus:
