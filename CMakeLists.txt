@@ -547,9 +547,8 @@ if (WITH_TESTS)
     )
   endif()
 
-
   if (DB_NEW)
-    if (NOT UNIX)
+    if (NOT WIN32)
       _add_tests(bitprim_blockchain_test 
         utxo_tests
       )
