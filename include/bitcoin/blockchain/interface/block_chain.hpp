@@ -420,7 +420,7 @@ private:
     // ------------------------------------------------------------------------
 
     template <typename R>
-    void read_serial(const R& reader) const;
+    void read_serial(R const& reader) const;
 
     template <typename Handler, typename... Args>
     bool finish_read(handle sequence, Handler handler, Args... args) const;
