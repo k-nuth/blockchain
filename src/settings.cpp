@@ -47,8 +47,9 @@ settings::settings()
 #ifdef BITPRIM_CURRENCY_BCH
     // , uahf_height(478559)
     // , daa_height(504031)
-    , monolith_activation_time(bch_monolith_activation_time)                        //1526400000
+    // , monolith_activation_time(bch_monolith_activation_time)                        //1526400000
     , magnetic_anomaly_activation_time(bch_magnetic_anomaly_activation_time)        //1542300000
+    , great_wall_activation_time(bch_great_wall_activation_time)        //1542300000
     , bip141(false)
     , bip143(false)
     , bip147(false)
@@ -148,12 +149,13 @@ uint32_t settings::enabled_forks() const {
     forks |= (bip68 ? rule_fork::bip68_rule : 0);
     forks |= (bip112 ? rule_fork::bip112_rule : 0);
     forks |= (bip113 ? rule_fork::bip113_rule : 0);
+
 #ifdef BITPRIM_CURRENCY_BCH
     forks |= rule_fork::cash_low_s_rule;
-    forks |= rule_fork::cash_monolith_opcodes;
+    // forks |= rule_fork::cash_monolith_opcodes;
     forks |= rule_fork::cash_verify_flags_script_enable_sighash_forkid;
-    // Activate this fork rule for the next bitcoin cash release
-    ////forks |= rule_fork::cash_replay_protection;
+    forks |= rule_fork::cash_replay_protection;
+    forks |= rule_fork::cash_checkdatasig;
 #else
     forks |= (bip141 ? rule_fork::bip141_rule : 0);
     forks |= (bip143 ? rule_fork::bip143_rule : 0);
