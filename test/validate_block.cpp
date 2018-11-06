@@ -74,17 +74,13 @@ BOOST_AUTO_TEST_CASE(validate_block__native__block_520679_tx__valid)
     static const auto encoded_script = "76a9149c1093566aa0812e4ea55b5dc3d19a4223fa84d388ac";
     static const auto encoded_tx = "01000000013cd8d60935ea68f2ef238d983174f81aa96766ac24e9cf4151e9008ac852e8da010000006a47304402206ccfd8739b2f98350d91ff7fec529f8bc085459b36cf26a22d95606737d4381002204429c60535745ef0b71c14bf0a9df565e8c87b934ee0b2766971cf5b15d085c04121020f123b05aadc865fd60d1513144f48f5d8de3403d3c3f00ce233d53329f10ccaffffffff0156998501000000001976a914bf4679910a2ba81b7f3f2ee03fc77847dc673b2288ac00000000";
 
-//    uint32_t forks = verify_flags_none;
-//    forks |= verify_flags_p2sh;
-//    forks |= verify_flags_checklocktimeverify;
-//    forks |= verify_flags_dersig;
-//    forks |= verify_flags_checksequenceverify;
-//    forks |= verify_flags_script_enable_sighash_forkid;
-//    forks |= verify_flags_low_s;
-//    forks |= verify_flags_nulldummy;
-
     //This value after conversion its equal to the above code.
-    static const uint32_t branches = 296831u;
+    uint32_t native_forks = rule_fork::bip16_rule;
+    native_forks |= rule_fork::bip65_rule;
+    native_forks |= rule_fork::bip66_rule;
+    native_forks |= rule_fork::bip112_rule;
+    native_forks |= rule_fork::cash_verify_flags_script_enable_sighash_forkid;
+    native_forks |= rule_fork::cash_low_s_rule;
 
     data_chunk decoded_tx;
     BOOST_REQUIRE(decode_base16(decoded_tx, encoded_tx));
@@ -102,7 +98,55 @@ BOOST_AUTO_TEST_CASE(validate_block__native__block_520679_tx__valid)
     prevout.set_script(script::factory_from_data(decoded_script, false));
     BOOST_REQUIRE(prevout.script().is_valid());
 
-    const auto result = validate_input::verify_script(tx, index, branches);
+    const auto result = validate_input::verify_script(tx, index, native_forks);
+    BOOST_REQUIRE_EQUAL(result.value(), error::success);
+}
+
+
+BOOST_AUTO_TEST_CASE(validate_block__2018NOV__block_520679_tx__valid)
+{
+    //// DEBUG [blockchain] Input validation failed (stack false)
+    // forks        : 1073973119
+    // outpoint     : 208fc2edc6fbf4c6cf7fb3ac0c7a1cb23f88fc3ddcced6423ad02d429acb2d07:0
+    // script       : 76a9149a45c630ad1ddde200adbf048a929329220dd9a388ac
+    // value        : 801932
+    // inpoint      : 0375c73a1216188d4dfaed7508740ec1fd601b226de9845325f939348eead1fd:0
+    // transaction  : 0100000001072dcb9a422dd03a42d6cedc3dfc883fb21c7a0cacb37fcfc6f4fbc6edc28f20000000006b48304502210099212bdccb2f12d26a1e6d859601bcd76ae3c8861261c6143923937200fa62a40220114e8003a90ffcb6ab3e05641b3daf64006d7bc4f959870f04efb01cad9aa4f3412102822d3e9a0bd0be3f4fab74c2ac9c85f4a0316b331bf92b3c3ef4484975c85e24ffffffff013c000c00000000001976a91463b302f02c2635a4054aa9b43995abbaa28c6f1088ac00000000
+
+
+    static const auto index = 0u;
+    static const auto encoded_script = "76a9149a45c630ad1ddde200adbf048a929329220dd9a388ac";
+    static const auto encoded_tx = "0100000001072dcb9a422dd03a42d6cedc3dfc883fb21c7a0cacb37fcfc6f4fbc6edc28f20000000006b48304502210099212bdccb2f12d26a1e6d859601bcd76ae3c8861261c6143923937200fa62a40220114e8003a90ffcb6ab3e05641b3daf64006d7bc4f959870f04efb01cad9aa4f3412102822d3e9a0bd0be3f4fab74c2ac9c85f4a0316b331bf92b3c3ef4484975c85e24ffffffff013c000c00000000001976a91463b302f02c2635a4054aa9b43995abbaa28c6f1088ac00000000";
+    static const auto value = 801932;
+
+
+    //This value after conversion its equal to the above code.
+    // static const uint32_t branches = 296831u;
+    uint32_t native_forks = rule_fork::bip16_rule;
+    native_forks |= rule_fork::bip65_rule;
+    native_forks |= rule_fork::bip66_rule;
+    native_forks |= rule_fork::bip112_rule;
+    native_forks |= rule_fork::cash_verify_flags_script_enable_sighash_forkid;
+    native_forks |= rule_fork::cash_low_s_rule;
+    native_forks |= rule_fork::cash_checkdatasig;
+
+    data_chunk decoded_tx;
+    BOOST_REQUIRE(decode_base16(decoded_tx, encoded_tx));
+
+    data_chunk decoded_script;
+    BOOST_REQUIRE(decode_base16(decoded_script, encoded_script));
+
+    transaction tx;
+    BOOST_REQUIRE(tx.from_data(decoded_tx));
+
+    const auto& input = tx.inputs()[index];
+    auto& prevout = input.previous_output().validation.cache;
+
+    prevout.set_value(value);
+    prevout.set_script(script::factory_from_data(decoded_script, false));
+    BOOST_REQUIRE(prevout.script().is_valid());
+
+    const auto result = validate_input::verify_script(tx, index, native_forks);
     BOOST_REQUIRE_EQUAL(result.value(), error::success);
 }
 #endif

@@ -41,6 +41,11 @@ if __name__ == "__main__":
                 opts_btc["%s:currency" % name] = "BTC"
                 # opts_ltc["%s:currency" % name] = "LTC"
 
+                opts_bch_new = copy.deepcopy(opts_bch_no_keoken)
+                opts_bch_new["%s:use_domain" % name] = "True"
+                opts_bch_new["%s:db" % name] = "new"
+
+                handle_microarchs("%s:microarchitecture" % name, marchs, filtered_builds, settings, opts_bch_new, env_vars, build_requires)
                 handle_microarchs("%s:microarchitecture" % name, marchs, filtered_builds, settings, opts_bch_keoken, env_vars, build_requires)
                 handle_microarchs("%s:microarchitecture" % name, marchs, filtered_builds, settings, opts_bch_no_keoken, env_vars, build_requires)
                 handle_microarchs("%s:microarchitecture" % name, marchs, filtered_builds, settings, opts_btc, env_vars, build_requires)
@@ -50,6 +55,12 @@ if __name__ == "__main__":
                 if ci_currency == "BCH":
                     options_keoken = copy.deepcopy(options)
                     options_keoken["%s:keoken" % name] = True
+
+                    opts_bch_new = copy.deepcopy(options)
+                    opts_bch_new["%s:use_domain" % name] = "True"
+                    opts_bch_new["%s:db" % name] = "new"
+
+                    handle_microarchs("%s:microarchitecture" % name, marchs, filtered_builds, settings, opts_bch_new, env_vars, build_requires)
                     handle_microarchs("%s:microarchitecture" % name, marchs, filtered_builds, settings, options_keoken, env_vars, build_requires)
 
                 handle_microarchs("%s:microarchitecture" % name, marchs, filtered_builds, settings, options, env_vars, build_requires)
