@@ -187,7 +187,7 @@ void populate_block::populate_transactions(branch::const_ptr branch, size_t buck
         // a hard fork that destroys unspent outputs in case of hash collision.
         //*********************************************************************
         //TODO(fernando): check again why this is not implemented?
-#ifdef BITPRIM_DB_LEGACY    
+#ifdef BITPRIM_DB_LEGACY
         if ( ! collide) {
             populate_base::populate_duplicate(branch->height(), tx, true);
             ////populate_duplicate(branch, coinbase);
@@ -195,21 +195,32 @@ void populate_block::populate_transactions(branch::const_ptr branch, size_t buck
 #endif
     }
 
-    // // Must skip coinbase here as it is already accounted for.
-    // for (auto tx = txs.begin() + 1; tx != txs.end(); ++tx) {
-    //     auto const& inputs = tx->inputs();
 
-    //     for (size_t input_index = 0; input_index < inputs.size(); ++input_index, ++input_position) {
-    //         if (input_position % buckets != bucket) {
-    //             continue;
-    //         }
+#ifdef BITPRIM_DB_NEW
+    database::internal_database::utxo_pool_t reorg_subset;
+    auto temp1 = branch->top_height();
+    auto temp2 = branch->height() + 1u;
 
-    //         auto const& input = inputs[input_index];
-    //         auto const& prevout = input.previous_output();
-    //         populate_base::populate_prevout(branch_height, prevout, true);
-    //         populate_prevout(branch, prevout);
-    //     }
-    // }
+    size_t top;
+
+    if (fast_chain_.get_last_height(top)) {
+        std::cout << temp1 << std::endl;
+        std::cout << temp2 << std::endl;
+        std::cout << top << std::endl;
+
+        if (temp2 <= top) {
+            auto p = fast_chain_.get_utxo_pool_from(temp2, top);
+            if (p.first) {
+                // populate_from_reorg_subset(prevout, reorg_subset);
+                std::cout << "populate_from_reorg_subset(prevout, reorg_subset);" << std::endl;
+                reorg_subset = std::move(p.second);
+            }
+        }
+    } else {
+        top = 0;
+    }
+#endif // BITPRIM_DB_NEW
+
 
     // Must skip coinbase here as it is already accounted for.
     for (auto tx = txs.begin() + 1; tx != txs.end(); ++tx) {
@@ -223,14 +234,45 @@ void populate_block::populate_transactions(branch::const_ptr branch, size_t buck
             auto const& input = inputs[input_index];
             auto const& prevout = input.previous_output();
             populate_base::populate_prevout(branch_height, prevout, true);  //Populate from Database
-            populate_prevout(branch, prevout, local_utxo);                              //Populate from Block
+            populate_prevout(branch, prevout, local_utxo);                  //Populate from Block
+
+#ifdef BITPRIM_DB_NEW
+    
+            if (temp2 <= top) {
+                std::cout << "populate_from_reorg_subset(prevout, reorg_subset);" << std::endl;
+
+                // auto entry = database_.internal_db().get_utxo(outpoint);
+                // if ( ! entry.is_valid()) return false;
+                // if (entry.height() > branch_height) return false;
+
+                // out_output = entry.output();
+                // out_height = entry.height();
+                // out_median_time_past = entry.median_time_past();
+                // out_coinbase = entry.coinbase();
+
+                auto it = reorg_subset.find(prevout);
+                if (it != reorg_subset.end()) {
+                    auto& val = prevout.validation;
+                    auto const& entry = it->second;
+
+                    // val.height = height_at(index);
+                    // val.median_time_past = median_time_past_at(index);
+                    // val.cache = *it->second;
+                    // val.coinbase = it->first.hash() == txs[0].hash();
+
+                    val.height = entry.height();
+                    val.median_time_past = entry.median_time_past();
+                    val.cache = entry.output();
+                    val.coinbase = entry.coinbase();
+
+                }
+            }
+#endif // BITPRIM_DB_NEW
         }
     }
 
     handler(error::success);
 }
-
-
 
 void populate_block::populate_prevout(branch::const_ptr branch, output_point const& outpoint, local_utxo_t const& local_utxo) const {
     if ( ! outpoint.validation.spent) {

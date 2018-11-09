@@ -141,17 +141,14 @@ void block_organizer::signal_completion(const code& ec)
 //-----------------------------------------------------------------------------
 
 // private
-void block_organizer::handle_check(const code& ec, block_const_ptr block,
-    result_handler handler)
-{
-    if (stopped())
-    {
+void block_organizer::handle_check(const code& ec, block_const_ptr block, result_handler handler) {
+    
+    if (stopped()) {
         handler(error::service_stopped);
         return;
     }
 
-    if (ec)
-    {
+    if (ec) {
         handler(ec);
         return;
     }
@@ -166,8 +163,7 @@ void block_organizer::handle_check(const code& ec, block_const_ptr block,
     // it is not applied at the branch point, so some nodes will not see the
     // collision block and others will, depending on block order of arrival.
     //*************************************************************************
-    if (branch->empty() || fast_chain_.get_block_exists(block->hash()))
-    {
+    if (branch->empty() || fast_chain_.get_block_exists(block->hash())) {
         handler(error::duplicate_block);
         return;
     }
@@ -177,50 +173,39 @@ void block_organizer::handle_check(const code& ec, block_const_ptr block,
         return;
     }
 
-    const auto accept_handler =
-        std::bind(&block_organizer::handle_accept,
-            this, _1, branch, handler);
+    const auto accept_handler = std::bind(&block_organizer::handle_accept, this, _1, branch, handler);
 
     // Checks that are dependent on chain state and prevouts.
     validator_.accept(branch, accept_handler);
 }
 
 // private
-void block_organizer::handle_accept(const code& ec, branch::ptr branch,
-    result_handler handler)
-{
-    if (stopped())
-    {
+void block_organizer::handle_accept(const code& ec, branch::ptr branch, result_handler handler) {
+    if (stopped()) {
         handler(error::service_stopped);
         return;
     }
 
-    if (ec)
-    {
+    if (ec) {
         handler(ec);
         return;
     }
 
-    const auto connect_handler =
-        std::bind(&block_organizer::handle_connect,
-            this, _1, branch, handler);
+    const auto connect_handler = std::bind(&block_organizer::handle_connect, this, _1, branch, handler);
 
     // Checks that include script validation.
     validator_.connect(branch, connect_handler);
 }
 
 // private
-void block_organizer::handle_connect(const code& ec, branch::ptr branch,
-    result_handler handler)
-{
-    if (stopped())
-    {
+void block_organizer::handle_connect(const code& ec, branch::ptr branch, result_handler handler) {
+    
+    if (stopped()) {
         handler(error::service_stopped);
         return;
     }
 
-    if (ec)
-    {
+    if (ec) {
         handler(ec);
         return;
     }
@@ -244,8 +229,7 @@ void block_organizer::handle_connect(const code& ec, branch::ptr branch,
     }
 
     // TODO: consider relay of pooled blocks by modifying subscriber semantics.
-    if (work <= threshold)
-    {
+    if (work <= threshold) {
         if (!top_block.simulate)
             block_pool_.add(branch->top());
 
@@ -254,8 +238,7 @@ void block_organizer::handle_connect(const code& ec, branch::ptr branch,
     }
 
     // TODO: create a simulated validation path that does not block others.
-    if (top_block.simulate)
-    {
+    if (top_block.simulate) {
         handler(error::success);
         return;
     }
@@ -263,15 +246,12 @@ void block_organizer::handle_connect(const code& ec, branch::ptr branch,
     // Get the outgoing blocks to forward to reorg handler.
     const auto out_blocks = std::make_shared<block_const_ptr_list>();
 
-    const auto reorganized_handler =
-        std::bind(&block_organizer::handle_reorganized,
-            this, _1, branch, out_blocks, handler);
+    const auto reorganized_handler = std::bind(&block_organizer::handle_reorganized, this, _1, branch, out_blocks, handler);
 
     // Replace! Switch!
     //#########################################################################
     // Incoming blocks must have median_time_past set.
-    fast_chain_.reorganize(branch->fork_point(), branch->blocks(), out_blocks,
-        dispatch_, reorganized_handler);
+    fast_chain_.reorganize(branch->fork_point(), branch->blocks(), out_blocks, dispatch_, reorganized_handler);
     //#########################################################################
 }
 
