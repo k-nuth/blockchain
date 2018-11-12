@@ -374,8 +374,16 @@ bool block_chain::get_utxo(chain::output& out_output, size_t& out_height, uint32
     return true;
 }
 
+std::pair<bool, database::internal_database::utxo_pool_t> block_chain::get_utxo_pool_from(uint32_t from, uint32_t to) const {
+    auto p = database_.internal_db().get_utxo_pool_from(from, to);
 
-#endif// BITPRIM_DB_NEW
+    if (p.first != result_code::success) {
+        return {false, std::move(p.second)};
+    }    
+    return {true, std::move(p.second)};
+}
+
+#endif // BITPRIM_DB_NEW
 
 
 ////transaction_ptr block_chain::get_transaction(size_t& out_block_height,

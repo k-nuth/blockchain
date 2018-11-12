@@ -248,16 +248,6 @@ void branch::populate_prevout(output_point const& outpoint, std::unordered_map<p
 
     // Get the input's previous output and its validation metadata.
     auto const count = size();
-
-    /*if (count == 0) {
-        asm("int $3");  //TODO(fernando): remover
-    }
-
-    if (count > 1) {
-        asm("int $3");  //TODO(fernando): remover
-    }*/
-
-
     auto const& blocks = *blocks_;
 
     // Reverse iterate because of BIP30.
@@ -266,12 +256,10 @@ void branch::populate_prevout(output_point const& outpoint, std::unordered_map<p
         auto const& txs = blocks[index]->transactions();
 
         prevout.coinbase = false;
-        // auto it = local_utxo.find(static_cast<point>(outpoint));
         auto it = local_utxo.find(outpoint);
         if (it != local_utxo.end()) {
             prevout.height = height_at(index);
             prevout.median_time_past = median_time_past_at(index);
-            // prevout.cache = tx.outputs()[outpoint.index()];
             prevout.cache = *it->second;
             prevout.coinbase = it->first.hash() == txs[0].hash();
             return;

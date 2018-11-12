@@ -145,6 +145,31 @@ void populate_block::populate_coinbase(branch::const_ptr branch, block_const_ptr
 ////}
 
 
+#ifdef BITPRIM_DB_NEW
+populate_block::utxo_pool_t populate_block::get_reorg_subset_conditionally(size_t first_height, size_t& out_chain_top) const {
+
+    // auto temp1 = branch->top_height();
+
+    out_chain_top;
+    if ( ! fast_chain_.get_last_height(out_chain_top)) {
+        out_chain_top = 0;
+        return {};
+    }
+
+    if (first_height > out_chain_top) {
+        return {};
+    }
+
+    auto p = fast_chain_.get_utxo_pool_from(first_height, out_chain_top);
+    if ( ! p.first) {
+        return {};
+    }
+    
+    return std::move(p.second);
+}
+#endif // BITPRIM_DB_NEW
+
+
 void populate_block::populate_transactions(branch::const_ptr branch, size_t bucket, size_t buckets, local_utxo_t const& local_utxo, result_handler handler) const {
 
     // TODO(fernando): check how to replace it with UTXO
@@ -187,7 +212,7 @@ void populate_block::populate_transactions(branch::const_ptr branch, size_t buck
         // a hard fork that destroys unspent outputs in case of hash collision.
         //*********************************************************************
         //TODO(fernando): check again why this is not implemented?
-#ifdef BITPRIM_DB_LEGACY    
+#ifdef BITPRIM_DB_LEGACY
         if ( ! collide) {
             populate_base::populate_duplicate(branch->height(), tx, true);
             ////populate_duplicate(branch, coinbase);
@@ -195,21 +220,38 @@ void populate_block::populate_transactions(branch::const_ptr branch, size_t buck
 #endif
     }
 
-    // // Must skip coinbase here as it is already accounted for.
-    // for (auto tx = txs.begin() + 1; tx != txs.end(); ++tx) {
-    //     auto const& inputs = tx->inputs();
 
-    //     for (size_t input_index = 0; input_index < inputs.size(); ++input_index, ++input_position) {
-    //         if (input_position % buckets != bucket) {
-    //             continue;
-    //         }
+// #ifdef BITPRIM_DB_NEW
+//     utxo_pool_t reorg_subset;
+//     auto temp1 = branch->top_height();
+//     auto temp2 = branch->height() + 1u;
 
-    //         auto const& input = inputs[input_index];
-    //         auto const& prevout = input.previous_output();
-    //         populate_base::populate_prevout(branch_height, prevout, true);
-    //         populate_prevout(branch, prevout);
-    //     }
-    // }
+//     size_t top;
+
+//     if (fast_chain_.get_last_height(top)) {
+//         std::cout << temp1 << std::endl;
+//         std::cout << temp2 << std::endl;
+//         std::cout << top << std::endl;
+
+//         if (temp2 <= top) {
+//             auto p = fast_chain_.get_utxo_pool_from(temp2, top);
+//             if (p.first) {
+//                 // populate_from_reorg_subset(prevout, reorg_subset);
+//                 std::cout << "populate_from_reorg_subset(prevout, reorg_subset);" << std::endl;
+//                 reorg_subset = std::move(p.second);
+//             }
+//         }
+//     } else {
+//         top = 0;
+//     }
+// #endif // BITPRIM_DB_NEW
+
+#ifdef BITPRIM_DB_NEW
+    size_t first_height = branch_height + 1u;
+    size_t chain_top;
+    auto reorg_subset = get_reorg_subset_conditionally(first_height, /*out*/ chain_top);
+#endif // BITPRIM_DB_NEW
+
 
     // Must skip coinbase here as it is already accounted for.
     for (auto tx = txs.begin() + 1; tx != txs.end(); ++tx) {
@@ -223,14 +265,37 @@ void populate_block::populate_transactions(branch::const_ptr branch, size_t buck
             auto const& input = inputs[input_index];
             auto const& prevout = input.previous_output();
             populate_base::populate_prevout(branch_height, prevout, true);  //Populate from Database
-            populate_prevout(branch, prevout, local_utxo);                              //Populate from Block
+            populate_prevout(branch, prevout, local_utxo);                  //Populate from Block
+
+#ifdef BITPRIM_DB_NEW
+            if (first_height <= chain_top) {
+                populate_from_reorg_subset(prevout, reorg_subset);
+            }
+#endif // BITPRIM_DB_NEW
         }
     }
 
     handler(error::success);
 }
 
+#ifdef BITPRIM_DB_NEW
+void populate_block::populate_from_reorg_subset(output_point const& outpoint, utxo_pool_t const& reorg_subset) const {
+    if (outpoint.validation.cache.is_valid()) {
+        return;
+    }
 
+    auto it = reorg_subset.find(outpoint);
+    if (it != reorg_subset.end()) {
+        auto& val = outpoint.validation;
+        auto const& entry = it->second;
+        val.height = entry.height();
+        val.median_time_past = entry.median_time_past();
+        val.cache = entry.output();
+        val.coinbase = entry.coinbase();
+    }
+
+}
+#endif // BITPRIM_DB_NEW
 
 void populate_block::populate_prevout(branch::const_ptr branch, output_point const& outpoint, local_utxo_t const& local_utxo) const {
     if ( ! outpoint.validation.spent) {

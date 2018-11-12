@@ -69,16 +69,16 @@ private:
     bool set_branch_height(branch::ptr branch);
 
     // Verify sub-sequence.
-    void handle_check(const code& ec, block_const_ptr block,
-        result_handler handler);
-    void handle_accept(const code& ec, branch::ptr branch,
-        result_handler handler);
-    void handle_connect(const code& ec, branch::ptr branch,
-        result_handler handler);
+    void handle_check(const code& ec, block_const_ptr block, result_handler handler);
+    void handle_accept(const code& ec, branch::ptr branch, result_handler handler);
+    void handle_connect(const code& ec, branch::ptr branch, result_handler handler);
     void organized(branch::ptr branch, result_handler handler);
-    void handle_reorganized(const code& ec, branch::const_ptr branch,
-        block_const_ptr_list_ptr outgoing, result_handler handler);
+    void handle_reorganized(const code& ec, branch::const_ptr branch, block_const_ptr_list_ptr outgoing, result_handler handler);
     void signal_completion(const code& ec);
+
+#ifdef BITPRIM_DB_NEW
+    bool is_branch_double_spend(branch::ptr const& branch) const;
+#endif
 
     // Subscription.
     void notify(size_t branch_height, block_const_ptr_list_const_ptr branch,
