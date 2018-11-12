@@ -383,10 +383,7 @@ std::pair<bool, database::internal_database::utxo_pool_t> block_chain::get_utxo_
     return {true, std::move(p.second)};
 }
 
-    
-
-
-#endif// BITPRIM_DB_NEW
+#endif // BITPRIM_DB_NEW
 
 
 ////transaction_ptr block_chain::get_transaction(size_t& out_block_height,
