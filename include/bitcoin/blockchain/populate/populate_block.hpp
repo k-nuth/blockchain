@@ -35,6 +35,10 @@ using local_utxo_t = std::unordered_map<chain::point, chain::output const*>;
 /// This class is NOT thread safe.
 class BCB_API populate_block  : public populate_base {
 public:
+#ifdef BITPRIM_DB_NEW
+    using utxo_pool_t = database::internal_database::utxo_pool_t;
+#endif    
+
     populate_block(dispatcher& dispatch, fast_chain const& chain, bool relay_transactions);
 
     /// Populate validation state for the top block.
@@ -45,9 +49,17 @@ protected:
 
     void populate_coinbase(branch::const_ptr branch, block_const_ptr block) const;
 
+#ifdef BITPRIM_DB_NEW
+    utxo_pool_t get_reorg_subset_conditionally(size_t first_height, size_t& out_chain_top) const;
+#endif
+
     ////void populate_duplicate(branch_ptr branch, const chain::transaction& tx) const;
     void populate_transactions(branch::const_ptr branch, size_t bucket, size_t buckets, local_utxo_t const& local_utxo, result_handler handler) const;
     void populate_prevout(branch_ptr branch, chain::output_point const& outpoint, local_utxo_t const& local_utxo) const;
+
+#ifdef BITPRIM_DB_NEW
+    void populate_from_reorg_subset(chain::output_point const& outpoint, utxo_pool_t const& reorg_subset) const;
+#endif    
 
 private:
     bool const relay_transactions_;

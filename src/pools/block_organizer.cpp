@@ -61,24 +61,21 @@ block_organizer::block_organizer(prioritized_mutex& mutex, dispatcher& dispatch,
 // Properties.
 //-----------------------------------------------------------------------------
 
-bool block_organizer::stopped() const
-{
+bool block_organizer::stopped() const {
     return stopped_;
 }
 
 // Start/stop sequences.
 //-----------------------------------------------------------------------------
 
-bool block_organizer::start()
-{
+bool block_organizer::start() {
     stopped_ = false;
     subscriber_->start();
     validator_.start();
     return true;
 }
 
-bool block_organizer::stop()
-{
+bool block_organizer::stop() {
     validator_.stop();
     subscriber_->stop();
     subscriber_->invoke(error::service_stopped, 0, {}, {});
@@ -90,14 +87,12 @@ bool block_organizer::stop()
 //-----------------------------------------------------------------------------
 
 // This is called from block_chain::organize.
-void block_organizer::organize(block_const_ptr block, result_handler handler)
-{
+void block_organizer::organize(block_const_ptr block, result_handler handler) {
     // Critical Section
     ///////////////////////////////////////////////////////////////////////////
     mutex_.lock_high_priority();
 
-    if (stopped())
-    {
+    if (stopped()) {
         mutex_.unlock_high_priority();
         handler(error::service_stopped);
         return;
@@ -106,13 +101,8 @@ void block_organizer::organize(block_const_ptr block, result_handler handler)
     // Reset the reusable promise.
     resume_ = std::promise<code>();
 
-    const result_handler complete =
-        std::bind(&block_organizer::signal_completion,
-            this, _1);
-
-    const auto check_handler =
-        std::bind(&block_organizer::handle_check,
-            this, _1, block, complete);
+    const result_handler complete = std::bind(&block_organizer::signal_completion, this, _1);
+    const auto check_handler = std::bind(&block_organizer::handle_check, this, _1, block, complete);
 
     // Checks that are independent of chain state.
     validator_.check(block, check_handler);
@@ -130,8 +120,7 @@ void block_organizer::organize(block_const_ptr block, result_handler handler)
 }
 
 // private
-void block_organizer::signal_completion(const code& ec)
-{
+void block_organizer::signal_completion(const code& ec) {
     // This must be protected so that it is properly cleared.
     // Signal completion, which results in original handler invoke with code.
     resume_.set_value(ec);
@@ -141,17 +130,14 @@ void block_organizer::signal_completion(const code& ec)
 //-----------------------------------------------------------------------------
 
 // private
-void block_organizer::handle_check(const code& ec, block_const_ptr block,
-    result_handler handler)
-{
-    if (stopped())
-    {
+void block_organizer::handle_check(const code& ec, block_const_ptr block, result_handler handler) {
+    
+    if (stopped()) {
         handler(error::service_stopped);
         return;
     }
 
-    if (ec)
-    {
+    if (ec) {
         handler(ec);
         return;
     }
@@ -166,8 +152,7 @@ void block_organizer::handle_check(const code& ec, block_const_ptr block,
     // it is not applied at the branch point, so some nodes will not see the
     // collision block and others will, depending on block order of arrival.
     //*************************************************************************
-    if (branch->empty() || fast_chain_.get_block_exists(block->hash()))
-    {
+    if (branch->empty() || fast_chain_.get_block_exists(block->hash())) {
         handler(error::duplicate_block);
         return;
     }
@@ -177,50 +162,69 @@ void block_organizer::handle_check(const code& ec, block_const_ptr block,
         return;
     }
 
-    const auto accept_handler =
-        std::bind(&block_organizer::handle_accept,
-            this, _1, branch, handler);
+    const auto accept_handler = std::bind(&block_organizer::handle_accept, this, _1, branch, handler);
 
     // Checks that are dependent on chain state and prevouts.
     validator_.accept(branch, accept_handler);
 }
 
 // private
-void block_organizer::handle_accept(const code& ec, branch::ptr branch,
-    result_handler handler)
-{
-    if (stopped())
-    {
+void block_organizer::handle_accept(const code& ec, branch::ptr branch, result_handler handler) {
+    if (stopped()) {
         handler(error::service_stopped);
         return;
     }
 
-    if (ec)
-    {
+    if (ec) {
         handler(ec);
         return;
     }
 
-    const auto connect_handler =
-        std::bind(&block_organizer::handle_connect,
-            this, _1, branch, handler);
+    const auto connect_handler = std::bind(&block_organizer::handle_connect, this, _1, branch, handler);
 
     // Checks that include script validation.
     validator_.connect(branch, connect_handler);
 }
 
+#ifdef BITPRIM_DB_NEW
+bool block_organizer::is_branch_double_spend(branch::ptr const& branch) const {
+    // precondition: branch->blocks() != nullptr
+
+    auto blocks = *branch->blocks();
+    size_t non_coinbase_inputs = 0;
+
+    for (auto const& block : blocks) {
+        non_coinbase_inputs += block->non_coinbase_input_count();
+    }
+
+    point::list outs;
+    outs.reserve(non_coinbase_inputs);
+    
+    // Merge the prevouts of all non-coinbase transactions into one set.
+    for (auto const& block : blocks) {
+        auto const& txs = block->transactions();
+        for (auto tx = txs.begin() + 1; tx != txs.end(); ++tx) {
+            auto out = tx->previous_outputs();
+            std::move(out.begin(), out.end(), std::inserter(outs, outs.end()));
+        }
+    }
+
+    std::sort(outs.begin(), outs.end());
+    auto const distinct_end = std::unique(outs.begin(), outs.end());
+    auto const distinct = (distinct_end == outs.end());
+    return !distinct;
+}
+#endif // BITPRIM_DB_NEW
+
 // private
-void block_organizer::handle_connect(const code& ec, branch::ptr branch,
-    result_handler handler)
-{
-    if (stopped())
-    {
+void block_organizer::handle_connect(const code& ec, branch::ptr branch, result_handler handler) {
+    
+    if (stopped()) {
         handler(error::service_stopped);
         return;
     }
 
-    if (ec)
-    {
+    if (ec) {
         handler(ec);
         return;
     }
@@ -244,18 +248,27 @@ void block_organizer::handle_connect(const code& ec, branch::ptr branch,
     }
 
     // TODO: consider relay of pooled blocks by modifying subscriber semantics.
-    if (work <= threshold)
-    {
-        if (!top_block.simulate)
+    if (work <= threshold) {
+        if ( ! top_block.simulate) {
             block_pool_.add(branch->top());
+        }
 
         handler(error::insufficient_work);
         return;
     }
 
+#ifdef BITPRIM_DB_NEW
+    //Note(fernando): If there is just one block, internal double spend was checked previously.
+    if (branch->blocks() && branch->blocks()->size() > 1) {
+        if (is_branch_double_spend(branch)) {
+            handler(error::double_spend);
+            return;
+        }
+    }
+#endif
+
     // TODO: create a simulated validation path that does not block others.
-    if (top_block.simulate)
-    {
+    if (top_block.simulate) {
         handler(error::success);
         return;
     }
@@ -263,15 +276,12 @@ void block_organizer::handle_connect(const code& ec, branch::ptr branch,
     // Get the outgoing blocks to forward to reorg handler.
     const auto out_blocks = std::make_shared<block_const_ptr_list>();
 
-    const auto reorganized_handler =
-        std::bind(&block_organizer::handle_reorganized,
-            this, _1, branch, out_blocks, handler);
+    const auto reorganized_handler = std::bind(&block_organizer::handle_reorganized, this, _1, branch, out_blocks, handler);
 
     // Replace! Switch!
     //#########################################################################
     // Incoming blocks must have median_time_past set.
-    fast_chain_.reorganize(branch->fork_point(), branch->blocks(), out_blocks,
-        dispatch_, reorganized_handler);
+    fast_chain_.reorganize(branch->fork_point(), branch->blocks(), out_blocks, dispatch_, reorganized_handler);
     //#########################################################################
 }
 
