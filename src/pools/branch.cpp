@@ -232,7 +232,7 @@ void branch::populate_prevout(output_point const& outpoint) const {
 //TODO(fernando): use the type alias instead of the std::unord...
 
 // TODO: absorb into the main chain for speed and code consolidation.
-void branch::populate_prevout(output_point const& outpoint, std::unordered_map<point, output const*> const& local_utxo) const {
+void branch::populate_prevout(output_point const& outpoint, std::vector<std::unordered_map<point, output const*>> const& branch_utxo) const {
     auto& prevout = outpoint.validation;
 
     // In case this input is a coinbase or the prevout is spent.
@@ -246,6 +246,29 @@ void branch::populate_prevout(output_point const& outpoint, std::unordered_map<p
         return;
     }
 
+    // // Get the input's previous output and its validation metadata.
+    // auto const count = size();
+    // auto const& blocks = *blocks_;
+
+    // // Reverse iterate because of BIP30.
+    // for (size_t forward = 0; forward < count; ++forward) {
+    //     size_t const index = count - forward - 1u;
+    //     auto const& txs = blocks[index]->transactions();
+
+    //     prevout.coinbase = true;
+    //     for (auto const& tx: txs) {
+    //         // Found the prevout at or below the indexed block.
+    //         if (outpoint.hash() == tx.hash() && outpoint.index() < tx.outputs().size()) {
+    //             prevout.height = height_at(index);
+    //             prevout.median_time_past = median_time_past_at(index);
+    //             prevout.cache = tx.outputs()[outpoint.index()];
+    //             return;
+    //         }
+    //         prevout.coinbase = false;
+    //     }
+    // }
+
+
     // Get the input's previous output and its validation metadata.
     auto const count = size();
     auto const& blocks = *blocks_;
@@ -254,6 +277,7 @@ void branch::populate_prevout(output_point const& outpoint, std::unordered_map<p
     for (size_t forward = 0; forward < count; ++forward) {
         size_t const index = count - forward - 1u;
         auto const& txs = blocks[index]->transactions();
+        auto const& local_utxo = branch_utxo[index];
 
         prevout.coinbase = false;
         auto it = local_utxo.find(outpoint);
@@ -264,18 +288,6 @@ void branch::populate_prevout(output_point const& outpoint, std::unordered_map<p
             prevout.coinbase = it->first.hash() == txs[0].hash();
             return;
         }
-
-        // prevout.coinbase = true;
-        // for (auto const& tx: txs) {
-        //     // Found the prevout at or below the indexed block.
-        //     if (outpoint.hash() == tx.hash() && outpoint.index() < tx.outputs().size()) {
-        //         prevout.height = height_at(index);
-        //         prevout.median_time_past = median_time_past_at(index);
-        //         prevout.cache = tx.outputs()[outpoint.index()];
-        //         return;
-        //     }
-        //     prevout.coinbase = false;
-        // }
     }
 }
 

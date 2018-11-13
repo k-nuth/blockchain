@@ -56,6 +56,19 @@ local_utxo_t create_local_utxo_set(chain::block const& block) {
     return res;
 }
 
+std::vector<local_utxo_t> create_branch_utxo_set(branch::const_ptr const& branch) {
+    auto blocks = *branch->blocks();
+
+    std::vector<local_utxo_t> res;
+    res.reserve(branch->size());
+
+    for (auto const& block : blocks) {
+        res.push_back(create_local_utxo_set(*block));
+    }
+
+    return res;
+}
+
 
 void populate_block::populate(branch::const_ptr branch, result_handler&& handler) const {
     auto const block = branch->top();
@@ -86,18 +99,11 @@ void populate_block::populate(branch::const_ptr branch, result_handler&& handler
     BITCOIN_ASSERT(buckets != 0);
     // LOG_INFO(LOG_BLOCKCHAIN) << "populate_block::populate - buckets:  " << buckets;
 
-
-    //auto t0 = std::chrono::high_resolution_clock::now();
-
-    auto local_utxo = create_local_utxo_set(*block);
-
-    //auto t1 = std::chrono::high_resolution_clock::now();
-    //auto const elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0);
-    //LOG_INFO(LOG_BLOCKCHAIN) << "create_local_utxo_set elapsed:  " << elapsed.count();
-
+    // auto local_utxo = create_local_utxo_set(*block);
+    auto branch_utxo = create_branch_utxo_set(branch);
 
     for (size_t bucket = 0; bucket < buckets; ++bucket) {
-        dispatch_.concurrent(&populate_block::populate_transactions, this, branch, bucket, buckets, local_utxo, join_handler);
+        dispatch_.concurrent(&populate_block::populate_transactions, this, branch, bucket, buckets, branch_utxo, join_handler);
     }
 }
 
@@ -170,7 +176,7 @@ populate_block::utxo_pool_t populate_block::get_reorg_subset_conditionally(size_
 #endif // BITPRIM_DB_NEW
 
 
-void populate_block::populate_transactions(branch::const_ptr branch, size_t bucket, size_t buckets, local_utxo_t const& local_utxo, result_handler handler) const {
+void populate_block::populate_transactions(branch::const_ptr branch, size_t bucket, size_t buckets, std::vector<local_utxo_t> const& branch_utxo, result_handler handler) const {
 
     // TODO(fernando): check how to replace it with UTXO
     // asm("int $3");  //TODO(fernando): remover
@@ -265,7 +271,7 @@ void populate_block::populate_transactions(branch::const_ptr branch, size_t buck
             auto const& input = inputs[input_index];
             auto const& prevout = input.previous_output();
             populate_base::populate_prevout(branch_height, prevout, true);  //Populate from Database
-            populate_prevout(branch, prevout, local_utxo);                  //Populate from Block
+            populate_prevout(branch, prevout, branch_utxo);                 //Populate from the Blocks in the Branch
 
 #ifdef BITPRIM_DB_NEW
             if (first_height <= chain_top) {
@@ -297,14 +303,14 @@ void populate_block::populate_from_reorg_subset(output_point const& outpoint, ut
 }
 #endif // BITPRIM_DB_NEW
 
-void populate_block::populate_prevout(branch::const_ptr branch, output_point const& outpoint, local_utxo_t const& local_utxo) const {
+void populate_block::populate_prevout(branch::const_ptr branch, output_point const& outpoint, std::vector<local_utxo_t> const& branch_utxo) const {
     if ( ! outpoint.validation.spent) {
         branch->populate_spent(outpoint);
     }
 
     // Populate the previous output even if it is spent.
     if ( ! outpoint.validation.cache.is_valid()) {
-        branch->populate_prevout(outpoint, local_utxo);
+        branch->populate_prevout(outpoint, branch_utxo);
     }
 }
 
