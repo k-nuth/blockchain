@@ -91,10 +91,7 @@ public:
     // std::pair<result_code, utxo_pool_t> get_utxo_pool_from(uint32_t from, uint32_t to) const {
     std::pair<bool, database::internal_database::utxo_pool_t> get_utxo_pool_from(uint32_t from, uint32_t to) const override;
 
-
-
 #endif// BITPRIM_DB_NEW
-
 
     /// Get a determination of whether the block hash exists in the store.
     bool get_block_exists(const hash_digest& block_hash) const override;
@@ -323,7 +320,6 @@ public:
     mempool_mini_hash_map get_mempool_mini_hash_map(message::compact_block const& block) const override;
     void fill_tx_list_from_mempool(message::compact_block const& block, size_t& mempool_count, std::vector<chain::transaction>& txn_available, std::unordered_map<uint64_t, uint16_t> const& shorttxids) const override;
 #endif // BITPRIM_DB_TRANSACTION_UNCONFIRMED
-
 
 
     // Filters.

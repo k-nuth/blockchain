@@ -91,13 +91,7 @@ public:
     // std::pair<result_code, utxo_pool_t> get_utxo_pool_from(uint32_t from, uint32_t to) const {
     virtual std::pair<bool, database::internal_database::utxo_pool_t> get_utxo_pool_from(uint32_t from, uint32_t to) const = 0;
 
-
 #endif// BITPRIM_DB_NEW
-
-
-
-
-
 
     virtual void prune_reorg_async() = 0;
 
