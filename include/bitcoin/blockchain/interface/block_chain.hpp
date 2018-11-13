@@ -191,7 +191,7 @@ public:
     // Node Queries.
     // ------------------------------------------------------------------------
 
-#if defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_DB_NEW_BLOCKS) 
+#if defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_DB_NEW_BLOCKS) || defined(BITPRIM_DB_NEW_FULL) 
     /// fetch a block by height.
     void fetch_block(size_t height, bool witness, block_fetch_handler handler) const override;
 
@@ -215,7 +215,7 @@ public:
     /// fetch the set of block hashes indicated by the block locator.
     void fetch_locator_block_hashes(get_blocks_const_ptr locator, const hash_digest& threshold, size_t limit, inventory_fetch_handler handler) const override;
 
-#endif // BITPRIM_DB_LEGACY || BITPRIM_DB_NEW_BLOCKS
+#endif // BITPRIM_DB_LEGACY || BITPRIM_DB_NEW_BLOCKS || BITPRIM_DB_NEW_FULL
 
 #ifdef BITPRIM_DB_LEGACY
 

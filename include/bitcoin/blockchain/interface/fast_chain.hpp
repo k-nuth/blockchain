@@ -95,11 +95,7 @@ public:
 #endif// BITPRIM_DB_NEW
 
 
-#ifdef BITPRIM_DB_NEW_BLOCKS
-    
-    
-    
-#endif// BITPRIM_DB_NEW
+
 
 
 

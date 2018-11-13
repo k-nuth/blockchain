@@ -1188,7 +1188,7 @@ void block_chain::fetch_transaction(hash_digest const& hash,
 }
 #endif // BITPRIM_DB_LEGACY
 
-#ifdef BITPRIM_DB_NEW_BLOCKS
+#if defined(BITPRIM_DB_NEW_BLOCKS) || defined(BITPRIM_DB_NEW_FULL)
 
 void block_chain::fetch_block(size_t height, bool witness,
     block_fetch_handler handler) const
@@ -1436,8 +1436,7 @@ void block_chain::fetch_locator_block_hashes(get_blocks_const_ptr locator,
 }
 
 
-#endif //BITPRIM_DB_NEW_BLOCKS
-
+#endif //BITPRIM_DB_NEW_BLOCKS || BITPRIM_DB_NEW_FULL
 
 
 //TODO (Mario) : Review and move to proper location
