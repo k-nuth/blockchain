@@ -59,7 +59,7 @@ public:
 
     /// Populate prevout validation output state in the context of the branch.
     void populate_prevout(chain::output_point const& outpoint) const;
-    void populate_prevout(chain::output_point const& outpoint, std::unordered_map<chain::point, chain::output const*> const& local_utxo) const;
+    void populate_prevout(chain::output_point const& outpoint, std::vector<std::unordered_map<chain::point, chain::output const*>> const& branch_utxo) const;
 
     /// The member block pointer list.
     block_const_ptr_list_const_ptr blocks() const;
