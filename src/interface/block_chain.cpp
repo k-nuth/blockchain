@@ -1435,6 +1435,64 @@ void block_chain::fetch_locator_block_hashes(get_blocks_const_ptr locator,
     handler(error::success, std::move(hashes));
 }
 
+void block_chain::fetch_transaction(hash_digest const& hash, bool require_confirmed, bool witness, transaction_fetch_handler handler) const
+{
+#ifdef BITPRIM_CURRENCY_BCH
+    witness = false;
+#endif
+    if (stopped())
+    {
+        handler(error::service_stopped, nullptr, 0, 0);
+        return;
+    }
+//TODO: (bitprim) dissabled this tx cache because we don't want special treatment for the last txn, it affects the explorer rpc methods
+//    // Try the cached block first if confirmation is not required.
+//    if (!require_confirmed)
+//    {
+//        auto const cached = last_transaction_.load();
+//
+//        if (cached && cached->validation.state && cached->hash() == hash)
+//        {
+//            ////LOG_INFO(LOG_BLOCKCHAIN) << "TX CACHE HIT";
+//
+//            // Simulate the position and height overloading of the database.
+//            handler(error::success, cached, transaction_database::unconfirmed,
+//                cached->validation.state->height());
+//            return;
+//        }
+//    }
+  
+    auto const& result = database_.internal_db().get_transaction(hash, max_size_t,require_confirmed);
+
+    if ( ! result.is_valid() )
+    {
+        handler(error::not_found, nullptr, 0, 0);
+        return;
+    }
+
+    auto const tx = std::make_shared<const transaction>(result.transaction());
+    handler(error::success, tx, result.position(), result.height());
+}
+
+// This is same as fetch_transaction but skips deserializing the tx payload.
+void block_chain::fetch_transaction_position(hash_digest const& hash, bool require_confirmed, transaction_index_fetch_handler handler) const
+{
+    if (stopped())
+    {
+        handler(error::service_stopped, 0, 0);
+        return;
+    }
+
+    auto const& result = database_.internal_db().get_transaction(hash, max_size_t,require_confirmed);
+
+    if ( ! result.is_valid() )
+    {
+        handler(error::not_found, 0, 0);
+        return;
+    }
+
+    handler(error::success, result.position(), result.height());
+}
 
 #endif //BITPRIM_DB_NEW_BLOCKS || BITPRIM_DB_NEW_FULL
 

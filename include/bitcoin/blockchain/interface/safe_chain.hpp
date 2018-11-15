@@ -130,13 +130,13 @@ public:
     virtual void fetch_locator_block_hashes(get_blocks_const_ptr locator, const hash_digest& threshold, size_t limit, inventory_fetch_handler handler) const = 0;
 
   
-#endif // BITPRIM_DB_LEGACY || BITPRIM_DB_NEW_BLOCKS || BITPRIM_DB_NEW_FULL
-
-#ifdef BITPRIM_DB_LEGACY
-
     virtual void fetch_transaction(const hash_digest& hash, bool require_confirmed, bool witness, transaction_fetch_handler handler) const = 0;
 
     virtual void fetch_transaction_position(const hash_digest& hash, bool require_confirmed, transaction_index_fetch_handler handler) const = 0;
+
+#endif // BITPRIM_DB_LEGACY || BITPRIM_DB_NEW_BLOCKS || BITPRIM_DB_NEW_FULL
+
+#ifdef BITPRIM_DB_LEGACY
 
     void for_each_transaction(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const;
 

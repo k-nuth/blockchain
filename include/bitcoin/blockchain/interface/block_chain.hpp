@@ -212,18 +212,18 @@ public:
     /// fetch the set of block hashes indicated by the block locator.
     void fetch_locator_block_hashes(get_blocks_const_ptr locator, const hash_digest& threshold, size_t limit, inventory_fetch_handler handler) const override;
 
-#endif // BITPRIM_DB_LEGACY || BITPRIM_DB_NEW_BLOCKS || BITPRIM_DB_NEW_FULL
-
-#ifdef BITPRIM_DB_LEGACY
-
     /// fetch transaction by hash.
     void fetch_transaction(const hash_digest& hash, bool require_confirmed, bool witness, transaction_fetch_handler handler) const override;
-
-    std::vector<chain::transaction> get_mempool_transactions_from_wallets(std::vector<wallet::payment_address> const& payment_addresses, bool use_testnet_rules, bool witness) const;
 
     /// fetch position and height within block of transaction by hash.
     void fetch_transaction_position(const hash_digest& hash, bool require_confirmed, transaction_index_fetch_handler handler) const override;
 
+#endif // BITPRIM_DB_LEGACY || BITPRIM_DB_NEW_BLOCKS || BITPRIM_DB_NEW_FULL
+
+#ifdef BITPRIM_DB_LEGACY
+
+    std::vector<chain::transaction> get_mempool_transactions_from_wallets(std::vector<wallet::payment_address> const& payment_addresses, bool use_testnet_rules, bool witness) const;
+    
 #endif
 
     /// fetch the set of block headers indicated by the block locator.
