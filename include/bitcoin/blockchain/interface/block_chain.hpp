@@ -74,23 +74,23 @@ public:
     bool get_output(chain::output& out_output, size_t& out_height, uint32_t& out_median_time_past, bool& out_coinbase, const chain::output_point& outpoint, size_t branch_height, bool require_confirmed) const override;
 
     bool get_output_is_confirmed(chain::output& out_output, size_t& out_height, bool& out_coinbase, bool& out_is_confirmed, const chain::output_point& outpoint, size_t branch_height, bool require_confirmed) const;
+#endif// BITPRIM_DB_LEGACY
 
-    //TODO(fernando): check how to replace it with UTXO
+#if defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_DB_NEW_FULL) 
+    //TODO(fernando): check if can we do it just with the UTXO
     /// Determine if an unspent transaction exists with the given hash.
     bool get_is_unspent_transaction(const hash_digest& hash, size_t branch_height, bool require_confirmed) const override;
 
     /// Get position data for a transaction.
     bool get_transaction_position(size_t& out_height, size_t& out_position, const hash_digest& hash, bool require_confirmed) const override;
-#endif// BITPRIM_DB_LEGACY
+#endif
 
 #ifdef BITPRIM_DB_NEW
-
     /// Get the output that is referenced by the outpoint in the UTXO Set.
     bool get_utxo(chain::output& out_output, size_t& out_height, uint32_t& out_median_time_past, bool& out_coinbase, chain::output_point const& outpoint, size_t branch_height) const override;
 
     // std::pair<result_code, utxo_pool_t> get_utxo_pool_from(uint32_t from, uint32_t to) const {
     std::pair<bool, database::internal_database::utxo_pool_t> get_utxo_pool_from(uint32_t from, uint32_t to) const override;
-
 #endif// BITPRIM_DB_NEW
 
     /// Get a determination of whether the block hash exists in the store.

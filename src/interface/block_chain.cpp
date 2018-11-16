@@ -241,32 +241,41 @@ bool block_chain::get_output_is_confirmed(chain::output& out_output, size_t& out
                                                out_coinbase, out_is_confirmed, outpoint, branch_height, require_confirmed);
 }
 
-//TODO(fernando): check how to replace it with UTXO
-bool block_chain::get_is_unspent_transaction(hash_digest const& hash,
-    size_t branch_height, bool require_confirmed) const
-{
-    auto const result = database_.transactions().get(hash, branch_height,
-        require_confirmed);
-
+//TODO(fernando): check if can we do it just with the UTXO
+bool block_chain::get_is_unspent_transaction(hash_digest const& hash, size_t branch_height, bool require_confirmed) const {
+    auto const result = database_.transactions().get(hash, branch_height, require_confirmed);
     return result && !result.is_spent(branch_height);
 }
+#endif // BITPRIM_DB_LEGACY
 
-bool block_chain::get_transaction_position(size_t& out_height,
-    size_t& out_position, hash_digest const& hash,
-    bool require_confirmed) const
-{
-    auto const result = database_.transactions().get(hash, max_size_t,
-        require_confirmed);
+#if defined(BITPRIM_DB_NEW_FULL)
+//TODO(fernando): check if can we do it just with the UTXO
+bool block_chain::get_is_unspent_transaction(hash_digest const& hash, size_t branch_height, bool require_confirmed) const {
+    auto const result = database_.internal_db().get_transaction(hash, branch_height, require_confirmed);
+    return result.is_valid() && ! result.is_spent(branch_height);
+}
+#endif
 
-    if (!result)
+#if defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_DB_NEW_FULL)
+bool block_chain::get_transaction_position(size_t& out_height, size_t& out_position, hash_digest const& hash, bool require_confirmed) const {
+
+#if defined(BITPRIM_DB_LEGACY)    
+    auto const result = database_.transactions().get(hash, max_size_t, require_confirmed);
+    if ( ! result) {
         return false;
+    }
+#else
+    auto const result = database_.internal_db().get_transaction(hash, max_size_t, require_confirmed);
+    if ( ! result.is_valid() ) {
+        return false;
+    }
+#endif
 
     out_height = result.height();
     out_position = result.position();
     return true;
 }
-#endif // BITPRIM_DB_LEGACY
-
+#endif // defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_DB_NEW_FULL)
 
 #ifdef BITPRIM_DB_NEW
 
@@ -2232,17 +2241,17 @@ void block_chain::fetch_spend(const chain::output_point& outpoint, spend_fetch_h
 
 
 #if defined(BITPRIM_DB_HISTORY) || defined(BITPRIM_DB_NEW_FULL)
-void block_chain::fetch_history(const short_hash& address_hash, size_t limit, size_t from_height, history_fetch_handler handler) const {
+void block_chain::fetch_history(short_hash const& address_hash, size_t limit, size_t from_height, history_fetch_handler handler) const {
     if (stopped()) {
         handler(error::service_stopped, {});
         return;
     }
 
-    #if defined(BITPRIM_DB_HISTORY)
-        handler(error::success, database_.history().get(address_hash, limit, from_height));
-    #else
-        handler(error::success, database_.internal_db().get_history(address_hash, limit, from_height));
-    #endif
+#if defined(BITPRIM_DB_HISTORY)
+    handler(error::success, database_.history().get(address_hash, limit, from_height));
+#else
+    handler(error::success, database_.internal_db().get_history(address_hash, limit, from_height));
+#endif
 
 }
 
@@ -2252,11 +2261,11 @@ void block_chain::fetch_confirmed_transactions(const short_hash& address_hash, s
         return;
     }
 
-    #if defined(BITPRIM_DB_HISTORY)
-        handler(error::success, database_.history().get_txns(address_hash, limit, from_height));
-    #else
-        handler(error::success, database_.internal_db().get_history_txns(address_hash, limit, from_height));
-    #endif
+#if defined(BITPRIM_DB_HISTORY)
+    handler(error::success, database_.history().get_txns(address_hash, limit, from_height));
+#else
+    handler(error::success, database_.internal_db().get_history_txns(address_hash, limit, from_height));
+#endif
 }
 
 #endif // BITPRIM_DB_HISTORY
