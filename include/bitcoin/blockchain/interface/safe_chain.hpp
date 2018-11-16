@@ -80,7 +80,7 @@ public:
     typedef std::function<void(const code&, transaction_const_ptr, size_t,
         size_t)> transaction_fetch_handler;
 
-#ifdef BITPRIM_DB_TRANSACTION_UNCONFIRMED
+#if defined(BITPRIM_DB_TRANSACTION_UNCONFIRMED) || defined(BITPRIM_DB_NEW_FULL)
     using transaction_unconfirmed_fetch_handler = std::function<void(const code&, transaction_const_ptr)>;
 #endif // BITPRIM_DB_TRANSACTION_UNCONFIRMED
 
@@ -125,10 +125,8 @@ public:
     virtual void fetch_compact_block(const hash_digest& hash, compact_block_fetch_handler handler) const = 0;
 
     virtual void fetch_block_header_txs_size(const hash_digest& hash, block_header_txs_size_fetch_handler handler) const = 0;
-
     
     virtual void fetch_locator_block_hashes(get_blocks_const_ptr locator, const hash_digest& threshold, size_t limit, inventory_fetch_handler handler) const = 0;
-
   
     virtual void fetch_transaction(const hash_digest& hash, bool require_confirmed, bool witness, transaction_fetch_handler handler) const = 0;
 
@@ -143,7 +141,6 @@ public:
     void for_each_transaction_non_coinbase(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const;
 
 #endif //BITPRIM_DB_LEGACY
-
 
     virtual void fetch_locator_block_headers(get_headers_const_ptr locator, const hash_digest& threshold, size_t limit, locator_block_headers_fetch_handler handler) const = 0;
 
@@ -164,11 +161,11 @@ public:
     // Server Queries.
     //-------------------------------------------------------------------------
 
-#ifdef BITPRIM_DB_SPENDS
+#if defined(BITPRIM_DB_SPENDS) || defined(BITPRIM_DB_NEW_FULL)
     virtual void fetch_spend(const chain::output_point& outpoint, spend_fetch_handler handler) const = 0;
 #endif // BITPRIM_DB_SPENDS
 
-#ifdef BITPRIM_DB_HISTORY
+#if defined(BITPRIM_DB_HISTORY) || defined(BITPRIM_DB_NEW_FULL)
     virtual void fetch_history(const short_hash& address_hash, size_t limit, size_t from_height, history_fetch_handler handler) const = 0;
     virtual void fetch_confirmed_transactions(const short_hash& address_hash, size_t limit, size_t from_height, confirmed_transactions_fetch_handler handler) const = 0;
 #endif // BITPRIM_DB_HISTORY

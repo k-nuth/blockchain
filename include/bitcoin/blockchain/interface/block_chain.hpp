@@ -287,12 +287,12 @@ public:
     // Server Queries.
     //-------------------------------------------------------------------------
 
-#ifdef BITPRIM_DB_SPENDS
+#if defined(BITPRIM_DB_SPENDS) || defined(BITPRIM_DB_NEW_FULL)
     /// fetch the inpoint (spender) of an outpoint.
     void fetch_spend(const chain::output_point& outpoint, spend_fetch_handler handler) const override;
 #endif // BITPRIM_DB_SPENDS
 
-#ifdef BITPRIM_DB_HISTORY
+#if defined(BITPRIM_DB_HISTORY) || defined(BITPRIM_DB_NEW_FULL)
     /// fetch outputs, values and spends for an address_hash.
     void fetch_history(const short_hash& address_hash, size_t limit, size_t from_height, history_fetch_handler handler) const override;
 

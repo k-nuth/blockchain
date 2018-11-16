@@ -2206,7 +2206,7 @@ void block_chain::fetch_block_locator(block::indexes const& heights, block_locat
 // Server Queries.
 //-----------------------------------------------------------------------------
 
-#ifdef BITPRIM_DB_SPENDS
+#if defined(BITPRIM_DB_SPENDS) || defined(BITPRIM_DB_NEW_FULL)
 void block_chain::fetch_spend(const chain::output_point& outpoint, spend_fetch_handler handler) const {
     if (stopped())
     {
@@ -2214,7 +2214,11 @@ void block_chain::fetch_spend(const chain::output_point& outpoint, spend_fetch_h
         return;
     }
 
-    auto point = database_.spends().get(outpoint);
+    #if defined(BITPRIM_DB_SPENDS)
+        auto point = database_.spends().get(outpoint);
+    #else
+        auto point = database_.internal_db().get_spend(outpoint);
+    #endif
 
     if (point.hash() == null_hash)
     {
@@ -2226,14 +2230,20 @@ void block_chain::fetch_spend(const chain::output_point& outpoint, spend_fetch_h
 }
 #endif // BITPRIM_DB_SPENDS
 
-#ifdef BITPRIM_DB_HISTORY
+
+#if defined(BITPRIM_DB_HISTORY) || defined(BITPRIM_DB_NEW_FULL)
 void block_chain::fetch_history(const short_hash& address_hash, size_t limit, size_t from_height, history_fetch_handler handler) const {
     if (stopped()) {
         handler(error::service_stopped, {});
         return;
     }
 
-    handler(error::success, database_.history().get(address_hash, limit, from_height));
+    #if defined(BITPRIM_DB_HISTORY)
+        handler(error::success, database_.history().get(address_hash, limit, from_height));
+    #else
+        handler(error::success, database_.internal_db().get_history(address_hash, limit, from_height));
+    #endif
+
 }
 
 void block_chain::fetch_confirmed_transactions(const short_hash& address_hash, size_t limit, size_t from_height, confirmed_transactions_fetch_handler handler) const {
@@ -2242,10 +2252,14 @@ void block_chain::fetch_confirmed_transactions(const short_hash& address_hash, s
         return;
     }
 
-    handler(error::success, database_.history().get_txns(address_hash, limit, from_height));
+    #if defined(BITPRIM_DB_HISTORY)
+        handler(error::success, database_.history().get_txns(address_hash, limit, from_height));
+    #else
+        handler(error::success, database_.internal_db().get_history_txns(address_hash, limit, from_height));
+    #endif
 }
-#endif // BITPRIM_DB_HISTORY
 
+#endif // BITPRIM_DB_HISTORY
 
 #ifdef BITPRIM_DB_STEALTH
 void block_chain::fetch_stealth(const binary& filter, size_t from_height, stealth_fetch_handler handler) const
