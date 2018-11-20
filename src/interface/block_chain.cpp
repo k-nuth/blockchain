@@ -1422,6 +1422,12 @@ void block_chain::fetch_locator_block_hashes(get_blocks_const_ptr locator,
     handler(error::success, std::move(hashes));
 }
 
+
+#endif //BITPRIM_DB_NEW_BLOCKS || BITPRIM_DB_NEW_FULL
+
+
+#if defined(BITPRIM_DB_NEW_FULL)
+
 void block_chain::fetch_transaction(hash_digest const& hash, bool require_confirmed, bool witness, transaction_fetch_handler handler) const
 {
 #ifdef BITPRIM_CURRENCY_BCH
@@ -1481,7 +1487,8 @@ void block_chain::fetch_transaction_position(hash_digest const& hash, bool requi
     handler(error::success, result.position(), result.height());
 }
 
-#endif //BITPRIM_DB_NEW_BLOCKS || BITPRIM_DB_NEW_FULL
+
+#endif
 
 
 //TODO (Mario) : Review and move to proper location
