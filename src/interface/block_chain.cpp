@@ -682,28 +682,6 @@ void block_chain::remove_mined_txs_from_chosen_list(block_const_ptr blk){
 }
 #endif // BITPRIM_WITH_MINING
 
-#ifdef BITPRIM_DB_TRANSACTION_UNCONFIRMED
-void block_chain::fetch_unconfirmed_transaction(hash_digest const& hash, transaction_unconfirmed_fetch_handler handler) const
-{
-    if (stopped())
-    {
-        handler(error::service_stopped, nullptr);
-        return;
-    }
-
-    auto const result = database_.transactions_unconfirmed().get(hash);
-
-    if (!result)
-    {
-        handler(error::not_found, nullptr);
-        return;
-    }
-
-    auto const tx = std::make_shared<const transaction>(result.transaction());
-    handler(error::success, tx);
-}
-#endif // BITPRIM_DB_TRANSACTION_UNCONFIRMED
-
 
 
 void block_chain::reorganize(const checkpoint& fork_point,
@@ -1578,7 +1556,7 @@ std::vector<libbitcoin::blockchain::mempool_transaction_summary> block_chain::ge
         }
     }
 
-    auto const& result = database_.internal_db().get_all_transaction_unconfirmed();
+    auto const result = database_.internal_db().get_all_transaction_unconfirmed();
     
     for (auto const& tx_res : result) {
         auto const& tx = tx_res.transaction();
@@ -1648,7 +1626,7 @@ std::vector<chain::transaction> block_chain::get_mempool_transactions_from_walle
 
     std::vector<chain::transaction> ret;
 
-    auto& result = database_.internal_db().get_all_transaction_unconfirmed();
+    auto const result = database_.internal_db().get_all_transaction_unconfirmed();
 
     for (auto const& tx_res : result) { 
         auto const& tx = tx_res.transaction();
@@ -1699,7 +1677,7 @@ void block_chain::fill_tx_list_from_mempool(message::compact_block const& block,
     auto k0 = from_little_endian_unsafe<uint64_t>(header_hash.begin());
     auto k1 = from_little_endian_unsafe<uint64_t>(header_hash.begin() + sizeof(uint64_t));
 
-    auto& result = database_.internal_db().get_all_transaction_unconfirmed();
+    auto const result = database_.internal_db().get_all_transaction_unconfirmed();
 
     for (auto const& tx_res : result) { 
         auto const& tx = tx_res.transaction();
@@ -1762,7 +1740,7 @@ safe_chain::mempool_mini_hash_map block_chain::get_mempool_mini_hash_map(message
     safe_chain::mempool_mini_hash_map mempool;
 
 
-    auto& result = database_.internal_db().get_all_transaction_unconfirmed();
+    auto const result = database_.internal_db().get_all_transaction_unconfirmed();
 
     for (auto const& tx_res : result) { 
         auto const& tx = tx_res.transaction();
@@ -1788,6 +1766,29 @@ std::vector<libbitcoin::blockchain::mempool_transaction_summary> block_chain::ge
     std::vector<std::string> addresses = {payment_address};
     return get_mempool_transactions(addresses, use_testnet_rules, witness);
 }
+
+
+void block_chain::fetch_unconfirmed_transaction(hash_digest const& hash, transaction_unconfirmed_fetch_handler handler) const
+{
+    if (stopped())
+    {
+        handler(error::service_stopped, nullptr);
+        return;
+    }
+
+    auto const result = database_.internal_db().get_transaction_unconfirmed(hash);
+
+    if ( ! result.is_valid())
+    {
+        handler(error::not_found, nullptr);
+        return;
+    }
+
+    auto const tx = std::make_shared<const transaction>(result.transaction());
+    handler(error::success, tx);
+}
+
+
 #endif // BITPRIM_DB_NEW_FULL
 
 #ifdef BITPRIM_DB_TRANSACTION_UNCONFIRMED
@@ -2043,6 +2044,30 @@ std::vector<libbitcoin::blockchain::mempool_transaction_summary> block_chain::ge
     std::vector<std::string> addresses = {payment_address};
     return get_mempool_transactions(addresses, use_testnet_rules, witness);
 }
+
+
+
+void block_chain::fetch_unconfirmed_transaction(hash_digest const& hash, transaction_unconfirmed_fetch_handler handler) const
+{
+    if (stopped())
+    {
+        handler(error::service_stopped, nullptr);
+        return;
+    }
+
+    auto const result = database_.transactions_unconfirmed().get(hash);
+
+    if (!result)
+    {
+        handler(error::not_found, nullptr);
+        return;
+    }
+
+    auto const tx = std::make_shared<const transaction>(result.transaction());
+    handler(error::success, tx);
+}
+
+
 #endif // BITPRIM_DB_TRANSACTION_UNCONFIRMED
 
 #ifdef BITPRIM_DB_LEGACY
