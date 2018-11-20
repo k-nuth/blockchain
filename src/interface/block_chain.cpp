@@ -2608,6 +2608,36 @@ void block_chain::filter_transactions(get_data_ptr message,
 }
 #endif // BITPRIM_DB_LEGACY
 
+#if defined(BITPRIM_DB_NEW_FULL)
+
+// This filters against all transactions (confirmed and unconfirmed).
+void block_chain::filter_transactions(get_data_ptr message, result_handler handler) const
+{
+    if (stopped())
+    {
+        handler(error::service_stopped);
+        return;
+    }
+
+    auto& inventories = message->inventories();
+    //auto const& transactions = database_.transactions();
+
+    for (auto it = inventories.begin(); it != inventories.end();)
+    {
+        //TODO(fernando): check how to replace it with UTXO
+        if (it->is_transaction_type() &&
+            get_is_unspent_transaction(it->hash(), max_size_t, false))
+            it = inventories.erase(it);
+        else
+            ++it;
+    }
+
+    handler(error::success);
+}
+
+#endif //BITPRIM_DB_NEW_FULL
+
+
 #ifdef BITPRIM_DB_NEW
 // This may execute up to 500 queries.
 // This filters against the block pool and then the block chain.
