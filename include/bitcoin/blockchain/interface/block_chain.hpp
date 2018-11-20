@@ -220,11 +220,6 @@ public:
 
 #endif // BITPRIM_DB_LEGACY || BITPRIM_DB_NEW_BLOCKS || BITPRIM_DB_NEW_FULL
 
-#ifdef BITPRIM_DB_LEGACY
-
-    std::vector<chain::transaction> get_mempool_transactions_from_wallets(std::vector<wallet::payment_address> const& payment_addresses, bool use_testnet_rules, bool witness) const;
-    
-#endif
 
     /// fetch the set of block headers indicated by the block locator.
     void fetch_locator_block_headers(get_headers_const_ptr locator, const hash_digest& threshold, size_t limit, locator_block_headers_fetch_handler handler) const override;
@@ -246,14 +241,6 @@ public:
     
     void fetch_block_hash_timestamp(size_t height, block_hash_time_fetch_handler handler) const override;
 
-
-#ifdef BITPRIM_DB_TRANSACTION_UNCONFIRMED
-    /// fetch unconfirmed transaction by hash.
-    void fetch_unconfirmed_transaction(const hash_digest& hash, transaction_unconfirmed_fetch_handler handler) const;
-
-    std::vector<mempool_transaction_summary> get_mempool_transactions(std::vector<std::string> const& payment_addresses, bool use_testnet_rules, bool witness) const override;
-    std::vector<mempool_transaction_summary> get_mempool_transactions(std::string const& payment_address, bool use_testnet_rules, bool witness) const override;
-#endif // BITPRIM_DB_TRANSACTION_UNCONFIRMED
 
 
 #ifdef BITPRIM_DB_LEGACY
@@ -316,11 +303,17 @@ public:
     void fetch_mempool(size_t count_limit, uint64_t minimum_fee, inventory_fetch_handler handler) const override;
 
 
-#ifdef BITPRIM_DB_TRANSACTION_UNCONFIRMED
+#if defined(BITPRIM_DB_TRANSACTION_UNCONFIRMED) || defined(BITPRIM_DB_NEW_FULL)    
+    std::vector<mempool_transaction_summary> get_mempool_transactions(std::vector<std::string> const& payment_addresses, bool use_testnet_rules, bool witness) const override;
+    std::vector<mempool_transaction_summary> get_mempool_transactions(std::string const& payment_address, bool use_testnet_rules, bool witness) const override;
+    std::vector<chain::transaction> get_mempool_transactions_from_wallets(std::vector<wallet::payment_address> const& payment_addresses, bool use_testnet_rules, bool witness) const;
+
+    /// fetch unconfirmed transaction by hash.
+    void fetch_unconfirmed_transaction(const hash_digest& hash, transaction_unconfirmed_fetch_handler handler) const;
+    
     mempool_mini_hash_map get_mempool_mini_hash_map(message::compact_block const& block) const override;
     void fill_tx_list_from_mempool(message::compact_block const& block, size_t& mempool_count, std::vector<chain::transaction>& txn_available, std::unordered_map<uint64_t, uint16_t> const& shorttxids) const override;
 #endif // BITPRIM_DB_TRANSACTION_UNCONFIRMED
-
 
     // Filters.
     //-------------------------------------------------------------------------

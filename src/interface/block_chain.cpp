@@ -1532,6 +1532,255 @@ hash_digest generate_merkle_root(std::vector<chain::transaction> transactions) {
     return merkle.front();
 }
 
+#ifdef BITPRIM_DB_NEW_FULL
+//TODO(fernando): refactor!!!
+std::vector<libbitcoin::blockchain::mempool_transaction_summary> block_chain::get_mempool_transactions(std::vector<std::string> const& payment_addresses, bool use_testnet_rules, bool witness) const {
+/*          "    \"address\"  (string) The base58check encoded address\n"
+            "    \"txid\"  (string) The related txid\n"
+            "    \"index\"  (number) The related input or output index\n"
+            "    \"satoshis\"  (number) The difference of satoshis\n"
+            "    \"timestamp\"  (number) The time the transaction entered the mempool (seconds)\n"
+            "    \"prevtxid\"  (string) The previous txid (if spending)\n"
+            "    \"prevout\"  (string) The previous transaction output index (if spending)\n"
+*/
+
+#ifdef BITPRIM_CURRENCY_BCH
+    witness = false;
+#endif
+
+    uint8_t encoding_p2kh;
+    uint8_t encoding_p2sh;
+
+    if (use_testnet_rules) {
+        encoding_p2kh = libbitcoin::wallet::payment_address::testnet_p2kh;
+        encoding_p2sh = libbitcoin::wallet::payment_address::testnet_p2sh;
+    } else {
+        encoding_p2kh = libbitcoin::wallet::payment_address::mainnet_p2kh;
+        encoding_p2sh = libbitcoin::wallet::payment_address::mainnet_p2sh;
+    }
+    
+    std::vector<libbitcoin::blockchain::mempool_transaction_summary> ret;
+    
+    std::unordered_set<libbitcoin::wallet::payment_address> addrs;
+    for (auto const& payment_address : payment_addresses) {
+        libbitcoin::wallet::payment_address address(payment_address);
+        if (address){
+            addrs.insert(address);
+        }
+    }
+
+    auto const& result = database_.internal_db().get_all_transaction_unconfirmed();
+    
+    for (auto const& tx_res : result) {
+        auto const& tx = tx_res.transaction();
+        //tx.recompute_hash();
+        size_t i = 0;
+        for (auto const& output : tx.outputs()) {
+            auto const tx_addresses = libbitcoin::wallet::payment_address::extract(output.script(), encoding_p2kh, encoding_p2sh);
+            for(auto const tx_address : tx_addresses) {
+                if (tx_address && addrs.find(tx_address) != addrs.end()) {
+                    ret.push_back
+                            (libbitcoin::blockchain::mempool_transaction_summary
+                                     (tx_address.encoded(), libbitcoin::encode_hash(tx.hash()), "",
+                                      "", std::to_string(output.value()), i, tx_res.arrival_time()));
+                }
+            }
+            ++i;
+        }
+        i = 0;
+        for (auto const& input : tx.inputs()) {
+            // TODO: payment_addrress::extract should use the prev_output script instead of the input script
+            // see https://github.com/bitprim/bitprim-core/blob/v0.10.0/src/wallet/payment_address.cpp#L505
+            auto const tx_addresses = libbitcoin::wallet::payment_address::extract(input.script(), encoding_p2kh, encoding_p2sh);
+            for(auto const tx_address : tx_addresses)
+            if (tx_address && addrs.find(tx_address) != addrs.end()) {
+                boost::latch latch(2);
+                fetch_transaction(input.previous_output().hash(), false, witness,
+                                  [&](const libbitcoin::code &ec,
+                                      libbitcoin::transaction_const_ptr tx_ptr, size_t index,
+                                      size_t height) {
+                                      if (ec == libbitcoin::error::success) {
+                                          ret.push_back(libbitcoin::blockchain::mempool_transaction_summary
+                                                                (tx_address.encoded(),
+                                                                libbitcoin::encode_hash(tx.hash()),
+                                                                libbitcoin::encode_hash(input.previous_output().hash()),
+                                                                 std::to_string(input.previous_output().index()),
+                                                                "-"+std::to_string(tx_ptr->outputs()[input.previous_output().index()].value()),
+                                                                i,
+                                                                tx_res.arrival_time()));
+                                      }
+                                      latch.count_down();
+                                  });
+                latch.count_down_and_wait();
+            }
+            ++i;
+        }
+    }
+
+    return ret;
+}
+
+// Precondition: valid payment addresses
+std::vector<chain::transaction> block_chain::get_mempool_transactions_from_wallets(std::vector<wallet::payment_address> const& payment_addresses, bool use_testnet_rules, bool witness) const {
+
+#ifdef BITPRIM_CURRENCY_BCH
+    witness = false;
+#endif
+
+    uint8_t encoding_p2kh;
+    uint8_t encoding_p2sh;
+    if (use_testnet_rules){
+        encoding_p2kh = libbitcoin::wallet::payment_address::testnet_p2kh;
+        encoding_p2sh = libbitcoin::wallet::payment_address::testnet_p2sh;
+    } else {
+        encoding_p2kh = libbitcoin::wallet::payment_address::mainnet_p2kh;
+        encoding_p2sh = libbitcoin::wallet::payment_address::mainnet_p2sh;
+    }
+
+    std::vector<chain::transaction> ret;
+
+    auto& result = database_.internal_db().get_all_transaction_unconfirmed();
+
+    for (auto const& tx_res : result) { 
+        auto const& tx = tx_res.transaction();
+        //tx.recompute_hash();
+        // Only insert the transaction once. Avoid duplicating the tx if serveral wallets are used in the same tx, and if the same wallet is the input and output addr.
+        bool inserted = false;
+
+        for (auto iter_output = tx.outputs().begin(); (iter_output != tx.outputs().end() && !inserted); ++iter_output) {
+        
+            const auto tx_addresses = libbitcoin::wallet::payment_address::extract((*iter_output).script(), encoding_p2kh, encoding_p2sh);
+
+            for (auto iter_addr = tx_addresses.begin(); (iter_addr != tx_addresses.end() && !inserted); ++iter_addr) {
+                if (*iter_addr) {
+                    auto it = std::find(payment_addresses.begin(), payment_addresses.end(), *iter_addr);
+                    if (it != payment_addresses.end()) {
+                        ret.push_back(tx);
+                        inserted = true;
+                    }
+                }
+            }
+        }
+
+        for (auto iter_input = tx.inputs().begin(); (iter_input != tx.inputs().end() && !inserted); ++iter_input) {
+            // TODO: payment_addrress::extract should use the prev_output script instead of the input script
+            // see https://github.com/bitprim/bitprim-core/blob/v0.10.0/src/wallet/payment_address.cpp#L505
+            const auto tx_addresses = libbitcoin::wallet::payment_address::extract((*iter_input).script(), encoding_p2kh, encoding_p2sh);
+            for (auto iter_addr = tx_addresses.begin(); (iter_addr != tx_addresses.end() && !inserted); ++iter_addr) {
+                if (*iter_addr) {
+                    auto it = std::find(payment_addresses.begin(), payment_addresses.end(), *iter_addr);
+                    if (it != payment_addresses.end()) {
+                        ret.push_back(tx);
+                        inserted = true;
+                    }
+                }
+            }
+        }
+        
+    }
+
+    return ret;
+}
+
+void block_chain::fill_tx_list_from_mempool(message::compact_block const& block, size_t& mempool_count, std::vector<chain::transaction>& txn_available, std::unordered_map<uint64_t, uint16_t> const& shorttxids) const {
+    
+    std::vector<bool> have_txn(txn_available.size());
+    
+    auto header_hash = hash(block);
+    auto k0 = from_little_endian_unsafe<uint64_t>(header_hash.begin());
+    auto k1 = from_little_endian_unsafe<uint64_t>(header_hash.begin() + sizeof(uint64_t));
+
+    auto& result = database_.internal_db().get_all_transaction_unconfirmed();
+
+    for (auto const& tx_res : result) { 
+        auto const& tx = tx_res.transaction();
+
+#ifdef BITPRIM_CURRENCY_BCH
+        bool witness = false;
+#else
+        bool witness = true;
+#endif
+        uint64_t shortid = sip_hash_uint256(k0, k1, tx.hash(witness)) & uint64_t(0xffffffffffff);
+        
+        auto idit = shorttxids.find(shortid);
+        if (idit != shorttxids.end()) {
+            if (!have_txn[idit->second]) {
+                txn_available[idit->second] = tx;
+                have_txn[idit->second] = true;
+                ++mempool_count;
+            } else {
+                // If we find two mempool txn that match the short id, just
+                // request it. This should be rare enough that the extra
+                // bandwidth doesn't matter, but eating a round-trip due to
+                // FillBlock failure would be annoying.
+                if (txn_available[idit->second].is_valid()) {
+                    //txn_available[idit->second].reset();
+                    txn_available[idit->second] = chain::transaction{};
+                    --mempool_count;
+                }
+            }
+        }
+
+        //TODO (Mario) :  break the loop
+        // Though ideally we'd continue scanning for the
+        // two-txn-match-shortid case, the performance win of an early exit
+        // here is too good to pass up and worth the extra risk.
+        /*if (mempool_count == shorttxids.size()) {
+            return false;
+        } else {
+            return true;
+        }*/
+    }
+
+}
+
+safe_chain::mempool_mini_hash_map block_chain::get_mempool_mini_hash_map(message::compact_block const& block) const {
+#ifdef BITPRIM_CURRENCY_BCH
+     bool witness = false;
+#else
+     bool witness = true;
+#endif
+
+    if (stopped()) {
+        return safe_chain::mempool_mini_hash_map();
+    }
+    
+    auto header_hash = hash(block);
+
+    auto k0 = from_little_endian_unsafe<uint64_t>(header_hash.begin());
+    auto k1 = from_little_endian_unsafe<uint64_t>(header_hash.begin() + sizeof(uint64_t));
+
+    safe_chain::mempool_mini_hash_map mempool;
+
+
+    auto& result = database_.internal_db().get_all_transaction_unconfirmed();
+
+    for (auto const& tx_res : result) { 
+        auto const& tx = tx_res.transaction();
+
+        auto sh = sip_hash_uint256(k0, k1, tx.hash(witness));
+        
+       /* to_little_endian()
+        uint64_t pepe = 4564564;
+        uint64_t pepe2 = pepe & 0x0000ffffffffffff;
+            
+        reinterpret_cast<uint8_t*>(pepe2);
+        */
+        //Drop the most significative bytes from the sh
+        mini_hash short_id;
+        mempool.emplace(short_id,tx);
+    
+    }
+
+    return mempool;
+}
+
+std::vector<libbitcoin::blockchain::mempool_transaction_summary> block_chain::get_mempool_transactions(std::string const& payment_address, bool use_testnet_rules, bool witness) const{
+    std::vector<std::string> addresses = {payment_address};
+    return get_mempool_transactions(addresses, use_testnet_rules, witness);
+}
+#endif // BITPRIM_DB_NEW_FULL
+
 #ifdef BITPRIM_DB_TRANSACTION_UNCONFIRMED
 //TODO(fernando): refactor!!!
 std::vector<libbitcoin::blockchain::mempool_transaction_summary> block_chain::get_mempool_transactions(std::vector<std::string> const& payment_addresses, bool use_testnet_rules, bool witness) const {

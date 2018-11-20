@@ -128,11 +128,17 @@ public:
     
     virtual void fetch_locator_block_hashes(get_blocks_const_ptr locator, const hash_digest& threshold, size_t limit, inventory_fetch_handler handler) const = 0;
   
+#endif // BITPRIM_DB_LEGACY || BITPRIM_DB_NEW_BLOCKS || BITPRIM_DB_NEW_FULL
+
+
+#if defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_DB_NEW_FULL)
+    
     virtual void fetch_transaction(const hash_digest& hash, bool require_confirmed, bool witness, transaction_fetch_handler handler) const = 0;
 
     virtual void fetch_transaction_position(const hash_digest& hash, bool require_confirmed, transaction_index_fetch_handler handler) const = 0;
 
-#endif // BITPRIM_DB_LEGACY || BITPRIM_DB_NEW_BLOCKS || BITPRIM_DB_NEW_FULL
+#endif 
+
 
 #ifdef BITPRIM_DB_LEGACY
 
@@ -163,12 +169,12 @@ public:
 
 #if defined(BITPRIM_DB_SPENDS) || defined(BITPRIM_DB_NEW_FULL)
     virtual void fetch_spend(const chain::output_point& outpoint, spend_fetch_handler handler) const = 0;
-#endif // BITPRIM_DB_SPENDS
+#endif 
 
 #if defined(BITPRIM_DB_HISTORY) || defined(BITPRIM_DB_NEW_FULL)
     virtual void fetch_history(const short_hash& address_hash, size_t limit, size_t from_height, history_fetch_handler handler) const = 0;
     virtual void fetch_confirmed_transactions(const short_hash& address_hash, size_t limit, size_t from_height, confirmed_transactions_fetch_handler handler) const = 0;
-#endif // BITPRIM_DB_HISTORY
+#endif 
 
 #ifdef BITPRIM_DB_STEALTH
     virtual void fetch_stealth(const binary& filter, size_t from_height, stealth_fetch_handler handler) const = 0;
@@ -180,12 +186,14 @@ public:
     virtual void fetch_template(merkle_block_fetch_handler handler) const = 0;
     virtual void fetch_mempool(size_t count_limit, uint64_t minimum_fee, inventory_fetch_handler handler) const = 0;
 
-#ifdef BITPRIM_DB_TRANSACTION_UNCONFIRMED
+#if defined(BITPRIM_DB_TRANSACTION_UNCONFIRMED) || defined(BITPRIM_DB_NEW_FULL)
     virtual std::vector<mempool_transaction_summary> get_mempool_transactions(std::vector<std::string> const& payment_addresses, bool use_testnet_rules, bool witness) const = 0;
     virtual std::vector<mempool_transaction_summary> get_mempool_transactions(std::string const& payment_address, bool use_testnet_rules, bool witness) const = 0;
     
     virtual std::vector<chain::transaction> get_mempool_transactions_from_wallets(std::vector<wallet::payment_address> const& payment_addresses,
                                                                      bool use_testnet_rules, bool witness) const = 0;
+
+    virtual void fetch_unconfirmed_transaction(const hash_digest& hash, transaction_unconfirmed_fetch_handler handler) const = 0;
 
     virtual mempool_mini_hash_map get_mempool_mini_hash_map(message::compact_block const& block) const = 0;
     virtual void fill_tx_list_from_mempool(message::compact_block const& block, size_t& mempool_count, std::vector<chain::transaction>& txn_available, std::unordered_map<uint64_t, uint16_t> const& shorttxids) const = 0;
