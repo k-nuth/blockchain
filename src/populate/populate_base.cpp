@@ -45,7 +45,7 @@ populate_base::populate_base(dispatcher& dispatch, const fast_chain& chain)
 void populate_base::populate_duplicate(size_t branch_height, const chain::transaction& tx, bool require_confirmed) const {
 
 //TODO(fernando): check again why this is not implemented?
-#ifdef BITPRIM_DB_LEGACY    
+#if defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_DB_NEW_FULL)    
     tx.validation.duplicate = fast_chain_.get_is_unspent_transaction(tx.hash(), branch_height, require_confirmed);
 #else
     //TODO(fernando): check how to replace it with UTXO
@@ -53,7 +53,7 @@ void populate_base::populate_duplicate(size_t branch_height, const chain::transa
     //TODO(fernando): implement this!
     // std::cout << "tx.validation.duplicate: " << tx.validation.duplicate << std::endl;
     tx.validation.duplicate = false;
-#endif // BITPRIM_DB_LEGACY
+#endif // BITPRIM_DB_LEGACY || BITPRIM_DB_NEW_FULL
 }
 
 void populate_base::populate_pooled(const chain::transaction& tx, uint32_t forks) const {
@@ -64,13 +64,20 @@ void populate_base::populate_pooled(const chain::transaction& tx, uint32_t forks
 
     //TODO(fernando): implement this!
     // asm("int $3");  //TODO(fernando): remover
-#ifdef BITPRIM_DB_LEGACY
-    if (fast_chain_.get_transaction_position(height, position, tx.hash(), false) && (position == transaction_database::unconfirmed)) {
+#if defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_DB_NEW_FULL)
+    if (fast_chain_.get_transaction_position(height, position, tx.hash(), false) 
+        
+#if defined(BITPRIM_DB_LEGACY)        
+        && (position == transaction_database::unconfirmed)) {
+#else 
+        && (position == position_max)) {
+#endif
+        
         tx.validation.pooled = true;
         tx.validation.current = (height == forks);
         return;
     }
-#endif // BITPRIM_DB_LEGACY    
+#endif // BITPRIM_DB_LEGACY    || BITPRIM_DB_NEW_FULL
 
     tx.validation.pooled = false;
     tx.validation.current = false;
