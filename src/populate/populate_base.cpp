@@ -46,6 +46,7 @@ void populate_base::populate_duplicate(size_t branch_height, const chain::transa
 
 //TODO(fernando): check again why this is not implemented?
 #if defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_DB_NEW_FULL)    
+    LOG_INFO(LOG_BLOCKCHAIN) << "calling populate_duplicate..............";
     tx.validation.duplicate = fast_chain_.get_is_unspent_transaction(tx.hash(), branch_height, require_confirmed);
 #else
     //TODO(fernando): check how to replace it with UTXO
@@ -65,6 +66,7 @@ void populate_base::populate_pooled(const chain::transaction& tx, uint32_t forks
     //TODO(fernando): implement this!
     // asm("int $3");  //TODO(fernando): remover
 #if defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_DB_NEW_FULL)
+    LOG_INFO(LOG_BLOCKCHAIN) << "calling populate_pooled..............";
     if (fast_chain_.get_transaction_position(height, position, tx.hash(), false) 
         
 #if defined(BITPRIM_DB_LEGACY)        
