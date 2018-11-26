@@ -44,29 +44,19 @@ populate_base::populate_base(dispatcher& dispatch, const fast_chain& chain)
 // This is the only necessary file system read in block/tx validation.
 void populate_base::populate_duplicate(size_t branch_height, const chain::transaction& tx, bool require_confirmed) const {
 
-//TODO(fernando): check again why this is not implemented?
-#if defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_DB_NEW_FULL)    
-    LOG_INFO(LOG_BLOCKCHAIN) << "calling populate_duplicate..............";
+#if defined(BITPRIM_DB_LEGACY)    
     tx.validation.duplicate = fast_chain_.get_is_unspent_transaction(tx.hash(), branch_height, require_confirmed);
 #else
-    //TODO(fernando): check how to replace it with UTXO
-    // asm("int $3");  //TODO(fernando): remover
-    //TODO(fernando): implement this!
-    // std::cout << "tx.validation.duplicate: " << tx.validation.duplicate << std::endl;
+    //Bitprim: We are not validating tx duplication    
     tx.validation.duplicate = false;
-#endif // BITPRIM_DB_LEGACY || BITPRIM_DB_NEW_FULL
+#endif // BITPRIM_DB_LEGACY
 }
 
 void populate_base::populate_pooled(const chain::transaction& tx, uint32_t forks) const {
     size_t height;
     size_t position;
 
-    //TODO(fernando): check again why this is not implemented?
-
-    //TODO(fernando): implement this!
-    // asm("int $3");  //TODO(fernando): remover
 #if defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_DB_NEW_FULL)
-    LOG_INFO(LOG_BLOCKCHAIN) << "calling populate_pooled..............";
     if (fast_chain_.get_transaction_position(height, position, tx.hash(), false) 
         
 #if defined(BITPRIM_DB_LEGACY)        
@@ -79,7 +69,7 @@ void populate_base::populate_pooled(const chain::transaction& tx, uint32_t forks
         tx.validation.current = (height == forks);
         return;
     }
-#endif // BITPRIM_DB_LEGACY    || BITPRIM_DB_NEW_FULL
+#endif // BITPRIM_DB_LEGACY  || BITPRIM_DB_NEW_FULL
 
     tx.validation.pooled = false;
     tx.validation.current = false;

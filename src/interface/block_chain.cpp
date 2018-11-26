@@ -248,13 +248,15 @@ bool block_chain::get_is_unspent_transaction(hash_digest const& hash, size_t bra
 }
 #endif // BITPRIM_DB_LEGACY
 
-#if defined(BITPRIM_DB_NEW_FULL)
+//Bitprim: We don't store spent information
+/*#if defined(BITPRIM_DB_NEW_FULL)
 //TODO(fernando): check if can we do it just with the UTXO
 bool block_chain::get_is_unspent_transaction(hash_digest const& hash, size_t branch_height, bool require_confirmed) const {
     auto const result = database_.internal_db().get_transaction(hash, branch_height, require_confirmed);
     return result.is_valid() && ! result.is_spent(branch_height);
 }
 #endif
+*/
 
 #if defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_DB_NEW_FULL)
 bool block_chain::get_transaction_position(size_t& out_height, size_t& out_position, hash_digest const& hash, bool require_confirmed) const {
@@ -264,17 +266,37 @@ bool block_chain::get_transaction_position(size_t& out_height, size_t& out_posit
     if ( ! result) {
         return false;
     }
-#else
-    auto const result = database_.internal_db().get_transaction(hash, max_size_t, require_confirmed);
-    if ( ! result.is_valid() ) {
-        return false;
-    }
-#endif
 
     out_height = result.height();
     out_position = result.position();
     return true;
+
+#else
+    auto const result = database_.internal_db().get_transaction(hash, max_size_t);
+    
+    if ( result.is_valid() ) {
+        out_height = result.height();
+        out_position = result.position();
+        return true;
+    }   
+
+    if (require_confirmed ) {
+        return false;
+    } 
+    
+    auto const result2 = database_.internal_db().get_transaction_unconfirmed(hash);
+    if ( ! result2.is_valid() ) {
+        return false;
+    }
+
+    out_height = result2.height();
+    out_position = position_max;
+    return true;
+
+#endif
+
 }
+
 #endif // defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_DB_NEW_FULL)
 
 #ifdef BITPRIM_DB_NEW
@@ -426,7 +448,9 @@ bool block_chain::insert(block_const_ptr block, size_t height) {
 }
 
 void block_chain::push(transaction_const_ptr tx, dispatcher&, result_handler handler) {
-    last_transaction_.store(tx);
+    
+    //TODO: (bitprim) dissabled this tx cache because we don't want special treatment for the last txn, it affects the explorer rpc methods
+    //last_transaction_.store(tx);
 
     // Transaction push is currently sequential so dispatch is not used.
     handler(database_.push(*tx, chain_state()->enabled_forks()));
@@ -1160,6 +1184,7 @@ void block_chain::fetch_transaction(hash_digest const& hash,
 //        }
 //    }
   
+
     auto const result = database_.transactions().get(hash, max_size_t,
         require_confirmed);
 
@@ -1455,16 +1480,29 @@ void block_chain::fetch_transaction(hash_digest const& hash, bool require_confir
 //        }
 //    }
   
-    auto const& result = database_.internal_db().get_transaction(hash, max_size_t,require_confirmed);
 
-    if ( ! result.is_valid() )
+    auto const result = database_.internal_db().get_transaction(hash, max_size_t);
+    if ( result.is_valid() )
+    {
+        auto const tx = std::make_shared<const transaction>(result.transaction());
+        handler(error::success, tx, result.position(), result.height());    
+        return;
+    }
+
+    if (require_confirmed) {
+        handler(error::not_found, nullptr, 0, 0);
+        return;
+    }
+
+    auto const result2 = database_.internal_db().get_transaction_unconfirmed(hash);
+    if (! result2.is_valid() )
     {
         handler(error::not_found, nullptr, 0, 0);
         return;
     }
 
-    auto const tx = std::make_shared<const transaction>(result.transaction());
-    handler(error::success, tx, result.position(), result.height());
+    auto const tx = std::make_shared<const transaction>(result2.transaction());
+    handler(error::success, tx, position_max, result2.height());
 }
 
 // This is same as fetch_transaction but skips deserializing the tx payload.
@@ -1476,17 +1514,27 @@ void block_chain::fetch_transaction_position(hash_digest const& hash, bool requi
         return;
     }
 
-    auto const& result = database_.internal_db().get_transaction(hash, max_size_t,require_confirmed);
+    auto const result = database_.internal_db().get_transaction(hash, max_size_t);
 
-    if ( ! result.is_valid() )
+    if ( result.is_valid() )
     {
+        handler(error::success, result.position(), result.height());
+        return;
+    }
+
+    if (require_confirmed) {
         handler(error::not_found, 0, 0);
         return;
     }
 
-    handler(error::success, result.position(), result.height());
-}
+    auto const result2 = database_.internal_db().get_transaction_unconfirmed(hash);
+    if (! result2.is_valid() ) {
+        handler(error::not_found, 0, 0);
+        return;
+    }
 
+    handler(error::success, position_max, result2.height());
+}
 
 #endif
 
@@ -2654,11 +2702,15 @@ void block_chain::filter_transactions(get_data_ptr message, result_handler handl
     auto& inventories = message->inventories();
     //auto const& transactions = database_.transactions();
 
+    size_t out_height;
+    size_t out_position;
+
     for (auto it = inventories.begin(); it != inventories.end();)
     {
-        //TODO(fernando): check how to replace it with UTXO
-        if (it->is_transaction_type() &&
-            get_is_unspent_transaction(it->hash(), max_size_t, false))
+        //Bitprim: We don't store spent information
+        if (it->is_transaction_type() 
+            //&& get_is_unspent_transaction(it->hash(), max_size_t, false))
+            && get_transaction_position(out_height, out_position, it->hash(), false))
             it = inventories.erase(it);
         else
             ++it;

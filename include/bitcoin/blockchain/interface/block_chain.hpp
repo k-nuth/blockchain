@@ -74,13 +74,15 @@ public:
     bool get_output(chain::output& out_output, size_t& out_height, uint32_t& out_median_time_past, bool& out_coinbase, const chain::output_point& outpoint, size_t branch_height, bool require_confirmed) const override;
 
     bool get_output_is_confirmed(chain::output& out_output, size_t& out_height, bool& out_coinbase, bool& out_is_confirmed, const chain::output_point& outpoint, size_t branch_height, bool require_confirmed) const;
-#endif// BITPRIM_DB_LEGACY
 
-#if defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_DB_NEW_FULL) 
-    //TODO(fernando): check if can we do it just with the UTXO
+     //TODO(fernando): check if can we do it just with the UTXO
     /// Determine if an unspent transaction exists with the given hash.
     bool get_is_unspent_transaction(const hash_digest& hash, size_t branch_height, bool require_confirmed) const override;
 
+#endif// BITPRIM_DB_LEGACY
+
+#if defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_DB_NEW_FULL) 
+   
     /// Get position data for a transaction.
     bool get_transaction_position(size_t& out_height, size_t& out_position, const hash_digest& hash, bool require_confirmed) const override;
 #endif
@@ -441,7 +443,10 @@ private:
     const settings& settings_;
     const time_t notify_limit_seconds_;
     bc::atomic<block_const_ptr> last_block_;
-    bc::atomic<transaction_const_ptr> last_transaction_;
+
+    //TODO: (bitprim) dissabled this tx cache because we don't want special treatment for the last txn, it affects the explorer rpc methods
+    //bc::atomic<transaction_const_ptr> last_transaction_;
+    
     const populate_chain_state chain_state_populator_;
     database::data_base database_;
 
