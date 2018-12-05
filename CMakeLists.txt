@@ -559,19 +559,33 @@ if (WITH_TESTS)
 endif()
 
 if (WITH_TESTS_NEW)
-  if (WITH_KEOKEN)
-    
-    add_executable(bitprim_blockchain_test_new
-          test_new/main.cpp
-          test_new/state_delegated_tests.cpp
-          test_new/state_tests.cpp
-          test_new/interpreter_tests.cpp
-    )
-    
-    target_link_libraries(bitprim_blockchain_test_new PUBLIC bitprim-blockchain)
-    add_test(NAME bitprim_blockchain_test_new COMMAND bitprim_blockchain_test_new)
-    
-  endif()
+    if (WITH_MINING OR WITH_KEOKEN)
+        set(bitprim_blockchain_test_new_sources 
+            test_new/main.cpp
+        )
+
+        if (WITH_MINING)
+            set(bitprim_blockchain_test_new_sources 
+                ${bitprim_blockchain_test_new_sources}
+                test_new/mempool_tests.cpp
+            )
+        endif()
+
+        if (WITH_KEOKEN)
+            set(bitprim_blockchain_test_new_sources 
+                ${bitprim_blockchain_test_new_sources}   
+                test_new/state_delegated_tests.cpp
+                test_new/state_tests.cpp
+                test_new/interpreter_tests.cpp
+            )
+        endif()
+
+        add_executable(bitprim_blockchain_test_new
+            ${bitprim_blockchain_test_new_sources}
+        )
+        target_link_libraries(bitprim_blockchain_test_new PUBLIC bitprim-blockchain)
+        add_test(NAME bitprim_blockchain_test_new COMMAND bitprim_blockchain_test_new)
+    endif()
 endif()
 
 

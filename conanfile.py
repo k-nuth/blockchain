@@ -47,6 +47,7 @@ class BitprimBlockchainConan(BitprimConanFile):
                "db": ['legacy', 'legacy_full', 'new', 'new_with_blocks'],
                "cxxflags": "ANY",
                "cflags": "ANY",
+               "glibcxx_supports_cxx11_abi": "ANY",
     }
     # "with_remote_database": [True, False],
 
@@ -64,7 +65,8 @@ class BitprimBlockchainConan(BitprimConanFile):
         "use_domain=False", \
         "db=legacy_full", \
         "cxxflags=_DUMMY_", \
-        "cflags=_DUMMY_"
+        "cflags=_DUMMY_", \
+        "glibcxx_supports_cxx11_abi=_DUMMY_"
 
 
     # "with_remote_database=False"
