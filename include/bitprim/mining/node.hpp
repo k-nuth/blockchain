@@ -37,6 +37,13 @@ public:
         , children_sigops_(te.sigops())
     {}
 
+    node(transaction_element&& te) 
+        : te_(std::move(te))
+        , children_fees_(te.fee())
+        , children_size_(te.size())
+        , children_sigops_(te.sigops())
+    {}
+
     hash_digest const& txid() const {
         return te_.txid();
     }

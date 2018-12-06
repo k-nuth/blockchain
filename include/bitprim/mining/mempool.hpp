@@ -28,6 +28,7 @@
 
 #include <bitprim/mining/common.hpp>
 #include <bitprim/mining/node.hpp>
+#include <bitprim/mining/result_code.hpp>
 
 namespace libbitcoin {
 namespace mining {
@@ -118,16 +119,21 @@ public:
     // new_block() {}
 
 
-    bool add(chain::transaction const& tx) {
+    result_code add(chain::transaction const& tx) {
         //precondition: tx is fully validated: check() && accept() && connect()
+        //              ! tx.is_coinbase()
 
-        auto new_node = make_node(tx);
         auto const node_index = all_transactions_.size();
+        {
+            auto temp_node = make_node(tx);
+            auto res = process_utxo_and_graph(tx, node_index, temp_node);
+            if (res != result_code::success) {
+                return res;
+            }
+            all_transactions_.push_back(std::move(temp_node));
+        }
 
-        process_utxo_and_graph(tx, node_index, new_node);
-        
-        all_transactions_.push_back(std::move(new_node));
-        hash_index_.emplace(tx.hash(), node_index);
+        auto& new_node = all_transactions_.back();
 
         if (candidate_transactions_.size() > 0 && ! has_room_for(new_node)) {
 
@@ -136,13 +142,33 @@ public:
 
             if (to_remove.empty()) {
                 // ++low_benefit_tx_counter;
-                return false;
+                return result_code::low_benefit_transaction;
             } 
             do_candidate_removal(to_remove);
         }
         do_candidate_insertion(node_index, new_node.size(), new_node.sigops());
         // check_indexes();
-        return true;
+        return result_code::success;
+    }
+
+    size_t capacity() const {
+        return max_template_size_;        
+    }
+
+    size_t all_transactions() const {
+        return all_transactions_.size();
+    }
+
+    size_t candidate_transactions() const {
+        return candidate_transactions_.size();
+    }
+
+    size_t candidate_bytes() const {
+        return accum_size_;
+    }
+
+    size_t candidate_sigops() const {
+        return accum_sigops_;
     }
 
     // gbt() const;
@@ -301,26 +327,35 @@ private:
         return true;
     }
 
-    void process_utxo_and_graph(chain::transaction const& tx, index_t new_node_index, node& new_node) {
+    result_code process_utxo_and_graph(chain::transaction const& tx, index_t node_index, node& new_node) {
         //TODO: evitar tratar de borrar en el UTXO Local, si el UTXO fue encontrado en la DB
+
+        auto it = hash_index_.find(tx.hash());
+        if (it != hash_index_.end()) {
+            return result_code::duplicated_transaction;
+        }
+
+        // if ( ! check_no_duplicated_outputs(tx)) {
+        //     return result_code::duplicated_output;
+        // }
+
+        if ( ! check_double_spend(tx)) {
+            return result_code::double_spend;
+        }
+
+        insert_outputs_in_utxo(tx);
+        hash_index_.emplace(tx.hash(), node_index);
 
         indexes_t parents;
 
         for (auto const& i : tx.inputs()) {
-
-            if (i.previous_output().validation.from_mempool) {
-                //TODO: the search in the hash table was done twice. (one in get_utxo, the other here (erase))
-                
+            // if (i.previous_output().validation.from_mempool) {
+            if ( ! i.previous_output().validation.cache.is_valid()) {
                 // Spend the UTXO
                 internal_utxo_set_.erase(i.previous_output());
 
                 auto it = hash_index_.find(i.previous_output().hash());
                 index_t parent_index = it->second;
-
-                // auto const& parent = all_transactions_[parent_index];
-                
-                // parent.add_child(self, new_node.fee(), new_node.size(), new_node.sigops());
-                // new_node.add_parent(parent);
                 parents.push_back(parent_index);
             }
         }
@@ -336,14 +371,39 @@ private:
 
             for (auto pi : new_node.parents()) {
                 auto& parent = all_transactions_[pi];
-                parent.add_child(new_node_index, new_node.fee(), new_node.size(), new_node.sigops());
+                parent.add_child(node_index, new_node.fee(), new_node.size(), new_node.sigops());
             }
         }
 
-        insert_outputs_in_utxo(tx);
+        return result_code::success;
+    }
+
+    bool check_double_spend(chain::transaction const& tx) {
+        for (auto const& i : tx.inputs()) {
+            if ( ! i.previous_output().validation.cache.is_valid()) {
+                auto it = internal_utxo_set_.find(i.previous_output());
+                if (it == internal_utxo_set_.end()) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    bool check_no_duplicated_outputs(chain::transaction const& tx) {
+        uint32_t index = 0;
+        for (auto const& o : tx.outputs()) {
+            auto it = internal_utxo_set_.find(chain::point{tx.hash(), index});
+            if (it != internal_utxo_set_.end()) {
+                return false;
+            }
+            ++index;
+        }
+        return true;
     }
 
     void insert_outputs_in_utxo(chain::transaction const& tx) {
+        //precondition: there are no duplicates outputs between tx.outputs() and internal_utxo_set_
         uint32_t index = 0;
         for (auto const& o : tx.outputs()) {
             internal_utxo_set_.emplace(chain::point{tx.hash(), index}, o);
