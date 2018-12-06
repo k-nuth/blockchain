@@ -25,7 +25,7 @@ namespace mining {
 enum class result_code {
     success = 0,
     duplicated_transaction = 2,
-    duplicated_output = 3,
+    // duplicated_output = 3,
     double_spend = 4,
     low_benefit_transaction = 5,
     

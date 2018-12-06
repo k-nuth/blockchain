@@ -32,16 +32,16 @@ public:
 
     node(transaction_element const& te) 
         : te_(te)
-        , children_fees_(te.fee())
-        , children_size_(te.size())
-        , children_sigops_(te.sigops())
+        , children_fees_(te_.fee())
+        , children_size_(te_.size())
+        , children_sigops_(te_.sigops())
     {}
 
     node(transaction_element&& te) 
         : te_(std::move(te))
-        , children_fees_(te.fee())
-        , children_size_(te.size())
-        , children_sigops_(te.sigops())
+        , children_fees_(te_.fee())
+        , children_size_(te_.size())
+        , children_sigops_(te_.sigops())
     {}
 
     hash_digest const& txid() const {
@@ -149,18 +149,14 @@ private:
     std::vector<index_t> parents_;
     std::vector<index_t> children_;
 
-    // size_t parent_fees_;
-    // size_t parent_size_;    //self plus parents
-    // size_t parent_sigops_;  //self plus parents
-
     size_t children_fees_;
     size_t children_size_;  //self plus children
     size_t children_sigops_;    //self plus children
 
-    index_t candidate_index_;
+    index_t candidate_index_ = null_index;
 
 #ifdef BITPRIM_MINING_CTOR_ENABLED
-    index_t candidate_ctor_index_;
+    index_t candidate_ctor_index_ = null_index;
 #endif
 
 };

@@ -24,9 +24,9 @@
 
 #include <bitcoin/bitcoin/constants.hpp>
 
-#ifndef BITPRIM_MINING_DONT_INCLUDE_CTOR
-#define BITPRIM_MINING_CTOR_ENABLED
-#endif
+// #ifndef BITPRIM_MINING_DONT_INCLUDE_CTOR
+// #define BITPRIM_MINING_CTOR_ENABLED
+// #endif
 
 #if defined(BITPRIM_CURRENCY_BCH)
 #define BITPRIM_WITNESS_DEFAULT false

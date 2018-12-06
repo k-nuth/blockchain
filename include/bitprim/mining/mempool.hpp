@@ -1,3 +1,19 @@
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//TODO(fernando): Create a Mempool-DB-UTXO to validate Double Spend of a Confirmated TX
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+/*
+A                               UTXO
+    Output: 0                    A0
+----------------------------------------------
+
+B
+    Input: A0
+C
+    Input: A0
+*/
+
+
 /**
  * Copyright (c) 2016-2018 Bitprim Inc.
  *
@@ -39,7 +55,7 @@ node make_node(chain::transaction const& tx) {
 #if ! defined(BITPRIM_CURRENCY_BCH)
                                   , tx.hash(true)
 #endif
-                                  , tx.to_data(BITPRIM_WITNESS_DEFAULT) , tx.fees() , tx.signature_operations())
+                                  , tx.to_data(true, BITPRIM_WITNESS_DEFAULT) , tx.fees() , tx.signature_operations())
                         );
 }
 
@@ -85,8 +101,6 @@ std::set<typename Container::value_type, Cmp> to_ordered_set(F f, Container cons
 
 class mempool {
 public:
-    // using excedent_t = std::pair<size_t, size_t>;
-
     static constexpr size_t max_template_size_default = get_max_block_weight() - coinbase_reserved_size;
 
 #if defined(BITPRIM_CURRENCY_BCH)
@@ -146,7 +160,7 @@ public:
             } 
             do_candidate_removal(to_remove);
         }
-        do_candidate_insertion(node_index, new_node.size(), new_node.sigops());
+        do_candidate_insertion(node_index, new_node.size(), new_node.sigops(), new_node.fee());
         // check_indexes();
         return result_code::success;
     }
@@ -170,6 +184,36 @@ public:
     size_t candidate_sigops() const {
         return accum_sigops_;
     }
+
+    size_t candidate_fees() const {
+        return accum_fees_;
+    }
+
+
+
+    bool contains(chain::transaction const& tx) {
+        auto it = hash_index_.find(tx.hash());
+        return (it != hash_index_.end());
+    }
+
+    bool is_candidate(chain::transaction const& tx) {
+        auto it = hash_index_.find(tx.hash());
+        if (it == hash_index_.end()) {
+            return false;
+        }
+
+        return all_transactions_[it->second].candidate_index() != null_index;
+    }
+
+    index_t candidate_rank(chain::transaction const& tx) {
+        auto it = hash_index_.find(tx.hash());
+        if (it == hash_index_.end()) {
+            return null_index;
+        }
+
+        return all_transactions_[it->second].candidate_index();
+    }
+
 
     // gbt() const;
 
@@ -276,8 +320,8 @@ private:
                 }
             }
 
+            if (it == candidate_transactions_.begin()) break;
             --it;
-            
         }
 
         // return it;
@@ -301,7 +345,7 @@ private:
         reindex_parents_for_removal(to_remove);
     }
 
-    void do_candidate_insertion(index_t node_index, size_t size, size_t sigops) {
+    void do_candidate_insertion(index_t node_index, size_t size, size_t sigops, size_t fees) {
         insert_in_candidate(node_index);
 
 #ifdef BITPRIM_MINING_CTOR_ENABLED
@@ -310,6 +354,7 @@ private:
 
         accum_size_ += size;
         accum_sigops_ += sigops;
+        accum_fees_ += fees;
     }
 
     bool has_room_for(node const& node) const {
@@ -349,8 +394,7 @@ private:
         indexes_t parents;
 
         for (auto const& i : tx.inputs()) {
-            // if (i.previous_output().validation.from_mempool) {
-            if ( ! i.previous_output().validation.cache.is_valid()) {
+            if (i.previous_output().validation.from_mempool) {
                 // Spend the UTXO
                 internal_utxo_set_.erase(i.previous_output());
 
@@ -380,7 +424,7 @@ private:
 
     bool check_double_spend(chain::transaction const& tx) {
         for (auto const& i : tx.inputs()) {
-            if ( ! i.previous_output().validation.cache.is_valid()) {
+            if (i.previous_output().validation.from_mempool) {
                 auto it = internal_utxo_set_.find(i.previous_output());
                 if (it == internal_utxo_set_.end()) {
                     return false;
@@ -459,6 +503,7 @@ private:
 
         accum_size_ -= node.size();
         accum_sigops_ -= node.sigops();
+        accum_fees_ -= node.fee();
 
         reindex_decrement(std::next(it), std::end(candidate_transactions_));
         candidate_transactions_.erase(it);
@@ -511,10 +556,12 @@ private:
         return node.candidate_index();
     }
 
+#ifdef BITPRIM_MINING_CTOR_ENABLED
     index_t get_candidate_ctor_index(index_t index) const {
         auto const& node = all_transactions_[index];
         return node.candidate_ctor_index();
     }
+#endif
 
     void remove_nodes(removal_list_t const& to_remove) {
         auto const remove_ordered = [this](auto s){
@@ -692,9 +739,6 @@ private:
                 auto& parent = all_transactions_[pi];
                 if (parent.candidate_index() != null_index) {
                     reindex_parent_for_removal(node, parent, pi);
-                } else {
-                    //Could not happend! (??)
-                    assert(false);
                 }
             }
         }
@@ -705,9 +749,8 @@ private:
         auto node_benefit = static_cast<double>(node.fee()) / node.size();
         auto accum_benefit = static_cast<double>(parent.children_fees()) / parent.children_size();
 
-        accum_values(node, parent);
-
-        auto accum_benefit_new = static_cast<double>(parent.children_fees()) / parent.children_size();
+        // accum_values(node, parent);
+        // auto accum_benefit_new = static_cast<double>(parent.children_fees()) / parent.children_size();
 
         if (node_benefit == accum_benefit) {
             return;
@@ -722,7 +765,7 @@ private:
 
         if (node_benefit < accum_benefit) {
 
-            assert(accum_benefit_new < accum_benefit);
+            // assert(accum_benefit_new < accum_benefit);
 
             // EMPEORA EL PADRE, POR LO TANTO TENGO QUE MOVERLO A LA DERECHA
             // Sé que el hijo recién insertado está a la derecha del padre y va a permanecer a su derecha.
@@ -736,7 +779,7 @@ private:
             parent.set_candidate_index(std::distance(std::begin(candidate_transactions_), it));
 
         } else {
-            assert(accum_benefit_new > accum_benefit);
+            // assert(accum_benefit_new > accum_benefit);
 
             // MEJORA EL PADRE, POR LO TANTO TENGO QUE MOVERLO A LA IZQUIERDA
             // Sé que el hijo recién insertado está a la izquierda del padre y va a permanecer a su izquierda.
@@ -842,6 +885,8 @@ private:
     size_t const mempool_total_size_;
     size_t accum_size_ = 0;
     size_t accum_sigops_ = 0;
+    size_t accum_fees_ = 0;
+    
 
     //TODO: race conditions, LOCK!
     //TODO: chequear el anidamiento de TX con su máximo (25??) y si es regla de consenso.
