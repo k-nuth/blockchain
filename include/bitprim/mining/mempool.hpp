@@ -55,7 +55,10 @@ node make_node(chain::transaction const& tx) {
 #if ! defined(BITPRIM_CURRENCY_BCH)
                                   , tx.hash(true)
 #endif
-                                  , tx.to_data(true, BITPRIM_WITNESS_DEFAULT) , tx.fees() , tx.signature_operations())
+                                  , tx.to_data(true, BITPRIM_WITNESS_DEFAULT)
+                                  , tx.fees() 
+                                  , tx.signature_operations()
+                                  , tx.previous_outputs())
                         );
 }
 
@@ -75,19 +78,6 @@ void measure(F f, measurements_t&) {
     f();
 }
 #endif
-
-
-
-
-
-// template <typename I, typename F>
-// void remove_indexes(I f, I l, F remove) {
-//     while (f != l) {
-//         auto const i = *f;
-//         remove(i);
-//         ++f;
-//     }
-// }
 
 
 template <typename F, typename Container, typename Cmp = std::greater<typename Container::value_type>>
@@ -134,14 +124,12 @@ public:
 
     }
 
-    // new_block() {}
-
-
     result_code add(chain::transaction const& tx) {
         //precondition: tx is fully validated: check() && accept() && connect()
         //              ! tx.is_coinbase()
 
         auto const node_index = all_transactions_.size();
+
         {
             auto temp_node = make_node(tx);
             auto res = process_utxo_and_graph(tx, node_index, temp_node);
@@ -153,7 +141,7 @@ public:
 
         auto& new_node = all_transactions_.back();
 
-        //TODO: what_to_remove_time
+        //TODO: what_to_insert_time
         auto to_insert = what_to_insert(node_index);
 
         if (candidate_transactions_.size() > 0 && ! has_room_for(std::get<2>(to_insert), std::get<3>(to_insert))) {
@@ -166,14 +154,112 @@ public:
             } 
             do_candidate_removal(to_remove);
         }
-        
        
         do_candidates_insertion(to_insert);
-        // do_candidate_insertion(node_index, new_node.size(), new_node.sigops(), new_node.fee());
-
-
 
         // check_indexes();
+        return result_code::success;
+    }
+
+
+    //private
+    void remove_from_utxo(chain::transaction const& tx) {
+        for (auto const& i : tx.inputs()) {
+            if (i.previous_output().validation.from_mempool) {
+                internal_utxo_set_.erase(i.previous_output());
+            }
+        }
+    }
+
+    // //TODO: it is a free function
+    // template <typename I>
+    // std::unordered_set<chain::point> previous_outputs(I f, I l, size_t non_coinbase_input_count {
+    //     // precondition: [f, l) is a valid non-empty range
+    //     //               there are no coinbase transactions in the range
+
+    //     std::unordered_set<chain::point> outs;
+    //     outs.reserve(non_coinbase_input_count());
+        
+
+    //     // Merge the prevouts of all non-coinbase transactions into one set.
+    //     for (auto tx = txs.begin() + 1; tx != txs.end(); ++tx)
+    //     {
+    //         auto out = tx->previous_outputs();
+    //         std::move(out.begin(), out.end(), std::inserter(outs, outs.end()));
+    //     }
+
+    //     std::sort(outs.begin(), outs.end());
+    //     const auto distinct_end = std::unique(outs.begin(), outs.end());
+    //     const auto distinct = (distinct_end == outs.end());
+    //     return !distinct;
+    // }
+
+    /*
+    [H ... P]
+    [P ... H] ó [P ..... ] (Hijo no esta en Candidates)
+    [P ... H2]  [H]
+    */
+    template <typename I>
+    result_code remove(I f, I l, size_t non_coinbase_input_count) {
+        // precondition: [f, l) is a valid non-empty range
+        //               there are no coinbase transactions in the range
+
+        candidate_transactions_.clear();
+
+        std::set<index_t, std::greater<index_t>> to_remove;
+        std::unordered_set<chain::point> outs;
+        outs.reserve(non_coinbase_input_count);   //TODO: unnecesary extra space
+
+        while (f != l) {
+            auto const& tx = *f;
+            auto it = hash_index_.find(tx.hash());
+            if (it != hash_index_.end()) {
+                remove_from_utxo(tx);
+                hash_index_.erase(it);
+
+                auto const index = it->second;
+                auto& node = all_transactions_[index];
+                // auto index = node.candidate_index();
+
+                for (auto ci : node.children()) {
+                    auto& child = all_transactions_[ci];
+                    child.parents().erase(
+                            std::remove(child.parents().begin(), child.parents().end(), index),
+                            child.parents().end()
+                    );
+                }
+                to_remove.insert(index);
+            } else {
+                // auto out = tx.previous_outputs();
+                // std::move(out.begin(), out.end(), std::inserter(outs, outs.end()));
+
+                for (auto const& i : tx.inputs()) {
+                    outs.insert(i.previous_output());
+                }
+
+                //no la encontré
+            }
+            ++f;
+        }
+
+        for (auto i : to_remove) {
+            auto it = std::next(all_transactions_.begin(), i);
+            all_transactions_.erase(it);
+        }
+
+        auto f = all_transactions_.begin();
+        auto l = all_transactions_.end();
+        while (f != l) {
+            auto it = outs.find(tx.hash());
+            if (it != outs.end()) {
+                f = all_transactions_.erase(f);
+            } else {
+                ++f;
+            }
+        }
+
+        //Recorrer el remanente de AllTransactions e ir insertando Candidates
+
         return result_code::success;
     }
 
@@ -200,8 +286,6 @@ public:
     size_t candidate_fees() const {
         return accum_fees_;
     }
-
-
 
     bool contains(chain::transaction const& tx) {
         auto it = hash_index_.find(tx.hash());
@@ -365,7 +449,6 @@ private:
         return removed;
     }
 
-
     void do_candidate_removal(removal_list_t const& to_remove) {
         // removed_tx_counter += to_remove.size();
 
@@ -381,21 +464,6 @@ private:
         //TODO: reindex_parents_quitar_time
         reindex_parents_for_removal(to_remove);
     }
-
-
-//     void do_candidate_insertion(index_t node_index, size_t size, size_t sigops, size_t fees) {
-//         insert_in_candidate(node_index);
-
-// #ifdef BITPRIM_MINING_CTOR_ENABLED
-//         insert_in_candidate_ctor(node_index);
-// #endif
-
-//         accum_size_ += size;
-//         accum_sigops_ += sigops;
-//         accum_fees_ += fees;
-//     }
-
-
 
     void do_candidates_insertion(to_insert_t const& to_insert) {
 
@@ -435,10 +503,6 @@ private:
             return result_code::duplicated_transaction;
         }
 
-        // if ( ! check_no_duplicated_outputs(tx)) {
-        //     return result_code::duplicated_output;
-        // }
-
         if ( ! check_double_spend(tx)) {
             return result_code::double_spend;
         }
@@ -460,7 +524,7 @@ private:
         }
 
         if ( ! parents.empty()) {
-            std::set<index_t> parents_temp(parents.begin(), parents.end());
+            std::set<index_t, std::greater<index_t>> parents_temp(parents.begin(), parents.end());
             for (auto pi : parents) {
                 auto const& parent = all_transactions_[pi];
                 parents_temp.insert(parent.parents().begin(), parent.parents().end());
@@ -470,7 +534,8 @@ private:
 
             for (auto pi : new_node.parents()) {
                 auto& parent = all_transactions_[pi];
-                parent.add_child(node_index, new_node.fee(), new_node.size(), new_node.sigops());
+                // parent.add_child(node_index, new_node.fee(), new_node.size(), new_node.sigops());
+                parent.add_child(node_index);
             }
         }
 
@@ -489,17 +554,17 @@ private:
         return true;
     }
 
-    bool check_no_duplicated_outputs(chain::transaction const& tx) {
-        uint32_t index = 0;
-        for (auto const& o : tx.outputs()) {
-            auto it = internal_utxo_set_.find(chain::point{tx.hash(), index});
-            if (it != internal_utxo_set_.end()) {
-                return false;
-            }
-            ++index;
-        }
-        return true;
-    }
+    // bool check_no_duplicated_outputs(chain::transaction const& tx) {
+    //     uint32_t index = 0;
+    //     for (auto const& o : tx.outputs()) {
+    //         auto it = internal_utxo_set_.find(chain::point{tx.hash(), index});
+    //         if (it != internal_utxo_set_.end()) {
+    //             return false;
+    //         }
+    //         ++index;
+    //     }
+    //     return true;
+    // }
 
     void insert_outputs_in_utxo(chain::transaction const& tx) {
         //precondition: there are no duplicates outputs between tx.outputs() and internal_utxo_set_
@@ -509,7 +574,6 @@ private:
             ++index;
         }
     }
-
 
     template <typename I>
     void reindex_decrement(I f, I l) {
@@ -528,7 +592,6 @@ private:
             n.set_candidate_index(n.candidate_index() + 1);
         });
     }
-
 
 #ifdef BITPRIM_MINING_CTOR_ENABLED
     template <typename I>
@@ -564,44 +627,13 @@ private:
         candidate_transactions_.erase(it);
     }
 
-
-    // template <typename I>
-    // void remove_ordered(I f, I l) {
-    //     std::for_each(f, l, [this](index_t i){
-    //         remove_and_reindex(i);
-    //     });
-    // }
-
-    // template <typename I>
-    // void remove_unordered(I f, I l) {
-    //     std::for_each(f, l, [this](index_t i){
-    //         auto const& node = all_transactions_[i];
-    //         remove_and_reindex(node.candidate_index());
-    //     });
-    // }
-
-    
-    // void remove_ordered(std::setI f, I l) {
-    // }
-
-    // template <typename I>
-    // void remove_unordered(I f, I l) {
-    //     std::for_each(f, l, [this](index_t i){
-    //         auto const& node = all_transactions_[i];
-    //         remove_and_reindex(node.candidate_index());
-    //     });
-    // }
-
-
     template <typename RO, typename RU, typename F>
     void remove_nodes_gen(removal_list_t const& to_remove, RO remove_ordered_fun, RU remove_unordered_fun, F f) {
         constexpr auto thresold = 1; //??
         if (to_remove.size() <= thresold) {
-            // remove_unordered_fun(std::begin(to_remove), std::end(to_remove));
             remove_unordered_fun(to_remove);
         } else {
             auto ordered = to_ordered_set(f, to_remove);
-            // remove_ordered_fun(std::begin(ordered), std::end(ordered));
             remove_ordered_fun(ordered);
         }
     }
@@ -637,36 +669,6 @@ private:
     }
 
 
-    // void remove_nodes(removal_list_t const& to_remove) {
-    //     constexpr auto thresold = 1; //??
-    //     if (to_remove.size() <= thresold) {
-    //         remove_unordered(std::begin(to_remove), std::end(to_remove));
-    //     } else {
-    //         auto ordered = to_ordered_set([](index_t i){
-    //             auto const& node = all_transactions_[i];
-    //             return node.candidate_index();
-    //         }, to_remove);
-
-    //         remove_ordered(std::begin(ordered), std::end(ordered));
-    //     }
-    // }
-
-
-    // void remove_nodes_ctor(removal_list_t const& to_remove) {
-    //     constexpr auto thresold = 1; //??
-    //     if (to_remove.size() <= thresold) {
-    //         remove_unordered_ctor(std::begin(to_remove), std::end(to_remove));
-    //     } else {
-    //         auto ordered = to_ordered_set([](index_t i){
-    //             auto const& node = all_transactions_[i];
-    //             return node.candidate_ctor_index();
-    //         }, to_remove);
-
-    //         remove_ordered_ctor(std::begin(ordered), std::end(ordered));
-    //     }
-    // }
-
-
 #ifdef BITPRIM_MINING_CTOR_ENABLED
     void remove_and_reindex_ctor(index_t i) {
         //precondition: TODO?
@@ -676,26 +678,6 @@ private:
         reindex_decrement_ctor(std::next(it), std::end(candidate_transactions_ctor_));
         candidate_transactions_ctor_.erase(it);
     }
-
-
-    // template <typename I>
-    // void remove_ordered_ctor(I f, I l) {
-    //     while (f != l) {
-    //         auto const i = *f;
-    //         remove_and_reindex_ctor(i);
-    //         ++f;
-    //     }
-    // }
-
-    // template <typename I>
-    // void remove_unordered_ctor(I f, I l) {
-    //     while (f != l) {
-    //         auto const i = *f;
-    //         auto const& node = all_transactions_[i];
-    //         remove_and_reindex_ctor(node.candidate_ctor_index());
-    //         ++f;
-    //     }
-    // }
 
     void remove_nodes_ctor(removal_list_t const& to_remove) {
 
@@ -716,28 +698,14 @@ private:
         });
     }
 #endif
-
-
-
-    void accum_values(mining::node const& node, mining::node& parent) {
-        // parent.children_fees_ += node.self_fee_;
-        // parent.children_size_ += node.self_size_;
-        // parent.children_sigops_ += node.self_sigops_;
-        parent.increment_values(node.fee(), node.size(), node.sigops());
-
-    }
-
-    void reduce_values(mining::node const& node, mining::node& parent) {
-        parent.decrement_values(node.fee(), node.size(), node.sigops());
-    }
-
         
     void reindex_parent_for_removal(mining::node const& node, mining::node& parent, index_t parent_index) {
         // cout << "reindex_parent_quitar\n";
         auto node_benefit = static_cast<double>(node.fee()) / node.size();
         auto accum_benefit = static_cast<double>(parent.children_fees()) / parent.children_size();
 
-        reduce_values(node, parent);
+        // reduce_values(node, parent);
+        parent.decrement_values(node.fee(), node.size(), node.sigops());
 
         auto accum_benefit_new = static_cast<double>(parent.children_fees()) / parent.children_size();
 
@@ -785,8 +753,6 @@ private:
         }
     }
 
-
-
     void reindex_parents_for_removal(removal_list_t const& removed_elements) {
         for (auto i : removed_elements) {
             auto const& node = all_transactions_[i];
@@ -799,13 +765,9 @@ private:
         }
     }
 
-
     void reindex_parent_from_insertion(mining::node const& node, mining::node& parent, index_t parent_index) {
         auto node_benefit = static_cast<double>(node.fee()) / node.size();
         auto accum_benefit = static_cast<double>(parent.children_fees()) / parent.children_size();
-
-        // accum_values(node, parent);
-        // auto accum_benefit_new = static_cast<double>(parent.children_fees()) / parent.children_size();
 
         if (node_benefit == accum_benefit) {
             return;
@@ -854,6 +816,8 @@ private:
 
         for (auto pi : node.parents()) {
             auto& parent = all_transactions_[pi];
+            parent.increment_values(node.fee(), node.size(), node.sigops());
+            
             if (parent.candidate_index() != null_index) {
                 reindex_parent_from_insertion(node, parent, pi);
             }
@@ -862,7 +826,6 @@ private:
 
     void insert_in_candidate(index_t node_index) {
         auto& node = all_transactions_[node_index];
-
 
         // auto start = std::chrono::high_resolution_clock::now();
 
@@ -936,7 +899,6 @@ private:
 
 
     size_t const max_template_size_;
-    // size_t const mempool_size_multiplier_;
     size_t const mempool_total_size_;
     size_t accum_size_ = 0;
     size_t accum_sigops_ = 0;

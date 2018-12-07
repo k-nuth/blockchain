@@ -105,9 +105,13 @@ public:
         return children_;
     }
 
-    void add_child(index_t index, uint64_t fee, size_t size, size_t sigops) {
+    std::vector<chain::point> const& previous_outputs() const {
+        return te_.previous_outputs();
+    }
+
+
+    void add_child(index_t index) {
         children_.push_back(index);
-        increment_values(fee, size, sigops);
     }
 
     void add_parent(index_t index) {
@@ -132,32 +136,22 @@ public:
     }
 
 private:
-    // void update_values(uint64_t fee, size_t size, size_t sigops) {
-    //     for (auto const pi : parents_) {
-    //         auto& parent = all_transactions_[pi];
-    //         parent.update_values(fee, size, sigops);
-    //     }
-
-    //     children_fees_ += fee;
-    //     children_size_ += size;
-    //     children_sigops_ += sigops;
-    // }
-
-    // static std::vector<node>& all_transactions_;
-
     transaction_element te_;
     std::vector<index_t> parents_;
     std::vector<index_t> children_;
 
     size_t children_fees_;
-    size_t children_size_;  //self plus children
-    size_t children_sigops_;    //self plus children
+    size_t children_size_;
+    size_t children_sigops_;
 
     index_t candidate_index_ = null_index;
 
 #ifdef BITPRIM_MINING_CTOR_ENABLED
     index_t candidate_ctor_index_ = null_index;
 #endif
+
+
+    
 
 };
 
