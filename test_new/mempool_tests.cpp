@@ -614,8 +614,20 @@ TEST_CASE("[mempool] Dependencies 4") {
 
     //TODO(fernando): check this case...
     auto res = mp.add(c);
+    REQUIRE(res == result_code::success);
 
-    REQUIRE(res != result_code::success);
+    REQUIRE(mp.all_transactions() == 6);
+    REQUIRE(mp.candidate_transactions() == 3);
+    REQUIRE(mp.candidate_bytes() == 3 * 60);
+    REQUIRE(mp.candidate_fees() == a.fees() + b.fees() + c.fees());
+
+    REQUIRE(mp.candidate_rank(x) == null_index);
+    REQUIRE(mp.candidate_rank(y) == null_index);
+    REQUIRE(mp.candidate_rank(z) == null_index);
+    REQUIRE(mp.candidate_rank(a) == 2);
+    REQUIRE(mp.candidate_rank(b) == 1);
+    REQUIRE(mp.candidate_rank(c) == 0);
+
 
 
     // mempool mp(3 * 60);

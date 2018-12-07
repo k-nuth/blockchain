@@ -101,6 +101,10 @@ std::set<typename Container::value_type, Cmp> to_ordered_set(F f, Container cons
 
 class mempool {
 public:
+
+    using to_insert_t = std::tuple<indexes_t, uint64_t, size_t, size_t>;
+    using accum_t = std::tuple<uint64_t, size_t, size_t>;
+
     static constexpr size_t max_template_size_default = get_max_block_weight() - coinbase_reserved_size;
 
 #if defined(BITPRIM_CURRENCY_BCH)
@@ -149,10 +153,12 @@ public:
 
         auto& new_node = all_transactions_.back();
 
-        if (candidate_transactions_.size() > 0 && ! has_room_for(new_node)) {
+        //TODO: what_to_remove_time
+        auto to_insert = what_to_insert(node_index);
 
+        if (candidate_transactions_.size() > 0 && ! has_room_for(std::get<2>(to_insert), std::get<3>(to_insert))) {
             //TODO: what_to_remove_time
-            auto to_remove = what_to_remove(node_index);
+            auto to_remove = what_to_remove(std::get<1>(to_insert), std::get<2>(to_insert), std::get<3>(to_insert));
 
             if (to_remove.empty()) {
                 // ++low_benefit_tx_counter;
@@ -160,7 +166,13 @@ public:
             } 
             do_candidate_removal(to_remove);
         }
-        do_candidate_insertion(node_index, new_node.size(), new_node.sigops(), new_node.fee());
+        
+       
+        do_candidates_insertion(to_insert);
+        // do_candidate_insertion(node_index, new_node.size(), new_node.sigops(), new_node.fee());
+
+
+
         // check_indexes();
         return result_code::success;
     }
@@ -245,7 +257,7 @@ private:
 
 
     //TODO(fernando): replace tuple with a struct with names
-    std::tuple<uint64_t, size_t, size_t> get_accum(removal_list_t& out_removed, index_t node_index, indexes_t const& children) {
+    accum_t get_accum(removal_list_t& out_removed, index_t node_index, indexes_t const& children) {
         auto res = out_removed.insert(node_index);
         if ( ! res.second) {
             return {0, 0, 0};
@@ -273,11 +285,36 @@ private:
         return {fee, size, sigops};
     }
 
-    removal_list_t what_to_remove(index_t node_index) {
-        //precondition: candidate_transactions_.size() > 0
+    to_insert_t what_to_insert(index_t node_index) {
+        indexes_t to_insert;
 
         auto const& node = all_transactions_[node_index];
-        auto node_benefit = static_cast<double>(node.fee()) / node.size();
+        auto fees = node.fee();
+        auto size = node.size();
+        auto sigops = node.sigops();
+
+        to_insert.push_back(node_index);
+
+        for (auto pi : node.parents()) {
+            auto const& parent = all_transactions_[pi];
+            if (parent.candidate_index() == null_index) {
+                fees += parent.fee();
+                size += parent.size();
+                sigops += parent.sigops();
+                to_insert.push_back(pi);
+            }
+        }
+
+        return {std::move(to_insert), fees, size, sigops};
+    }
+
+    removal_list_t what_to_remove(uint64_t fees, size_t size, size_t sigops) {
+        //precondition: candidate_transactions_.size() > 0
+
+        // auto const& node = all_transactions_[node_index];
+        // auto node_benefit = static_cast<double>(node.fee()) / node.size();
+
+        auto pack_benefit = static_cast<double>(fees) / size;
 
         auto it = candidate_transactions_.end() - 1;
 
@@ -301,7 +338,7 @@ private:
 
                 auto to_remove_benefit = static_cast<double>(fee_accum) / size_accum;
                 //El beneficio del elemento que voy a insertar es "peor" que el peor que el del peor elemento que tengo como candidato. Entonces, no sigo.
-                if (node_benefit <= to_remove_benefit) {
+                if (pack_benefit <= to_remove_benefit) {
                     //El beneficio acumulado de los elementos a remover es "mejor" que el que tengo para insertar.
                     //No tengo que hacer nada.
                     // return candidate_transactions_.end();
@@ -311,9 +348,9 @@ private:
                 next_size -= std::get<1>(res);
                 next_sigops -= std::get<2>(res);
 
-                if (next_size + node.size() <= max_template_size_) {
+                if (next_size + size <= max_template_size_) {
                     auto const sigops_limit = get_allowed_sigops(next_size);
-                    if (next_sigops + node.sigops() <= sigops_limit) {
+                    if (next_sigops + sigops <= sigops_limit) {
                         // return it;
                         return removed;
                     }
@@ -345,27 +382,45 @@ private:
         reindex_parents_for_removal(to_remove);
     }
 
-    void do_candidate_insertion(index_t node_index, size_t size, size_t sigops, size_t fees) {
-        insert_in_candidate(node_index);
+
+//     void do_candidate_insertion(index_t node_index, size_t size, size_t sigops, size_t fees) {
+//         insert_in_candidate(node_index);
+
+// #ifdef BITPRIM_MINING_CTOR_ENABLED
+//         insert_in_candidate_ctor(node_index);
+// #endif
+
+//         accum_size_ += size;
+//         accum_sigops_ += sigops;
+//         accum_fees_ += fees;
+//     }
+
+
+
+    void do_candidates_insertion(to_insert_t const& to_insert) {
+
+        for (auto i : std::get<0>(to_insert)) {
+            insert_in_candidate(i);
 
 #ifdef BITPRIM_MINING_CTOR_ENABLED
-        insert_in_candidate_ctor(node_index);
+            insert_in_candidate_ctor(i);
 #endif
+        }
 
-        accum_size_ += size;
-        accum_sigops_ += sigops;
-        accum_fees_ += fees;
+        accum_fees_ += std::get<1>(to_insert);
+        accum_size_ += std::get<2>(to_insert);
+        accum_sigops_ += std::get<3>(to_insert);
     }
 
-    bool has_room_for(node const& node) const {
-        if (accum_size_ > max_template_size_ - node.size()) {
+    bool has_room_for(size_t size, size_t sigops) const {
+        if (accum_size_ > max_template_size_ - size) {
             return false;
         }
         
-        auto const next_size = accum_size_ + node.size();
+        auto const next_size = accum_size_ + size;
         auto const sigops_limit = get_allowed_sigops(next_size);
 
-        if (accum_sigops_ > sigops_limit - node.sigops()) {
+        if (accum_sigops_ > sigops_limit - sigops) {
             return false;
         }
 
