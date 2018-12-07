@@ -162,6 +162,14 @@ if (DB_NEW_FULL)
   add_definitions(-DBITPRIM_DB_NEW_FULL)
 endif()
 
+# Implement and declare DB_NEW_FULL_ASYNC.
+#------------------------------------------------------------------------------
+option(DB_NEW_FULL "DB New Full Async enabled." OFF)
+if (DB_NEW_FULL_ASYNC)
+  message(STATUS "Bitprim: DB New Full Async enabled")
+  add_definitions(-DBITPRIM_DB_NEW_FULL_ASYNC)
+endif()
+
 # Implement --JUST_BITPRIM_SOURCES for linting.
 #------------------------------------------------------------------------------
 option(JUST_BITPRIM_SOURCES "Just Bitprim source code to be linted." OFF)
