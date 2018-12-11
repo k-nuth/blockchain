@@ -45,6 +45,7 @@ auto scope_guard(F&& f) {
 namespace libbitcoin {
 namespace mining {
 
+inline
 node make_node(chain::transaction const& tx) {
     return node(
                 transaction_element(tx.hash()
