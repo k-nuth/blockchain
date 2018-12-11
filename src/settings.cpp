@@ -20,29 +20,35 @@
 
 #include <cstdint>
 
+//TODO(fernando): Avoid this dependency
+#if defined(BITPRIM_WITH_MINING)
+#include <bitprim/mining/mempool.hpp>
+#endif
+
+
 namespace libbitcoin {
 namespace blockchain {
 
 settings::settings()
-  : cores(0)
-  , priority(true)
-  , byte_fee_satoshis(0.1)
-  , sigop_fee_satoshis(100)
-  , minimum_output_satoshis(500)
-  , notify_limit_hours(24)
-  , reorganization_limit(256)
-  , allow_collisions(true)
-  , easy_blocks(false)
-  , retarget(true)
-  , bip16(true)
-  , bip30(true)
-  , bip34(true)
-  , bip66(true)
-  , bip65(true)
-  , bip90(true)
-  , bip68(true)
-  , bip112(true)
-  , bip113(true)
+    : cores(0)
+    , priority(true)
+    , byte_fee_satoshis(0.1)
+    , sigop_fee_satoshis(100)
+    , minimum_output_satoshis(500)
+    , notify_limit_hours(24)
+    , reorganization_limit(256)
+    , allow_collisions(true)
+    , easy_blocks(false)
+    , retarget(true)
+    , bip16(true)
+    , bip30(true)
+    , bip34(true)
+    , bip66(true)
+    , bip65(true)
+    , bip90(true)
+    , bip68(true)
+    , bip112(true)
+    , bip113(true)
 
 #ifdef BITPRIM_CURRENCY_BCH
     // , uahf_height(478559)
@@ -59,8 +65,11 @@ settings::settings()
     , bip147(true)
 #endif
 
-{
-}
+#if defined(BITPRIM_WITH_MINING)
+    , mempool_max_template_size(mining::mempool::max_template_size_default)
+    , mempool_size_multiplier(mining::mempool::mempool_size_multiplier_default)
+#endif
+{}
 
 // Use push_back due to initializer_list bug:
 // stackoverflow.com/a/20168627/1172329

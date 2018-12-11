@@ -44,6 +44,10 @@ public:
         , children_sigops_(te_.sigops())
     {}
 
+    transaction_element&& element() {
+        return std::move(te_);
+    }
+
     hash_digest const& txid() const {
         return te_.txid();
     }
@@ -158,7 +162,7 @@ private:
     std::vector<index_t> parents_;
     std::vector<index_t> children_;
 
-    size_t children_fees_;
+    uint64_t children_fees_;
     size_t children_size_;
     size_t children_sigops_;
 
