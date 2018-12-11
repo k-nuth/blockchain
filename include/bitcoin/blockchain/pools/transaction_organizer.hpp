@@ -32,6 +32,10 @@
 #include <bitcoin/blockchain/settings.hpp>
 #include <bitcoin/blockchain/validate/validate_transaction.hpp>
 
+#if defined(BITPRIM_WITH_MINING)
+#include <bitprim/mining/mempool.hpp>
+#endif
+
 namespace libbitcoin {
 namespace blockchain {
 
@@ -48,8 +52,12 @@ public:
     typedef resubscriber<code, transaction_const_ptr> transaction_subscriber;
 
     /// Construct an instance.
-    transaction_organizer(prioritized_mutex& mutex, dispatcher& dispatch,
-        threadpool& thread_pool, fast_chain& chain, const settings& settings);
+
+#if defined(BITPRIM_WITH_MINING)
+    transaction_organizer(prioritized_mutex& mutex, dispatcher& dispatch, threadpool& thread_pool, fast_chain& chain, const settings& settings, mining::mempool& mp);
+#else
+    transaction_organizer(prioritized_mutex& mutex, dispatcher& dispatch, threadpool& thread_pool, fast_chain& chain, const settings& settings);
+#endif
 
     bool start();
     bool stop();
@@ -94,6 +102,10 @@ private:
     transaction_pool transaction_pool_;
     validate_transaction validator_;
     transaction_subscriber::ptr subscriber_;
+
+#if defined(BITPRIM_WITH_MINING)
+    mining::mempool& mempool_;
+#endif
 };
 
 } // namespace blockchain

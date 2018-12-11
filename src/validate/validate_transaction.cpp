@@ -45,12 +45,21 @@ using namespace std::placeholders;
 // spend: { spender }
 // transaction: { exists, height, output }
 
-validate_transaction::validate_transaction(dispatcher& dispatch,
-    const fast_chain& chain, const settings& settings)
+
+#if defined(BITPRIM_WITH_MINING)
+validate_transaction::validate_transaction(dispatcher& dispatch, const fast_chain& chain, const settings& settings, mining::mempool const& mp)
+#else
+validate_transaction::validate_transaction(dispatcher& dispatch, const fast_chain& chain, const settings& settings)
+#endif
   : stopped_(true),
     retarget_(settings.retarget),
     dispatch_(dispatch),
+
+#if defined(BITPRIM_WITH_MINING)
+    transaction_populator_(dispatch, chain, mp),
+#else
     transaction_populator_(dispatch, chain),
+#endif
     fast_chain_(chain)
 {
 }

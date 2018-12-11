@@ -25,22 +25,35 @@
 #include <bitcoin/blockchain/interface/fast_chain.hpp>
 #include <bitcoin/blockchain/populate/populate_base.hpp>
 
+#if defined(BITPRIM_WITH_MINING)
+#include <bitprim/mining/mempool.hpp>
+#endif
+
 namespace libbitcoin {
 namespace blockchain {
 
 /// This class is NOT thread safe.
 class BCB_API populate_transaction
-  : public populate_base
+    : public populate_base
 {
 public:
+
+#if defined(BITPRIM_WITH_MINING)
+    populate_transaction(dispatcher& dispatch, const fast_chain& chain, mining::mempool const& mp);
+#else
     populate_transaction(dispatcher& dispatch, const fast_chain& chain);
+#endif
 
     /// Populate validation state for the transaction.
     void populate(transaction_const_ptr tx, result_handler&& handler) const;
 
 protected:
-    void populate_inputs(transaction_const_ptr tx, size_t chain_height,
-        size_t bucket, size_t buckets, result_handler handler) const;
+    void populate_inputs(transaction_const_ptr tx, size_t chain_height, size_t bucket, size_t buckets, result_handler handler) const;
+
+private:
+#if defined(BITPRIM_WITH_MINING)
+    mining::mempool const& mempool_;
+#endif
 };
 
 } // namespace blockchain

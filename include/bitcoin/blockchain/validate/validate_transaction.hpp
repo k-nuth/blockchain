@@ -28,6 +28,10 @@
 #include <bitcoin/blockchain/populate/populate_transaction.hpp>
 #include <bitcoin/blockchain/settings.hpp>
 
+#if defined(BITPRIM_WITH_MINING)
+#include <bitprim/mining/mempool.hpp>
+#endif
+
 namespace libbitcoin {
 namespace blockchain {
 
@@ -37,8 +41,11 @@ class BCB_API validate_transaction
 public:
     typedef handle0 result_handler;
 
-    validate_transaction(dispatcher& dispatch, const fast_chain& chain,
-        const settings& settings);
+#if defined(BITPRIM_WITH_MINING)
+    validate_transaction(dispatcher& dispatch, const fast_chain& chain, const settings& settings, mining::mempool const& mp);
+#else
+    validate_transaction(dispatcher& dispatch, const fast_chain& chain, const settings& settings);
+#endif
 
     void start();
     void stop();

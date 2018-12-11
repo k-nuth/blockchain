@@ -34,6 +34,11 @@
 #include <bitcoin/blockchain/populate/populate_chain_state.hpp>
 #include <bitcoin/blockchain/settings.hpp>
 
+#if defined(BITPRIM_WITH_MINING)
+#include <bitprim/mining/mempool.hpp>
+#endif
+
+
 #if WITH_BLOCKCHAIN_REQUESTER
 #include <bitcoin/protocol/requester.hpp>
 #endif
@@ -372,30 +377,6 @@ public:
     /// Get a reference to the blockchain configuration settings.
     const settings& chain_settings() const;
 
-#ifdef BITPRIM_WITH_MINING
-    struct tx_benefit {
-        double benefit;
-        size_t tx_sigops;
-        size_t tx_size;
-        size_t tx_fees;
-        libbitcoin::data_chunk tx_hex;
-        libbitcoin::hash_digest tx_id;
-
-#ifndef BITPRIM_CURRENCY_BCH
-        libbitcoin::hash_digest tx_hash;
-#endif // BITPRIM_CURRENCY_BCH
-    };
-
-    struct prev_output {
-        libbitcoin::hash_digest output_hash;
-        uint32_t output_index;
-    };
-
-    std::vector<block_chain::tx_benefit> get_gbt_tx_list() const;
-    bool add_to_chosen_list(transaction_const_ptr tx) override;
-    void remove_mined_txs_from_chosen_list(block_const_ptr blk) override;
-#endif // BITPRIM_WITH_MINING
-
 #ifdef WITH_KEOKEN    
     virtual void fetch_keoken_history(const short_hash& address_hash, size_t limit,
         size_t from_height, keoken_history_fetch_handler handler) const override;
@@ -459,28 +440,16 @@ private:
     mutable prioritized_mutex validation_mutex_;
     mutable threadpool priority_pool_;
     mutable dispatcher dispatch_;
+
+
+#if defined(BITPRIM_WITH_MINING)
+    mining::mempool mempool_;
+#endif
+
     transaction_organizer transaction_organizer_;
     block_organizer block_organizer_;
 
-#ifdef BITPRIM_WITH_MINING
-    bool get_transaction_is_confirmed(libbitcoin::hash_digest tx_hash);
-    void append_spend(transaction_const_ptr tx);
-    void remove_spend(libbitcoin::hash_digest const& hash);
-    bool check_is_double_spend(transaction_const_ptr tx);
-    std::set<libbitcoin::hash_digest> get_double_spend_chosen_list(transaction_const_ptr tx);
-    bool insert_to_chosen_list(transaction_const_ptr& tx, double benefit, size_t tx_size, size_t tx_sigops);
-    size_t find_txs_to_remove_from_chosen(const size_t sigops_limit, const size_t tx_size,
-        const size_t tx_sigops, const size_t tx_fees, const double benefit,
-            size_t& acum_sigops, size_t& acum_size, double& acum_benefit);
 
-
-    uint64_t chosen_size_; // Size in bytes of the chosen unconfirmed transaction list
-    uint64_t chosen_sigops_; // Total Amount of sigops in the chosen unconfirmed transaction list
-    std::list <tx_benefit> chosen_unconfirmed_; // Chosen unconfirmed transaction list
-    std::unordered_map<hash_digest, std::vector<prev_output>> chosen_spent_;
-    mutable std::mutex gbt_mutex_; // Protect chosen unconfirmed transaction list
-    std::atomic_bool gbt_ready_; // Getblocktemplate ready
-#endif // BITPRIM_WITH_MINING
 
 #endif // WITH_BLOCKCHAIN_REQUESTER
 };

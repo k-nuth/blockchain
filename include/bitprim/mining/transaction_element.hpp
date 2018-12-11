@@ -98,6 +98,7 @@ public:
         return raw_.size();
     }
 
+    //TODO: move to node class
     uint32_t output_count() const {
         return output_count_;
     }

@@ -47,9 +47,11 @@ public:
         block_const_ptr_list_const_ptr> reorganize_subscriber;
 
     /// Construct an instance.
-    block_organizer(prioritized_mutex& mutex, dispatcher& dispatch,
-        threadpool& thread_pool, fast_chain& chain, const settings& settings,
-        bool relay_transactions);
+#if defined(BITPRIM_WITH_MINING)
+    block_organizer(prioritized_mutex& mutex, dispatcher& dispatch, threadpool& thread_pool, fast_chain& chain, const settings& settings, bool relay_transactions, mining::mempool& mp);
+#else
+    block_organizer(prioritized_mutex& mutex, dispatcher& dispatch, threadpool& thread_pool, fast_chain& chain, const settings& settings, bool relay_transactions);
+#endif
 
     bool start();
     bool stop();
@@ -76,6 +78,10 @@ private:
     void handle_reorganized(const code& ec, branch::const_ptr branch, block_const_ptr_list_ptr outgoing, result_handler handler);
     void signal_completion(const code& ec);
 
+#if defined(BITPRIM_WITH_MINING)
+    void organize_mempool(block_const_ptr_list_const_ptr incoming_blocks, block_const_ptr_list_ptr outgoing_blocks);
+#endif
+
 #ifdef BITPRIM_DB_NEW
     bool is_branch_double_spend(branch::ptr const& branch) const;
 #endif
@@ -95,6 +101,10 @@ private:
     block_pool block_pool_;
     validate_block validator_;
     reorganize_subscriber::ptr subscriber_;
+
+#if defined(BITPRIM_WITH_MINING)
+    mining::mempool& mempool_;
+#endif
 };
 
 } // namespace blockchain

@@ -35,9 +35,16 @@ using namespace bc::machine;
 
 // Database access is limited to calling populate_base.
 
+#if defined(BITPRIM_WITH_MINING)
+populate_block::populate_block(dispatcher& dispatch, fast_chain const& chain, bool relay_transactions, mining::mempool const& mp)
+#else
 populate_block::populate_block(dispatcher& dispatch, fast_chain const& chain, bool relay_transactions)
+#endif
     : populate_base(dispatch, chain)
     , relay_transactions_(relay_transactions)
+#if defined(BITPRIM_WITH_MINING)
+    , mempool_(mp)
+#endif
 {}
 
 local_utxo_t create_local_utxo_set(chain::block const& block) {
@@ -226,32 +233,6 @@ void populate_block::populate_transactions(branch::const_ptr branch, size_t buck
 #endif
     }
 
-
-// #ifdef BITPRIM_DB_NEW
-//     utxo_pool_t reorg_subset;
-//     auto temp1 = branch->top_height();
-//     auto temp2 = branch->height() + 1u;
-
-//     size_t top;
-
-//     if (fast_chain_.get_last_height(top)) {
-//         std::cout << temp1 << std::endl;
-//         std::cout << temp2 << std::endl;
-//         std::cout << top << std::endl;
-
-//         if (temp2 <= top) {
-//             auto p = fast_chain_.get_utxo_pool_from(temp2, top);
-//             if (p.first) {
-//                 // populate_from_reorg_subset(prevout, reorg_subset);
-//                 std::cout << "populate_from_reorg_subset(prevout, reorg_subset);" << std::endl;
-//                 reorg_subset = std::move(p.second);
-//             }
-//         }
-//     } else {
-//         top = 0;
-//     }
-// #endif // BITPRIM_DB_NEW
-
 #ifdef BITPRIM_DB_NEW
     size_t first_height = branch_height + 1u;
     size_t chain_top;
@@ -261,23 +242,28 @@ void populate_block::populate_transactions(branch::const_ptr branch, size_t buck
 
     // Must skip coinbase here as it is already accounted for.
     for (auto tx = txs.begin() + 1; tx != txs.end(); ++tx) {
-        auto const& inputs = tx->inputs();
+        if ( ! mempool_.contains(tx->hash())) {
 
-        for (size_t input_index = 0; input_index < inputs.size(); ++input_index, ++input_position) {
-            if (input_position % buckets != bucket) {
-                continue;
-            }
+            auto const& inputs = tx->inputs();
 
-            auto const& input = inputs[input_index];
-            auto const& prevout = input.previous_output();
-            populate_base::populate_prevout(branch_height, prevout, true);  //Populate from Database
-            populate_prevout(branch, prevout, branch_utxo);                 //Populate from the Blocks in the Branch
+            for (size_t input_index = 0; input_index < inputs.size(); ++input_index, ++input_position) {
+                if (input_position % buckets != bucket) {
+                    continue;
+                }
+
+                auto const& input = inputs[input_index];
+                auto const& prevout = input.previous_output();
+                populate_base::populate_prevout(branch_height, prevout, true);  //Populate from Database
+                populate_prevout(branch, prevout, branch_utxo);                 //Populate from the Blocks in the Branch
 
 #ifdef BITPRIM_DB_NEW
-            if (first_height <= chain_top) {
-                populate_from_reorg_subset(prevout, reorg_subset);
-            }
+                if (first_height <= chain_top) {
+                    populate_from_reorg_subset(prevout, reorg_subset);
+                }
 #endif // BITPRIM_DB_NEW
+            }
+        } else {
+            tx->validation.validated = true;
         }
     }
 

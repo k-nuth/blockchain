@@ -26,6 +26,11 @@
 #include <bitcoin/blockchain/pools/branch.hpp>
 #include <bitcoin/blockchain/populate/populate_base.hpp>
 
+#if defined(BITPRIM_WITH_MINING)
+#include <bitprim/mining/mempool.hpp>
+#endif
+
+
 namespace libbitcoin {
 namespace blockchain {
 
@@ -39,7 +44,11 @@ public:
     using utxo_pool_t = database::internal_database::utxo_pool_t;
 #endif    
 
+#if defined(BITPRIM_WITH_MINING)
+    populate_block(dispatcher& dispatch, fast_chain const& chain, bool relay_transactions, mining::mempool const& mp);
+#else
     populate_block(dispatcher& dispatch, fast_chain const& chain, bool relay_transactions);
+#endif
 
     /// Populate validation state for the top block.
     void populate(branch::const_ptr branch, result_handler&& handler) const;
@@ -63,6 +72,11 @@ protected:
 
 private:
     bool const relay_transactions_;
+
+#if defined(BITPRIM_WITH_MINING)
+    mining::mempool const& mempool_;
+#endif
+
 };
 
 } // namespace blockchain

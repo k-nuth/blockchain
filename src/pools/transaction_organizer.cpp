@@ -39,19 +39,28 @@ using namespace std::placeholders;
 #define NAME "transaction_organizer"
 
 // TODO: create priority pool at blockchain level and use in both organizers. 
-transaction_organizer::transaction_organizer(prioritized_mutex& mutex,
-    dispatcher& dispatch, threadpool& thread_pool, fast_chain& chain,
-    const settings& settings)
-  : fast_chain_(chain),
-    mutex_(mutex),
-    stopped_(true),
-    settings_(settings),
-    dispatch_(dispatch),
-    transaction_pool_(settings),
-    validator_(dispatch, fast_chain_, settings),
-    subscriber_(std::make_shared<transaction_subscriber>(thread_pool, NAME))
-{
-}
+
+#if defined(BITPRIM_WITH_MINING)
+transaction_organizer::transaction_organizer(prioritized_mutex& mutex, dispatcher& dispatch, threadpool& thread_pool, fast_chain& chain, const settings& settings, mining::mempool& mp)
+#else
+transaction_organizer::transaction_organizer(prioritized_mutex& mutex, dispatcher& dispatch, threadpool& thread_pool, fast_chain& chain, const settings& settings)
+#endif
+    : fast_chain_(chain)
+    , mutex_(mutex)
+    , stopped_(true)
+    , settings_(settings)
+    , dispatch_(dispatch)
+    , transaction_pool_(settings)
+
+#if defined(BITPRIM_WITH_MINING)
+    , validator_(dispatch, fast_chain_, settings, mp)
+#else
+    , validator_(dispatch, fast_chain_, settings)
+#endif
+
+    , subscriber_(std::make_shared<transaction_subscriber>(thread_pool, NAME))
+    , mempool_(mp)
+{}
 
 // Properties.
 //-----------------------------------------------------------------------------
@@ -292,9 +301,15 @@ void transaction_organizer::handle_connect(const code& ec,
         return;
     }
 
-    const auto pushed_handler =
-        std::bind(&transaction_organizer::handle_pushed,
-            this, _1, tx, handler);
+    const auto pushed_handler = std::bind(&transaction_organizer::handle_pushed, this, _1, tx, handler);
+
+#if defined(BITPRIM_WITH_MINING)
+    auto res = mempool_.add(*tx);
+    if (res != error::success) {
+        handler(res);
+        return;
+    }
+#endif
 
     //#########################################################################
     fast_chain_.push(tx, dispatch_, pushed_handler);

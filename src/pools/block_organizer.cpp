@@ -45,18 +45,26 @@ using namespace std::placeholders;
 // block: { bits, version, timestamp }
 // transaction: { exists, height, output }
 
-block_organizer::block_organizer(prioritized_mutex& mutex, dispatcher& dispatch,
-    threadpool& thread_pool, fast_chain& chain,  const settings& settings,
-    bool relay_transactions)
-  : fast_chain_(chain),
-    mutex_(mutex),
-    stopped_(true),
-    dispatch_(dispatch),
-    block_pool_(settings.reorganization_limit),
-    validator_(dispatch, fast_chain_, settings, relay_transactions),
-    subscriber_(std::make_shared<reorganize_subscriber>(thread_pool, NAME))
-{
-}
+#if defined(BITPRIM_WITH_MINING)
+block_organizer::block_organizer(prioritized_mutex& mutex, dispatcher& dispatch, threadpool& thread_pool, fast_chain& chain, const settings& settings, bool relay_transactions, mining::mempool& mp)
+#else
+block_organizer::block_organizer(prioritized_mutex& mutex, dispatcher& dispatch, threadpool& thread_pool, fast_chain& chain, const settings& settings, bool relay_transactions)
+#endif
+    : fast_chain_(chain)
+    , mutex_(mutex)
+    , stopped_(true)
+    , dispatch_(dispatch)
+    , block_pool_(settings.reorganization_limit)
+#if defined(BITPRIM_WITH_MINING)
+    , validator_(dispatch, fast_chain_, settings, relay_transactions, mp)
+#else
+    , validator_(dispatch, fast_chain_, settings, relay_transactions)
+#endif    
+    , subscriber_(std::make_shared<reorganize_subscriber>(thread_pool, NAME))
+#if defined(BITPRIM_WITH_MINING)
+    , mempool_(mp)
+#endif
+{}
 
 // Properties.
 //-----------------------------------------------------------------------------
@@ -162,6 +170,7 @@ void block_organizer::handle_check(const code& ec, block_const_ptr block, result
         return;
     }
 
+
     const auto accept_handler = std::bind(&block_organizer::handle_accept, this, _1, branch, handler);
 
     // Checks that are dependent on chain state and prevouts.
@@ -215,6 +224,51 @@ bool block_organizer::is_branch_double_spend(branch::ptr const& branch) const {
     return !distinct;
 }
 #endif // BITPRIM_DB_NEW
+
+
+#if defined(BITPRIM_WITH_MINING)
+void block_organizer::organize_mempool(block_const_ptr_list_const_ptr incoming_blocks, block_const_ptr_list_ptr outgoing_blocks) {
+    if (outgoing_blocks->empty()) {
+        return;
+    }
+
+    std::unordered_set<hash_digest> txs_in;
+    std::unordered_set<chain::point> prevouts_in;
+
+    for (auto const& block : *incoming_blocks) {
+        if (block->transactions().size() > 1) {
+
+            mempool_.remove(block->transactions().begin() + 1, block->transactions().end(), block->non_coinbase_input_count());
+
+            std::for_each(block->transactions().begin() + 1, block->transactions().end(), [&txs_in, &prevouts_in](chain::transaction const& tx){
+                txs_in.insert(tx.hash());
+
+                for (auto const& input : tx.inputs()) {
+                    prevouts_in.insert(input.previous_output());
+                }
+            });
+        }
+    }
+
+    for (auto const& block : *outgoing_blocks) {
+        if (block->transactions().size() > 1) {
+            std::for_each(block->transactions().begin() + 1, block->transactions().end(), [this, &txs_in, &prevouts_in](chain::transaction const& tx){
+                auto it = txs_in.find(tx.hash());
+                if (it == txs_in.end()) {
+
+                    auto double_spend = std::any_of(tx.inputs().begin(), tx.inputs().end(), [this, &prevouts_in](chain::input const& in){
+                        return prevouts_in.find(in.previous_output()) != prevouts_in.end();
+                    });
+
+                    if ( ! double_spend) {
+                        mempool_.add(tx);       //TODO(fernando): add bulk 
+                    }
+                }
+            });
+        }
+    }
+}
+#endif
 
 // private
 void block_organizer::handle_connect(const code& ec, branch::ptr branch, result_handler handler) {
@@ -283,6 +337,10 @@ void block_organizer::handle_connect(const code& ec, branch::ptr branch, result_
     // Incoming blocks must have median_time_past set.
     fast_chain_.reorganize(branch->fork_point(), branch->blocks(), out_blocks, dispatch_, reorganized_handler);
     //#########################################################################
+
+#if defined(BITPRIM_WITH_MINING)
+    organize_mempool(branch->blocks(), out_blocks);
+#endif
 }
 
 // private
