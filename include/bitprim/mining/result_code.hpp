@@ -26,8 +26,9 @@ enum class result_code {
     success = 0,
     duplicated_transaction = 2,
     // duplicated_output = 3,
-    double_spend = 4,
-    low_benefit_transaction = 5,
+    double_spend_mempool = 4,
+    double_spend_blockchain = 5,
+    low_benefit_transaction = 6,
     
     other = 8
 };

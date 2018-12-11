@@ -37,7 +37,8 @@ public:
                         data_chunk const& raw,
                         uint64_t fee,
                         size_t sigops,
-                        std::vector<chain::point> const& previous_outputs
+                        uint32_t output_count
+                        // std::vector<chain::point> const& previous_outputs
                         )
         : txid_(txid)
 #if ! defined(BITPRIM_CURRENCY_BCH)
@@ -46,7 +47,8 @@ public:
         , raw_(raw)
         , fee_(fee)
         , sigops_(sigops)
-        , previous_outputs_(previous_outputs)
+        , output_count_(output_count)
+        // , previous_outputs_(previous_outputs)
     {}
 
     transaction_element(hash_digest const& txid,
@@ -56,7 +58,8 @@ public:
                         data_chunk&& raw,
                         uint64_t fee,
                         size_t sigops,
-                        std::vector<chain::point>&& previous_outputs
+                        uint32_t output_count
+                        // std::vector<chain::point>&& previous_outputs
                         )
         : txid_(txid)
 #if ! defined(BITPRIM_CURRENCY_BCH)
@@ -65,7 +68,8 @@ public:
         , raw_(std::move(raw))
         , fee_(fee)
         , sigops_(sigops)
-        , previous_outputs_(std::move(previous_outputs))
+        , output_count_(output_count)
+        // , previous_outputs_(std::move(previous_outputs))
     {}
 
     hash_digest const& txid() const {
@@ -94,10 +98,13 @@ public:
         return raw_.size();
     }
 
-    std::vector<chain::point> const& previous_outputs() const {
-        return previous_outputs_;
+    uint32_t output_count() const {
+        return output_count_;
     }
 
+    // std::vector<chain::point> const& previous_outputs() const {
+    //     return previous_outputs_;
+    // }
 private:
     hash_digest txid_;
 
@@ -108,8 +115,8 @@ private:
     data_chunk raw_;
     uint64_t fee_;
     size_t sigops_;
-
-    std::vector<chain::point> previous_outputs_;
+    uint32_t output_count_;
+    // std::vector<chain::point> previous_outputs_;
 };
 
 }  // namespace mining

@@ -60,6 +60,10 @@ public:
         return te_.size();
     }
 
+    uint32_t output_count() const {
+        return te_.output_count();
+    }
+
     uint64_t children_fees() const {
         return children_fees_;
     }
@@ -105,13 +109,20 @@ public:
         return children_;
     }
 
-    std::vector<chain::point> const& previous_outputs() const {
-        return te_.previous_outputs();
-    }
+    // std::vector<chain::point> const& previous_outputs() const {
+    //     return te_.previous_outputs();
+    // }
 
 
     void add_child(index_t index) {
         children_.push_back(index);
+    }
+
+    void remove_child(index_t index) {
+        children_.erase(
+            std::remove(children_.begin(), children_.end(), index),
+            children_.end()
+        );
     }
 
     void add_parent(index_t index) {
@@ -121,6 +132,13 @@ public:
     template <typename I>
     void add_parents(I f, I l) {
         parents_.insert(parents_.end(), f, l);
+    }
+
+    void remove_parent(index_t index) {
+        parents_.erase(
+            std::remove(parents_.begin(), parents_.end(), index),
+            parents_.end()
+        );
     }
 
     void increment_values(uint64_t fee, size_t size, size_t sigops) {

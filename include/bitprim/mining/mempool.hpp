@@ -1,19 +1,3 @@
-//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-//TODO(fernando): Create a Mempool-DB-UTXO to validate Double Spend of a Confirmated TX
-//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-/*
-A                               UTXO
-    Output: 0                    A0
-----------------------------------------------
-
-B
-    Input: A0
-C
-    Input: A0
-*/
-
-
 /**
  * Copyright (c) 2016-2018 Bitprim Inc.
  *
@@ -42,6 +26,8 @@ C
 #include <unordered_set>
 #include <vector>
 
+#include <boost/bimap.hpp>
+
 #include <bitprim/mining/common.hpp>
 #include <bitprim/mining/node.hpp>
 #include <bitprim/mining/result_code.hpp>
@@ -58,7 +44,7 @@ node make_node(chain::transaction const& tx) {
                                   , tx.to_data(true, BITPRIM_WITNESS_DEFAULT)
                                   , tx.fees() 
                                   , tx.signature_operations()
-                                  , tx.previous_outputs())
+                                  , tx.outputs().size())
                         );
 }
 
@@ -94,6 +80,7 @@ public:
 
     using to_insert_t = std::tuple<indexes_t, uint64_t, size_t, size_t>;
     using accum_t = std::tuple<uint64_t, size_t, size_t>;
+    using previous_outputs_t = boost::bimap<chain::point, index_t>;
 
     static constexpr size_t max_template_size_default = get_max_block_weight() - coinbase_reserved_size;
 
@@ -121,28 +108,193 @@ public:
         candidate_transactions_ctor_.reserve(candidates_capacity);
 #endif
         all_transactions_.reserve(all_capacity);
-
     }
 
     result_code add(chain::transaction const& tx) {
         //precondition: tx is fully validated: check() && accept() && connect()
         //              ! tx.is_coinbase()
 
-        auto const node_index = all_transactions_.size();
+        boost::upgrade_lock<boost::shared_mutex> lock(mutex_);
 
-        {
-            auto temp_node = make_node(tx);
-            auto res = process_utxo_and_graph(tx, node_index, temp_node);
-            if (res != result_code::success) {
-                return res;
-            }
-            all_transactions_.push_back(std::move(temp_node));
+        auto const index = all_transactions_.size();
+
+        auto temp_node = make_node(tx);
+        auto res = process_utxo_and_graph(tx, index, temp_node);
+        if (res != result_code::success) {
+            return res;
         }
 
-        auto& new_node = all_transactions_.back();
+        boost::upgrade_to_unique_lock<boost::shared_mutex> uniqueLock(lock);
+        all_transactions_.push_back(std::move(temp_node));
+        return add_node(index);
 
+/*
+        LOCK SHARED
+        LOCAL <- MIEMBROS
+        DESLOQUEAS
+
+        MODIFICAR DATOS LOCALES
+
+        LOCK WRITER
+        COMPARAR MIEMBRO CON MIEBRO'
+        MIEMBRO' <- LOCAL
+        DESLOQUEAS
+*/
+
+    }
+
+
+    /*
+    [H ... P]
+    [P ... H] ó [P ..... ] (Hijo no esta en Candidates)
+    [P ... H2]  [H]
+    */
+    template <typename I>
+    result_code remove(I f, I l, size_t non_coinbase_input_count) {
+
+        boost::unique_lock<boost::shared_mutex> lock(mutex_);
+
+        // precondition: [f, l) is a valid non-empty range
+        //               there are no coinbase transactions in the range
+
+        candidate_transactions_.clear();
+
+        std::set<index_t, std::greater<index_t>> to_remove;
+        // std::unordered_set<chain::point> outs;
+        std::vector<chain::point> outs;
+
+        outs.reserve(non_coinbase_input_count);   //TODO: unnecesary extra space
+
+        while (f != l) {
+            auto const& tx = *f;
+            auto it = hash_index_.find(tx.hash());
+            if (it != hash_index_.end()) {
+                // remove_from_utxo(tx);
+                // hash_index_.erase(it);
+
+                auto const index = it->second;
+                auto& node = all_transactions_[index];
+
+                //TODO(fernando): check if children() is the complete descendence of node or if it just the inmediate parents.
+                for (auto ci : node.children()) {
+                    auto& child = all_transactions_[ci];
+                    child.remove_parent(index);
+                }
+                to_remove.insert(index);
+            } else {
+                for (auto const& i : tx.inputs()) {
+                    // outs.insert(i.previous_output());
+                    outs.push_back(i.previous_output());
+                }
+            }
+            ++f;
+        }
+
+        find_double_spend_issues(to_remove, outs);
+
+        for (auto i : to_remove) {
+            auto it = std::next(all_transactions_.begin(), i);
+            hash_index_.erase(it->txid());
+            remove_from_utxo(it->txid(), it->output_count());
+            all_transactions_.erase(it);
+            previous_outputs_.right.erase(i);
+        }
+
+        BOOST_ASSERT(all_transactions_.size() == hash_index_.size());
+
+        accum_fees_ = 0;
+        accum_size_ = 0;
+        accum_sigops_ = 0;
+        
+        for (size_t i = 0; i < all_transactions_.size(); ++i) {
+            add_node(i);
+        }
+
+        //Recorrer el remanente de AllTransactions e ir insertando Candidates
+        return result_code::success;
+    }
+
+    size_t capacity() const {
+        boost::shared_lock<boost::shared_mutex> lock(mutex_);
+        return max_template_size_;
+    }
+
+    size_t all_transactions() const {
+        boost::shared_lock<boost::shared_mutex> lock(mutex_);
+        return all_transactions_.size();
+    }
+
+    size_t candidate_transactions() const {
+        boost::shared_lock<boost::shared_mutex> lock(mutex_);
+        return candidate_transactions_.size();
+    }
+
+    size_t candidate_bytes() const {
+        boost::shared_lock<boost::shared_mutex> lock(mutex_);
+        return accum_size_;
+    }
+
+    size_t candidate_sigops() const {
+        boost::shared_lock<boost::shared_mutex> lock(mutex_);
+        return accum_sigops_;
+    }
+
+    size_t candidate_fees() const {
+        boost::shared_lock<boost::shared_mutex> lock(mutex_);
+        return accum_fees_;
+    }
+
+    bool contains(chain::transaction const& tx) {
+        boost::shared_lock<boost::shared_mutex> lock(mutex_);
+        auto it = hash_index_.find(tx.hash());
+        return it != hash_index_.end();
+    }
+
+    bool is_candidate(chain::transaction const& tx) {
+        boost::shared_lock<boost::shared_mutex> lock(mutex_);
+        auto it = hash_index_.find(tx.hash());
+        if (it == hash_index_.end()) {
+            return false;
+        }
+
+        return all_transactions_[it->second].candidate_index() != null_index;
+    }
+
+    index_t candidate_rank(chain::transaction const& tx) {
+        boost::shared_lock<boost::shared_mutex> lock(mutex_);
+        auto it = hash_index_.find(tx.hash());
+        if (it == hash_index_.end()) {
+            return null_index;
+        }
+
+        return all_transactions_[it->second].candidate_index();
+    }
+
+    indexes_t gbt() const {
+        // boost::shared_lock<boost::shared_mutex> lock(mutex_);
+
+        bool res = mutex_.try_lock_shared();
+
+        return candidate_transactions_;
+    }
+
+    chain::output get_utxo(chain::point const& point) const {
+        boost::shared_lock<boost::shared_mutex> lock(mutex_);
+
+        auto it = internal_utxo_set_.find(point);
+        if (it != internal_utxo_set_.end()) {
+            return it->second;
+        } 
+
+        return chain::output{};
+    }
+
+private:
+
+    //private
+    result_code add_node(index_t index) {
         //TODO: what_to_insert_time
-        auto to_insert = what_to_insert(node_index);
+        auto to_insert = what_to_insert(index);
 
         if (candidate_transactions_.size() > 0 && ! has_room_for(std::get<2>(to_insert), std::get<3>(to_insert))) {
             //TODO: what_to_remove_time
@@ -159,166 +311,52 @@ public:
 
         // check_indexes();
         return result_code::success;
-    }
-
-
+    }    
+    
     //private
-    void remove_from_utxo(chain::transaction const& tx) {
-        for (auto const& i : tx.inputs()) {
-            if (i.previous_output().validation.from_mempool) {
-                internal_utxo_set_.erase(i.previous_output());
-            }
+    void clean_parents(mining::node const& node, index_t index) {
+        for (auto pi : node.parents()) {
+            auto& parent = all_transactions_[pi];
+            parent.remove_child(index);
         }
     }
 
-    // //TODO: it is a free function
-    // template <typename I>
-    // std::unordered_set<chain::point> previous_outputs(I f, I l, size_t non_coinbase_input_count {
-    //     // precondition: [f, l) is a valid non-empty range
-    //     //               there are no coinbase transactions in the range
 
-    //     std::unordered_set<chain::point> outs;
-    //     outs.reserve(non_coinbase_input_count());
-        
+    //private   
+    void find_double_spend_issues(std::set<index_t, std::greater<index_t>>& to_remove, std::vector<chain::point> const& outs) {
 
-    //     // Merge the prevouts of all non-coinbase transactions into one set.
-    //     for (auto tx = txs.begin() + 1; tx != txs.end(); ++tx)
-    //     {
-    //         auto out = tx->previous_outputs();
-    //         std::move(out.begin(), out.end(), std::inserter(outs, outs.end()));
-    //     }
+        for (auto const& po : outs) {
+            auto it = previous_outputs_.left.find(po);
+            if (it != previous_outputs_.left.end()) {
+                index_t index = it->second;
+                auto const& node = all_transactions_[index];
 
-    //     std::sort(outs.begin(), outs.end());
-    //     const auto distinct_end = std::unique(outs.begin(), outs.end());
-    //     const auto distinct = (distinct_end == outs.end());
-    //     return !distinct;
-    // }
-
-    /*
-    [H ... P]
-    [P ... H] ó [P ..... ] (Hijo no esta en Candidates)
-    [P ... H2]  [H]
-    */
-    template <typename I>
-    result_code remove(I f, I l, size_t non_coinbase_input_count) {
-        // precondition: [f, l) is a valid non-empty range
-        //               there are no coinbase transactions in the range
-
-        candidate_transactions_.clear();
-
-        std::set<index_t, std::greater<index_t>> to_remove;
-        std::unordered_set<chain::point> outs;
-        outs.reserve(non_coinbase_input_count);   //TODO: unnecesary extra space
-
-        while (f != l) {
-            auto const& tx = *f;
-            auto it = hash_index_.find(tx.hash());
-            if (it != hash_index_.end()) {
-                remove_from_utxo(tx);
-                hash_index_.erase(it);
-
-                auto const index = it->second;
-                auto& node = all_transactions_[index];
-                // auto index = node.candidate_index();
+                to_remove.insert(index);
+                clean_parents(node, index);
 
                 for (auto ci : node.children()) {
                     auto& child = all_transactions_[ci];
-                    child.parents().erase(
-                            std::remove(child.parents().begin(), child.parents().end(), index),
-                            child.parents().end()
-                    );
+                    to_remove.insert(ci);
+                    clean_parents(child, ci);
                 }
-                to_remove.insert(index);
-            } else {
-                // auto out = tx.previous_outputs();
-                // std::move(out.begin(), out.end(), std::inserter(outs, outs.end()));
-
-                for (auto const& i : tx.inputs()) {
-                    outs.insert(i.previous_output());
-                }
-
-                //no la encontré
-            }
-            ++f;
-        }
-
-        for (auto i : to_remove) {
-            auto it = std::next(all_transactions_.begin(), i);
-            all_transactions_.erase(it);
-        }
-
-        auto f = all_transactions_.begin();
-        auto l = all_transactions_.end();
-        while (f != l) {
-            auto it = outs.find(tx.hash());
-            if (it != outs.end()) {
-                f = all_transactions_.erase(f);
-            } else {
-                ++f;
             }
         }
+    }    
 
-        //Recorrer el remanente de AllTransactions e ir insertando Candidates
+    //private
+    void remove_from_utxo(hash_digest const& txid, uint32_t output_count) {
+        // for (auto const& i : tx.inputs()) {
+        //     if (i.previous_output().validation.from_mempool) {
+        //         internal_utxo_set_.erase(i.previous_output());
+        //     }
+        // }
 
-        return result_code::success;
-    }
-
-    size_t capacity() const {
-        return max_template_size_;        
-    }
-
-    size_t all_transactions() const {
-        return all_transactions_.size();
-    }
-
-    size_t candidate_transactions() const {
-        return candidate_transactions_.size();
-    }
-
-    size_t candidate_bytes() const {
-        return accum_size_;
-    }
-
-    size_t candidate_sigops() const {
-        return accum_sigops_;
-    }
-
-    size_t candidate_fees() const {
-        return accum_fees_;
-    }
-
-    bool contains(chain::transaction const& tx) {
-        auto it = hash_index_.find(tx.hash());
-        return (it != hash_index_.end());
-    }
-
-    bool is_candidate(chain::transaction const& tx) {
-        auto it = hash_index_.find(tx.hash());
-        if (it == hash_index_.end()) {
-            return false;
+        for (uint32_t i = 0; i < output_count; ++i) {
+            internal_utxo_set_.erase(chain::point{txid, i});
         }
 
-        return all_transactions_[it->second].candidate_index() != null_index;
+        //TODO(fernando): Do I have to insert the prevouts removed before??
     }
-
-    index_t candidate_rank(chain::transaction const& tx) {
-        auto it = hash_index_.find(tx.hash());
-        if (it == hash_index_.end()) {
-            return null_index;
-        }
-
-        return all_transactions_[it->second].candidate_index();
-    }
-
-
-    // gbt() const;
-
-    // output get_utxo(point) const {
-    //     auto it = internal_utxo_set_.find(point);
-    //     return it->second;
-    // }
-
-private:
 
     bool fee_per_size_cmp(index_t a, index_t b) const {
         auto const& node_a = all_transactions_[a];
@@ -503,9 +541,13 @@ private:
             return result_code::duplicated_transaction;
         }
 
-        if ( ! check_double_spend(tx)) {
-            return result_code::double_spend;
+        auto res = check_double_spend(tx);
+        if (res != result_code::success) {
+            return res;
         }
+
+        //--------------------------------------------------
+        // Mutate the state
 
         insert_outputs_in_utxo(tx);
         hash_index_.emplace(tx.hash(), node_index);
@@ -520,7 +562,13 @@ private:
                 auto it = hash_index_.find(i.previous_output().hash());
                 index_t parent_index = it->second;
                 parents.push_back(parent_index);
+            // } else {
+            //     auto xxx = previous_outputs_.emplace(i.previous_output(), node_index);
+            //     BOOST_ASSERT(xxx.second);
             }
+            // previous_outputs_.emplace(i.previous_output(), node_index);
+            // previous_outputs_.emplace(i.previous_output(), node_index);
+            previous_outputs_.left.insert(previous_outputs_t::left_value_type(i.previous_output(), node_index));
         }
 
         if ( ! parents.empty()) {
@@ -542,16 +590,21 @@ private:
         return result_code::success;
     }
 
-    bool check_double_spend(chain::transaction const& tx) {
+    result_code check_double_spend(chain::transaction const& tx) {
         for (auto const& i : tx.inputs()) {
             if (i.previous_output().validation.from_mempool) {
                 auto it = internal_utxo_set_.find(i.previous_output());
                 if (it == internal_utxo_set_.end()) {
-                    return false;
+                    return result_code::double_spend_mempool;
+                }
+            } else {
+                auto it = previous_outputs_.left.find(i.previous_output());
+                if (it != previous_outputs_.left.end()) {
+                    return result_code::double_spend_blockchain;
                 }
             }
         }
-        return true;
+        return result_code::success;
     }
 
     // bool check_no_duplicated_outputs(chain::transaction const& tx) {
@@ -909,12 +962,18 @@ private:
     //TODO: chequear el anidamiento de TX con su máximo (25??) y si es regla de consenso.
 
     std::unordered_map<chain::point, chain::output> internal_utxo_set_;
+    
     std::vector<node> all_transactions_;
     std::unordered_map<hash_digest, index_t> hash_index_;
     indexes_t candidate_transactions_;        //Por Ponderacion
 #if defined(BITPRIM_CURRENCY_BCH)    
     indexes_t candidate_transactions_ctor_;   //Por CTOR, solamente para BCH...
 #endif
+
+    // std::unordered_map<chain::point, index_t> previous_outputs_;
+    previous_outputs_t previous_outputs_;
+
+    mutable boost::shared_mutex mutex_;
 };
 
 }  // namespace mining
