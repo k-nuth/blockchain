@@ -101,7 +101,7 @@ void populate_transaction::populate_inputs(transaction_const_ptr tx, size_t chai
 
 #if defined(BITPRIM_DB_NEW) && defined(BITPRIM_WITH_MINING)
         if ( ! prevout.validation.cache.is_valid()) {
-            asm("int $3");  //TODO(fernando): remover
+            // asm("int $3");  //TODO(fernando): remover
 
             // BUSCAR EN UTXO DEL MEMPOOL y marcar
             prevout.validation.cache = mempool_.get_utxo(prevout);
