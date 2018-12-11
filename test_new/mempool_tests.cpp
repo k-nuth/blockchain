@@ -66,7 +66,7 @@ TEST_CASE("[mempool] add one transaction") {
     tx.inputs()[0].previous_output().validation.cache = output{17,  script{}};
 
     mempool mp;
-    REQUIRE(mp.add(tx) == result_code::success);
+    REQUIRE(mp.add(tx) == error::success);
     REQUIRE(mp.all_transactions() == 1);
     REQUIRE(mp.candidate_transactions() == 1);
     REQUIRE(mp.candidate_bytes() == tx.to_data(true, BITPRIM_WITNESS_DEFAULT).size());
@@ -79,14 +79,14 @@ TEST_CASE("[mempool] duplicated transactions") {
     tx.inputs()[0].previous_output().validation.cache = output{17,  script{}};
 
     mempool mp;
-    REQUIRE(mp.add(tx) == result_code::success);
+    REQUIRE(mp.add(tx) == error::success);
     REQUIRE(mp.all_transactions() == 1);
     REQUIRE(mp.candidate_transactions() == 1);
     REQUIRE(mp.candidate_bytes() == tx.to_data(true, BITPRIM_WITNESS_DEFAULT).size());
 
     auto res = mp.add(tx);
-    REQUIRE(res != result_code::success);
-    REQUIRE(res == result_code::duplicated_transaction);
+    REQUIRE(res != error::success);
+    REQUIRE(res == error::duplicate_transaction);
 }
 
 TEST_CASE("[mempool] chained transactions") {
@@ -107,12 +107,12 @@ TEST_CASE("[mempool] chained transactions") {
     spender.inputs()[3].previous_output().validation.cache = output{17, script{}};
 
     mempool mp;
-    REQUIRE(mp.add(tx) == result_code::success);
+    REQUIRE(mp.add(tx) == error::success);
     REQUIRE(mp.all_transactions() == 1);
     REQUIRE(mp.candidate_transactions() == 1);
     REQUIRE(mp.candidate_bytes() == tx.to_data(true, BITPRIM_WITNESS_DEFAULT).size());
 
-    REQUIRE(mp.add(spender) == result_code::success);
+    REQUIRE(mp.add(spender) == error::success);
     REQUIRE(mp.all_transactions() == 2);
     REQUIRE(mp.candidate_transactions() == 2);
     REQUIRE(mp.candidate_bytes() == tx.to_data(true, BITPRIM_WITNESS_DEFAULT).size() 
@@ -146,12 +146,12 @@ TEST_CASE("[mempool] chained transactions") {
 //     spender_fake.inputs()[3].previous_output().validation.cache = output{17, script{}};
 
 //     mempool mp;
-//     REQUIRE(mp.add(tx) == result_code::success);
+//     REQUIRE(mp.add(tx) == error::success);
 //     REQUIRE(mp.all_transactions() == 1);
 //     REQUIRE(mp.candidate_transactions() == 1);
 //     REQUIRE(mp.candidate_bytes() == tx.to_data(true, BITPRIM_WITNESS_DEFAULT).size());
 
-//     REQUIRE(mp.add(spender) == result_code::success);
+//     REQUIRE(mp.add(spender) == error::success);
 //     REQUIRE(mp.all_transactions() == 2);
 //     REQUIRE(mp.candidate_transactions() == 2);
 //     REQUIRE(mp.candidate_bytes() == tx.to_data(true, BITPRIM_WITNESS_DEFAULT).size() 
@@ -163,7 +163,7 @@ TEST_CASE("[mempool] chained transactions") {
 //     // auto hash_index_ = mp.hash_index_;
 //     // auto candidate_transactions_ = mp.candidate_transactions_;
 
-//     REQUIRE(mp.add(spender_fake) == result_code::double_spend_mempool);
+//     REQUIRE(mp.add(spender_fake) == error::double_spend_mempool);
 //     REQUIRE(mp.all_transactions() == 2);
 //     REQUIRE(mp.candidate_transactions() == 2);
 //     REQUIRE(mp.candidate_bytes() == tx.to_data(true, BITPRIM_WITNESS_DEFAULT).size() 
@@ -207,14 +207,14 @@ TEST_CASE("[mempool] replace TX Candidate for a better one") {
 
     mempool mp(spender0.serialized_size());
 
-    REQUIRE(mp.add(spender0) == result_code::success);
-    REQUIRE(mp.contains(spender0));
+    REQUIRE(mp.add(spender0) == error::success);
+    REQUIRE(mp.contains(spender0.hash()));
     REQUIRE(mp.is_candidate(spender0));
 
-    REQUIRE(mp.add(spender1) == result_code::success);
-    REQUIRE(mp.contains(spender1));
+    REQUIRE(mp.add(spender1) == error::success);
+    REQUIRE(mp.contains(spender1.hash()));
     REQUIRE(mp.is_candidate(spender1));
-    REQUIRE(mp.contains(spender0));
+    REQUIRE(mp.contains(spender0.hash()));
     REQUIRE( ! mp.is_candidate(spender0));
 }
 
@@ -250,14 +250,14 @@ TEST_CASE("[mempool] Try to insert a Low Benefit Transaction") {
 
     auto res = mp.add(spender0);
 
-    REQUIRE(res == result_code::success);
-    REQUIRE(mp.contains(spender0));
+    REQUIRE(res == error::success);
+    REQUIRE(mp.contains(spender0.hash()));
     REQUIRE(mp.is_candidate(spender0));
 
-    REQUIRE(mp.add(spender1) == result_code::low_benefit_transaction);
-    REQUIRE(mp.contains(spender1));
+    REQUIRE(mp.add(spender1) == error::low_benefit_transaction);
+    REQUIRE(mp.contains(spender1.hash()));
     REQUIRE( ! mp.is_candidate(spender1));
-    REQUIRE(mp.contains(spender0));
+    REQUIRE(mp.contains(spender0.hash()));
     REQUIRE(mp.is_candidate(spender0));
 }
 
@@ -303,10 +303,10 @@ TEST_CASE("[mempool] Dependencies 0") {
     REQUIRE(d.fees() == 7);
 
     mempool mp;
-    REQUIRE(mp.add(a) == result_code::success);
-    REQUIRE(mp.add(b) == result_code::success);
-    REQUIRE(mp.add(c) == result_code::success);
-    REQUIRE(mp.add(d) == result_code::success);
+    REQUIRE(mp.add(a) == error::success);
+    REQUIRE(mp.add(b) == error::success);
+    REQUIRE(mp.add(c) == error::success);
+    REQUIRE(mp.add(d) == error::success);
 
     REQUIRE(mp.all_transactions() == 4);
     REQUIRE(mp.candidate_transactions() == 4);
@@ -361,10 +361,10 @@ TEST_CASE("[mempool] Dependencies 1") {
     REQUIRE(d.fees() == 10);
 
     mempool mp;
-    REQUIRE(mp.add(a) == result_code::success);
-    REQUIRE(mp.add(b) == result_code::success);
-    REQUIRE(mp.add(c) == result_code::success);
-    REQUIRE(mp.add(d) == result_code::success);
+    REQUIRE(mp.add(a) == error::success);
+    REQUIRE(mp.add(b) == error::success);
+    REQUIRE(mp.add(c) == error::success);
+    REQUIRE(mp.add(d) == error::success);
 
     REQUIRE(mp.all_transactions() == 4);
     REQUIRE(mp.candidate_transactions() == 4);
@@ -421,10 +421,10 @@ TEST_CASE("[mempool] Dependencies 2") {
     REQUIRE(d.fees() == 10);
 
     mempool mp(4 * 60);
-    REQUIRE(mp.add(a) == result_code::success);
-    REQUIRE(mp.add(b) == result_code::success);
-    REQUIRE(mp.add(c) == result_code::success);
-    REQUIRE(mp.add(d) == result_code::success);
+    REQUIRE(mp.add(a) == error::success);
+    REQUIRE(mp.add(b) == error::success);
+    REQUIRE(mp.add(c) == error::success);
+    REQUIRE(mp.add(d) == error::success);
 
     REQUIRE(mp.all_transactions() == 4);
     REQUIRE(mp.candidate_transactions() == 4);
@@ -444,7 +444,7 @@ TEST_CASE("[mempool] Dependencies 2") {
     REQUIRE(e.is_valid());
     REQUIRE(e.fees() == 11);
 
-    REQUIRE(mp.add(e) == result_code::success);
+    REQUIRE(mp.add(e) == error::success);
 
     REQUIRE(mp.all_transactions() == 5);
     REQUIRE(mp.candidate_transactions() == 1);
@@ -484,8 +484,8 @@ TEST_CASE("[mempool] Dependencies 3") {
     REQUIRE(b.fees() == 8);
 
     mempool mp(4 * 60);
-    REQUIRE(mp.add(a) == result_code::success);
-    REQUIRE(mp.add(b) == result_code::success);
+    REQUIRE(mp.add(a) == error::success);
+    REQUIRE(mp.add(b) == error::success);
 
     REQUIRE(mp.all_transactions() == 2);
     REQUIRE(mp.candidate_transactions() == 2);
@@ -502,7 +502,7 @@ TEST_CASE("[mempool] Dependencies 3") {
     REQUIRE(z.is_valid());
     REQUIRE(z.fees() == 7);
     
-    REQUIRE(mp.add(z) == result_code::success);
+    REQUIRE(mp.add(z) == error::success);
     REQUIRE(mp.all_transactions() == 3);
     REQUIRE(mp.candidate_transactions() == 3);
     REQUIRE(mp.candidate_bytes() == 3 * 60);
@@ -519,7 +519,7 @@ TEST_CASE("[mempool] Dependencies 3") {
     REQUIRE(c.is_valid());
     REQUIRE(c.fees() == 1);
 
-    REQUIRE(mp.add(c) == result_code::success);
+    REQUIRE(mp.add(c) == error::success);
     REQUIRE(mp.all_transactions() == 4);
     REQUIRE(mp.candidate_transactions() == 4);
     REQUIRE(mp.candidate_bytes() == 4 * 60);
@@ -559,9 +559,9 @@ TEST_CASE("[mempool] Dependencies 4") {
 
 
     mempool mp(3 * 60);
-    REQUIRE(mp.add(x) == result_code::success);
-    REQUIRE(mp.add(y) == result_code::success);
-    REQUIRE(mp.add(z) == result_code::success);
+    REQUIRE(mp.add(x) == error::success);
+    REQUIRE(mp.add(y) == error::success);
+    REQUIRE(mp.add(z) == error::success);
 
     REQUIRE(mp.all_transactions() == 3);
     REQUIRE(mp.candidate_transactions() == 3);
@@ -588,8 +588,8 @@ TEST_CASE("[mempool] Dependencies 4") {
     REQUIRE(b.is_valid());
     REQUIRE(b.fees() == 0);
 
-    REQUIRE(mp.add(a) == result_code::low_benefit_transaction);
-    REQUIRE(mp.add(b) == result_code::low_benefit_transaction);
+    REQUIRE(mp.add(a) == error::low_benefit_transaction);
+    REQUIRE(mp.add(b) == error::low_benefit_transaction);
 
     REQUIRE(mp.all_transactions() == 5);
     REQUIRE(mp.candidate_transactions() == 3);
@@ -612,7 +612,7 @@ TEST_CASE("[mempool] Dependencies 4") {
 
     //TODO(fernando): check this case...
     auto res = mp.add(c);
-    REQUIRE(res == result_code::success);
+    REQUIRE(res == error::success);
 
     REQUIRE(mp.all_transactions() == 6);
     REQUIRE(mp.candidate_transactions() == 3);
@@ -656,9 +656,9 @@ TEST_CASE("[mempool] Dependencies 4b") {
 
 
     mempool mp(3 * 60);
-    REQUIRE(mp.add(x) == result_code::success);
-    REQUIRE(mp.add(y) == result_code::success);
-    REQUIRE(mp.add(z) == result_code::success);
+    REQUIRE(mp.add(x) == error::success);
+    REQUIRE(mp.add(y) == error::success);
+    REQUIRE(mp.add(z) == error::success);
 
     REQUIRE(mp.all_transactions() == 3);
     REQUIRE(mp.candidate_transactions() == 3);
@@ -685,8 +685,8 @@ TEST_CASE("[mempool] Dependencies 4b") {
     REQUIRE(b.is_valid());
     REQUIRE(b.fees() == 0);
 
-    REQUIRE(mp.add(a) == result_code::low_benefit_transaction);
-    REQUIRE(mp.add(b) == result_code::low_benefit_transaction);
+    REQUIRE(mp.add(a) == error::low_benefit_transaction);
+    REQUIRE(mp.add(b) == error::low_benefit_transaction);
 
     REQUIRE(mp.all_transactions() == 5);
     REQUIRE(mp.candidate_transactions() == 3);
@@ -709,7 +709,7 @@ TEST_CASE("[mempool] Dependencies 4b") {
 
     //TODO(fernando): check this case...
     auto res = mp.add(c);
-    REQUIRE(res == result_code::success);
+    REQUIRE(res == error::success);
 
     REQUIRE(mp.all_transactions() == 6);
     REQUIRE(mp.candidate_transactions() == 3);
@@ -752,8 +752,8 @@ TEST_CASE("[mempool] Dependencies 5") {
     REQUIRE(c.fees() == 1);
 
     mempool mp(2 * 60);
-    REQUIRE(mp.add(a) == result_code::success);
-    REQUIRE(mp.add(b) == result_code::success);
+    REQUIRE(mp.add(a) == error::success);
+    REQUIRE(mp.add(b) == error::success);
 
     REQUIRE(mp.all_transactions() == 2);
     REQUIRE(mp.candidate_transactions() == 2);
@@ -763,7 +763,7 @@ TEST_CASE("[mempool] Dependencies 5") {
     REQUIRE(mp.candidate_rank(b) == 1);
 
     auto res = mp.add(c);
-    REQUIRE(res == result_code::low_benefit_transaction);
+    REQUIRE(res == error::low_benefit_transaction);
     REQUIRE(mp.all_transactions() == 3);
     REQUIRE(mp.candidate_transactions() == 2);
     REQUIRE(mp.candidate_bytes() == 2 * 60);
@@ -801,8 +801,8 @@ TEST_CASE("[mempool] Dependencies 6") {
     REQUIRE(c.fees() == 1);
 
     mempool mp(3 * 60);
-    REQUIRE(mp.add(a) == result_code::success);
-    REQUIRE(mp.add(b) == result_code::success);
+    REQUIRE(mp.add(a) == error::success);
+    REQUIRE(mp.add(b) == error::success);
 
     REQUIRE(mp.all_transactions() == 2);
     REQUIRE(mp.candidate_transactions() == 2);
@@ -812,7 +812,7 @@ TEST_CASE("[mempool] Dependencies 6") {
     REQUIRE(mp.candidate_rank(b) == 1);
 
     auto res = mp.add(c);
-    REQUIRE(res == result_code::success);
+    REQUIRE(res == error::success);
     REQUIRE(mp.all_transactions() == 3);
     REQUIRE(mp.candidate_transactions() == 3);
     REQUIRE(mp.candidate_bytes() == 3 * 60);
@@ -848,9 +848,9 @@ TEST_CASE("[mempool] Double Spend Mempool") {
     REQUIRE(c.fees() == 10);
 
     mempool mp;
-    REQUIRE(mp.add(a) == result_code::success);
-    REQUIRE(mp.add(b) == result_code::success);
-    REQUIRE(mp.add(c) == result_code::double_spend_mempool);
+    REQUIRE(mp.add(a) == error::success);
+    REQUIRE(mp.add(b) == error::success);
+    REQUIRE(mp.add(c) == error::double_spend_mempool);
 
     REQUIRE(mp.all_transactions() == 2);
     REQUIRE(mp.candidate_transactions() == 2);
@@ -876,8 +876,8 @@ TEST_CASE("[mempool] Double Spend Blockchain") {
     REQUIRE(b.fees() == 9);
 
     mempool mp;
-    REQUIRE(mp.add(a) == result_code::success);
-    REQUIRE(mp.add(b) == result_code::double_spend_blockchain);
+    REQUIRE(mp.add(a) == error::success);
+    REQUIRE(mp.add(b) == error::double_spend_blockchain);
 
 
 }
@@ -953,9 +953,9 @@ TEST_CASE("[mempool] Remove Transactions 0") {
 
 
     mempool mp(3 * 60);
-    REQUIRE(mp.add(x) == result_code::success);
-    REQUIRE(mp.add(y) == result_code::success);
-    REQUIRE(mp.add(z) == result_code::success);
+    REQUIRE(mp.add(x) == error::success);
+    REQUIRE(mp.add(y) == error::success);
+    REQUIRE(mp.add(z) == error::success);
 
     REQUIRE(mp.all_transactions() == 3);
     REQUIRE(mp.candidate_transactions() == 3);
@@ -1002,9 +1002,9 @@ TEST_CASE("[mempool] Remove Transactions 1") {
 
 
     mempool mp(3 * 60);
-    REQUIRE(mp.add(x) == result_code::success);
-    REQUIRE(mp.add(y) == result_code::success);
-    REQUIRE(mp.add(z) == result_code::success);
+    REQUIRE(mp.add(x) == error::success);
+    REQUIRE(mp.add(y) == error::success);
+    REQUIRE(mp.add(z) == error::success);
 
     REQUIRE(mp.all_transactions() == 3);
     REQUIRE(mp.candidate_transactions() == 3);
@@ -1048,9 +1048,9 @@ TEST_CASE("[mempool] Remove Transactions 2") {
     REQUIRE(z.fees() == 2);
 
     mempool mp;
-    REQUIRE(mp.add(x) == result_code::success);
-    REQUIRE(mp.add(y) == result_code::success);
-    REQUIRE(mp.add(z) == result_code::success);
+    REQUIRE(mp.add(x) == error::success);
+    REQUIRE(mp.add(y) == error::success);
+    REQUIRE(mp.add(z) == error::success);
 
     REQUIRE(mp.all_transactions() == 3);
     REQUIRE(mp.candidate_transactions() == 3);
