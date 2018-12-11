@@ -219,6 +219,29 @@ bool block_chain::get_last_height(size_t& out_height) const
     return database_.blocks().top(out_height);
 }
 
+
+
+bool block_chain::get_output_is_confirmed(chain::output& out_output, size_t& out_height,
+                             bool& out_coinbase, bool& out_is_confirmed, const chain::output_point& outpoint,
+                             size_t branch_height, bool require_confirmed) const
+{
+    // This includes a cached value for spender height (or not_spent).
+    // Get the highest tx with matching hash, at or below the branch height.
+    return database_.transactions().get_output_is_confirmed(out_output, out_height,
+                                               out_coinbase, out_is_confirmed, outpoint, branch_height, require_confirmed);
+}
+
+//TODO(fernando): check if can we do it just with the UTXO
+bool block_chain::get_is_unspent_transaction(hash_digest const& hash, size_t branch_height, bool require_confirmed) const {
+    auto const result = database_.transactions().get(hash, branch_height, require_confirmed);
+    return result && !result.is_spent(branch_height);
+}
+#endif // BITPRIM_DB_LEGACY
+
+
+
+#if defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_DB_NEW_FULL) 
+
 bool block_chain::get_output(chain::output& out_output, size_t& out_height,
     uint32_t& out_median_time_past, bool& out_coinbase,
     const chain::output_point& outpoint, size_t branch_height,
@@ -244,29 +267,16 @@ bool block_chain::get_output(chain::output& out_output, size_t& out_height,
     out_height = tx.height();
     out_coinbase = tx.position() == 0;
     out_median_time_past = tx.median_time_past();
-    out_output = tx.outputs(outpoint.index());
+    out_output = tx.transaction().outputs()[outpoint.index()];
 
     return true;
 #endif
 
 }
 
-bool block_chain::get_output_is_confirmed(chain::output& out_output, size_t& out_height,
-                             bool& out_coinbase, bool& out_is_confirmed, const chain::output_point& outpoint,
-                             size_t branch_height, bool require_confirmed) const
-{
-    // This includes a cached value for spender height (or not_spent).
-    // Get the highest tx with matching hash, at or below the branch height.
-    return database_.transactions().get_output_is_confirmed(out_output, out_height,
-                                               out_coinbase, out_is_confirmed, outpoint, branch_height, require_confirmed);
-}
+#endif
 
-//TODO(fernando): check if can we do it just with the UTXO
-bool block_chain::get_is_unspent_transaction(hash_digest const& hash, size_t branch_height, bool require_confirmed) const {
-    auto const result = database_.transactions().get(hash, branch_height, require_confirmed);
-    return result && !result.is_spent(branch_height);
-}
-#endif // BITPRIM_DB_LEGACY
+
 
 //Bitprim: We don't store spent information
 /*#if defined(BITPRIM_DB_NEW_FULL)

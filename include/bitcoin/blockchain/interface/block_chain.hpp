@@ -219,6 +219,10 @@ public:
 
 #if defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_DB_NEW_FULL) 
 
+    void for_each_transaction(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const;
+
+    void for_each_transaction_non_coinbase(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const;
+    
     /// fetch transaction by hash.
     void fetch_transaction(const hash_digest& hash, bool require_confirmed, bool witness, transaction_fetch_handler handler) const override;
 
@@ -273,9 +277,29 @@ public:
     }
 #endif // BITPRIM_DB_LEGACY    
 
-    void for_each_transaction(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const;
 
-    void for_each_transaction_non_coinbase(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const;
+#ifdef BITPRIM_DB_NEW_FULL
+    // Bitprim non-virtual functions.
+    //-------------------------------------------------------------------------
+    template <typename I>
+    void for_each_tx_hash(I f, I l, size_t height, bool witness, for_each_tx_handler handler) const {
+    #ifdef BITPRIM_CURRENCY_BCH
+        witness = false;    //TODO(fernando): check what to do here. I dont like it
+    #endif
+        while (f != l) {
+            auto const& tx = *f;
+            
+            if ( ! tx.is_valid()) {
+                handler(error::operation_failed_16, 0, chain::transaction{});
+                return;
+            }
+            BITCOIN_ASSERT(tx.height() == height);
+            handler(error::success, height, tx);
+            ++f;
+        }
+    }
+#endif // BITPRIM_DB_NEW_FULL    
+
 
 
     // Server Queries.

@@ -137,16 +137,12 @@ public:
 
     virtual void fetch_transaction_position(const hash_digest& hash, bool require_confirmed, transaction_index_fetch_handler handler) const = 0;
 
+    virtual void for_each_transaction(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const = 0;
+
+    virtual void for_each_transaction_non_coinbase(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const = 0;
+
 #endif 
 
-
-#ifdef BITPRIM_DB_LEGACY
-
-    void for_each_transaction(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const;
-
-    void for_each_transaction_non_coinbase(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const;
-
-#endif //BITPRIM_DB_LEGACY
 
     virtual void fetch_locator_block_headers(get_headers_const_ptr locator, const hash_digest& threshold, size_t limit, locator_block_headers_fetch_handler handler) const = 0;
 
