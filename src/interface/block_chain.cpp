@@ -224,11 +224,31 @@ bool block_chain::get_output(chain::output& out_output, size_t& out_height,
     const chain::output_point& outpoint, size_t branch_height,
     bool require_confirmed) const
 {
+
+#if defined(BITPRIM_DB_LEGACY)
+
     // This includes a cached value for spender height (or not_spent).
     // Get the highest tx with matching hash, at or below the branch height.
     return database_.transactions().get_output(out_output, out_height,
         out_median_time_past, out_coinbase, outpoint, branch_height,
         require_confirmed);
+
+#elif defined(BITPRIM_DB_NEW_FULL)
+
+    auto const tx = database_.internal_db().get_transaction(outpoint.hash(), branch_height);
+
+    if (!tx.is_valid()) {
+        return false;
+    }
+    
+    out_height = tx.height();
+    out_coinbase = tx.position() == 0;
+    out_median_time_past = tx.median_time_past();
+    out_output = tx.outputs(outpoint.index());
+
+    return true;
+#endif
+
 }
 
 bool block_chain::get_output_is_confirmed(chain::output& out_output, size_t& out_height,
