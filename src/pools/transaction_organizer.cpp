@@ -167,9 +167,7 @@ void transaction_organizer::validate_handle_connect(code const& ec, transaction_
 //-----------------------------------------------------------------------------
 
 // This is called from block_chain::organize.
-void transaction_organizer::organize(transaction_const_ptr tx,
-    result_handler handler)
-{
+void transaction_organizer::organize(transaction_const_ptr tx, result_handler handler) {
     // Critical Section
     ///////////////////////////////////////////////////////////////////////////
     mutex_.lock_low_priority();

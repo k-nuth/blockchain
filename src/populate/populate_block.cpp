@@ -109,8 +109,10 @@ void populate_block::populate(branch::const_ptr branch, result_handler&& handler
     // auto local_utxo = create_local_utxo_set(*block);
     auto branch_utxo = create_branch_utxo_set(branch);
 
+    auto validated_txs = mempool_.get_validated_txs_high();
+
     for (size_t bucket = 0; bucket < buckets; ++bucket) {
-        dispatch_.concurrent(&populate_block::populate_transactions, this, branch, bucket, buckets, branch_utxo, join_handler);
+        dispatch_.concurrent(&populate_block::populate_transactions, this, branch, bucket, buckets, branch_utxo, validated_txs, join_handler);
     }
 }
 
@@ -183,7 +185,7 @@ populate_block::utxo_pool_t populate_block::get_reorg_subset_conditionally(size_
 #endif // BITPRIM_DB_NEW
 
 
-void populate_block::populate_transactions(branch::const_ptr branch, size_t bucket, size_t buckets, std::vector<local_utxo_t> const& branch_utxo, result_handler handler) const {
+void populate_block::populate_transactions(branch::const_ptr branch, size_t bucket, size_t buckets, std::vector<local_utxo_t> const& branch_utxo, mining::mempool::hash_index_t const& validated_txs, result_handler handler) const {
 
     // TODO(fernando): check how to replace it with UTXO
     // asm("int $3");  //TODO(fernando): remover
@@ -242,8 +244,9 @@ void populate_block::populate_transactions(branch::const_ptr branch, size_t buck
 
     // Must skip coinbase here as it is already accounted for.
     for (auto tx = txs.begin() + 1; tx != txs.end(); ++tx) {
-        if ( ! mempool_.contains(tx->hash())) {
-
+        auto it = validated_txs.find(tx->hash());
+        // if ( ! mempool_.contains(tx->hash())) {
+        if (it == validated_txs.end()) {
             auto const& inputs = tx->inputs();
 
             for (size_t input_index = 0; input_index < inputs.size(); ++input_index, ++input_position) {

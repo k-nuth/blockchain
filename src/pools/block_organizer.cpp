@@ -227,10 +227,7 @@ bool block_organizer::is_branch_double_spend(branch::ptr const& branch) const {
 
 
 #if defined(BITPRIM_WITH_MINING)
-void block_organizer::organize_mempool(block_const_ptr_list_const_ptr incoming_blocks, block_const_ptr_list_ptr outgoing_blocks) {
-    if (outgoing_blocks->empty()) {
-        return;
-    }
+void block_organizer::organize_mempool(block_const_ptr_list_const_ptr const& incoming_blocks, block_const_ptr_list_ptr const& outgoing_blocks) {
 
     std::unordered_set<hash_digest> txs_in;
     std::unordered_set<chain::point> prevouts_in;
@@ -240,31 +237,35 @@ void block_organizer::organize_mempool(block_const_ptr_list_const_ptr incoming_b
 
             mempool_.remove(block->transactions().begin() + 1, block->transactions().end(), block->non_coinbase_input_count());
 
-            std::for_each(block->transactions().begin() + 1, block->transactions().end(), [&txs_in, &prevouts_in](chain::transaction const& tx){
-                txs_in.insert(tx.hash());
+            if ( ! fast_chain_.is_stale_fast() && ! outgoing_blocks->empty()) {
+                std::for_each(block->transactions().begin() + 1, block->transactions().end(), [&txs_in, &prevouts_in](chain::transaction const& tx){
+                    txs_in.insert(tx.hash());
 
-                for (auto const& input : tx.inputs()) {
-                    prevouts_in.insert(input.previous_output());
-                }
-            });
+                    for (auto const& input : tx.inputs()) {
+                        prevouts_in.insert(input.previous_output());
+                    }
+                });
+            }
         }
     }
 
-    for (auto const& block : *outgoing_blocks) {
-        if (block->transactions().size() > 1) {
-            std::for_each(block->transactions().begin() + 1, block->transactions().end(), [this, &txs_in, &prevouts_in](chain::transaction const& tx){
-                auto it = txs_in.find(tx.hash());
-                if (it == txs_in.end()) {
+    if ( ! fast_chain_.is_stale_fast() && ! outgoing_blocks->empty()) {
+        for (auto const& block : *outgoing_blocks) {
+            if (block->transactions().size() > 1) {
+                std::for_each(block->transactions().begin() + 1, block->transactions().end(), [this, &txs_in, &prevouts_in](chain::transaction const& tx){
+                    auto it = txs_in.find(tx.hash());
+                    if (it == txs_in.end()) {
 
-                    auto double_spend = std::any_of(tx.inputs().begin(), tx.inputs().end(), [this, &prevouts_in](chain::input const& in){
-                        return prevouts_in.find(in.previous_output()) != prevouts_in.end();
-                    });
+                        auto double_spend = std::any_of(tx.inputs().begin(), tx.inputs().end(), [this, &prevouts_in](chain::input const& in){
+                            return prevouts_in.find(in.previous_output()) != prevouts_in.end();
+                        });
 
-                    if ( ! double_spend) {
-                        mempool_.add(tx);       //TODO(fernando): add bulk 
+                        if ( ! double_spend) {
+                            mempool_.add(tx);       //TODO(fernando): add bulk
+                        }
                     }
-                }
-            });
+                });
+            }
         }
     }
 }

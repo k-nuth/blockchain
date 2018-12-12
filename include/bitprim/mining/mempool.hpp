@@ -34,7 +34,7 @@
 #include <bitprim/mining/prioritizer.hpp>
 // #include <bitprim/mining/result_code.hpp>
 
-#include <bitcoin/bitcoin/error.hpp>
+#include <bitcoin/bitcoin.hpp>
 
 
 template <typename F> 
@@ -94,11 +94,14 @@ public:
     using to_insert_t = std::tuple<indexes_t, uint64_t, size_t, size_t>;
     using accum_t = std::tuple<uint64_t, size_t, size_t>;
     using previous_outputs_t = boost::bimap<chain::point, index_t>;
+    using internal_utxo_set_t = std::unordered_map<chain::point, chain::output>;
+    using all_transactions_t = std::vector<node>;
+    using hash_index_t = std::unordered_map<hash_digest, index_t>;
 
-    using mutex_t = boost::shared_mutex;
-    using shared_lock_t = boost::shared_lock<mutex_t>;
-    using unique_lock_t = boost::unique_lock<mutex_t>;
-    using upgrade_lock_t = boost::upgrade_lock<mutex_t>;
+    // using mutex_t = boost::shared_mutex;
+    // using shared_lock_t = boost::shared_lock<mutex_t>;
+    // using unique_lock_t = boost::unique_lock<mutex_t>;
+    // using upgrade_lock_t = boost::upgrade_lock<mutex_t>;
 
     static constexpr size_t max_template_size_default = get_max_block_weight() - coinbase_reserved_size;
 
@@ -109,7 +112,6 @@ public:
 #else
     static constexpr size_t mempool_size_multiplier_default = 10;
 #endif 
-
 
     mempool(size_t max_template_size = max_template_size_default, size_t mempool_size_multiplier = mempool_size_multiplier_default) 
         : max_template_size_(max_template_size)
@@ -152,6 +154,10 @@ public:
     error::error_code_t remove(I f, I l, size_t non_coinbase_input_count = 0) {
         // precondition: [f, l) is a valid non-empty range
         //               there are no coinbase transactions in the range
+
+        if (all_transactions_.empty()) {
+            return error::success;
+        }
 
         processing_block_ = true;
         auto unique = scope_guard([&](void*){ processing_block_ = false; });
@@ -261,6 +267,18 @@ public:
         return prioritizer_.low_job([&txid, this]{
             auto it = hash_index_.find(txid);
             return it != hash_index_.end();
+        });
+    }
+
+    hash_index_t get_validated_txs_high() const {
+        return prioritizer_.high_job([this]{
+            return hash_index_;
+        });
+    }
+
+    hash_index_t get_validated_txs_low() const {
+        return prioritizer_.low_job([this]{
+            return hash_index_;
         });
     }
 
@@ -1009,10 +1027,9 @@ private:
     //TODO: race conditions, LOCK!
     //TODO: chequear el anidamiento de TX con su máximo (25??) y si es regla de consenso.
 
-    std::unordered_map<chain::point, chain::output> internal_utxo_set_;
-    
-    std::vector<node> all_transactions_;
-    std::unordered_map<hash_digest, index_t> hash_index_;
+    internal_utxo_set_t internal_utxo_set_;
+    all_transactions_t all_transactions_;
+    hash_index_t hash_index_;
     indexes_t candidate_transactions_;        //Por Ponderacion
 #if defined(BITPRIM_CURRENCY_BCH)    
     indexes_t candidate_transactions_ctor_;   //Por CTOR, solamente para BCH...

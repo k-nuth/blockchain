@@ -63,7 +63,7 @@ protected:
 #endif
 
     ////void populate_duplicate(branch_ptr branch, const chain::transaction& tx) const;
-    void populate_transactions(branch::const_ptr branch, size_t bucket, size_t buckets, std::vector<local_utxo_t> const& branch_utxo, result_handler handler) const;
+    void populate_transactions(branch::const_ptr branch, size_t bucket, size_t buckets, std::vector<local_utxo_t> const& branch_utxo, mining::mempool::hash_index_t const& validated_txs, result_handler handler) const;
     void populate_prevout(branch_ptr branch, chain::output_point const& outpoint, std::vector<local_utxo_t> const& branch_utxo) const;
 
 #ifdef BITPRIM_DB_NEW

@@ -43,8 +43,7 @@ public:
     typedef handle0 result_handler;
     typedef std::shared_ptr<block_organizer> ptr;
     typedef safe_chain::reorganize_handler reorganize_handler;
-    typedef resubscriber<code, size_t, block_const_ptr_list_const_ptr,
-        block_const_ptr_list_const_ptr> reorganize_subscriber;
+    typedef resubscriber<code, size_t, block_const_ptr_list_const_ptr, block_const_ptr_list_const_ptr> reorganize_subscriber;
 
     /// Construct an instance.
 #if defined(BITPRIM_WITH_MINING)
@@ -79,7 +78,7 @@ private:
     void signal_completion(const code& ec);
 
 #if defined(BITPRIM_WITH_MINING)
-    void organize_mempool(block_const_ptr_list_const_ptr incoming_blocks, block_const_ptr_list_ptr outgoing_blocks);
+    void organize_mempool(block_const_ptr_list_const_ptr const& incoming_blocks, block_const_ptr_list_ptr const& outgoing_blocks);
 #endif
 
 #ifdef BITPRIM_DB_NEW
@@ -87,8 +86,7 @@ private:
 #endif
 
     // Subscription.
-    void notify(size_t branch_height, block_const_ptr_list_const_ptr branch,
-        block_const_ptr_list_const_ptr original);
+    void notify(size_t branch_height, block_const_ptr_list_const_ptr branch, block_const_ptr_list_const_ptr original);
 
     // This must be protected by the implementation.
     fast_chain& fast_chain_;
