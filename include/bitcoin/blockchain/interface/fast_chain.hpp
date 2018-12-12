@@ -41,6 +41,7 @@ public:
     // ------------------------------------------------------------------------
 
 
+
 #ifdef BITPRIM_DB_LEGACY
     /// Get the set of block gaps in the chain.
     virtual bool get_gaps(database::block_database::heights& out_gaps) const = 0;
@@ -141,8 +142,10 @@ public:
     virtual chain::chain_state::ptr chain_state() const = 0;
 
     /// Get a reference to the chain state relative to the next block.
-    virtual chain::chain_state::ptr chain_state(
-        branch::const_ptr branch) const = 0;
+    virtual chain::chain_state::ptr chain_state(branch::const_ptr branch) const = 0;
+
+    virtual bool is_stale_fast() const = 0;
+
 };
 
 } // namespace blockchain

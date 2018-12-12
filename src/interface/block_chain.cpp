@@ -1999,11 +1999,8 @@ void block_chain::filter_blocks(get_data_ptr message, result_handler handler) co
 }
 
 // This filters against all transactions (confirmed and unconfirmed).
-void block_chain::filter_transactions(get_data_ptr message,
-    result_handler handler) const
-{
-    if (stopped())
-    {
+void block_chain::filter_transactions(get_data_ptr message, result_handler handler) const {
+    if (stopped()) {
         handler(error::service_stopped);
         return;
     }
@@ -2011,19 +2008,46 @@ void block_chain::filter_transactions(get_data_ptr message,
     auto& inventories = message->inventories();
     auto const& transactions = database_.transactions();
 
-    for (auto it = inventories.begin(); it != inventories.end();)
-    {
-        //TODO(fernando): check how to replace it with UTXO
-        if (it->is_transaction_type() &&
-            get_is_unspent_transaction(it->hash(), max_size_t, false))
+    for (auto it = inventories.begin(); it != inventories.end();) {
+        if (it->is_transaction_type() && get_is_unspent_transaction(it->hash(), max_size_t, false)) {
             it = inventories.erase(it);
-        else
+        } else {
             ++it;
+        }
     }
 
     handler(error::success);
 }
 #endif // BITPRIM_DB_LEGACY
+
+#if defined(BITPRIM_WITH_MINING) && ! defined(BITPRIM_DB_LEGACY)
+// This filters against all transactions (confirmed and unconfirmed).
+void block_chain::filter_transactions(get_data_ptr message, result_handler handler) const {
+    if (stopped()) {
+        handler(error::service_stopped);
+        return;
+    }
+
+    auto& inventories = message->inventories();
+    auto validated_txs = mempool_.get_validated_txs_low();
+
+    if (validated_txs.empty()) {
+        handler(error::success);
+        return;    
+    }
+
+    for (auto it = inventories.begin(); it != inventories.end();) {
+        auto found = validated_txs.find(it->hash());
+        if (it->is_transaction_type() && found != validated_txs.end()) {
+            it = inventories.erase(it);
+        } else {
+            ++it;
+        }
+    }
+
+    handler(error::success);
+}
+#endif
 
 #ifdef BITPRIM_DB_NEW
 // This may execute up to 500 queries.
@@ -2096,6 +2120,11 @@ void block_chain::organize(transaction_const_ptr tx, result_handler handler)
 
 // Properties (thread safe).
 // ----------------------------------------------------------------------------
+
+inline
+bool block_chain::is_stale_fast() const {
+    return is_stale();
+}
 
 bool block_chain::is_stale() const {
     // If there is no limit set the chain is never considered stale.
