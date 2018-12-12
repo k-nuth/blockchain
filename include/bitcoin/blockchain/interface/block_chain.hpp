@@ -337,10 +337,11 @@ public:
     /// Filter out block by hash that exist in the block pool or store.
     void filter_blocks(get_data_ptr message, result_handler handler) const override;
 
-#ifdef BITPRIM_DB_LEGACY
+#if defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_WITH_MINING)
     /// Filter out confirmed and unconfirmed transactions by hash.
     void filter_transactions(get_data_ptr message, result_handler handler) const override;
 #endif // BITPRIM_DB_LEGACY
+
 
     // Subscribers.
     //-------------------------------------------------------------------------
@@ -373,6 +374,9 @@ public:
 
     /// True if the blockchain is stale based on configured age limit.
     bool is_stale() const override;
+
+    /// True if the blockchain is stale based on configured age limit.
+    bool is_stale_fast() const override;
 
     /// Get a reference to the blockchain configuration settings.
     const settings& chain_settings() const;
