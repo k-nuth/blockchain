@@ -18,7 +18,7 @@
  */
 #include <bitcoin/blockchain/interface/block_chain.hpp>
 
-#ifdef WITH_KEOKEN
+#ifdef BITPRIM_WITH_KEOKEN
 #include <bitprim/keoken/transaction_extractor.hpp>
 #endif
 
@@ -88,7 +88,7 @@ void block_chain::for_each_transaction_non_coinbase(size_t from, size_t to, bool
 #endif // BITPRIM_DB_LEGACY
 
 
-#ifdef WITH_KEOKEN
+#ifdef BITPRIM_WITH_KEOKEN
 
 void block_chain::convert_to_keo_transaction(const libbitcoin::hash_digest& hash, std::shared_ptr<std::vector<transaction_const_ptr>> keoken_txs) const {
    fetch_transaction(hash, true, false,
