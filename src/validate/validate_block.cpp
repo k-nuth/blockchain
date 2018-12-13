@@ -256,10 +256,10 @@ void validate_block::accept_transactions(block_const_ptr block, size_t bucket,
     for (auto tx = bucket; tx < count && !ec; tx = ceiling_add(tx, buckets)) {
         const auto& transaction = txs[tx];
         if ( ! transaction.validation.validated) {
-            LOG_INFO(LOG_BLOCKCHAIN) << "****** TEMP LOG: Transaction has to be validated: " << encode_hash(transaction.hash());
+            LOG_INFO(LOG_BLOCKCHAIN) << "Transaction " << encode_hash(transaction.hash()) << " has to be validated.";
             ec = transaction.accept(state, false);
         } else {
-            LOG_INFO(LOG_BLOCKCHAIN) << "****** TEMP LOG: Transaction validation could be skipped: " << encode_hash(transaction.hash());
+            LOG_INFO(LOG_BLOCKCHAIN) << "Transaction " << encode_hash(transaction.hash()) << " validation could be skiped.";
         }
         *sigops += transaction.signature_operations(bip16, bip141);
     }

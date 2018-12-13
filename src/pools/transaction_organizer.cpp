@@ -303,7 +303,7 @@ void transaction_organizer::handle_connect(const code& ec,
 
 #if defined(BITPRIM_WITH_MINING)
     auto res = mempool_.add(*tx);
-    if (res != error::success) {
+    if (res == error::double_spend_mempool || res == error::double_spend_blockchain) {
         handler(res);
         return;
     }
