@@ -264,6 +264,10 @@ void populate_block::populate_transactions(branch::const_ptr branch, size_t buck
             }
         } else {
             tx->validation.validated = true;
+            auto const& tx_cached = it->second.second;
+            for (size_t i = 0; i < tx_cached.inputs().size(); ++i) {
+                tx->inputs()[i].previous_output().validation = tx_cached.inputs()[i].previous_output().validation;
+            }
         }
     }
 

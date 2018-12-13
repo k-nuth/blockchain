@@ -171,10 +171,6 @@ private:
 #ifdef BITPRIM_MINING_CTOR_ENABLED
     index_t candidate_ctor_index_ = null_index;
 #endif
-
-
-    
-
 };
 
 }  // namespace mining

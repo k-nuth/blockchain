@@ -27,7 +27,7 @@
 #include <type_traits>
 #include <vector>
 
-#include <boost/bimap.hpp>
+// #include <boost/bimap.hpp>
 
 #include <bitprim/mining/common.hpp>
 #include <bitprim/mining/node.hpp>
@@ -44,6 +44,11 @@ auto scope_guard(F&& f) {
 
 namespace libbitcoin {
 namespace mining {
+
+// inline
+// node make_node(chain::transaction const& tx) {
+//     return node(transaction_element(tx));
+// }
 
 inline
 node make_node(chain::transaction const& tx) {
@@ -93,10 +98,14 @@ public:
 
     using to_insert_t = std::tuple<indexes_t, uint64_t, size_t, size_t>;
     using accum_t = std::tuple<uint64_t, size_t, size_t>;
-    using previous_outputs_t = boost::bimap<chain::point, index_t>;
-    using internal_utxo_set_t = std::unordered_map<chain::point, chain::output>;
     using all_transactions_t = std::vector<node>;
-    using hash_index_t = std::unordered_map<hash_digest, index_t>;
+    using internal_utxo_set_t = std::unordered_map<chain::point, chain::output>;
+    
+    // using previous_outputs_t = boost::bimap<chain::point, index_t>;
+    using previous_outputs_t = std::unordered_map<chain::point, index_t>;
+
+    // using hash_index_t = std::unordered_map<hash_digest, index_t>;
+    using hash_index_t = std::unordered_map<hash_digest, std::pair<index_t, chain::transaction>>;
 
     // using mutex_t = boost::shared_mutex;
     // using shared_lock_t = boost::shared_lock<mutex_t>;
@@ -162,22 +171,19 @@ public:
         processing_block_ = true;
         auto unique = scope_guard([&](void*){ processing_block_ = false; });
 
-
         std::set<index_t, std::greater<index_t>> to_remove;
-        // std::unordered_set<chain::point> outs;
         std::vector<chain::point> outs;
         if (non_coinbase_input_count > 0) {
             outs.reserve(non_coinbase_input_count);   //TODO: unnecesary extra space
         }
 
         return prioritizer_.high_job([&f, l, &to_remove, &outs, this]{
-            candidate_transactions_.clear();
 
             while (f != l) {
                 auto const& tx = *f;
                 auto it = hash_index_.find(tx.hash());
                 if (it != hash_index_.end()) {
-                    auto const index = it->second;
+                    auto const index = it->second.first;
                     auto& node = all_transactions_[index];
 
                     //TODO(fernando): check if children() is the complete descendence of node or if it just the inmediate parents.
@@ -201,20 +207,21 @@ public:
                 hash_index_.erase(it->txid());
                 remove_from_utxo(it->txid(), it->output_count());
                 all_transactions_.erase(it);
-                previous_outputs_.right.erase(i);
             }
 
-            BOOST_ASSERT(all_transactions_.size() == hash_index_.size());
+            // BOOST_ASSERT(all_transactions_.size() == hash_index_.size());
+
+            candidate_transactions_.clear();
+            // hash_index_.clear();
+            previous_outputs_.clear();
 
             accum_fees_ = 0;
             accum_size_ = 0;
             accum_sigops_ = 0;
             
             for (size_t i = 0; i < all_transactions_.size(); ++i) {
-                add_node(i);
+                re_add_node(i);
             }
-
-            //Recorrer el remanente de AllTransactions e ir insertando Candidates
             return error::success;
         });
     }
@@ -290,7 +297,7 @@ public:
                 return false;
             }
 
-            return all_transactions_[it->second].candidate_index() != null_index;
+            return all_transactions_[it->second.first].candidate_index() != null_index;
         });
     }
 
@@ -302,7 +309,7 @@ public:
                 return null_index;
             }
 
-            return all_transactions_[it->second].candidate_index();
+            return all_transactions_[it->second.first].candidate_index();
         });
     }
 
@@ -359,7 +366,28 @@ public:
 
 private:
 
-    //private
+    void re_add_node(index_t index) {
+        auto const& elem = all_transactions_[index];
+        // auto const& tx = elem.transaction();
+        // hash_index_.emplace(tx.txid(), index);
+
+        auto it = hash_index_.find(elem.txid());
+        if (it != hash_index_.end()) {
+            
+            it->second.first = index;
+            auto const& tx = it->second.second;
+
+            for (auto const& i : tx.inputs()) {
+                // previous_outputs_.left.insert(previous_outputs_t::left_value_type(i.previous_output(), node_index));
+                previous_outputs_.insert({i.previous_output(), index});
+            }        
+            add_node(index);
+        } else {
+            //No debería pasar por aca
+            BOOST_ASSERT(false);
+        }
+    }
+
     error::error_code_t add_node(index_t index) {
         //TODO: what_to_insert_time
         auto to_insert = what_to_insert(index);
@@ -381,7 +409,6 @@ private:
         return error::success;
     }    
     
-    //private
     void clean_parents(mining::node const& node, index_t index) {
         for (auto pi : node.parents()) {
             auto& parent = all_transactions_[pi];
@@ -389,13 +416,13 @@ private:
         }
     }
 
-
-    //private   
     void find_double_spend_issues(std::set<index_t, std::greater<index_t>>& to_remove, std::vector<chain::point> const& outs) {
 
         for (auto const& po : outs) {
-            auto it = previous_outputs_.left.find(po);
-            if (it != previous_outputs_.left.end()) {
+            // auto it = previous_outputs_.left.find(po);
+            // if (it != previous_outputs_.left.end()) {
+            auto it = previous_outputs_.find(po);
+            if (it != previous_outputs_.end()) {
                 index_t index = it->second;
                 auto const& node = all_transactions_[index];
 
@@ -411,14 +438,7 @@ private:
         }
     }    
 
-    //private
     void remove_from_utxo(hash_digest const& txid, uint32_t output_count) {
-        // for (auto const& i : tx.inputs()) {
-        //     if (i.previous_output().validation.from_mempool) {
-        //         internal_utxo_set_.erase(i.previous_output());
-        //     }
-        // }
-
         for (uint32_t i = 0; i < output_count; ++i) {
             internal_utxo_set_.erase(chain::point{txid, i});
         }
@@ -618,7 +638,7 @@ private:
         // Mutate the state
 
         insert_outputs_in_utxo(tx);
-        hash_index_.emplace(tx.hash(), node_index);
+        hash_index_.emplace(tx.hash(), std::make_pair(node_index, tx));
 
         indexes_t parents;
 
@@ -628,13 +648,12 @@ private:
                 internal_utxo_set_.erase(i.previous_output());
 
                 auto it = hash_index_.find(i.previous_output().hash());
-                index_t parent_index = it->second;
+                index_t parent_index = it->second.first;
                 parents.push_back(parent_index);
-            // } else {
-            //     auto xxx = previous_outputs_.emplace(i.previous_output(), node_index);
-            //     BOOST_ASSERT(xxx.second);
             }
-            previous_outputs_.left.insert(previous_outputs_t::left_value_type(i.previous_output(), node_index));
+
+            // previous_outputs_.left.insert(previous_outputs_t::left_value_type(i.previous_output(), node_index));
+            previous_outputs_.insert({i.previous_output(), node_index});
         }
 
         if ( ! parents.empty()) {
@@ -664,8 +683,12 @@ private:
                     return error::double_spend_mempool;
                 }
             } else {
-                auto it = previous_outputs_.left.find(i.previous_output());
-                if (it != previous_outputs_.left.end()) {
+                // auto it = previous_outputs_.left.find(i.previous_output());
+                // if (it != previous_outputs_.left.end()) {
+                //     return error::double_spend_blockchain;
+                // }
+                auto it = previous_outputs_.find(i.previous_output());
+                if (it != previous_outputs_.end()) {
                     return error::double_spend_blockchain;
                 }
             }
