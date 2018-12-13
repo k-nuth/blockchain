@@ -396,7 +396,7 @@ public:
     void remove_mined_txs_from_chosen_list(block_const_ptr blk) override;
 #endif // BITPRIM_WITH_MINING
 
-#ifdef WITH_KEOKEN    
+#ifdef BITPRIM_WITH_KEOKEN    
     virtual void fetch_keoken_history(const short_hash& address_hash, size_t limit,
         size_t from_height, keoken_history_fetch_handler handler) const override;
 
