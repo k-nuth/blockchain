@@ -113,9 +113,10 @@ public:
         return children_;
     }
 
-    // std::vector<chain::point> const& previous_outputs() const {
-    //     return te_.previous_outputs();
-    // }
+    std::vector<index_t>& children() {
+        return children_;
+    }
+
 
 
     void add_child(index_t index) {
