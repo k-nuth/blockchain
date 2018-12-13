@@ -163,9 +163,6 @@ void populate_block::populate_coinbase(branch::const_ptr branch, block_const_ptr
 #ifdef BITPRIM_DB_NEW
 populate_block::utxo_pool_t populate_block::get_reorg_subset_conditionally(size_t first_height, size_t& out_chain_top) const {
 
-    // auto temp1 = branch->top_height();
-
-    out_chain_top;
     if ( ! fast_chain_.get_last_height(out_chain_top)) {
         out_chain_top = 0;
         return {};
