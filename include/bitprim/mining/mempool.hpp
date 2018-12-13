@@ -145,6 +145,8 @@ public:
         //precondition: tx is fully validated: check() && accept() && connect()
         //              ! tx.is_coinbase()
 
+        std::cout << encode_base16(tx.to_data(true, BITPRIM_WITNESS_DEFAULT)) << std::endl;
+
         return prioritizer_.low_job([this, &tx]{
             auto const index = all_transactions_.size();
 
@@ -157,6 +159,25 @@ public:
             all_transactions_.push_back(std::move(temp_node));
             return add_node(index);
         });
+    }
+
+    void reindex_xxx(size_t index) {    //TODO: rename
+
+        while (index < all_transactions_.size()) {
+            auto& node = all_transactions_[index];
+
+            for (auto& ci : node.children()) {
+                --ci;
+            }
+
+            for (auto& pi : node.parents()) {
+                if (pi == index) {
+                    --pi;
+                }
+            }
+
+            ++index;
+        }
     }
 
     template <typename I>
@@ -202,17 +223,23 @@ public:
 
             find_double_spend_issues(to_remove, outs);
 
+
+            //TODO: process batches of adjacent elements
             for (auto i : to_remove) {
                 auto it = std::next(all_transactions_.begin(), i);
                 hash_index_.erase(it->txid());
                 remove_from_utxo(it->txid(), it->output_count());
+
+                if (i < all_transactions_.size() - 1) {
+                    reindex_xxx(i + 1);
+                }
+
                 all_transactions_.erase(it);
             }
 
-            // BOOST_ASSERT(all_transactions_.size() == hash_index_.size());
+            BOOST_ASSERT(all_transactions_.size() == hash_index_.size());
 
             candidate_transactions_.clear();
-            // hash_index_.clear();
             previous_outputs_.clear();
 
             accum_fees_ = 0;
@@ -479,12 +506,12 @@ private:
         auto sigops = node.sigops();
 
         for (auto child_index : children) {
-            auto res = out_removed.insert(child_index);
-            if (res.second) {
-                auto const& child = all_transactions_[child_index];
+            auto const& child = all_transactions_[child_index];
 
-                //To verify that the node is inside of the candidate list.
-                if (child.candidate_index() != null_index) {
+            //To verify that the node is inside of the candidate list.
+            if (child.candidate_index() != null_index) {
+                auto res = out_removed.insert(child_index);
+                if (res.second) {
                     fee += child.fee();
                     size += child.size();
                     sigops += child.sigops();
