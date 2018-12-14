@@ -207,9 +207,9 @@ public:
         return prioritizer_.high_job([&f, l, &to_remove, &outs, this]{
 
             //TODO: temp code, remove
-#ifndef NDEBUG
-            auto old_transactions = all_transactions_;
-#endif
+// #ifndef NDEBUG
+//             auto old_transactions = all_transactions_;
+// #endif
 
             while (f != l) {
                 auto const& tx = *f;
@@ -250,50 +250,50 @@ public:
 
             BOOST_ASSERT(all_transactions_.size() == hash_index_.size());
 
-#ifndef NDEBUG
-            auto diff = old_transactions.size() - all_transactions_.size();
+// #ifndef NDEBUG
+//             auto diff = old_transactions.size() - all_transactions_.size();
 
-            for (size_t i = 0; i < all_transactions_.size(); ++i) {
-                auto& node = all_transactions_[i];
-                auto& node_old = old_transactions[i + diff];
+//             for (size_t i = 0; i < all_transactions_.size(); ++i) {
+//                 auto& node = all_transactions_[i];
+//                 auto& node_old = old_transactions[i + diff];
 
-                indexes_t old_children;
-                for (auto x : node_old.children()) {
-                    if (x >= diff) {
-                        old_children.push_back(x - diff);
-                    }
-                }
+//                 indexes_t old_children;
+//                 for (auto x : node_old.children()) {
+//                     if (x >= diff) {
+//                         old_children.push_back(x - diff);
+//                     }
+//                 }
 
-                assert(node_old.children().size() >= node.children().size());
-                assert(old_children.size() == node.children().size());
+//                 assert(node_old.children().size() >= node.children().size());
+//                 assert(old_children.size() == node.children().size());
 
-                for (size_t j = 0; j < old_children.size(); ++j) {
-                    assert(old_children[j] == node.children()[j]);
-                }
+//                 for (size_t j = 0; j < old_children.size(); ++j) {
+//                     assert(old_children[j] == node.children()[j]);
+//                 }
 
-                std::cout << std::endl;
+//                 std::cout << std::endl;
 
-                // if (node_old.parents().size() > 0) {
-                //     std::cout << std::endl;
-                // }
+//                 // if (node_old.parents().size() > 0) {
+//                 //     std::cout << std::endl;
+//                 // }
 
                 
-                indexes_t old_parents;
-                for (auto x : node_old.parents()) {
-                    if (x >= diff) {
-                        old_parents.push_back(x - diff);
-                    }
-                }
+//                 indexes_t old_parents;
+//                 for (auto x : node_old.parents()) {
+//                     if (x >= diff) {
+//                         old_parents.push_back(x - diff);
+//                     }
+//                 }
 
-                assert(node_old.parents().size() >= node.parents().size());
-                assert(old_parents.size() == node.parents().size());
+//                 assert(node_old.parents().size() >= node.parents().size());
+//                 assert(old_parents.size() == node.parents().size());
 
-                for (size_t j = 0; j < old_parents.size(); ++j) {
-                    assert(old_parents[j] == node.parents()[j]);
-                }
+//                 for (size_t j = 0; j < old_parents.size(); ++j) {
+//                     assert(old_parents[j] == node.parents()[j]);
+//                 }
 
-            }
-#endif
+//             }
+// #endif
 
 
             candidate_transactions_.clear();
