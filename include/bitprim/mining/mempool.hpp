@@ -145,7 +145,7 @@ public:
         //precondition: tx is fully validated: check() && accept() && connect()
         //              ! tx.is_coinbase()
 
-        std::cout << encode_base16(tx.to_data(true, BITPRIM_WITNESS_DEFAULT)) << std::endl;
+        // std::cout << encode_base16(tx.to_data(true, BITPRIM_WITNESS_DEFAULT)) << std::endl;
 
         return prioritizer_.low_job([this, &tx]{
             auto const index = all_transactions_.size();
