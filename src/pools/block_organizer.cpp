@@ -235,6 +235,7 @@ void block_organizer::organize_mempool(block_const_ptr_list_const_ptr const& inc
     for (auto const& block : *incoming_blocks) {
         if (block->transactions().size() > 1) {
 
+            //TODO(fernando): Remove!!!!
             std::cout << "Arrive Block -------------------------------------------------------------------" << std::endl;
             std::cout << encode_hash(block->hash()) << std::endl;
             std::cout << "--------------------------------------------------------------------------------" << std::endl;

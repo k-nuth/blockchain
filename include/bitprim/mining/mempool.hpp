@@ -145,7 +145,7 @@ public:
         //precondition: tx is fully validated: check() && accept() && connect()
         //              ! tx.is_coinbase()
 
-        // std::cout << encode_base16(tx.to_data(true, BITPRIM_WITNESS_DEFAULT)) << std::endl;
+        std::cout << encode_base16(tx.to_data(true, BITPRIM_WITNESS_DEFAULT)) << std::endl;
 
         return prioritizer_.low_job([this, &tx]{
             auto const index = all_transactions_.size();
@@ -163,20 +163,22 @@ public:
 
     void reindex_xxx(size_t index) {    //TODO: rename
 
-        while (index < all_transactions_.size()) {
-            auto& node = all_transactions_[index];
+
+        size_t i = index;
+        while (i < all_transactions_.size()) {
+            auto& node = all_transactions_[i];
 
             for (auto& ci : node.children()) {
                 --ci;
             }
 
             for (auto& pi : node.parents()) {
-                if (pi == index) {
+                if (pi >= index) {
                     --pi;
                 }
             }
 
-            ++index;
+            ++i;
         }
     }
 
@@ -189,6 +191,10 @@ public:
             return error::success;
         }
 
+        // std::cout << "Arrive Block -------------------------------------------------------------------" << std::endl;
+        // std::cout << encode_base16(tx.to_data(true, BITPRIM_WITNESS_DEFAULT)) << std::endl;
+
+
         processing_block_ = true;
         auto unique = scope_guard([&](void*){ processing_block_ = false; });
 
@@ -199,6 +205,11 @@ public:
         }
 
         return prioritizer_.high_job([&f, l, &to_remove, &outs, this]{
+
+            //TODO: temp code, remove
+#ifndef NDEBUG
+            auto old_transactions = all_transactions_;
+#endif
 
             while (f != l) {
                 auto const& tx = *f;
@@ -238,6 +249,52 @@ public:
             }
 
             BOOST_ASSERT(all_transactions_.size() == hash_index_.size());
+
+#ifndef NDEBUG
+            auto diff = old_transactions.size() - all_transactions_.size();
+
+            for (size_t i = 0; i < all_transactions_.size(); ++i) {
+                auto& node = all_transactions_[i];
+                auto& node_old = old_transactions[i + diff];
+
+                indexes_t old_children;
+                for (auto x : node_old.children()) {
+                    if (x >= diff) {
+                        old_children.push_back(x - diff);
+                    }
+                }
+
+                assert(node_old.children().size() >= node.children().size());
+                assert(old_children.size() == node.children().size());
+
+                for (size_t j = 0; j < old_children.size(); ++j) {
+                    assert(old_children[j] == node.children()[j]);
+                }
+
+                std::cout << std::endl;
+
+                // if (node_old.parents().size() > 0) {
+                //     std::cout << std::endl;
+                // }
+
+                
+                indexes_t old_parents;
+                for (auto x : node_old.parents()) {
+                    if (x >= diff) {
+                        old_parents.push_back(x - diff);
+                    }
+                }
+
+                assert(node_old.parents().size() >= node.parents().size());
+                assert(old_parents.size() == node.parents().size());
+
+                for (size_t j = 0; j < old_parents.size(); ++j) {
+                    assert(old_parents[j] == node.parents()[j]);
+                }
+
+            }
+#endif
+
 
             candidate_transactions_.clear();
             previous_outputs_.clear();
@@ -621,10 +678,6 @@ private:
     void do_candidates_insertion(to_insert_t const& to_insert) {
 
         for (auto i : std::get<0>(to_insert)) {
-
-            if (i == 95) {  //TODO: remove
-                std::cout << std::endl;
-            }
             insert_in_candidate(i);
 
 #ifdef BITPRIM_MINING_CTOR_ENABLED
@@ -896,7 +949,6 @@ private:
         if (node_benefit > accum_benefit) {
             assert(accum_benefit_new < accum_benefit);
 
-
             // El hijo mejoraba al padre, por lo tanto, quitar al hijo significa empeorar al padre
             // EMPEORA EL PADRE, POR LO TANTO TENGO QUE MOVERLO A LA DERECHA
 
@@ -1013,9 +1065,6 @@ private:
         //precondition: candidate_transactions_.size() > 0
 
         for (auto pi : node.parents()) {
-            if (pi == 47) { //TODO: remove
-                std::cout << std::endl;
-            }
             auto& parent = all_transactions_[pi];
             parent.increment_values(node.fee(), node.size(), node.sigops());
             
