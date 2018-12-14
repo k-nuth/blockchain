@@ -621,6 +621,10 @@ private:
     void do_candidates_insertion(to_insert_t const& to_insert) {
 
         for (auto i : std::get<0>(to_insert)) {
+
+            if (i == 95) {  //TODO: remove
+                std::cout << std::endl;
+            }
             insert_in_candidate(i);
 
 #ifdef BITPRIM_MINING_CTOR_ENABLED
@@ -954,29 +958,54 @@ private:
             // assert(accum_benefit_new < accum_benefit);
 
             // EMPEORA EL PADRE, POR LO TANTO TENGO QUE MOVERLO A LA DERECHA
-            // Sé que el hijo recién insertado está a la derecha del padre y va a permanecer a su derecha.
-            auto from = it + 1;
-            auto to = child_it;       // to = std::end(candidate_transactions_);
+            // (FALSO) Sé que el hijo recién insertado está a la derecha del padre y va a permanecer a su derecha.
 
-            auto it2 = std::upper_bound(from, to, parent_index, cmp);
-            reindex_decrement(from, it2);
-            it = std::rotate(it, it + 1, it2);
-            
-            parent.set_candidate_index(std::distance(std::begin(candidate_transactions_), it));
+
+            if (parent.candidate_index() < node.candidate_index()) {
+                auto from = it + 1;
+                auto to = child_it;       // to = std::end(candidate_transactions_);
+
+                auto it2 = std::upper_bound(from, to, parent_index, cmp);
+                reindex_decrement(from, it2);
+                it = std::rotate(it, it + 1, it2);
+                parent.set_candidate_index(std::distance(std::begin(candidate_transactions_), it));
+            } else {
+                auto from = it + 1;
+                auto to = std::end(candidate_transactions_);
+
+                auto it2 = std::upper_bound(from, to, parent_index, cmp);
+                reindex_decrement(from, it2);
+                it = std::rotate(it, it + 1, it2);
+                parent.set_candidate_index(std::distance(std::begin(candidate_transactions_), it));
+            }
+
 
         } else {
             // assert(accum_benefit_new > accum_benefit);
 
             // MEJORA EL PADRE, POR LO TANTO TENGO QUE MOVERLO A LA IZQUIERDA
-            // Sé que el hijo recién insertado está a la izquierda del padre y va a permanecer a su izquierda.
+            // (FALSO) Sé que el hijo recién insertado está a la izquierda del padre y va a permanecer a su izquierda.
 
-            auto from = child_it + 1;
-            auto to = it;    // to = std::end(candidate_transactions_);
+            if (node.candidate_index() < parent.candidate_index()) {
+                auto from = child_it + 1;
+                auto to = it;    // to = std::end(candidate_transactions_);
 
-            auto it2 = std::upper_bound(from, to, parent_index, cmp);
-            reindex_increment(it2, it);
-            std::rotate(it2, it, it + 1);
-            parent.set_candidate_index(std::distance(std::begin(candidate_transactions_), it2));
+                auto it2 = std::upper_bound(from, to, parent_index, cmp);
+                reindex_increment(it2, it);
+                std::rotate(it2, it, it + 1);
+                parent.set_candidate_index(std::distance(std::begin(candidate_transactions_), it2));
+            } else {
+                auto from = std::begin(candidate_transactions_);
+                auto to = it;
+
+                auto it2 = std::upper_bound(from, to, parent_index, cmp);
+                reindex_increment(it2, it);
+                std::rotate(it2, it, it + 1);
+                parent.set_candidate_index(std::distance(std::begin(candidate_transactions_), it2));
+            }
+        
+
+
         }
     }
 
@@ -984,6 +1013,9 @@ private:
         //precondition: candidate_transactions_.size() > 0
 
         for (auto pi : node.parents()) {
+            if (pi == 47) { //TODO: remove
+                std::cout << std::endl;
+            }
             auto& parent = all_transactions_[pi];
             parent.increment_values(node.fee(), node.size(), node.sigops());
             
