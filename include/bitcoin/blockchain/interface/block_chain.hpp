@@ -293,7 +293,7 @@ public:
                 handler(error::operation_failed_16, 0, chain::transaction{});
                 return;
             }
-            BITCOIN_ASSERT(tx.height() == height);
+            //BITCOIN_ASSERT(tx.height() == height);
             handler(error::success, height, tx);
             ++f;
         }
