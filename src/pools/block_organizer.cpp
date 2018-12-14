@@ -235,6 +235,11 @@ void block_organizer::organize_mempool(block_const_ptr_list_const_ptr const& inc
     for (auto const& block : *incoming_blocks) {
         if (block->transactions().size() > 1) {
 
+            std::cout << "Arrive Block -------------------------------------------------------------------" << std::endl;
+            std::cout << encode_hash(block->hash()) << std::endl;
+            std::cout << "--------------------------------------------------------------------------------" << std::endl;
+
+
             mempool_.remove(block->transactions().begin() + 1, block->transactions().end(), block->non_coinbase_input_count());
 
             if ( ! fast_chain_.is_stale_fast() && ! outgoing_blocks->empty()) {
