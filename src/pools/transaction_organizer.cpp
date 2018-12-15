@@ -307,6 +307,7 @@ void transaction_organizer::handle_connect(const code& ec,
         handler(res);
         return;
     }
+    LOG_INFO(LOG_BLOCKCHAIN) << "Transaction " << encode_hash(tx->hash()) << " added to mempool.";
 #endif
 
     //#########################################################################
