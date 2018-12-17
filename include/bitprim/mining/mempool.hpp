@@ -139,7 +139,54 @@ public:
         all_transactions_.reserve(all_capacity);
     }
 
+    void check_indexes() const {
+        
+        BOOST_ASSERT(candidate_transactions_.size() <= all_transactions_.size());
 
+        {
+            auto ci_sorted = candidate_transactions_;
+            std::sort(ci_sorted.begin(), ci_sorted.end());
+            auto last = std::unique(ci_sorted.begin(), ci_sorted.end());
+            BOOST_ASSERT(std::distance(ci_sorted.begin(), last) <= ci_sorted.size());
+        }
+        
+        {
+            indexes_t all_sorted;
+            for (auto const& node : all_transactions_) {
+                if (node.candidate_index() != null_index) {
+                    all_sorted.push_back(node.candidate_index());
+                }
+            }
+            std::sort(all_sorted.begin(), all_sorted.end());
+            auto last = std::unique(all_sorted.begin(), all_sorted.end());
+            BOOST_ASSERT(std::distance(all_sorted.begin(), last) <= all_sorted.size());
+        }
+
+        {
+            size_t ci = 0;
+            for (auto i : candidate_transactions_) {
+                auto const& node = all_transactions_[i];
+                BOOST_ASSERT(ci == node.candidate_index());
+                ++ci;
+            }
+        }
+
+        {
+            size_t i = 0;
+            size_t non_indexed = 0;
+            for (auto const& node : all_transactions_) {
+                if (node.candidate_index() != null_index) {
+                    BOOST_ASSERT(candidate_transactions_[node.candidate_index()] == i);
+                    BOOST_ASSERT(node.candidate_index() < candidate_transactions_.size());
+                } else {
+                    ++non_indexed;
+                }
+                ++i;
+            }
+
+            BOOST_ASSERT(candidate_transactions_.size() + non_indexed == all_transactions_.size());
+        }
+    }
 
     error::error_code_t add(chain::transaction const& tx) {
         //precondition: tx is fully validated: check() && accept() && connect()
@@ -304,7 +351,29 @@ public:
             accum_sigops_ = 0;
             
             for (size_t i = 0; i < all_transactions_.size(); ++i) {
+                all_transactions_[i].set_candidate_index(null_index);
+                all_transactions_[i].reset_children_values();
+            }
+
+#ifndef NDEBUG
+            check_indexes();
+#endif
+
+
+            for (size_t i = 0; i < all_transactions_.size(); ++i) {
+
+                if (i == 20) {
+                    std::cout << "hola" << std::endl;
+                    std::cout << std::endl;
+                    std::cout << std::endl;
+                }
+
+
                 re_add_node(i);
+
+#ifndef NDEBUG
+                check_indexes();
+#endif
             }
             return error::success;
         });
@@ -465,6 +534,9 @@ private:
                 // previous_outputs_.left.insert(previous_outputs_t::left_value_type(i.previous_output(), node_index));
                 previous_outputs_.insert({i.previous_output(), index});
             }        
+            if (index == 140) {
+                std::cout << std::endl;
+            }
             add_node(index);
         } else {
             //No debería pasar por aca
