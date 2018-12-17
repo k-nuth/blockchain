@@ -118,6 +118,9 @@ uint32_t get_clock_now() {
 inline
 void block_chain::prune_reorg_async() {}
 
+inline 
+void block_chain::set_database_flags() {}
+
 bool block_chain::get_gaps(block_database::heights& out_gaps) const
 {
     database_.blocks().gaps(out_gaps);
@@ -337,6 +340,11 @@ void block_chain::prune_reorg_async() {
             database_.prune_reorg();
         });
     }
+}
+
+void block_chain::set_database_flags() {
+    bool stale = is_stale();
+    database_.set_database_flags(stale);
 }
 
 // bool block_chain::get_gaps(block_database::heights& out_gaps) const {
@@ -829,6 +837,9 @@ bool block_chain::start()
 
     if (!database_.open())
         return false;
+
+    //switch to fast mode if the database is stale
+    set_database_flags();
 
     // Initialize chain state after database start but before organizers.
     pool_state_ = chain_state_populator_.populate();
