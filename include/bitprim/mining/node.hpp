@@ -158,6 +158,12 @@ public:
         children_sigops_ -= sigops;
     }
 
+    void reset_children_values() {
+        children_fees_ = fee();
+        children_size_ = size();
+        children_sigops_ = sigops();
+    }
+
 private:
     transaction_element te_;
     std::vector<index_t> parents_;
