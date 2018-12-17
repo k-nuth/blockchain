@@ -147,7 +147,7 @@ public:
             auto ci_sorted = candidate_transactions_;
             std::sort(ci_sorted.begin(), ci_sorted.end());
             auto last = std::unique(ci_sorted.begin(), ci_sorted.end());
-            BOOST_ASSERT(std::distance(ci_sorted.begin(), last) <= ci_sorted.size());
+            BOOST_ASSERT(std::distance(ci_sorted.begin(), last) == ci_sorted.size());
         }
         
         {
@@ -159,7 +159,7 @@ public:
             }
             std::sort(all_sorted.begin(), all_sorted.end());
             auto last = std::unique(all_sorted.begin(), all_sorted.end());
-            BOOST_ASSERT(std::distance(all_sorted.begin(), last) <= all_sorted.size());
+            BOOST_ASSERT(std::distance(all_sorted.begin(), last) == all_sorted.size());
         }
 
         {
@@ -359,18 +359,8 @@ public:
             check_indexes();
 #endif
 
-
             for (size_t i = 0; i < all_transactions_.size(); ++i) {
-
-                if (i == 20) {
-                    std::cout << "hola" << std::endl;
-                    std::cout << std::endl;
-                    std::cout << std::endl;
-                }
-
-
                 re_add_node(i);
-
 #ifndef NDEBUG
                 check_indexes();
 #endif
