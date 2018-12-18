@@ -627,10 +627,14 @@ endif()
 # Install
 #==============================================================================
 # install(TARGETS bitprim-blockchain bitprim-blockchain-requester bitprim-blockchain-replier
-install(TARGETS bitprim-blockchain
-  EXPORT bitprim-blockchain
+
+install(TARGETS bitprim-blockchain EXPORT bitprim-blockchain
+  LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
-  RUNTIME DESTINATION bin)
+  RUNTIME DESTINATION bin
+  INCLUDES DESTINATION include
+)
+
 
 set(_bitprim_headers
   # include_bitcoin_HEADERS =
