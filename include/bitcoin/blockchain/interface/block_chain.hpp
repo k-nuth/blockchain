@@ -125,7 +125,7 @@ public:
 
     void prune_reorg_async() override;
 
-    void set_database_flags() override;
+    //void set_database_flags() override;
 
     /// Get the hash of the block if it exists.
     bool get_block_hash(hash_digest& out_hash, size_t height) const override;

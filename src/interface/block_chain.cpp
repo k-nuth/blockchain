@@ -117,9 +117,10 @@ uint32_t get_clock_now() {
 #ifdef BITPRIM_DB_LEGACY
 inline
 void block_chain::prune_reorg_async() {}
-
+/*
 inline 
 void block_chain::set_database_flags() {}
+*/
 
 bool block_chain::get_gaps(block_database::heights& out_gaps) const
 {
@@ -341,11 +342,11 @@ void block_chain::prune_reorg_async() {
         });
     }
 }
-
+/*
 void block_chain::set_database_flags() {
     bool stale = is_stale();
     database_.set_database_flags(stale);
-}
+}*/
 
 // bool block_chain::get_gaps(block_database::heights& out_gaps) const {
 //     database_.blocks().gaps(out_gaps);
@@ -839,7 +840,7 @@ bool block_chain::start()
         return false;
 
     //switch to fast mode if the database is stale
-    set_database_flags();
+    //set_database_flags();
 
     // Initialize chain state after database start but before organizers.
     pool_state_ = chain_state_populator_.populate();

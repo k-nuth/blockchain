@@ -101,7 +101,7 @@ public:
 
     virtual void prune_reorg_async() = 0;
 
-    virtual void set_database_flags() = 0;
+    //virtual void set_database_flags() = 0;
 
     /////// Get the transaction of the given hash and its block height.
     ////virtual transaction_ptr get_transaction(size_t& out_block_height,
