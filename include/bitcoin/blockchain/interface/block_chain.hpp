@@ -392,6 +392,10 @@ public:
       std::shared_ptr<std::vector<transaction_const_ptr>> keoken_txs) const override;
 #endif
 
+#if defined(BITPRIM_WITH_MINING)
+    std::pair<std::vector<libbitcoin::mining::transaction_element>, uint64_t> get_block_template() const;
+#endif
+
 protected:
 
     /// Determine if work should terminate early with service stopped code.
