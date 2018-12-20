@@ -45,16 +45,22 @@ public:
     /// Get the set of block gaps in the chain.
     virtual bool get_gaps(database::block_database::heights& out_gaps) const = 0;
     
-    /// Get the output that is referenced by the outpoint.
-    virtual bool get_output(chain::output& out_output, size_t& out_height, uint32_t& out_median_time_past, bool& out_coinbase, const chain::output_point& outpoint, size_t branch_height, bool require_confirmed) const = 0;
-
-    //TODO(fernando): check how to replace it with UTXO
+    
+    //Bitprim: we don't store spent information
     /// Determine if an unspent transaction exists with the given hash.
     virtual bool get_is_unspent_transaction(const hash_digest& hash, size_t branch_height, bool require_confirmed) const = 0;
 
+#endif // BITPRIM_DB_LEGACY
+
+
+#if defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_DB_NEW_FULL) 
     /// Get position data for a transaction.
     virtual bool get_transaction_position(size_t& out_height, size_t& out_position, const hash_digest& hash, bool require_confirmed) const = 0;
-#endif // BITPRIM_DB_LEGACY
+
+    /// Get the output that is referenced by the outpoint.
+    virtual bool get_output(chain::output& out_output, size_t& out_height, uint32_t& out_median_time_past, bool& out_coinbase, const chain::output_point& outpoint, size_t branch_height, bool require_confirmed) const = 0;
+    
+#endif
 
     /// Get a determination of whether the block hash exists in the store.
     virtual bool get_block_exists(const hash_digest& block_hash) const = 0;
@@ -88,23 +94,14 @@ public:
     /// Get the output that is referenced by the outpoint in the UTXO Set.
     virtual bool get_utxo(chain::output& out_output, size_t& out_height, uint32_t& out_median_time_past, bool& out_coinbase, chain::output_point const& outpoint, size_t branch_height) const = 0;
 
-    // std::pair<result_code, utxo_pool_t> get_utxo_pool_from(uint32_t from, uint32_t to) const {
+    /// Get a UTXO subset from the reorganization pool, [from, to] the specified heights.
     virtual std::pair<bool, database::internal_database::utxo_pool_t> get_utxo_pool_from(uint32_t from, uint32_t to) const = 0;
 
-
 #endif// BITPRIM_DB_NEW
-
-
-#ifdef BITPRIM_DB_NEW_BLOCKS
-    
-    
-    
-#endif// BITPRIM_DB_NEW
-
-
 
     virtual void prune_reorg_async() = 0;
 
+    //virtual void set_database_flags() = 0;
 
     /////// Get the transaction of the given hash and its block height.
     ////virtual transaction_ptr get_transaction(size_t& out_block_height,

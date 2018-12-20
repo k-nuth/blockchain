@@ -302,6 +302,7 @@ void block_organizer::handle_reorganized(const code& ec, branch::const_ptr branc
     notify(branch->height(), branch->blocks(), outgoing);
 
     fast_chain_.prune_reorg_async();
+    //fast_chain_.set_database_flags();
 
     handler(error::success);
 }

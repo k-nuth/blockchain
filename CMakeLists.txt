@@ -153,6 +153,15 @@ if (DB_NEW_BLOCKS)
   add_definitions(-DBITPRIM_DB_NEW_BLOCKS)
 endif()
 
+
+# Implement and declare DB_NEW_FULL.
+#------------------------------------------------------------------------------
+option(DB_NEW_FULL "DB New Full enabled." OFF)
+if (DB_NEW_FULL)
+  message(STATUS "Bitprim: DB New Full enabled")
+  add_definitions(-DBITPRIM_DB_NEW_FULL)
+endif()
+
 # Implement --JUST_BITPRIM_SOURCES for linting.
 #------------------------------------------------------------------------------
 option(JUST_BITPRIM_SOURCES "Just Bitprim source code to be linted." OFF)

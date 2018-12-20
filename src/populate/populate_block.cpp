@@ -207,7 +207,7 @@ void populate_block::populate_transactions(branch::const_ptr branch, size_t buck
         //---------------------------------------------------------------------
 
         //TODO(fernando): check again why this is not implemented?
-#ifdef BITPRIM_DB_LEGACY
+#if defined(BITPRIM_DB_LEGACY)  || defined(BITPRIM_DB_NEW_FULL)
         if (relay_transactions_) {
             populate_base::populate_pooled(tx, forks);
         }
@@ -217,8 +217,8 @@ void populate_block::populate_transactions(branch::const_ptr branch, size_t buck
         // CONSENSUS: Satoshi implemented allow collisions in Nov 2015. This is
         // a hard fork that destroys unspent outputs in case of hash collision.
         //*********************************************************************
-        //TODO(fernando): check again why this is not implemented?
-#ifdef BITPRIM_DB_LEGACY
+        //Bitprim: we are not validating tx duplicates.
+#if defined(BITPRIM_DB_LEGACY)
         if ( ! collide) {
             populate_base::populate_duplicate(branch->height(), tx, true);
             ////populate_duplicate(branch, coinbase);
@@ -226,31 +226,6 @@ void populate_block::populate_transactions(branch::const_ptr branch, size_t buck
 #endif
     }
 
-
-// #ifdef BITPRIM_DB_NEW
-//     utxo_pool_t reorg_subset;
-//     auto temp1 = branch->top_height();
-//     auto temp2 = branch->height() + 1u;
-
-//     size_t top;
-
-//     if (fast_chain_.get_last_height(top)) {
-//         std::cout << temp1 << std::endl;
-//         std::cout << temp2 << std::endl;
-//         std::cout << top << std::endl;
-
-//         if (temp2 <= top) {
-//             auto p = fast_chain_.get_utxo_pool_from(temp2, top);
-//             if (p.first) {
-//                 // populate_from_reorg_subset(prevout, reorg_subset);
-//                 std::cout << "populate_from_reorg_subset(prevout, reorg_subset);" << std::endl;
-//                 reorg_subset = std::move(p.second);
-//             }
-//         }
-//     } else {
-//         top = 0;
-//     }
-// #endif // BITPRIM_DB_NEW
 
 #ifdef BITPRIM_DB_NEW
     size_t first_height = branch_height + 1u;

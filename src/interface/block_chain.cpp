@@ -117,6 +117,10 @@ uint32_t get_clock_now() {
 #ifdef BITPRIM_DB_LEGACY
 inline
 void block_chain::prune_reorg_async() {}
+/*
+inline 
+void block_chain::set_database_flags() {}
+*/
 
 bool block_chain::get_gaps(block_database::heights& out_gaps) const
 {
@@ -219,17 +223,7 @@ bool block_chain::get_last_height(size_t& out_height) const
     return database_.blocks().top(out_height);
 }
 
-bool block_chain::get_output(chain::output& out_output, size_t& out_height,
-    uint32_t& out_median_time_past, bool& out_coinbase,
-    const chain::output_point& outpoint, size_t branch_height,
-    bool require_confirmed) const
-{
-    // This includes a cached value for spender height (or not_spent).
-    // Get the highest tx with matching hash, at or below the branch height.
-    return database_.transactions().get_output(out_output, out_height,
-        out_median_time_past, out_coinbase, outpoint, branch_height,
-        require_confirmed);
-}
+
 
 bool block_chain::get_output_is_confirmed(chain::output& out_output, size_t& out_height,
                              bool& out_coinbase, bool& out_is_confirmed, const chain::output_point& outpoint,
@@ -241,32 +235,103 @@ bool block_chain::get_output_is_confirmed(chain::output& out_output, size_t& out
                                                out_coinbase, out_is_confirmed, outpoint, branch_height, require_confirmed);
 }
 
-//TODO(fernando): check how to replace it with UTXO
-bool block_chain::get_is_unspent_transaction(hash_digest const& hash,
-    size_t branch_height, bool require_confirmed) const
-{
-    auto const result = database_.transactions().get(hash, branch_height,
-        require_confirmed);
-
+//TODO(fernando): check if can we do it just with the UTXO
+bool block_chain::get_is_unspent_transaction(hash_digest const& hash, size_t branch_height, bool require_confirmed) const {
+    auto const result = database_.transactions().get(hash, branch_height, require_confirmed);
     return result && !result.is_spent(branch_height);
 }
+#endif // BITPRIM_DB_LEGACY
 
-bool block_chain::get_transaction_position(size_t& out_height,
-    size_t& out_position, hash_digest const& hash,
+
+
+#if defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_DB_NEW_FULL) 
+
+bool block_chain::get_output(chain::output& out_output, size_t& out_height,
+    uint32_t& out_median_time_past, bool& out_coinbase,
+    const chain::output_point& outpoint, size_t branch_height,
     bool require_confirmed) const
 {
-    auto const result = database_.transactions().get(hash, max_size_t,
+
+#if defined(BITPRIM_DB_LEGACY)
+
+    // This includes a cached value for spender height (or not_spent).
+    // Get the highest tx with matching hash, at or below the branch height.
+    return database_.transactions().get_output(out_output, out_height,
+        out_median_time_past, out_coinbase, outpoint, branch_height,
         require_confirmed);
 
-    if (!result)
+#elif defined(BITPRIM_DB_NEW_FULL)
+
+    auto const tx = database_.internal_db().get_transaction(outpoint.hash(), branch_height);
+
+    if (!tx.is_valid()) {
         return false;
+    }
+    
+    out_height = tx.height();
+    out_coinbase = tx.position() == 0;
+    out_median_time_past = tx.median_time_past();
+    out_output = tx.transaction().outputs()[outpoint.index()];
+
+    return true;
+#endif
+
+}
+
+#endif
+
+
+
+//Bitprim: We don't store spent information
+/*#if defined(BITPRIM_DB_NEW_FULL)
+//TODO(fernando): check if can we do it just with the UTXO
+bool block_chain::get_is_unspent_transaction(hash_digest const& hash, size_t branch_height, bool require_confirmed) const {
+    auto const result = database_.internal_db().get_transaction(hash, branch_height, require_confirmed);
+    return result.is_valid() && ! result.is_spent(branch_height);
+}
+#endif
+*/
+
+#if defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_DB_NEW_FULL)
+bool block_chain::get_transaction_position(size_t& out_height, size_t& out_position, hash_digest const& hash, bool require_confirmed) const {
+
+#if defined(BITPRIM_DB_LEGACY)    
+    auto const result = database_.transactions().get(hash, max_size_t, require_confirmed);
+    if ( ! result) {
+        return false;
+    }
 
     out_height = result.height();
     out_position = result.position();
     return true;
-}
-#endif // BITPRIM_DB_LEGACY
 
+#else
+    auto const result = database_.internal_db().get_transaction(hash, max_size_t);
+    
+    if ( result.is_valid() ) {
+        out_height = result.height();
+        out_position = result.position();
+        return true;
+    }   
+
+    if (require_confirmed ) {
+        return false;
+    } 
+    
+    auto const result2 = database_.internal_db().get_transaction_unconfirmed(hash);
+    if ( ! result2.is_valid() ) {
+        return false;
+    }
+
+    out_height = result2.height();
+    out_position = position_max;
+    return true;
+
+#endif
+
+}
+
+#endif // defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_DB_NEW_FULL)
 
 #ifdef BITPRIM_DB_NEW
 
@@ -277,6 +342,11 @@ void block_chain::prune_reorg_async() {
         });
     }
 }
+/*
+void block_chain::set_database_flags() {
+    bool stale = is_stale();
+    database_.set_database_flags(stale);
+}*/
 
 // bool block_chain::get_gaps(block_database::heights& out_gaps) const {
 //     database_.blocks().gaps(out_gaps);
@@ -417,7 +487,9 @@ bool block_chain::insert(block_const_ptr block, size_t height) {
 }
 
 void block_chain::push(transaction_const_ptr tx, dispatcher&, result_handler handler) {
-    last_transaction_.store(tx);
+    
+    //TODO: (bitprim) dissabled this tx cache because we don't want special treatment for the last txn, it affects the explorer rpc methods
+    //last_transaction_.store(tx);
 
     // Transaction push is currently sequential so dispatch is not used.
     handler(database_.push(*tx, chain_state()->enabled_forks()));
@@ -673,28 +745,6 @@ void block_chain::remove_mined_txs_from_chosen_list(block_const_ptr blk){
 }
 #endif // BITPRIM_WITH_MINING
 
-#ifdef BITPRIM_DB_TRANSACTION_UNCONFIRMED
-void block_chain::fetch_unconfirmed_transaction(hash_digest const& hash, transaction_unconfirmed_fetch_handler handler) const
-{
-    if (stopped())
-    {
-        handler(error::service_stopped, nullptr);
-        return;
-    }
-
-    auto const result = database_.transactions_unconfirmed().get(hash);
-
-    if (!result)
-    {
-        handler(error::not_found, nullptr);
-        return;
-    }
-
-    auto const tx = std::make_shared<const transaction>(result.transaction());
-    handler(error::success, tx);
-}
-#endif // BITPRIM_DB_TRANSACTION_UNCONFIRMED
-
 
 
 void block_chain::reorganize(const checkpoint& fork_point,
@@ -788,6 +838,9 @@ bool block_chain::start()
 
     if (!database_.open())
         return false;
+
+    //switch to fast mode if the database is stale
+    //set_database_flags();
 
     // Initialize chain state after database start but before organizers.
     pool_state_ = chain_state_populator_.populate();
@@ -1173,6 +1226,7 @@ void block_chain::fetch_transaction(hash_digest const& hash,
 //        }
 //    }
   
+
     auto const result = database_.transactions().get(hash, max_size_t,
         require_confirmed);
 
@@ -1188,7 +1242,7 @@ void block_chain::fetch_transaction(hash_digest const& hash,
 }
 #endif // BITPRIM_DB_LEGACY
 
-#ifdef BITPRIM_DB_NEW_BLOCKS
+#if defined(BITPRIM_DB_NEW_BLOCKS) || defined(BITPRIM_DB_NEW_FULL)
 
 void block_chain::fetch_block(size_t height, bool witness,
     block_fetch_handler handler) const
@@ -1436,8 +1490,95 @@ void block_chain::fetch_locator_block_hashes(get_blocks_const_ptr locator,
 }
 
 
-#endif //BITPRIM_DB_NEW_BLOCKS
+#endif //BITPRIM_DB_NEW_BLOCKS || BITPRIM_DB_NEW_FULL
 
+
+#if defined(BITPRIM_DB_NEW_FULL)
+
+void block_chain::fetch_transaction(hash_digest const& hash, bool require_confirmed, bool witness, transaction_fetch_handler handler) const
+{
+#ifdef BITPRIM_CURRENCY_BCH
+    witness = false;
+#endif
+    if (stopped())
+    {
+        handler(error::service_stopped, nullptr, 0, 0);
+        return;
+    }
+//TODO: (bitprim) dissabled this tx cache because we don't want special treatment for the last txn, it affects the explorer rpc methods
+//    // Try the cached block first if confirmation is not required.
+//    if (!require_confirmed)
+//    {
+//        auto const cached = last_transaction_.load();
+//
+//        if (cached && cached->validation.state && cached->hash() == hash)
+//        {
+//            ////LOG_INFO(LOG_BLOCKCHAIN) << "TX CACHE HIT";
+//
+//            // Simulate the position and height overloading of the database.
+//            handler(error::success, cached, transaction_database::unconfirmed,
+//                cached->validation.state->height());
+//            return;
+//        }
+//    }
+  
+
+    auto const result = database_.internal_db().get_transaction(hash, max_size_t);
+    if ( result.is_valid() )
+    {
+        auto const tx = std::make_shared<const transaction>(result.transaction());
+        handler(error::success, tx, result.position(), result.height());    
+        return;
+    }
+
+    if (require_confirmed) {
+        handler(error::not_found, nullptr, 0, 0);
+        return;
+    }
+
+    auto const result2 = database_.internal_db().get_transaction_unconfirmed(hash);
+    if (! result2.is_valid() )
+    {
+        handler(error::not_found, nullptr, 0, 0);
+        return;
+    }
+
+    auto const tx = std::make_shared<const transaction>(result2.transaction());
+    handler(error::success, tx, position_max, result2.height());
+}
+
+// This is same as fetch_transaction but skips deserializing the tx payload.
+void block_chain::fetch_transaction_position(hash_digest const& hash, bool require_confirmed, transaction_index_fetch_handler handler) const
+{
+    if (stopped())
+    {
+        handler(error::service_stopped, 0, 0);
+        return;
+    }
+
+    auto const result = database_.internal_db().get_transaction(hash, max_size_t);
+
+    if ( result.is_valid() )
+    {
+        handler(error::success, result.position(), result.height());
+        return;
+    }
+
+    if (require_confirmed) {
+        handler(error::not_found, 0, 0);
+        return;
+    }
+
+    auto const result2 = database_.internal_db().get_transaction_unconfirmed(hash);
+    if (! result2.is_valid() ) {
+        handler(error::not_found, 0, 0);
+        return;
+    }
+
+    handler(error::success, position_max, result2.height());
+}
+
+#endif
 
 
 //TODO (Mario) : Review and move to proper location
@@ -1474,6 +1615,278 @@ hash_digest generate_merkle_root(std::vector<chain::transaction> transactions) {
     // There is now only one item in the list.
     return merkle.front();
 }
+
+#ifdef BITPRIM_DB_NEW_FULL
+//TODO(fernando): refactor!!!
+std::vector<libbitcoin::blockchain::mempool_transaction_summary> block_chain::get_mempool_transactions(std::vector<std::string> const& payment_addresses, bool use_testnet_rules, bool witness) const {
+/*          "    \"address\"  (string) The base58check encoded address\n"
+            "    \"txid\"  (string) The related txid\n"
+            "    \"index\"  (number) The related input or output index\n"
+            "    \"satoshis\"  (number) The difference of satoshis\n"
+            "    \"timestamp\"  (number) The time the transaction entered the mempool (seconds)\n"
+            "    \"prevtxid\"  (string) The previous txid (if spending)\n"
+            "    \"prevout\"  (string) The previous transaction output index (if spending)\n"
+*/
+
+#ifdef BITPRIM_CURRENCY_BCH
+    witness = false;
+#endif
+
+    uint8_t encoding_p2kh;
+    uint8_t encoding_p2sh;
+
+    if (use_testnet_rules) {
+        encoding_p2kh = libbitcoin::wallet::payment_address::testnet_p2kh;
+        encoding_p2sh = libbitcoin::wallet::payment_address::testnet_p2sh;
+    } else {
+        encoding_p2kh = libbitcoin::wallet::payment_address::mainnet_p2kh;
+        encoding_p2sh = libbitcoin::wallet::payment_address::mainnet_p2sh;
+    }
+    
+    std::vector<libbitcoin::blockchain::mempool_transaction_summary> ret;
+    
+    std::unordered_set<libbitcoin::wallet::payment_address> addrs;
+    for (auto const& payment_address : payment_addresses) {
+        libbitcoin::wallet::payment_address address(payment_address);
+        if (address){
+            addrs.insert(address);
+        }
+    }
+
+    auto const result = database_.internal_db().get_all_transaction_unconfirmed();
+    
+    for (auto const& tx_res : result) {
+        auto const& tx = tx_res.transaction();
+        //tx.recompute_hash();
+        size_t i = 0;
+        for (auto const& output : tx.outputs()) {
+            auto const tx_addresses = libbitcoin::wallet::payment_address::extract(output.script(), encoding_p2kh, encoding_p2sh);
+            for(auto const tx_address : tx_addresses) {
+                if (tx_address && addrs.find(tx_address) != addrs.end()) {
+                    ret.push_back
+                            (libbitcoin::blockchain::mempool_transaction_summary
+                                     (tx_address.encoded(), libbitcoin::encode_hash(tx.hash()), "",
+                                      "", std::to_string(output.value()), i, tx_res.arrival_time()));
+                }
+            }
+            ++i;
+        }
+        i = 0;
+        for (auto const& input : tx.inputs()) {
+            // TODO: payment_addrress::extract should use the prev_output script instead of the input script
+            // see https://github.com/bitprim/bitprim-core/blob/v0.10.0/src/wallet/payment_address.cpp#L505
+            auto const tx_addresses = libbitcoin::wallet::payment_address::extract(input.script(), encoding_p2kh, encoding_p2sh);
+            for(auto const tx_address : tx_addresses)
+            if (tx_address && addrs.find(tx_address) != addrs.end()) {
+                boost::latch latch(2);
+                fetch_transaction(input.previous_output().hash(), false, witness,
+                                  [&](const libbitcoin::code &ec,
+                                      libbitcoin::transaction_const_ptr tx_ptr, size_t index,
+                                      size_t height) {
+                                      if (ec == libbitcoin::error::success) {
+                                          ret.push_back(libbitcoin::blockchain::mempool_transaction_summary
+                                                                (tx_address.encoded(),
+                                                                libbitcoin::encode_hash(tx.hash()),
+                                                                libbitcoin::encode_hash(input.previous_output().hash()),
+                                                                 std::to_string(input.previous_output().index()),
+                                                                "-"+std::to_string(tx_ptr->outputs()[input.previous_output().index()].value()),
+                                                                i,
+                                                                tx_res.arrival_time()));
+                                      }
+                                      latch.count_down();
+                                  });
+                latch.count_down_and_wait();
+            }
+            ++i;
+        }
+    }
+
+    return ret;
+}
+
+// Precondition: valid payment addresses
+std::vector<chain::transaction> block_chain::get_mempool_transactions_from_wallets(std::vector<wallet::payment_address> const& payment_addresses, bool use_testnet_rules, bool witness) const {
+
+#ifdef BITPRIM_CURRENCY_BCH
+    witness = false;
+#endif
+
+    uint8_t encoding_p2kh;
+    uint8_t encoding_p2sh;
+    if (use_testnet_rules){
+        encoding_p2kh = libbitcoin::wallet::payment_address::testnet_p2kh;
+        encoding_p2sh = libbitcoin::wallet::payment_address::testnet_p2sh;
+    } else {
+        encoding_p2kh = libbitcoin::wallet::payment_address::mainnet_p2kh;
+        encoding_p2sh = libbitcoin::wallet::payment_address::mainnet_p2sh;
+    }
+
+    std::vector<chain::transaction> ret;
+
+    auto const result = database_.internal_db().get_all_transaction_unconfirmed();
+
+    for (auto const& tx_res : result) { 
+        auto const& tx = tx_res.transaction();
+        //tx.recompute_hash();
+        // Only insert the transaction once. Avoid duplicating the tx if serveral wallets are used in the same tx, and if the same wallet is the input and output addr.
+        bool inserted = false;
+
+        for (auto iter_output = tx.outputs().begin(); (iter_output != tx.outputs().end() && !inserted); ++iter_output) {
+        
+            const auto tx_addresses = libbitcoin::wallet::payment_address::extract((*iter_output).script(), encoding_p2kh, encoding_p2sh);
+
+            for (auto iter_addr = tx_addresses.begin(); (iter_addr != tx_addresses.end() && !inserted); ++iter_addr) {
+                if (*iter_addr) {
+                    auto it = std::find(payment_addresses.begin(), payment_addresses.end(), *iter_addr);
+                    if (it != payment_addresses.end()) {
+                        ret.push_back(tx);
+                        inserted = true;
+                    }
+                }
+            }
+        }
+
+        for (auto iter_input = tx.inputs().begin(); (iter_input != tx.inputs().end() && !inserted); ++iter_input) {
+            // TODO: payment_addrress::extract should use the prev_output script instead of the input script
+            // see https://github.com/bitprim/bitprim-core/blob/v0.10.0/src/wallet/payment_address.cpp#L505
+            const auto tx_addresses = libbitcoin::wallet::payment_address::extract((*iter_input).script(), encoding_p2kh, encoding_p2sh);
+            for (auto iter_addr = tx_addresses.begin(); (iter_addr != tx_addresses.end() && !inserted); ++iter_addr) {
+                if (*iter_addr) {
+                    auto it = std::find(payment_addresses.begin(), payment_addresses.end(), *iter_addr);
+                    if (it != payment_addresses.end()) {
+                        ret.push_back(tx);
+                        inserted = true;
+                    }
+                }
+            }
+        }
+        
+    }
+
+    return ret;
+}
+
+void block_chain::fill_tx_list_from_mempool(message::compact_block const& block, size_t& mempool_count, std::vector<chain::transaction>& txn_available, std::unordered_map<uint64_t, uint16_t> const& shorttxids) const {
+    
+    std::vector<bool> have_txn(txn_available.size());
+    
+    auto header_hash = hash(block);
+    auto k0 = from_little_endian_unsafe<uint64_t>(header_hash.begin());
+    auto k1 = from_little_endian_unsafe<uint64_t>(header_hash.begin() + sizeof(uint64_t));
+
+    auto const result = database_.internal_db().get_all_transaction_unconfirmed();
+
+    for (auto const& tx_res : result) { 
+        auto const& tx = tx_res.transaction();
+
+#ifdef BITPRIM_CURRENCY_BCH
+        bool witness = false;
+#else
+        bool witness = true;
+#endif
+        uint64_t shortid = sip_hash_uint256(k0, k1, tx.hash(witness)) & uint64_t(0xffffffffffff);
+        
+        auto idit = shorttxids.find(shortid);
+        if (idit != shorttxids.end()) {
+            if (!have_txn[idit->second]) {
+                txn_available[idit->second] = tx;
+                have_txn[idit->second] = true;
+                ++mempool_count;
+            } else {
+                // If we find two mempool txn that match the short id, just
+                // request it. This should be rare enough that the extra
+                // bandwidth doesn't matter, but eating a round-trip due to
+                // FillBlock failure would be annoying.
+                if (txn_available[idit->second].is_valid()) {
+                    //txn_available[idit->second].reset();
+                    txn_available[idit->second] = chain::transaction{};
+                    --mempool_count;
+                }
+            }
+        }
+
+        //TODO (Mario) :  break the loop
+        // Though ideally we'd continue scanning for the
+        // two-txn-match-shortid case, the performance win of an early exit
+        // here is too good to pass up and worth the extra risk.
+        /*if (mempool_count == shorttxids.size()) {
+            return false;
+        } else {
+            return true;
+        }*/
+    }
+
+}
+
+safe_chain::mempool_mini_hash_map block_chain::get_mempool_mini_hash_map(message::compact_block const& block) const {
+#ifdef BITPRIM_CURRENCY_BCH
+     bool witness = false;
+#else
+     bool witness = true;
+#endif
+
+    if (stopped()) {
+        return safe_chain::mempool_mini_hash_map();
+    }
+    
+    auto header_hash = hash(block);
+
+    auto k0 = from_little_endian_unsafe<uint64_t>(header_hash.begin());
+    auto k1 = from_little_endian_unsafe<uint64_t>(header_hash.begin() + sizeof(uint64_t));
+
+    safe_chain::mempool_mini_hash_map mempool;
+
+
+    auto const result = database_.internal_db().get_all_transaction_unconfirmed();
+
+    for (auto const& tx_res : result) { 
+        auto const& tx = tx_res.transaction();
+
+        auto sh = sip_hash_uint256(k0, k1, tx.hash(witness));
+        
+       /* to_little_endian()
+        uint64_t pepe = 4564564;
+        uint64_t pepe2 = pepe & 0x0000ffffffffffff;
+            
+        reinterpret_cast<uint8_t*>(pepe2);
+        */
+        //Drop the most significative bytes from the sh
+        mini_hash short_id;
+        mempool.emplace(short_id,tx);
+    
+    }
+
+    return mempool;
+}
+
+std::vector<libbitcoin::blockchain::mempool_transaction_summary> block_chain::get_mempool_transactions(std::string const& payment_address, bool use_testnet_rules, bool witness) const{
+    std::vector<std::string> addresses = {payment_address};
+    return get_mempool_transactions(addresses, use_testnet_rules, witness);
+}
+
+
+void block_chain::fetch_unconfirmed_transaction(hash_digest const& hash, transaction_unconfirmed_fetch_handler handler) const
+{
+    if (stopped())
+    {
+        handler(error::service_stopped, nullptr);
+        return;
+    }
+
+    auto const result = database_.internal_db().get_transaction_unconfirmed(hash);
+
+    if ( ! result.is_valid())
+    {
+        handler(error::not_found, nullptr);
+        return;
+    }
+
+    auto const tx = std::make_shared<const transaction>(result.transaction());
+    handler(error::success, tx);
+}
+
+
+#endif // BITPRIM_DB_NEW_FULL
 
 #ifdef BITPRIM_DB_TRANSACTION_UNCONFIRMED
 //TODO(fernando): refactor!!!
@@ -1728,6 +2141,30 @@ std::vector<libbitcoin::blockchain::mempool_transaction_summary> block_chain::ge
     std::vector<std::string> addresses = {payment_address};
     return get_mempool_transactions(addresses, use_testnet_rules, witness);
 }
+
+
+
+void block_chain::fetch_unconfirmed_transaction(hash_digest const& hash, transaction_unconfirmed_fetch_handler handler) const
+{
+    if (stopped())
+    {
+        handler(error::service_stopped, nullptr);
+        return;
+    }
+
+    auto const result = database_.transactions_unconfirmed().get(hash);
+
+    if (!result)
+    {
+        handler(error::not_found, nullptr);
+        return;
+    }
+
+    auto const tx = std::make_shared<const transaction>(result.transaction());
+    handler(error::success, tx);
+}
+
+
 #endif // BITPRIM_DB_TRANSACTION_UNCONFIRMED
 
 #ifdef BITPRIM_DB_LEGACY
@@ -2149,7 +2586,7 @@ void block_chain::fetch_block_locator(block::indexes const& heights, block_locat
 // Server Queries.
 //-----------------------------------------------------------------------------
 
-#ifdef BITPRIM_DB_SPENDS
+#if defined(BITPRIM_DB_SPENDS) || defined(BITPRIM_DB_NEW_FULL)
 void block_chain::fetch_spend(const chain::output_point& outpoint, spend_fetch_handler handler) const {
     if (stopped())
     {
@@ -2157,7 +2594,11 @@ void block_chain::fetch_spend(const chain::output_point& outpoint, spend_fetch_h
         return;
     }
 
-    auto point = database_.spends().get(outpoint);
+    #if defined(BITPRIM_DB_SPENDS)
+        auto point = database_.spends().get(outpoint);
+    #else
+        auto point = database_.internal_db().get_spend(outpoint);
+    #endif
 
     if (point.hash() == null_hash)
     {
@@ -2169,14 +2610,20 @@ void block_chain::fetch_spend(const chain::output_point& outpoint, spend_fetch_h
 }
 #endif // BITPRIM_DB_SPENDS
 
-#ifdef BITPRIM_DB_HISTORY
-void block_chain::fetch_history(const short_hash& address_hash, size_t limit, size_t from_height, history_fetch_handler handler) const {
+
+#if defined(BITPRIM_DB_HISTORY) || defined(BITPRIM_DB_NEW_FULL)
+void block_chain::fetch_history(short_hash const& address_hash, size_t limit, size_t from_height, history_fetch_handler handler) const {
     if (stopped()) {
         handler(error::service_stopped, {});
         return;
     }
 
+#if defined(BITPRIM_DB_HISTORY)
     handler(error::success, database_.history().get(address_hash, limit, from_height));
+#else
+    handler(error::success, database_.internal_db().get_history(address_hash, limit, from_height));
+#endif
+
 }
 
 void block_chain::fetch_confirmed_transactions(const short_hash& address_hash, size_t limit, size_t from_height, confirmed_transactions_fetch_handler handler) const {
@@ -2185,10 +2632,14 @@ void block_chain::fetch_confirmed_transactions(const short_hash& address_hash, s
         return;
     }
 
+#if defined(BITPRIM_DB_HISTORY)
     handler(error::success, database_.history().get_txns(address_hash, limit, from_height));
+#else
+    handler(error::success, database_.internal_db().get_history_txns(address_hash, limit, from_height));
+#endif
 }
-#endif // BITPRIM_DB_HISTORY
 
+#endif // BITPRIM_DB_HISTORY
 
 #ifdef BITPRIM_DB_STEALTH
 void block_chain::fetch_stealth(const binary& filter, size_t from_height, stealth_fetch_handler handler) const
@@ -2278,6 +2729,40 @@ void block_chain::filter_transactions(get_data_ptr message,
     handler(error::success);
 }
 #endif // BITPRIM_DB_LEGACY
+
+#if defined(BITPRIM_DB_NEW_FULL)
+
+// This filters against all transactions (confirmed and unconfirmed).
+void block_chain::filter_transactions(get_data_ptr message, result_handler handler) const
+{
+    if (stopped())
+    {
+        handler(error::service_stopped);
+        return;
+    }
+
+    auto& inventories = message->inventories();
+    //auto const& transactions = database_.transactions();
+
+    size_t out_height;
+    size_t out_position;
+
+    for (auto it = inventories.begin(); it != inventories.end();)
+    {
+        //Bitprim: We don't store spent information
+        if (it->is_transaction_type() 
+            //&& get_is_unspent_transaction(it->hash(), max_size_t, false))
+            && get_transaction_position(out_height, out_position, it->hash(), false))
+            it = inventories.erase(it);
+        else
+            ++it;
+    }
+
+    handler(error::success);
+}
+
+#endif //BITPRIM_DB_NEW_FULL
+
 
 #ifdef BITPRIM_DB_NEW
 // This may execute up to 500 queries.
