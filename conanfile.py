@@ -44,7 +44,7 @@ class BitprimBlockchainConan(BitprimConanFile):
                "keoken": [True, False],
                "mining": [True, False],
                "use_domain": [True, False],
-               "db": ['legacy', 'legacy_full', 'new', 'new_with_blocks', 'new_full'],
+               "db": ['legacy', 'legacy_full', 'pruned', 'default', 'full'],
                "cxxflags": "ANY",
                "cflags": "ANY",
     }
@@ -62,7 +62,7 @@ class BitprimBlockchainConan(BitprimConanFile):
         "keoken=False", \
         "mining=False", \
         "use_domain=False", \
-        "db=legacy_full", \
+        "db=default", \
         "cxxflags=_DUMMY_", \
         "cflags=_DUMMY_"
 
@@ -184,7 +184,7 @@ class BitprimBlockchainConan(BitprimConanFile):
             cmake.definitions["DB_NEW"] = option_on_off(False)
             cmake.definitions["DB_NEW_BLOCKS"] = option_on_off(False)
             cmake.definitions["DB_NEW_FULL"] = option_on_off(False)
-        elif self.options.db == "new":
+        elif self.options.db == "pruned":
             cmake.definitions["DB_TRANSACTION_UNCONFIRMED"] = option_on_off(False)
             cmake.definitions["DB_SPENDS"] = option_on_off(False)
             cmake.definitions["DB_HISTORY"] = option_on_off(False)
@@ -194,7 +194,7 @@ class BitprimBlockchainConan(BitprimConanFile):
             cmake.definitions["DB_NEW"] = option_on_off(True)
             cmake.definitions["DB_NEW_BLOCKS"] = option_on_off(False)
             cmake.definitions["DB_NEW_FULL"] = option_on_off(False)
-        elif self.options.db == "new_with_blocks":
+        elif self.options.db == "default":
             cmake.definitions["DB_TRANSACTION_UNCONFIRMED"] = option_on_off(False)
             cmake.definitions["DB_SPENDS"] = option_on_off(False)
             cmake.definitions["DB_HISTORY"] = option_on_off(False)
@@ -204,7 +204,7 @@ class BitprimBlockchainConan(BitprimConanFile):
             cmake.definitions["DB_NEW"] = option_on_off(True)
             cmake.definitions["DB_NEW_BLOCKS"] = option_on_off(True)
             cmake.definitions["DB_NEW_FULL"] = option_on_off(False)
-        elif self.options.db == "new_full":
+        elif self.options.db == "full":
             cmake.definitions["DB_TRANSACTION_UNCONFIRMED"] = option_on_off(False)
             cmake.definitions["DB_SPENDS"] = option_on_off(False)
             cmake.definitions["DB_HISTORY"] = option_on_off(False)
