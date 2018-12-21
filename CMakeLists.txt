@@ -384,7 +384,7 @@ add_library(bitprim-blockchain ${MODE} ${bitprim_blockchain_sources})
 
 
 if (ENABLE_POSITION_INDEPENDENT_CODE)
-  set_property(TARGET bitprim-blockchain PROPERTY POSITION_INDEPENDENT_CODE ON)
+    set_property(TARGET bitprim-blockchain PROPERTY POSITION_INDEPENDENT_CODE ON)
 endif(ENABLE_POSITION_INDEPENDENT_CODE)
   
 target_include_directories(bitprim-blockchain PUBLIC
@@ -513,47 +513,47 @@ endif()
 # local: test/bitprim_blockchain_test
 #------------------------------------------------------------------------------
 if (WITH_TESTS)
-  add_executable(bitprim_blockchain_test
-    test/block_chain.cpp
-    test/block_entry.cpp
-    test/block_pool.cpp
-    test/branch.cpp
-    test/transaction_entry.cpp
-    test/transaction_pool.cpp
-    test/validate_block.cpp
-    test/validate_transaction.cpp
-    test/utxo.cpp
-    test/main.cpp
-  )
+#   add_executable(bitprim_blockchain_test
+#     test/block_chain.cpp
+#     test/block_entry.cpp
+#     test/block_pool.cpp
+#     test/branch.cpp
+#     test/transaction_entry.cpp
+#     test/transaction_pool.cpp
+#     test/validate_block.cpp
+#     test/validate_transaction.cpp
+#     test/utxo.cpp
+#     test/main.cpp
+#   )
 
-  target_link_libraries(bitprim_blockchain_test PUBLIC bitprim-blockchain)
-  _group_sources(bitprim_blockchain_test "${CMAKE_CURRENT_LIST_DIR}/test")
+#   target_link_libraries(bitprim_blockchain_test PUBLIC bitprim-blockchain)
+#   _group_sources(bitprim_blockchain_test "${CMAKE_CURRENT_LIST_DIR}/test")
 
-  # _add_tests(bitprim_blockchain_test "blockchain" transaction_pool_tests) # validate_block_tests) # no test cases
+#   # _add_tests(bitprim_blockchain_test "blockchain" transaction_pool_tests) # validate_block_tests) # no test cases
 
-  _add_tests(bitprim_blockchain_test 
-    block_entry_tests
-    block_pool_tests
-    branch_tests
-    transaction_entry_tests
-    validate_block_tests
-    validate_transaction_tests
-  )
+#   _add_tests(bitprim_blockchain_test 
+#     block_entry_tests
+#     block_pool_tests
+#     branch_tests
+#     transaction_entry_tests
+#     validate_block_tests
+#     validate_transaction_tests
+#   )
 
-  if (DB_LEGACY)
-    _add_tests(bitprim_blockchain_test 
-      fast_chain_tests
-      safe_chain_tests
-    )
-  endif()
+#   if (DB_LEGACY)
+#     _add_tests(bitprim_blockchain_test 
+#       fast_chain_tests
+#       safe_chain_tests
+#     )
+#   endif()
 
-  if (DB_NEW)
-    if (NOT WIN32)
-      _add_tests(bitprim_blockchain_test 
-        utxo_tests
-      )
-    endif()
-  endif()
+#   if (DB_NEW)
+#     if (NOT WIN32)
+#       _add_tests(bitprim_blockchain_test 
+#         utxo_tests
+#       )
+#     endif()
+#   endif()
 
 
 endif()
@@ -634,7 +634,6 @@ install(TARGETS bitprim-blockchain EXPORT bitprim-blockchain
   RUNTIME DESTINATION bin
   INCLUDES DESTINATION include
 )
-
 
 set(_bitprim_headers
   # include_bitcoin_HEADERS =

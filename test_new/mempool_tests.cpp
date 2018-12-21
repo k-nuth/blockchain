@@ -660,6 +660,7 @@ TEST_CASE("[mempool] Dependencies 4") {
     REQUIRE(mp.candidate_rank(b) == null_index);
 
 
+
     transaction c {1, 1, {input{output_point{b.hash(), 0}, script{}, 1}}, {output{40, script{}}}};
     add_state(c);
     c.inputs()[0].previous_output().validation.cache = b.outputs()[0];
@@ -685,6 +686,7 @@ TEST_CASE("[mempool] Dependencies 4") {
 
     mp.check_indexes();
 }
+
 
 
 /*
