@@ -92,6 +92,31 @@ std::set<typename Container::value_type, Cmp> to_ordered_set(F f, Container cons
 }
 
 
+static
+void sort_ltor( std::vector<libbitcoin::mining::node>& all, libbitcoin::mining::indexes_t& candidates ){
+    auto last_organized = candidates.begin();
+
+    while (last_organized != candidates.end()){
+        auto selected_to_move = last_organized;
+        ++last_organized;
+
+        auto most_left_child = std::find_if(candidates.begin(), selected_to_move, [&] (index_t s) -> bool {
+                    auto const& parent_node = all[*selected_to_move];
+                    auto found = std::find( parent_node.children().begin(), parent_node.children().end(), s);
+                    return found != parent_node.children().end();}
+        );
+
+        if( most_left_child != selected_to_move ){
+            //move to the left of most_left_child
+            //candidates.splice(most_left_child, candidates, selected_to_move);
+
+            //TODO (rama): replace with list implementation
+            auto removed = *selected_to_move;
+            candidates.erase(selected_to_move);
+            candidates.insert(most_left_child, removed);
+        }
+    }
+}
 
 class mempool {
 public:
@@ -482,7 +507,7 @@ public:
         // end = chrono::high_resolution_clock::now();
         // auto sort_time = chrono::duration_cast<chrono::nanoseconds>(end - start).count();
 #else
-        //TODO: Sort LTOR the candidates
+        sort_ltor(all, candidates);
 #endif
 
         std::vector<transaction_element> res;
