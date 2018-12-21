@@ -2141,4 +2141,75 @@ TEST_CASE("[mempool] testnet case 2 LTOR") {
     REQUIRE(true);
 }
 
+
+TEST_CASE("[mempool] Dependencies graph LTOR") {
+
+    transaction coinbase0 {1, 1, {input{output_point{null_hash, point::null_index}, script{}, 1}}, {output{50, script{}}}};
+    add_state(coinbase0);
+    REQUIRE(coinbase0.is_valid());
+    REQUIRE(coinbase0.is_coinbase());
+
+    transaction a {1, 1, {input{output_point{coinbase0.hash(), 0}, script{}, 1}}, { output{25, script{}}, output{15, script{}}} };
+    add_state(a);
+    a.inputs()[0].previous_output().validation.cache = coinbase0.outputs()[0];
+    a.inputs()[0].previous_output().validation.from_mempool = false;
+    REQUIRE(a.is_valid());
+    REQUIRE(a.fees() == 10);
+
+    transaction b {1, 1, {input{output_point{a.hash(), 0}, script{}, 1}}, {output{10, script{}}, output{14, script{}}}};
+    add_state(b);
+    b.inputs()[0].previous_output().validation.cache = a.outputs()[0];
+    b.inputs()[0].previous_output().validation.from_mempool = true;
+    REQUIRE(b.is_valid());
+    REQUIRE(b.fees() == 1);
+
+    transaction c {1, 1, {input{output_point{b.hash(), 0}, script{}, 1}}, {output{2, script{}}}};
+    add_state(c);
+    c.inputs()[0].previous_output().validation.cache = b.outputs()[0];
+    c.inputs()[0].previous_output().validation.from_mempool = true;
+    REQUIRE(c.is_valid());
+    REQUIRE(c.fees() == 8);
+
+    transaction d {1, 1, {input{output_point{b.hash(), 1}, script{}, 1} ,input{output_point{c.hash(), 0}, script{}, 1}}, {output{11, script{}}}};
+    add_state(d);
+    d.inputs()[0].previous_output().validation.cache = b.outputs()[1];
+    d.inputs()[0].previous_output().validation.from_mempool = true;
+    d.inputs()[1].previous_output().validation.cache = c.outputs()[0];
+    d.inputs()[1].previous_output().validation.from_mempool = true;
+    REQUIRE(d.is_valid());
+    REQUIRE(d.fees() == 5);
+
+    transaction e {1, 1, { input{output_point{a.hash(), 1}, script{}, 1}, input{output_point{d.hash(), 0}, script{}, 1}}, {output{1, script{}}}};
+    add_state(e);
+    e.inputs()[0].previous_output().validation.cache = a.outputs()[1];
+    e.inputs()[0].previous_output().validation.from_mempool = true;
+    e.inputs()[1].previous_output().validation.cache = d.outputs()[0];
+    e.inputs()[1].previous_output().validation.from_mempool = true;
+    
+    REQUIRE(e.is_valid());
+    REQUIRE(e.fees() == 25);
+
+    mempool mp;
+    REQUIRE(mp.add(a) == error::success);
+    REQUIRE(mp.add(b) == error::success);
+    REQUIRE(mp.add(c) == error::success);
+    REQUIRE(mp.add(d) == error::success);
+    REQUIRE(mp.add(e) == error::success);
+
+    REQUIRE(mp.all_transactions() == 5);
+    REQUIRE(mp.candidate_transactions() == 5);
+    REQUIRE(mp.candidate_fees() == a.fees() + b.fees() + c.fees() + d.fees() + e.fees());
+
+    REQUIRE(mp.candidate_rank(a) == 3);
+    REQUIRE(mp.candidate_rank(b) == 4);
+    REQUIRE(mp.candidate_rank(c) == 2);
+    REQUIRE(mp.candidate_rank(d) == 1);
+    REQUIRE(mp.candidate_rank(e) == 0);
+
+    auto block = get_block_from_template(mp);
+    REQUIRE( ! block.is_forward_reference());
+   
+}
+
+
 #endif
