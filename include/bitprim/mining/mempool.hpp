@@ -97,6 +97,7 @@ class mempool {
 public:
 
     using to_insert_t = std::tuple<indexes_t, uint64_t, size_t, size_t>;
+    // using to_insert_t = std::tuple<indexes_t, uint64_t, size_t, size_t, indexes_t, uint64_t, size_t, size_t>;
     using accum_t = std::tuple<uint64_t, size_t, size_t>;
     using all_transactions_t = std::vector<node>;
     using internal_utxo_set_t = std::unordered_map<chain::point, chain::output>;
@@ -139,7 +140,67 @@ public:
         all_transactions_.reserve(all_capacity);
     }
 
+    void check_children_accum(index_t node_index) const {
+
+        removal_list_t out_removed;
+        auto res = out_removed.insert(node_index);
+        if ( ! res.second) {
+            return;
+        }
+        
+        auto const& node = all_transactions_[node_index];
+        auto fee = node.fee();
+        auto size = node.size();
+        auto sigops = node.sigops();
+
+        if (node.candidate_index() != null_index) {
+            for (auto child_index : node.children()) {
+                auto const& child = all_transactions_[child_index];
+
+                //To verify that the node is inside of the candidate list.
+                if (child.candidate_index() != null_index) {
+                    auto res = out_removed.insert(child_index);
+                    if (res.second) {
+                        fee += child.fee();
+                        size += child.size();
+                        sigops += child.sigops();
+                    }
+                }
+            }
+        }
+
+        BITCOIN_ASSERT(node.children_fees() == fee);
+        BITCOIN_ASSERT(node.children_size() == size);
+        BITCOIN_ASSERT(node.children_sigops() == sigops);
+    }
+
+
     void check_indexes() const {
+        check_indexes_partial();
+
+        {
+            size_t i = 0;
+            for (auto const& node : all_transactions_) {
+                if (node.candidate_index() != null_index) {
+                    for (auto pi : node.parents()) {
+                        auto const& parent = all_transactions_[pi];
+                        BOOST_ASSERT(parent.candidate_index() != null_index);
+                    }
+                }
+                ++i;
+            }
+        } 
+
+        {
+            size_t i = 0;
+            for (auto const& node : all_transactions_) {
+                check_children_accum(i);
+                ++i;
+            }
+        }        
+    }
+
+    void check_indexes_partial() const {
         
         BOOST_ASSERT(candidate_transactions_.size() <= all_transactions_.size());
 
@@ -172,6 +233,16 @@ public:
         }
 
         {
+            // size_t ci = 0;
+            for (auto i : candidate_transactions_) {
+                auto const& node = all_transactions_[i];
+                // BOOST_ASSERT(ci == node.candidate_index());
+                // ++ci;
+                check_children_accum(i);
+            }
+        }
+
+        {
             size_t i = 0;
             size_t non_indexed = 0;
             for (auto const& node : all_transactions_) {
@@ -192,7 +263,7 @@ public:
         //precondition: tx is fully validated: check() && accept() && connect()
         //              ! tx.is_coinbase()
 
-        std::cout << encode_base16(tx.to_data(true, BITPRIM_WITNESS_DEFAULT)) << std::endl;
+        // std::cout << encode_base16(tx.to_data(true, BITPRIM_WITNESS_DEFAULT)) << std::endl;
 
         return prioritizer_.low_job([this, &tx]{
             auto const index = all_transactions_.size();
@@ -204,7 +275,12 @@ public:
             }
 
             all_transactions_.push_back(std::move(temp_node));
-            return add_node(index);
+            res = add_node(index);
+
+#ifndef NDEBUG
+            check_indexes();
+#endif
+            return res;
         });
     }
 
@@ -524,9 +600,6 @@ private:
                 // previous_outputs_.left.insert(previous_outputs_t::left_value_type(i.previous_output(), node_index));
                 previous_outputs_.insert({i.previous_output(), index});
             }        
-            if (index == 140) {
-                std::cout << std::endl;
-            }
             add_node(index);
         } else {
             //No debería pasar por aca
@@ -540,18 +613,34 @@ private:
 
         if (candidate_transactions_.size() > 0 && ! has_room_for(std::get<2>(to_insert), std::get<3>(to_insert))) {
             //TODO: what_to_remove_time
-            auto to_remove = what_to_remove(std::get<1>(to_insert), std::get<2>(to_insert), std::get<3>(to_insert));
+            auto to_remove = what_to_remove(index, std::get<1>(to_insert), std::get<2>(to_insert), std::get<3>(to_insert));
 
+#ifndef NDEBUG
+            for (auto const& wtr : to_remove) {
+                for (auto const& wti : std::get<0>(to_insert)) {
+                    if (wtr == wti) {
+                        BOOST_ASSERT(false);
+                    }
+                }
+            }
+#endif
             if (to_remove.empty()) {
                 // ++low_benefit_tx_counter;
                 return error::low_benefit_transaction;
             } 
             do_candidate_removal(to_remove);
+#ifndef NDEBUG
+            check_indexes();
+#endif
+
         }
-       
+
         do_candidates_insertion(to_insert);
 
-        // check_indexes();
+#ifndef NDEBUG
+        check_indexes();
+#endif
+
         return error::success;
     }    
     
@@ -613,7 +702,8 @@ private:
 
 
     //TODO(fernando): replace tuple with a struct with names
-    accum_t get_accum(removal_list_t& out_removed, index_t node_index, indexes_t const& children) {
+    // accum_t get_accum(removal_list_t& out_removed, index_t node_index, indexes_t const& children) {
+    accum_t get_accum(removal_list_t& out_removed, index_t node_index) const {
         auto res = out_removed.insert(node_index);
         if ( ! res.second) {
             return {0, 0, 0};
@@ -624,7 +714,7 @@ private:
         auto size = node.size();
         auto sigops = node.sigops();
 
-        for (auto child_index : children) {
+        for (auto child_index : node.children()) {
             auto const& child = all_transactions_[child_index];
 
             //To verify that the node is inside of the candidate list.
@@ -641,15 +731,20 @@ private:
         return {fee, size, sigops};
     }
 
-    to_insert_t what_to_insert(index_t node_index) {
-        indexes_t to_insert;
+    to_insert_t what_to_insert(index_t node_index) const {
+        indexes_t to_insert_no_inserted;
+        // indexes_t to_insert_inserted;
 
         auto const& node = all_transactions_[node_index];
         auto fees = node.fee();
         auto size = node.size();
         auto sigops = node.sigops();
 
-        to_insert.push_back(node_index);
+        to_insert_no_inserted.push_back(node_index);
+
+        // uint64_t fees_inserted = 0;
+        // size_t size_inserted = 0;
+        // size_t sigops_inserted = 0;
 
         for (auto pi : node.parents()) {
             auto const& parent = all_transactions_[pi];
@@ -657,14 +752,27 @@ private:
                 fees += parent.fee();
                 size += parent.size();
                 sigops += parent.sigops();
-                to_insert.push_back(pi);
-            }
+                to_insert_no_inserted.push_back(pi);
+            } 
+            // else {
+            //     fees_inserted += parent.fee();
+            //     size_inserted += parent.size();
+            //     sigops_inserted += parent.sigops();
+            //     to_insert_inserted.push_back(pi);
+            // }
         }
 
-        return {std::move(to_insert), fees, size, sigops};
+        return {std::move(to_insert_no_inserted), fees, size, sigops};
+        // return {std::move(to_insert_no_inserted), fees, size, sigops, std::move(to_insert_inserted), fees_inserted, size_inserted, sigops_inserted};
     }
 
-    removal_list_t what_to_remove(uint64_t fees, size_t size, size_t sigops) {
+    bool shares_parents(mining::node const& to_insert_node, index_t remove_candidate_index) const {
+        auto const& parents = to_insert_node.parents();
+        auto it = std::find(parents.begin(), parents.end(), remove_candidate_index);
+        return it != parents.end();
+    }
+
+    removal_list_t what_to_remove(index_t to_insert_index, uint64_t fees, size_t size, size_t sigops) const {
         //precondition: candidate_transactions_.size() > 0
 
         // auto const& node = all_transactions_[node_index];
@@ -686,29 +794,35 @@ private:
         while (true) {
             auto elem_index = *it;
             auto const& elem = all_transactions_[elem_index];
+            auto const& to_insert_elem = all_transactions_[to_insert_index];
             
-            auto res = get_accum(removed, elem_index, elem.children());
-            if (std::get<1>(res) != 0) {
-                fee_accum += std::get<0>(res);
-                size_accum += std::get<1>(res);
+            //TODO(fernando): Do I have to check if elem_idex is any of the to_insert elements
+            bool shares = shares_parents(to_insert_elem, elem_index);
 
-                auto to_remove_benefit = static_cast<double>(fee_accum) / size_accum;
-                //El beneficio del elemento que voy a insertar es "peor" que el peor que el del peor elemento que tengo como candidato. Entonces, no sigo.
-                if (pack_benefit <= to_remove_benefit) {
-                    //El beneficio acumulado de los elementos a remover es "mejor" que el que tengo para insertar.
-                    //No tengo que hacer nada.
-                    // return candidate_transactions_.end();
-                    return {};
-                }
+            if ( ! shares) {
+                auto res = get_accum(removed, elem_index);
+                if (std::get<1>(res) != 0) {
+                    fee_accum += std::get<0>(res);
+                    size_accum += std::get<1>(res);
 
-                next_size -= std::get<1>(res);
-                next_sigops -= std::get<2>(res);
+                    auto to_remove_benefit = static_cast<double>(fee_accum) / size_accum;
+                    //El beneficio del elemento que voy a insertar es "peor" que el peor que el del peor elemento que tengo como candidato. Entonces, no sigo.
+                    if (pack_benefit <= to_remove_benefit) {
+                        //El beneficio acumulado de los elementos a remover es "mejor" que el que tengo para insertar.
+                        //No tengo que hacer nada.
+                        // return candidate_transactions_.end();
+                        return {};
+                    }
 
-                if (next_size + size <= max_template_size_) {
-                    auto const sigops_limit = get_allowed_sigops(next_size);
-                    if (next_sigops + sigops <= sigops_limit) {
-                        // return it;
-                        return removed;
+                    next_size -= std::get<1>(res);
+                    next_sigops -= std::get<2>(res);
+
+                    if (next_size + size <= max_template_size_) {
+                        auto const sigops_limit = get_allowed_sigops(next_size);
+                        if (next_sigops + sigops <= sigops_limit) {
+                            // return it;
+                            return removed;
+                        }
                     }
                 }
             }
@@ -739,13 +853,31 @@ private:
 
     void do_candidates_insertion(to_insert_t const& to_insert) {
 
+        // for (auto i : std::get<0>(to_insert)) {
+        //     auto& node = all_transactions_[i];
+        //     for (auto pi : node.parents()) {
+        //         auto& parent = all_transactions_[pi];
+        //         parent.increment_values(node.fee(), node.size(), node.sigops());
+        //     }
+        // }
+
+
         for (auto i : std::get<0>(to_insert)) {
-            insert_in_candidate(i);
+            insert_in_candidate(i, std::get<0>(to_insert));
 
 #ifdef BITPRIM_MINING_CTOR_ENABLED
             insert_in_candidate_ctor(i);
 #endif
+
+#ifndef NDEBUG
+            check_indexes_partial();
+#endif
         }
+
+#ifndef NDEBUG
+        check_indexes();
+#endif
+
 
         accum_fees_ += std::get<1>(to_insert);
         accum_size_ += std::get<2>(to_insert);
@@ -903,9 +1035,12 @@ private:
 
     void remove_and_reindex(index_t i) {
         //precondition: TODO?
+
         auto it = std::next(std::begin(candidate_transactions_), i);
         auto& node = all_transactions_[*it];
         node.set_candidate_index(null_index);
+
+        node.reset_children_values();
 
         accum_size_ -= node.size();
         accum_sigops_ -= node.sigops();
@@ -1123,20 +1258,36 @@ private:
         }
     }
 
-    void reindex_parents_from_insertion(mining::node const& node) {
+    void reindex_parents_from_insertion(mining::node const& node, indexes_t to_insert) {
         //precondition: candidate_transactions_.size() > 0
+
+        // for (auto pi : node.parents()) {
+        //     auto& parent = all_transactions_[pi];
+        //     auto old = parent;
+        //     if (parent.candidate_index() != null_index) {
+        //         reindex_parent_from_insertion(node, parent, pi);
+        //     }
+        // }
 
         for (auto pi : node.parents()) {
             auto& parent = all_transactions_[pi];
-            parent.increment_values(node.fee(), node.size(), node.sigops());
-            
+            // auto old = parent;
+
+            // parent.increment_values(node.fee(), node.size(), node.sigops());
+           
             if (parent.candidate_index() != null_index) {
+                parent.increment_values(node.fee(), node.size(), node.sigops());
                 reindex_parent_from_insertion(node, parent, pi);
+            } else {
+                auto it = std::find(std::begin(to_insert), std::end(to_insert), pi);
+                if (it != std::end(to_insert)) {
+                    parent.increment_values(node.fee(), node.size(), node.sigops());
+                }
             }
         }
     }
 
-    void insert_in_candidate(index_t node_index) {
+    void insert_in_candidate(index_t node_index, indexes_t to_insert) {
         auto& node = all_transactions_[node_index];
 
         // auto start = std::chrono::high_resolution_clock::now();
@@ -1170,7 +1321,7 @@ private:
         // time_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
         // insert_time += time_ns;
 
-        reindex_parents_from_insertion(node);
+        reindex_parents_from_insertion(node, to_insert);
     }
 
 #ifdef BITPRIM_MINING_CTOR_ENABLED

@@ -108,6 +108,8 @@ TEST_CASE("[mempool] add one transaction") {
     REQUIRE(mp.all_transactions() == 1);
     REQUIRE(mp.candidate_transactions() == 1);
     REQUIRE(mp.candidate_bytes() == tx.to_data(true, BITPRIM_WITNESS_DEFAULT).size());
+
+    mp.check_indexes();
 }
 
 TEST_CASE("[mempool] duplicated transactions") {
@@ -125,6 +127,8 @@ TEST_CASE("[mempool] duplicated transactions") {
     auto res = mp.add(tx);
     REQUIRE(res != error::success);
     REQUIRE(res == error::duplicate_transaction);
+
+    mp.check_indexes();
 }
 
 TEST_CASE("[mempool] chained transactions") {
@@ -155,6 +159,8 @@ TEST_CASE("[mempool] chained transactions") {
     REQUIRE(mp.candidate_transactions() == 2);
     REQUIRE(mp.candidate_bytes() == tx.to_data(true, BITPRIM_WITNESS_DEFAULT).size() 
                                   + spender.to_data(true, BITPRIM_WITNESS_DEFAULT).size());
+
+    mp.check_indexes();
 }
 
 // TEST_CASE("[mempool] double spend mempool") {
@@ -254,7 +260,10 @@ TEST_CASE("[mempool] replace TX Candidate for a better one") {
     REQUIRE(mp.is_candidate(spender1));
     REQUIRE(mp.contains(spender0.hash()));
     REQUIRE( ! mp.is_candidate(spender0));
+
+    mp.check_indexes();
 }
+
 
 TEST_CASE("[mempool] Try to insert a Low Benefit Transaction") {
 
@@ -297,6 +306,8 @@ TEST_CASE("[mempool] Try to insert a Low Benefit Transaction") {
     REQUIRE( ! mp.is_candidate(spender1));
     REQUIRE(mp.contains(spender0.hash()));
     REQUIRE(mp.is_candidate(spender0));
+
+    mp.check_indexes();
 }
 
 /*
@@ -355,6 +366,8 @@ TEST_CASE("[mempool] Dependencies 0") {
     REQUIRE(mp.candidate_rank(b) == 1);
     REQUIRE(mp.candidate_rank(c) == 2);
     REQUIRE(mp.candidate_rank(d) == 3);
+
+    mp.check_indexes();
 }
 
 /*
@@ -413,6 +426,8 @@ TEST_CASE("[mempool] Dependencies 1") {
     REQUIRE(mp.candidate_rank(b) == 2);
     REQUIRE(mp.candidate_rank(c) == 1);
     REQUIRE(mp.candidate_rank(d) == 0);
+
+    mp.check_indexes();
 }
 
 /*
@@ -494,6 +509,8 @@ TEST_CASE("[mempool] Dependencies 2") {
     REQUIRE(mp.candidate_rank(c) == null_index);
     REQUIRE(mp.candidate_rank(d) == null_index);
     REQUIRE(mp.candidate_rank(e) == 0);
+
+    mp.check_indexes();
 }
 
 
@@ -567,6 +584,8 @@ TEST_CASE("[mempool] Dependencies 3") {
     REQUIRE(mp.candidate_rank(b) == 2);
     REQUIRE(mp.candidate_rank(z) == 0);
     REQUIRE(mp.candidate_rank(c) == 3);
+
+    mp.check_indexes();
 }
 
 /*
@@ -663,6 +682,8 @@ TEST_CASE("[mempool] Dependencies 4") {
     REQUIRE(mp.candidate_rank(a) == 2);
     REQUIRE(mp.candidate_rank(b) == 1);
     REQUIRE(mp.candidate_rank(c) == 0);
+
+    mp.check_indexes();
 }
 
 
@@ -760,6 +781,8 @@ TEST_CASE("[mempool] Dependencies 4b") {
     REQUIRE(mp.candidate_rank(a) == 2);
     REQUIRE(mp.candidate_rank(b) == 1);
     REQUIRE(mp.candidate_rank(c) == 0);
+
+    mp.check_indexes();
 }
 
 /*
@@ -809,6 +832,8 @@ TEST_CASE("[mempool] Dependencies 5") {
     REQUIRE(mp.candidate_rank(a) == 0);
     REQUIRE(mp.candidate_rank(b) == 1);
     REQUIRE(mp.candidate_rank(c) == null_index);
+
+    mp.check_indexes();
 }
 
 /*
@@ -858,11 +883,99 @@ TEST_CASE("[mempool] Dependencies 6") {
     REQUIRE(mp.candidate_rank(a) == 1);
     REQUIRE(mp.candidate_rank(b) == 0);
     REQUIRE(mp.candidate_rank(c) == 2);
+
+    mp.check_indexes();
+}
+
+
+
+
+
+TEST_CASE("[mempool] Dependencies 7 - what_to_insert") {
+
+    // ------------------------
+    transaction a {1, 1, { input{output_point{null_hash, 0}, script{}, 1} },
+                         { output{40, script{}}, output{30, script{}} }
+                  };
+    add_state(a);
+    a.inputs()[0].previous_output().validation.cache = output{90, script{}};
+    a.inputs()[0].previous_output().validation.from_mempool = false;
+    REQUIRE(a.is_valid());
+    REQUIRE(a.fees() == 20);
+    // accum fees = 20 + 10 + 10 + 30 = 70
+    // accum size = 69 + 60 + 60 + 101 = 290
+    // benefit 70/290=0.24137931
+
+    // ------------------------
+    transaction b {1, 1, { input{output_point{a.hash(), 0}, script{}, 1} }, 
+                         {output{30, script{}}}
+                  };
+    add_state(b);
+    b.inputs()[0].previous_output().validation.cache = a.outputs()[0];
+    b.inputs()[0].previous_output().validation.from_mempool = true;
+    REQUIRE(b.is_valid());
+    REQUIRE(b.fees() == 10);
+    // accum fees = 10 + 30  = 40
+    // accum size = 60 + 101 = 161
+    // benefit 40/161=0.248447205
+
+    // ------------------------
+    transaction c {1, 1, { input{output_point{a.hash(), 1}, script{}, 1} }, 
+                         { output{20, script{}} }
+                  };
+    add_state(c);
+    c.inputs()[0].previous_output().validation.cache = a.outputs()[1];
+    c.inputs()[0].previous_output().validation.from_mempool = true;
+    REQUIRE(c.is_valid());
+    REQUIRE(c.fees() == 10);
+    // accum fees = 10 + 30  = 40
+    // accum size = 60 + 101 = 161
+    // benefit 40/161=0.248447205
+
+    // ------------------------
+    transaction d {1, 1, { input{output_point{b.hash(), 0}, script{}, 1},
+                           input{output_point{c.hash(), 0}, script{}, 1} }, 
+                         { output{20, script{}} }
+                  };
+    add_state(d);
+    d.inputs()[0].previous_output().validation.cache = b.outputs()[0];
+    d.inputs()[0].previous_output().validation.from_mempool = true;
+    d.inputs()[1].previous_output().validation.cache = c.outputs()[0];
+    d.inputs()[1].previous_output().validation.from_mempool = true;
+    REQUIRE(d.is_valid());
+    REQUIRE(d.fees() == 30);
+    // accum fees = 30
+    // accum size = 101
+    // benefit 30/101=0.297029703
+
+
+    mempool mp(5 * 60);
+
+    REQUIRE(mp.add(a) == error::success);
+    REQUIRE(mp.candidate_rank(a) == 0);
+
+    REQUIRE(mp.add(b) == error::success);
+    REQUIRE(mp.candidate_rank(a) == 0);
+    REQUIRE(mp.candidate_rank(b) == 1);
+
+    REQUIRE(mp.add(c) == error::success);
+    REQUIRE(mp.candidate_rank(a) == 0);
+    REQUIRE(mp.candidate_rank(b) == 1);
+    REQUIRE(mp.candidate_rank(c) == 2);
+
+    REQUIRE(mp.add(d) == error::success);
+
+    REQUIRE(mp.candidate_rank(a) == 3);
+    REQUIRE(mp.candidate_rank(b) > 0);
+    REQUIRE(mp.candidate_rank(b) < 3);
+    REQUIRE(mp.candidate_rank(c) > 0);
+    REQUIRE(mp.candidate_rank(c) < 3);
+    REQUIRE(mp.candidate_rank(d) == 0);
+
+    mp.check_indexes();
 }
 
 TEST_CASE("[mempool] Double Spend Mempool") {
-
-    // hash_digest aaa {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
     transaction a {1, 1, {input{output_point{null_hash, 0}, script{}, 1}}, {output{40, script{}}}};
     add_state(a);
@@ -892,12 +1005,12 @@ TEST_CASE("[mempool] Double Spend Mempool") {
 
     REQUIRE(mp.all_transactions() == 2);
     REQUIRE(mp.candidate_transactions() == 2);
+
+    mp.check_indexes();
 }
 
 
 TEST_CASE("[mempool] Double Spend Blockchain") {
-
-    // hash_digest aaa {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
     transaction a {1, 1, {input{output_point{hash_one, 0}, script{}, 1}}, {output{40, script{}}}};
     add_state(a);
@@ -916,6 +1029,9 @@ TEST_CASE("[mempool] Double Spend Blockchain") {
     mempool mp;
     REQUIRE(mp.add(a) == error::success);
     REQUIRE(mp.add(b) == error::double_spend_blockchain);
+
+
+    mp.check_indexes();
 
 
 }
@@ -1013,6 +1129,8 @@ TEST_CASE("[mempool] Remove Transactions 0") {
     REQUIRE(mp.candidate_bytes() == 0);
     REQUIRE(mp.candidate_fees() == 0);
     REQUIRE(mp.candidate_sigops() == 0);
+
+    mp.check_indexes();
 }
 
 
@@ -1061,6 +1179,8 @@ TEST_CASE("[mempool] Remove Transactions 1") {
     REQUIRE(mp.candidate_bytes() == 0);
     REQUIRE(mp.candidate_fees() == 0);
     REQUIRE(mp.candidate_sigops() == 0);
+
+    mp.check_indexes();
 }
 
 TEST_CASE("[mempool] Remove Transactions 2") {
@@ -1116,6 +1236,8 @@ TEST_CASE("[mempool] Remove Transactions 2") {
     REQUIRE(mp.candidate_bytes() == 60);
     REQUIRE(mp.candidate_fees() == x.fees());
     REQUIRE(mp.candidate_sigops() == x.signature_operations());
+
+    mp.check_indexes();
 }
 
     
@@ -1280,10 +1402,13 @@ TEST_CASE("[mempool] testnet case 0") {
     std::cout << mp.add(get_tx_from_mempool(mp, internal_utxo, "010000000184baa3386a9d5b0567f7222aba8418854b23bb06b37e03f02012e3d6324c6821010000006b483045022100bf252d7a94482b700e17b7157bd854b0e4e496dbdca851e1319e2d47c94ee476022032addf8297c7e325587a2cbf561c899ea19b5a6e68369f25a851ec874c18b44b41210289d92b4239c112e97db3aac9590681968bd00415e974dba04bc81cca96b8c7ecffffffff02d0070000000000001976a91432b57f34861bcbe33a701be9ac3a50288fbc0a3d88ac96068700000000001976a914b8e0a1c9040f8636a453ba077d7fa5f2318c7d0c88ac00000000")) << std::endl;
     std::cout << mp.add(get_tx_from_mempool(mp, internal_utxo, "01000000015e4561ad09b3f1a9268a6cb27a69cd1f62c86299934e99af9373854ab31e4f91010000006b483045022100e3f220641e649afa2d7f34814419772032309ca2e3b2b399cbda440e3ebb96da02200a701f31015cfbe0a15982636f565b79ea9530a9b68cabca43d61c77f6a8bd30412102c202701835c99b3e977acd51afc478325cc981bb8456be585307a8382cd7f2c7ffffffff02d0070000000000001976a91432b57f34861bcbe33a701be9ac3a50288fbc0a3d88acdf0a8700000000001976a91486101da37d5ed4800ca902fdad8aaf99ec7df25088ac00000000")) << std::endl;
 
+    mp.check_indexes();
 
     auto segfault = get_tx_from_mempool(mp, internal_utxo, "01000000016653bb0c030b5a361c197a1d97c565cd0cbbef648a8599a835aa2f66738552f3010000006a47304402200eca9a84f0ccadb3a130ae2f0d5c95ba9ed112a0c7dbe494fe300d56f3c84eaf022021a2c4e6695737d06e860b7714df337d238f34060f08dfb71a1f736916917c204121026f77aac396bd82dde783509ccf188c5140a1b3e69809bbe65309fab98e97d95affffffff02d0070000000000001976a91432b57f34861bcbe33a701be9ac3a50288fbc0a3d88ac482a8800000000001976a914e048131a271885ad572722ff444e6b133e123e3088ac00000000");
     auto res = mp.add(segfault);
     std::cout << res << std::endl;
+
+    mp.check_indexes();
 }
 
 TEST_CASE("[mempool] testnet case 1") {
@@ -1451,6 +1576,8 @@ TEST_CASE("[mempool] testnet case 1") {
     REQUIRE(mp.add(segfault) == error::success);
 
 
+    mp.check_indexes();
+
     chain::transaction::list txs {
           get_tx("0100000001bdb1ba353b91f33c91c9860ed82acea5e853e3f61394501e5e48a6cb524f2bd4010000006b48304502210081149fdd50398db9f8494eaff4111200286b2f2f93e45c9bd155a04a1629cbc602207a39adf344da455d739acbf9e1befde1cd931fa9a0558ff65f3f5df6f5a23f1c412102e0cfe082d408b020cc9b8c297f22ad94d1a390a10f62dafdc01ea97dfdbe4387feffffff02dcc62600000000001976a91446e1437885b22d939ef736344b798a9cbf433c0888ac00000000000000002c6a09696e7465726c696e6b2084cda8971d0b07bdfb0da84915b33d07bb8265481e4774d0e666f93dbdfb643c00000000")
         , get_tx("0100000001b6a220148f412dae574e51e92f072aa90f4baee88f1ad285a736b2f63cf3460b010000006b483045022100ac88e4708716af3e1b19a7bec8fef9b6bc7d7829974997eb1b266dfb3923c689022039d39f76857aea5a8b466fa5a37c94a09a328af7d92a24ae342915b7ab0de94c412102f6b775b62f032e462df94d6d15f69db114bb7feb2748c6c2886a3d4d925703c3ffffffff0200000000000000002c6a09696e7465726c696e6b209a67ec902a1b500d939bf2a0dfb79adf2db3e6d10c6c565671b38806a993fc72f015a103000000001976a914a588cb7b781a0b67c02e87129b8ccb56fde3469c88ac00000000")
@@ -1466,6 +1593,8 @@ TEST_CASE("[mempool] testnet case 1") {
     auto res = mp.remove(blk.transactions().begin(), blk.transactions().end());
 
     std::cout << res << std::endl;
+
+    mp.check_indexes();
 }
 
 
@@ -1763,5 +1892,8 @@ TEST_CASE("[mempool] testnet case 2") {
     auto res = mp.remove(blk.transactions().begin() + 1, blk.transactions().end());
     std::cout << res << std::endl;
 
+    mp.check_indexes();
+
     REQUIRE(true);
 }
+
