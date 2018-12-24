@@ -175,8 +175,8 @@ public:
     }
 
 
-    void check_indexes() const {
-        check_indexes_partial();
+    void check_invariant() const {
+        check_invariant_partial();
 
         {
             size_t i = 0;
@@ -216,7 +216,7 @@ public:
         }        
     }
 
-    void check_indexes_partial() const {
+    void check_invariant_partial() const {
         
         BOOST_ASSERT(candidate_transactions_.size() <= all_transactions_.size());
 
@@ -297,7 +297,7 @@ public:
             res = add_node(index);
 
 #ifndef NDEBUG
-            check_indexes();
+            check_invariant();
 #endif
             return res;
         });
@@ -451,13 +451,13 @@ public:
             }
 
 #ifndef NDEBUG
-            check_indexes();
+            check_invariant();
 #endif
 
             for (size_t i = 0; i < all_transactions_.size(); ++i) {
                 re_add_node(i);
 #ifndef NDEBUG
-                check_indexes();
+                check_invariant();
 #endif
             }
             return error::success;
@@ -649,7 +649,7 @@ private:
             } 
             do_candidate_removal(to_remove);
 #ifndef NDEBUG
-            check_indexes();
+            check_invariant();
 #endif
 
         }
@@ -658,7 +658,7 @@ private:
         do_candidates_insertion(to_insert);
 
 #ifndef NDEBUG
-        check_indexes();
+        check_invariant();
 #endif
 
         return error::success;
@@ -895,7 +895,7 @@ private:
 #endif
 
 #ifndef NDEBUG
-            check_indexes_partial();
+            check_invariant_partial();
 #endif
         }
 
