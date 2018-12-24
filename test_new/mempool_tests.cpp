@@ -1411,6 +1411,7 @@ TEST_CASE("[mempool] testnet case 0") {
     std::cout << res << std::endl;
 
     mp.check_indexes();
+
 }
 
 TEST_CASE("[mempool] testnet case 1") {
