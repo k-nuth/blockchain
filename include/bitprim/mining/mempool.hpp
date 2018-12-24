@@ -169,6 +169,43 @@ public:
             }
         }
 
+        if (node.children_fees() != fee) {
+            std::cout << "node_index:           " << node_index << std::endl;
+            std::cout << "node.children_fees(): " << node.children_fees() << std::endl;
+            std::cout << "fee:                  " << fee << std::endl;
+
+            std::cout << "Removed:  ";
+            for (auto i : out_removed) {
+                std::cout << i << ", ";
+            }
+            std::cout << std::endl;
+        }
+
+        if (node.children_size() != size) {
+            std::cout << "node_index:           " << node_index << std::endl;
+            std::cout << "node.children_size(): " << node.children_size() << std::endl;
+            std::cout << "size:                 " << size << std::endl;
+
+            std::cout << "Removed:  ";
+            for (auto i : out_removed) {
+                std::cout << i << ", ";
+            }
+            std::cout << std::endl;
+        }
+
+        if (node.children_sigops() != sigops) {
+            std::cout << "node_index:             " << node_index << std::endl;
+            std::cout << "node.children_sigops(): " << node.children_sigops() << std::endl;
+            std::cout << "sigops:                 " << sigops << std::endl;
+
+
+            std::cout << "Removed:  ";
+            for (auto i : out_removed) {
+                std::cout << i << ", ";
+            }
+            std::cout << std::endl;
+        }
+
         BITCOIN_ASSERT(node.children_fees() == fee);
         BITCOIN_ASSERT(node.children_size() == size);
         BITCOIN_ASSERT(node.children_sigops() == sigops);
