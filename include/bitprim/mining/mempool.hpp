@@ -169,42 +169,42 @@ public:
             }
         }
 
-        if (node.children_fees() != fee) {
-            std::cout << "node_index:           " << node_index << std::endl;
-            std::cout << "node.children_fees(): " << node.children_fees() << std::endl;
-            std::cout << "fee:                  " << fee << std::endl;
+        // if (node.children_fees() != fee) {
+        //     std::cout << "node_index:           " << node_index << std::endl;
+        //     std::cout << "node.children_fees(): " << node.children_fees() << std::endl;
+        //     std::cout << "fee:                  " << fee << std::endl;
 
-            std::cout << "Removed:  ";
-            for (auto i : out_removed) {
-                std::cout << i << ", ";
-            }
-            std::cout << std::endl;
-        }
+        //     std::cout << "Removed:  ";
+        //     for (auto i : out_removed) {
+        //         std::cout << i << ", ";
+        //     }
+        //     std::cout << std::endl;
+        // }
 
-        if (node.children_size() != size) {
-            std::cout << "node_index:           " << node_index << std::endl;
-            std::cout << "node.children_size(): " << node.children_size() << std::endl;
-            std::cout << "size:                 " << size << std::endl;
+        // if (node.children_size() != size) {
+        //     std::cout << "node_index:           " << node_index << std::endl;
+        //     std::cout << "node.children_size(): " << node.children_size() << std::endl;
+        //     std::cout << "size:                 " << size << std::endl;
 
-            std::cout << "Removed:  ";
-            for (auto i : out_removed) {
-                std::cout << i << ", ";
-            }
-            std::cout << std::endl;
-        }
+        //     std::cout << "Removed:  ";
+        //     for (auto i : out_removed) {
+        //         std::cout << i << ", ";
+        //     }
+        //     std::cout << std::endl;
+        // }
 
-        if (node.children_sigops() != sigops) {
-            std::cout << "node_index:             " << node_index << std::endl;
-            std::cout << "node.children_sigops(): " << node.children_sigops() << std::endl;
-            std::cout << "sigops:                 " << sigops << std::endl;
+        // if (node.children_sigops() != sigops) {
+        //     std::cout << "node_index:             " << node_index << std::endl;
+        //     std::cout << "node.children_sigops(): " << node.children_sigops() << std::endl;
+        //     std::cout << "sigops:                 " << sigops << std::endl;
 
 
-            std::cout << "Removed:  ";
-            for (auto i : out_removed) {
-                std::cout << i << ", ";
-            }
-            std::cout << std::endl;
-        }
+        //     std::cout << "Removed:  ";
+        //     for (auto i : out_removed) {
+        //         std::cout << i << ", ";
+        //     }
+        //     std::cout << std::endl;
+        // }
 
         BITCOIN_ASSERT(node.children_fees() == fee);
         BITCOIN_ASSERT(node.children_size() == size);
@@ -227,6 +227,16 @@ public:
                 ++i;
             }
         } 
+
+        {
+            // size_t ci = 0;
+            for (auto i : candidate_transactions_) {
+                auto const& node = all_transactions_[i];
+                // BOOST_ASSERT(ci == node.candidate_index());
+                // ++ci;
+                check_children_accum(i);
+            }
+        }
 
         {
             size_t i = 0;
@@ -257,6 +267,30 @@ public:
         
         BOOST_ASSERT(candidate_transactions_.size() <= all_transactions_.size());
 
+
+        {
+            for (auto i : candidate_transactions_) {
+                auto const& node = all_transactions_[i];
+                
+                if (node.candidate_index() != null_index && node.candidate_index() >= all_transactions_.size()) {
+                    BOOST_ASSERT(false);
+                }
+            }
+        }
+
+        {
+            for (auto i : candidate_transactions_) {
+                auto const& node = all_transactions_[i];
+                
+                for (auto ci : node.children()) {
+                    if (ci != null_index && ci >= all_transactions_.size()) {
+                        BOOST_ASSERT(false);
+                    }
+                }
+            }
+        }
+
+
         {
             auto ci_sorted = candidate_transactions_;
             std::sort(ci_sorted.begin(), ci_sorted.end());
@@ -285,15 +319,7 @@ public:
             }
         }
 
-        {
-            // size_t ci = 0;
-            for (auto i : candidate_transactions_) {
-                auto const& node = all_transactions_[i];
-                // BOOST_ASSERT(ci == node.candidate_index());
-                // ++ci;
-                check_children_accum(i);
-            }
-        }
+
 
         {
             size_t i = 0;
@@ -343,21 +369,36 @@ public:
     void reindex_xxx(size_t index) {    //TODO: rename
 
 
-        size_t i = index;
-        while (i < all_transactions_.size()) {
-            auto& node = all_transactions_[i];
+        // size_t i = index;
+        // while (i < all_transactions_.size()) {
+        //     auto& node = all_transactions_[i];
+
+        //     for (auto& ci : node.children()) {
+        //         --ci;
+        //     }
+
+        //     for (auto& pi : node.parents()) {
+        //         if (pi >= index) {
+        //             --pi;
+        //         }
+        //     }
+
+        //     ++i;
+        // }
+
+        for (auto& node : all_transactions_) {
 
             for (auto& ci : node.children()) {
-                --ci;
+                if (ci >= index) {
+                    --ci;
+                }
             }
 
             for (auto& pi : node.parents()) {
                 if (pi >= index) {
                     --pi;
                 }
-            }
-
-            ++i;
+            }            
         }
     }
 
