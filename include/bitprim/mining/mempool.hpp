@@ -319,7 +319,7 @@ public:
         //precondition: tx is fully validated: check() && accept() && connect()
         //              ! tx.is_coinbase()
 
-        // std::cout << encode_base16(tx.to_data(true, BITPRIM_WITNESS_DEFAULT)) << std::endl;
+        std::cout << encode_base16(tx.to_data(true, BITPRIM_WITNESS_DEFAULT)) << std::endl;
 
         return prioritizer_.low_job([this, &tx]{
             auto const index = all_transactions_.size();
@@ -370,8 +370,8 @@ public:
             return error::success;
         }
 
-        // std::cout << "Arrive Block -------------------------------------------------------------------" << std::endl;
-        // std::cout << encode_base16(tx.to_data(true, BITPRIM_WITNESS_DEFAULT)) << std::endl;
+        std::cout << "Arrive Block -------------------------------------------------------------------" << std::endl;
+        std::cout << encode_base16(tx.to_data(true, BITPRIM_WITNESS_DEFAULT)) << std::endl;
 
 
         processing_block_ = true;
@@ -1629,9 +1629,9 @@ private:
                 // std::cout << std::endl;
                 // std::cout << "--------------------------------------------------\n";
 
-                if (pi == 27) {
-                    std::cout << "muneco\n";
-                }
+                // if (pi == 27) {
+                //     std::cout << "muneco\n";
+                // }
 
 
                 auto parent_benefit = static_cast<double>(parent.children_fees()) / parent.children_size();   
