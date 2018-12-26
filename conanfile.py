@@ -107,6 +107,8 @@ class BitprimBlockchainConan(BitprimConanFile):
 
 
     def configure(self):
+        BitprimConanFile.configure(self)
+
         if self.settings.arch == "x86_64" and self.options.microarchitecture == "_DUMMY_":
             del self.options.fix_march
             # self.options.remove("fix_march")
@@ -138,6 +140,8 @@ class BitprimBlockchainConan(BitprimConanFile):
         self.output.info("Compiling for DB: %s" % (self.options.db,))
 
     def package_id(self):
+        BitprimConanFile.package_id(self)
+
         self.info.options.with_tests = "ANY"
         self.info.options.with_tools = "ANY"
         self.info.options.verbose = "ANY"
@@ -145,10 +149,10 @@ class BitprimBlockchainConan(BitprimConanFile):
         self.info.options.cxxflags = "ANY"
         self.info.options.cflags = "ANY"
 
-        #For Bitprim Packages libstdc++ and libstdc++11 are the same
-        if self.settings.compiler == "gcc" or self.settings.compiler == "clang":
-            if str(self.settings.compiler.libcxx) == "libstdc++" or str(self.settings.compiler.libcxx) == "libstdc++11":
-                self.info.settings.compiler.libcxx = "ANY"
+        # #For Bitprim Packages libstdc++ and libstdc++11 are the same
+        # if self.settings.compiler == "gcc" or self.settings.compiler == "clang":
+        #     if str(self.settings.compiler.libcxx) == "libstdc++" or str(self.settings.compiler.libcxx) == "libstdc++11":
+        #         self.info.settings.compiler.libcxx = "ANY"
 
     def build(self):
         cmake = CMake(self)
