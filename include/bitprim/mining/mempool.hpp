@@ -371,7 +371,7 @@ public:
         }
 
         std::cout << "Arrive Block -------------------------------------------------------------------" << std::endl;
-        std::cout << encode_base16(tx.to_data(true, BITPRIM_WITNESS_DEFAULT)) << std::endl;
+        // std::cout << encode_base16(tx.to_data(true, BITPRIM_WITNESS_DEFAULT)) << std::endl;
 
 
         processing_block_ = true;
