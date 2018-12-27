@@ -268,11 +268,19 @@ public:
         BOOST_ASSERT(candidate_transactions_.size() <= all_transactions_.size());
 
 
+        // {
+        //     for (auto i : candidate_transactions_) {
+        //         auto const& node = all_transactions_[i];
+                
+        //         if (node.candidate_index() != null_index && node.candidate_index() >= all_transactions_.size()) {
+        //             BOOST_ASSERT(false);
+        //         }
+        //     }
+        // }
+
         {
             for (auto i : candidate_transactions_) {
-                auto const& node = all_transactions_[i];
-                
-                if (node.candidate_index() != null_index && node.candidate_index() >= all_transactions_.size()) {
+                if (i >= all_transactions_.size()) {
                     BOOST_ASSERT(false);
                 }
             }
@@ -283,13 +291,32 @@ public:
                 auto const& node = all_transactions_[i];
                 
                 for (auto ci : node.children()) {
-                    if (ci != null_index && ci >= all_transactions_.size()) {
+                    if (ci >= all_transactions_.size()) {
                         BOOST_ASSERT(false);
                     }
                 }
             }
         }
 
+        {
+            for (auto i : candidate_transactions_) {
+                auto const& node = all_transactions_[i];
+                
+                for (auto pi : node.parents()) {
+                    if (pi >= all_transactions_.size()) {
+                        BOOST_ASSERT(false);
+                    }
+                }
+            }
+        }
+
+        {
+            for (auto const& node : all_transactions_) {
+                if (node.candidate_index() != null_index && node.candidate_index() >= candidate_transactions_.size()) {
+                    BOOST_ASSERT(false);
+                }
+            }
+        }
 
         {
             auto ci_sorted = candidate_transactions_;
