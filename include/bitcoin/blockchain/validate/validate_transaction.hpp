@@ -29,7 +29,9 @@
 #include <bitcoin/blockchain/settings.hpp>
 
 #if defined(BITPRIM_WITH_MINING)
-#include <bitprim/mining/mempool.hpp>
+// #include <bitprim/mining/mempool_v1.hpp>
+#include <bitprim/mining/mempool_v2.hpp>
+
 #endif
 
 namespace libbitcoin {

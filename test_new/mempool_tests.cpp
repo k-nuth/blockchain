@@ -20,7 +20,9 @@
 #include "doctest.h"
 
 
-#include <bitprim/mining/mempool.hpp>
+// #include <bitprim/mining/mempool_v1.hpp>
+#include <bitprim/mining/mempool_v2.hpp>
+
 
 #include <bitcoin/bitcoin/chain/transaction.hpp>
 #include <bitcoin/blockchain.hpp>

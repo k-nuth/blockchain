@@ -16,8 +16,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef BITPRIM_BLOCKCHAIN_MINING_MEMPOOL_HPP_
-#define BITPRIM_BLOCKCHAIN_MINING_MEMPOOL_HPP_
+#ifndef BITPRIM_BLOCKCHAIN_MINING_MEMPOOL_V1_HPP_
+#define BITPRIM_BLOCKCHAIN_MINING_MEMPOOL_V1_HPP_
 
 #include <algorithm>
 #include <chrono>
@@ -1846,7 +1846,7 @@ private:
 }  // namespace mining
 }  // namespace libbitcoin
 
-#endif  //BITPRIM_BLOCKCHAIN_MINING_MEMPOOL_HPP_
+#endif  //BITPRIM_BLOCKCHAIN_MINING_MEMPOOL_V1_HPP_
 
 
 //TODO: check if these examples are OK
