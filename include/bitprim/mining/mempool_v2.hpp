@@ -30,9 +30,11 @@
 // #include <boost/bimap.hpp>
 
 #include <bitprim/mining/common.hpp>
-#include <bitprim/mining/node.hpp>
+#include <bitprim/mining/node_v2.hpp>
 #include <bitprim/mining/prioritizer.hpp>
 // #include <bitprim/mining/result_code.hpp>
+
+#include <bitprim/mining/partially_indexed.hpp>
 
 #include <bitcoin/bitcoin.hpp>
 
@@ -123,6 +125,13 @@ public:
     using triple_t = std::tuple<uint64_t, size_t, size_t>;
     using to_insert_t = std::tuple<indexes_t, uint64_t, size_t, size_t>;
 
+    using data_t = partially_indexed<node, fee_per_size_cmp, mempool>;
+    // using main_index_t = 
+
+    friend data_t;  //TODO(fernando): Separate the State part
+
+    
+
     // using mutex_t = boost::shared_mutex;
     // using shared_lock_t = boost::shared_lock<mutex_t>;
     // using unique_lock_t = boost::unique_lock<mutex_t>;
@@ -141,23 +150,28 @@ public:
     mempool(size_t max_template_size = max_template_size_default, size_t mempool_size_multiplier = mempool_size_multiplier_default) 
         : max_template_size_(max_template_size)
         , mempool_total_size_(get_max_block_weight() * mempool_size_multiplier)
+        // partially_indexed<node, fee_per_size_cmp, has_room_for> data{fee_per_size_cmp{}, roomer};
+        , data_(fee_per_size_cmp{}, *this)
     {
         BOOST_ASSERT(max_template_size <= get_max_block_weight()); //TODO(fernando): what happend in BTC with SegWit.
 
-        size_t const candidates_capacity = max_template_size_ / min_transaction_size_for_capacity;
-        size_t const all_capacity = mempool_total_size_ / min_transaction_size_for_capacity;
+        // size_t const candidates_capacity = max_template_size_ / min_transaction_size_for_capacity;
+        // size_t const all_capacity = mempool_total_size_ / min_transaction_size_for_capacity;
+        // data_.reserve(all_capacity, candidates_capacity);
 
-        data_.reserve(all_capacity, candidates_capacity);
+        size_t const all_capacity = mempool_total_size_ / min_transaction_size_for_capacity;
+        data_.reserve(all_capacity);
+
     }
 
     error::error_code_t add(chain::transaction const& tx) {
         //precondition: tx is fully validated: check() && accept() && connect()
         //              ! tx.is_coinbase()
 
-        std::cout << encode_base16(tx.to_data(true, BITPRIM_WITNESS_DEFAULT)) << std::endl;
+        // std::cout << encode_base16(tx.to_data(true, BITPRIM_WITNESS_DEFAULT)) << std::endl;
 
         return prioritizer_.low_job([this, &tx]{
-            auto const index = data_.all_size();
+            auto const index = data_.size();
 
             auto temp_node = make_node(tx);
             auto res = process_utxo_and_graph(tx, index, temp_node);
@@ -173,145 +187,155 @@ public:
         });
     }
  
-//     template <typename I>
-//     error::error_code_t remove(I f, I l, size_t non_coinbase_input_count = 0) {
-//         // precondition: [f, l) is a valid non-empty range
-//         //               there are no coinbase transactions in the range
+    template <typename I>
+    error::error_code_t remove(I f, I l, size_t non_coinbase_input_count = 0) {
+        // precondition: [f, l) is a valid non-empty range
+        //               there are no coinbase transactions in the range
 
-//         if (all_transactions_.empty()) {
-//             return error::success;
-//         }
+        if (data_.empty()) {
+            return error::success;
+        }
 
-//         std::cout << "Arrive Block -------------------------------------------------------------------" << std::endl;
-//         // std::cout << encode_base16(tx.to_data(true, BITPRIM_WITNESS_DEFAULT)) << std::endl;
+        std::cout << "Arrive Block -------------------------------------------------------------------" << std::endl;
+        // std::cout << encode_base16(tx.to_data(true, BITPRIM_WITNESS_DEFAULT)) << std::endl;
 
 
-//         processing_block_ = true;
-//         auto unique = scope_guard([&](void*){ processing_block_ = false; });
+        processing_block_ = true;
+        auto unique = scope_guard([&](void*){ processing_block_ = false; });
 
-//         std::set<index_t, std::greater<index_t>> to_remove;
-//         std::vector<chain::point> outs;
-//         if (non_coinbase_input_count > 0) {
-//             outs.reserve(non_coinbase_input_count);   //TODO: unnecesary extra space
-//         }
+        std::set<index_t, std::greater<index_t>> to_remove;
+        std::vector<chain::point> outs;
+        if (non_coinbase_input_count > 0) {
+            outs.reserve(non_coinbase_input_count);   //TODO: unnecesary extra space
+        }
 
-//         return prioritizer_.high_job([&f, l, &to_remove, &outs, this]{
+        return prioritizer_.high_job([&f, l, &to_remove, &outs, this]{
 
-//             //TODO: temp code, remove
-// // #ifndef NDEBUG
-// //             auto old_transactions = all_transactions_;
-// // #endif
+            //TODO: temp code, remove
+// #ifndef NDEBUG
+//             auto old_transactions = all_transactions_;
+// #endif
 
-//             while (f != l) {
-//                 auto const& tx = *f;
-//                 auto it = hash_index_.find(tx.hash());
-//                 if (it != hash_index_.end()) {
-//                     auto const index = it->second.first;
-//                     auto& node = all_transactions_[index];
+            while (f != l) {
+                auto const& tx = *f;
+                auto it = hash_index_.find(tx.hash());
+                if (it != hash_index_.end()) {
+                    auto const index = it->second.first;
+                    auto& node = data_[index];
 
-//                     //TODO(fernando): check if children() is the complete descendence of node or if it just the inmediate parents.
-//                     for (auto ci : node.children()) {
-//                         auto& child = all_transactions_[ci];
-//                         child.remove_parent(index);
-//                     }
-//                     to_remove.insert(index);
-//                 } else {
-//                     for (auto const& i : tx.inputs()) {
-//                         outs.push_back(i.previous_output());
+                    //TODO(fernando): check if children() is the complete descendence of node or if it just the inmediate parents.
+                    for (auto ci : node.children()) {
+                        auto& child = data_[ci];
+                        child.remove_parent(index);
+                    }
+                    to_remove.insert(index);
+                } else {
+                    for (auto const& i : tx.inputs()) {
+                        outs.push_back(i.previous_output());
+                    }
+                }
+                ++f;
+            }
+
+            find_double_spend_issues(to_remove, outs);
+
+            // //TODO: process batches of adjacent elements
+            // for (auto i : to_remove) {
+            //     auto it = std::next(all_transactions_.begin(), i);
+            //     hash_index_.erase(it->txid());
+            //     remove_from_utxo(it->txid(), it->output_count());
+
+            //     if (i < all_transactions_.size() - 1) {
+            //         reindex_relatives(i + 1);
+            //     }
+
+            //     all_transactions_.erase(it);
+            // }
+
+            //TODO: process batches of adjacent elements
+            for (auto i : to_remove) {
+                auto& node = data_[i];
+                hash_index_.erase(node.txid());
+                remove_from_utxo(node.txid(), node.output_count());
+
+                if (i < data_.size() - 1) {
+                    reindex_relatives(i + 1);
+                }
+
+                data_.erase_index(i);
+            }
+
+            BOOST_ASSERT(data_.size() == hash_index_.size());
+
+// #ifndef NDEBUG
+//             auto diff = old_transactions.size() - all_transactions_.size();
+
+//             for (size_t i = 0; i < all_transactions_.size(); ++i) {
+//                 auto& node = all_transactions_[i];
+//                 auto& node_old = old_transactions[i + diff];
+
+//                 indexes_t old_children;
+//                 for (auto x : node_old.children()) {
+//                     if (x >= diff) {
+//                         old_children.push_back(x - diff);
 //                     }
 //                 }
-//                 ++f;
-//             }
 
-//             find_double_spend_issues(to_remove, outs);
+//                 assert(node_old.children().size() >= node.children().size());
+//                 assert(old_children.size() == node.children().size());
 
-
-//             //TODO: process batches of adjacent elements
-//             for (auto i : to_remove) {
-//                 auto it = std::next(all_transactions_.begin(), i);
-//                 hash_index_.erase(it->txid());
-//                 remove_from_utxo(it->txid(), it->output_count());
-
-//                 if (i < all_transactions_.size() - 1) {
-//                     reindex_relatives(i + 1);
+//                 for (size_t j = 0; j < old_children.size(); ++j) {
+//                     assert(old_children[j] == node.children()[j]);
 //                 }
 
-//                 all_transactions_.erase(it);
-//             }
+//                 std::cout << std::endl;
 
-//             BOOST_ASSERT(all_transactions_.size() == hash_index_.size());
-
-// // #ifndef NDEBUG
-// //             auto diff = old_transactions.size() - all_transactions_.size();
-
-// //             for (size_t i = 0; i < all_transactions_.size(); ++i) {
-// //                 auto& node = all_transactions_[i];
-// //                 auto& node_old = old_transactions[i + diff];
-
-// //                 indexes_t old_children;
-// //                 for (auto x : node_old.children()) {
-// //                     if (x >= diff) {
-// //                         old_children.push_back(x - diff);
-// //                     }
-// //                 }
-
-// //                 assert(node_old.children().size() >= node.children().size());
-// //                 assert(old_children.size() == node.children().size());
-
-// //                 for (size_t j = 0; j < old_children.size(); ++j) {
-// //                     assert(old_children[j] == node.children()[j]);
-// //                 }
-
-// //                 std::cout << std::endl;
-
-// //                 // if (node_old.parents().size() > 0) {
-// //                 //     std::cout << std::endl;
-// //                 // }
+//                 // if (node_old.parents().size() > 0) {
+//                 //     std::cout << std::endl;
+//                 // }
 
                 
-// //                 indexes_t old_parents;
-// //                 for (auto x : node_old.parents()) {
-// //                     if (x >= diff) {
-// //                         old_parents.push_back(x - diff);
-// //                     }
-// //                 }
+//                 indexes_t old_parents;
+//                 for (auto x : node_old.parents()) {
+//                     if (x >= diff) {
+//                         old_parents.push_back(x - diff);
+//                     }
+//                 }
 
-// //                 assert(node_old.parents().size() >= node.parents().size());
-// //                 assert(old_parents.size() == node.parents().size());
+//                 assert(node_old.parents().size() >= node.parents().size());
+//                 assert(old_parents.size() == node.parents().size());
 
-// //                 for (size_t j = 0; j < old_parents.size(); ++j) {
-// //                     assert(old_parents[j] == node.parents()[j]);
-// //                 }
+//                 for (size_t j = 0; j < old_parents.size(); ++j) {
+//                     assert(old_parents[j] == node.parents()[j]);
+//                 }
 
-// //             }
-// // #endif
-
-
-//             candidate_transactions_.clear();
-//             previous_outputs_.clear();
-
-//             accum_fees_ = 0;
-//             accum_size_ = 0;
-//             accum_sigops_ = 0;
-            
-//             for (size_t i = 0; i < all_transactions_.size(); ++i) {
-//                 all_transactions_[i].set_candidate_index(null_index);
-//                 all_transactions_[i].reset_children_values();
 //             }
-
-// #ifndef NDEBUG
-//             check_invariant();
 // #endif
 
-//             for (size_t i = 0; i < all_transactions_.size(); ++i) {
-//                 re_add_node(i);
-// #ifndef NDEBUG
-//                 check_invariant();
-// #endif
-//             }
-//             return error::success;
-//         });
-//     }
+            accum_fees_ = 0;
+            accum_size_ = 0;
+            accum_sigops_ = 0;
+
+            data_.clear_candidates();
+
+#ifndef NDEBUG
+            data_.check_invariant();
+#endif
+
+            previous_outputs_.clear();
+            data_.re_construct_candidates();
+
+#ifndef NDEBUG
+            data_.check_invariant();
+#endif
+
+            return error::success;
+        });
+    }
+
+    void reset_element(node& x) {
+        x.reset_children_values();
+    }
 
     size_t capacity() const {
         // shared_lock_t lock(mutex_);
@@ -323,7 +347,7 @@ public:
     size_t all_transactions() const {
         // shared_lock_t lock(mutex_);
         return prioritizer_.low_job([this]{
-            return data_.all_size();
+            return data_.size();
         });
     }
 
@@ -383,8 +407,7 @@ public:
             if (it == hash_index_.end()) {
                 return false;
             }
-
-            return all_transactions_[it->second.first].candidate_index() != null_index;
+            return data_.is_candidate(it->second.first);
         });
     }
 
@@ -395,10 +418,16 @@ public:
             if (it == hash_index_.end()) {
                 return null_index;
             }
-
-            return all_transactions_[it->second.first].candidate_index();
+            return data_.candidate_rank(it->second.first);
         });
     }
+
+    bool sorted() const {
+        return prioritizer_.low_job([this]{
+            return data_.sorted();
+        });
+    }
+
 
 //     std::pair<std::vector<transaction_element>, uint64_t> get_block_template() const {
 //         //TODO(fernando): implement a cache, outside
@@ -451,12 +480,20 @@ public:
         });
     }
 
+#ifndef NDEBUG
+    void check_invariant() {
+        data_.check_invariant();
+    }
+#endif
+
+
 private:
 
 
 // ----------------------------------------------------------------------------------------
 //  Invariant Checks
 // ----------------------------------------------------------------------------------------
+#ifndef NDEBUG
 
     template <typename Getter>
     bool check_children_accum(main_index_t node_index, Getter getter) const {
@@ -538,6 +575,7 @@ private:
             && node.second.children_sigops() == sigops;
     }
 
+    // State
     template <typename Getter, typename Bounds>
     bool check_node(main_index_t node_index, Getter getter, Bounds bounds) const {
         auto node = getter(node_index);
@@ -571,92 +609,89 @@ private:
         return check_children_accum(node_index, getter);
     }
 
+#endif // NDEBUG
 // ----------------------------------------------------------------------------------------
 //  Invariant Checks (End)
 // ----------------------------------------------------------------------------------------
 
-//    void reindex_relatives(size_t index) {
+   void reindex_relatives(size_t index) {
 
-//         for (auto& node : all_transactions_) {
+        data_.for_each([index](mining::node& node){
+            for (auto& ci : node.children()) {
+                if (ci >= index) {
+                    --ci;
+                }
+            }
 
-//             for (auto& ci : node.children()) {
-//                 if (ci >= index) {
-//                     --ci;
-//                 }
-//             }
+            for (auto& pi : node.parents()) {
+                if (pi >= index) {
+                    --pi;
+                }
+            }
+            return true;   
+        });
+    }
 
-//             for (auto& pi : node.parents()) {
-//                 if (pi >= index) {
-//                     --pi;
-//                 }
-//             }            
-//         }
-//     }
+    void clean_parents(mining::node const& node, index_t index) {
+        for (auto pi : node.parents()) {
+            auto& parent = data_[pi];
+            parent.remove_child(index);
+        }
+    }
 
-    // void re_add_node(index_t index) {
-    //     auto const& elem = all_transactions_[index];
-    //     // auto const& tx = elem.transaction();
-    //     // hash_index_.emplace(tx.txid(), index);
+    void find_double_spend_issues(std::set<index_t, std::greater<index_t>>& to_remove, std::vector<chain::point> const& outs) {
 
-    //     auto it = hash_index_.find(elem.txid());
-    //     if (it != hash_index_.end()) {
-            
-    //         it->second.first = index;
-    //         auto const& tx = it->second.second;
+        for (auto const& po : outs) {
+            // auto it = previous_outputs_.left.find(po);
+            // if (it != previous_outputs_.left.end()) {
+            auto it = previous_outputs_.find(po);
+            if (it != previous_outputs_.end()) {
+                index_t index = it->second;
+                auto const& node = data_[index];
 
-    //         for (auto const& i : tx.inputs()) {
-    //             // previous_outputs_.left.insert(previous_outputs_t::left_value_type(i.previous_output(), node_index));
-    //             previous_outputs_.insert({i.previous_output(), index});
-    //         }        
-    //         add_node(index);
-    //     } else {
-    //         //No debería pasar por aca
-    //         BOOST_ASSERT(false);
-    //     }
-    // }
+                to_remove.insert(index);
+                clean_parents(node, index);
 
+                for (auto ci : node.children()) {
+                    auto& child = data_[ci];
+                    to_remove.insert(ci);
+                    clean_parents(child, ci);
+                }
+            }
+        }
+    }    
 
-    // void clean_parents(mining::node const& node, index_t index) {
-    //     for (auto pi : node.parents()) {
-    //         auto& parent = all_transactions_[pi];
-    //         parent.remove_child(index);
-    //     }
-    // }
+    void remove_from_utxo(hash_digest const& txid, uint32_t output_count) {
+        for (uint32_t i = 0; i < output_count; ++i) {
+            internal_utxo_set_.erase(chain::point{txid, i});
+        }
 
-    // void find_double_spend_issues(std::set<index_t, std::greater<index_t>>& to_remove, std::vector<chain::point> const& outs) {
-
-    //     for (auto const& po : outs) {
-    //         // auto it = previous_outputs_.left.find(po);
-    //         // if (it != previous_outputs_.left.end()) {
-    //         auto it = previous_outputs_.find(po);
-    //         if (it != previous_outputs_.end()) {
-    //             index_t index = it->second;
-    //             auto const& node = all_transactions_[index];
-
-    //             to_remove.insert(index);
-    //             clean_parents(node, index);
-
-    //             for (auto ci : node.children()) {
-    //                 auto& child = all_transactions_[ci];
-    //                 to_remove.insert(ci);
-    //                 clean_parents(child, ci);
-    //             }
-    //         }
-    //     }
-    // }    
-
-    // void remove_from_utxo(hash_digest const& txid, uint32_t output_count) {
-    //     for (uint32_t i = 0; i < output_count; ++i) {
-    //         internal_utxo_set_.erase(chain::point{txid, i});
-    //     }
-
-    //     //TODO(fernando): Do I have to insert the prevouts removed before??
-    // }
+        //TODO(fernando): Do I have to insert the prevouts removed before??
+    }
 
 
 // ------------------------------------------------------------------------------------------------
 // State
 // ------------------------------------------------------------------------------------------------
+
+    bool re_add_node(main_index_t index, mining::node& node) {
+        auto it = hash_index_.find(node.txid());
+        if (it == hash_index_.end()) {
+            //No debería pasar por aca
+            BOOST_ASSERT(false);
+            return false;
+        }
+
+        it->second.first = index;
+        auto const& tx = it->second.second;
+
+        for (auto const& i : tx.inputs()) {
+            previous_outputs_.insert({i.previous_output(), index});
+        }        
+        // add_node(index);
+
+        return true;
+    }
 
     bool has_room_for(node const& x) const {
         if (accum_size_ > max_template_size_ - x.size()) {
@@ -673,7 +708,15 @@ private:
         return true;
     }
 
-    void accumulate(node const& x) {
+    template <typename Getter>
+    void accumulate(node const& x, Getter getter) {
+        for (auto pi : x.parents()) {
+            auto parent = getter(pi);
+            if (parent.first) {
+                parent.second.increment_values(x.fee(), x.size(), x.sigops());
+            }
+        }
+
         accum_fees_ += x.fee();
         accum_size_ += x.size();
         accum_sigops_ += x.sigops();
@@ -756,8 +799,6 @@ private:
             auto parent = getter(pi);
             if (parent.first) {
                 re_sort_element_removal(x, parent.second, pi, re_sort_left, re_sort_right);
-            } else {
-                BOOST_ASSERT(false); // ????
             }
         }
     }
@@ -810,7 +851,7 @@ private:
     }
 
     template <typename Getter, typename ReSortToEnd, typename ReSort, typename ReSortFromBegin>
-    void re_sort_elements_insertion(mining::node const& node, main_index_t node_index, indexes_t to_insert, Getter getter, ReSortToEnd re_sort_to_end, ReSort re_sort, ReSortFromBegin re_sort_from_begin) {
+    void re_sort_elements_insertion_several(mining::node const& node, main_index_t node_index, indexes_t to_insert, Getter getter, ReSortToEnd re_sort_to_end, ReSort re_sort, ReSortFromBegin re_sort_from_begin) {
         //precondition: candidate_transactions_.size() > 0
 
         for (auto pi : node.parents()) {
@@ -828,11 +869,27 @@ private:
         }
     }    
 
+    template <typename Getter, typename ReSortToEnd, typename ReSort, typename ReSortFromBegin>
+    void re_sort_elements_insertion_one(mining::node const& node, main_index_t node_index, Getter getter, ReSortToEnd re_sort_to_end, ReSort re_sort, ReSortFromBegin re_sort_from_begin) {
+        //precondition: candidate_transactions_.size() > 0
+
+        for (auto pi : node.parents()) {
+            auto parent = getter(pi);
+            if (parent.first) {
+                parent.second.increment_values(node.fee(), node.size(), node.sigops());
+                re_sort_element_insertion(node, parent.second, node_index, pi, re_sort_to_end, re_sort, re_sort_from_begin);
+            } else {
+                BOOST_ASSERT(false);
+            }
+        }
+    }    
+
     template <typename Remover, typename Getter, typename ReSortLeft, typename ReSortRight>
     void do_remove(main_index_t index, Remover remover, Getter getter, ReSortLeft re_sort_left, ReSortRight re_sort_right) {
         remover(index);
 
         auto node = getter(index);
+        node.second.reset_children_values();
 
         accum_size_ -= node.second.size();
         accum_sigops_ -= node.second.sigops();
@@ -842,10 +899,17 @@ private:
     }
 
     template <typename Inserter, typename Getter, typename ReSortToEnd, typename ReSort, typename ReSortFromBegin>
-    void do_insert(main_index_t index, indexes_t to_insert, Inserter inserter, Getter getter, ReSortToEnd re_sort_to_end, ReSort re_sort, ReSortFromBegin re_sort_from_begin) {
+    void do_insert_several(main_index_t index, indexes_t to_insert, Inserter inserter, Getter getter, ReSortToEnd re_sort_to_end, ReSort re_sort, ReSortFromBegin re_sort_from_begin) {
         inserter(index);
         auto node = getter(index);
-        re_sort_elements_insertion(node.second, index, to_insert, getter, re_sort_to_end, re_sort, re_sort_from_begin);
+        re_sort_elements_insertion_several(node.second, index, to_insert, getter, re_sort_to_end, re_sort, re_sort_from_begin);
+    }
+
+    template <typename Inserter, typename Getter, typename ReSortToEnd, typename ReSort, typename ReSortFromBegin>
+    void do_insert_one(main_index_t index, Inserter inserter, Getter getter, ReSortToEnd re_sort_to_end, ReSort re_sort, ReSortFromBegin re_sort_from_begin) {
+        inserter(index);
+        auto node = getter(index);
+        re_sort_elements_insertion_one(node.second, index, getter, re_sort_to_end, re_sort, re_sort_from_begin);
     }
 
     bool shares_parents(mining::node const& to_insert_node, main_index_t remove_candidate_index) const {
@@ -854,12 +918,10 @@ private:
         return it != parents.end();
     }
 
-    // removal_list_t what_to_remove(uint64_t fees, size_t size, size_t sigops) {
-    template <typename Reverser, typename Remover, typename Getter, typename Inserter, typename ReSortLeft, typename ReSortRight, typename ReSortToEnd, typename ReSort, typename ReSortFromBegin>
-    bool remove_insert_several(node const& x, main_index_t node_index, Reverser reverser, Remover remover, Getter getter, Inserter inserter, ReSortLeft re_sort_left, ReSortRight re_sort_right, ReSortToEnd re_sort_to_end, ReSort re_sort, ReSortFromBegin re_sort_from_begin) {   
-        //precondition: candidate_transactions_.size() > 0
+    template <typename Reverser, typename Remover, typename Getter, typename ReSortLeft, typename ReSortRight>
+    bool remove_insert_common(node const& x, uint64_t fees, size_t size, size_t sigops, Reverser reverser, Remover remover, Getter getter, ReSortLeft re_sort_left, ReSortRight re_sort_right) {   
 
-        auto [to_insert, fees, size, sigops] = what_to_insert(x, node_index, getter);
+
         auto pack_benefit = benefit(fees, size);
 
         uint64_t fee_accum = 0;
@@ -873,7 +935,8 @@ private:
             auto elem = reverser.next();
 
             //TODO(fernando): Do I have to check if elem_idex is any of the to_insert elements
-            bool shares = shares_parents(elem.second, elem.first);
+            // bool shares = shares_parents(elem.second, elem.first);
+            bool shares = shares_parents(x, elem.first);
 
             if ( ! shares) {
                 auto res = get_accum(removed, elem.second, elem.first, getter);
@@ -903,15 +966,92 @@ private:
             do_remove(i, remover, getter, re_sort_left, re_sort_right);
         }
 
+        return true;
+    }
+
+
+    template <typename Reverser, typename Remover, typename Getter, typename Inserter, typename ReSortLeft, typename ReSortRight, typename ReSortToEnd, typename ReSort, typename ReSortFromBegin>
+    bool remove_insert_several(node const& x, main_index_t node_index, Reverser reverser, Remover remover, Getter getter, Inserter inserter, ReSortLeft re_sort_left, ReSortRight re_sort_right, ReSortToEnd re_sort_to_end, ReSort re_sort, ReSortFromBegin re_sort_from_begin) {   
+        //precondition: candidate_transactions_.size() > 0
+
+        auto [to_insert, fees, size, sigops] = what_to_insert(x, node_index, getter);
+
+        if ( ! remove_insert_common(x, fees, size, sigops, reverser, remover, getter, re_sort_left, re_sort_right) ) {
+            return false;
+        }
+
         for (auto index : to_insert) {
             auto const& parent = getter(index);
             if ( ! parent.first) {
-                do_insert(index, to_insert, inserter, getter, re_sort_to_end, re_sort, re_sort_from_begin);
+                do_insert_several(index, to_insert, inserter, getter, re_sort_to_end, re_sort, re_sort_from_begin);
                 //accum
             } else {
                 BOOST_ASSERT(false);
             }
         }
+
+        accum_fees_ += fees;
+        accum_size_ += size;
+        accum_sigops_ += sigops;
+
+        return true;
+    }
+
+    template <typename Reverser, typename Remover, typename Getter, typename Inserter, typename ReSortLeft, typename ReSortRight, typename ReSortToEnd, typename ReSort, typename ReSortFromBegin>
+    bool remove_insert_one(node const& x, main_index_t node_index, Reverser reverser, Remover remover, Getter getter, Inserter inserter, ReSortLeft re_sort_left, ReSortRight re_sort_right, ReSortToEnd re_sort_to_end, ReSort re_sort, ReSortFromBegin re_sort_from_begin) {   
+        //precondition: candidate_transactions_.size() > 0
+
+        auto fees = x.fee();
+        auto size = x.size();
+        auto sigops = x.sigops();
+
+        if ( ! remove_insert_common(x, fees, size, sigops, reverser, remover, getter, re_sort_left, re_sort_right) ) {
+            return false;
+        }
+
+        // uint64_t fee_accum = 0;
+        // size_t size_accum = 0;
+        // auto next_size = accum_size_;
+        // auto next_sigops = accum_sigops_;
+
+        // removal_list_t removed;
+
+        // do {
+        //     auto elem = reverser.next();
+
+        //     //TODO(fernando): Do I have to check if elem_idex is any of the to_insert elements
+        //     // bool shares = shares_parents(elem.second, elem.first);
+        //     bool shares = shares_parents(x, elem.first);
+
+        //     if ( ! shares) {
+        //         auto res = get_accum(removed, elem.second, elem.first, getter);
+        //         if (std::get<1>(res) != 0) {
+        //             fee_accum += std::get<0>(res);
+        //             size_accum += std::get<1>(res);
+
+        //             auto to_remove_benefit = benefit(fee_accum, size_accum);
+        //             if (pack_benefit <= to_remove_benefit) {
+        //                 return false;
+        //             }
+
+        //             next_size -= std::get<1>(res);
+        //             next_sigops -= std::get<2>(res);
+
+        //             if (next_size + size <= max_template_size_) {
+        //                 auto const sigops_limit = get_allowed_sigops(next_size);
+        //                 if (next_sigops + sigops <= sigops_limit) {
+        //                     break;
+        //                 }
+        //             }
+        //         }
+        //     }
+        // } while(reverser.has_next());
+
+        // for(auto i : removed) {
+        //     do_remove(i, remover, getter, re_sort_left, re_sort_right);
+        // }
+
+        do_insert_one(node_index, inserter, getter, re_sort_to_end, re_sort, re_sort_from_begin);
 
         accum_fees_ += fees;
         accum_size_ += size;
@@ -963,14 +1103,14 @@ private:
         if ( ! parents.empty()) {
             std::set<index_t, std::greater<index_t>> parents_temp(parents.begin(), parents.end());
             for (auto pi : parents) {
-                auto const& parent = all_transactions_[pi];
+                auto const& parent = data_[pi];
                 parents_temp.insert(parent.parents().begin(), parent.parents().end());
             }
 
             new_node.add_parents(parents_temp.begin(), parents_temp.end());
 
             for (auto pi : new_node.parents()) {
-                auto& parent = all_transactions_[pi];
+                auto& parent = data_[pi];
                 // parent.add_child(node_index, new_node.fee(), new_node.size(), new_node.sigops());
                 parent.add_child(node_index);
             }
@@ -1021,7 +1161,7 @@ private:
     // has_room_for roomer(120);
     // partially_indexed<node, fee_per_size_cmp, has_room_for> data{fee_per_size_cmp{}, roomer};
 
-    partially_indexed<node, fee_per_size_cmp, has_room_for> data_;
+    data_t data_;
 
     internal_utxo_set_t internal_utxo_set_;
     hash_index_t hash_index_;

@@ -32,7 +32,7 @@
 
 
 #include <bitprim/mining/common.hpp>
-#include <bitprim/mining/node.hpp>
+// #include <bitprim/mining/node.hpp>
 // #include <bitprim/mining/result_code.hpp>
 
 #include <bitcoin/bitcoin.hpp>
@@ -105,23 +105,30 @@ template <typename T, typename Cmp, typename State>
     // requires(Regular<T>)
 class partially_indexed {
 public:
+    using value_type = T;
     using indexes_container_t = std::list<main_index_t>;
-    using candidate_index_t = indexes_container_t::iterator; //TODO(fernando): const iterator?
-    using value_type = partially_indexed_node<candidate_index_t, T>;
-    using main_container_t = std::vector<value_type>;
+    using candidate_index_t = indexes_container_t::iterator;
+    using candidate_index_const_t = indexes_container_t::const_iterator;
+    using internal_value_type = partially_indexed_node<candidate_index_t, T>;
+    using main_container_t = std::vector<internal_value_type>;
 
     partially_indexed(Cmp cmp, State& state) 
         : null_index_(std::end(candidate_elements_))
-        , sorted_(true)
+        , sorted_(false)
         , cmp_(cmp)
         , state_(state)
     {
         //TODO(fernando): reserve structures, delegate to user
     }
 
-    void reserve(size_t all, size_t candidates) {
+    // void reserve(size_t all, size_t candidates) {
+    //     all_elements_.reserve(all);
+    //     candidate_elements_.reserve(candidates);
+    // }
+
+    void reserve(size_t all) {
         all_elements_.reserve(all);
-        candidate_elements_.reserve(candidates);
+        // candidate_elements_.reserve(candidates);
     }
 
     bool insert(T const& x) {
@@ -143,7 +150,7 @@ public:
         return res;
     }
 
-    size_t all_size() const {
+    size_t size() const {
         return all_elements_.size();
     }
 
@@ -151,17 +158,219 @@ public:
         return candidate_elements_.size();
     }
 
+    bool empty() const {
+        return all_elements_.empty();
+    }
+
+    bool sorted() const {
+        return sorted_;
+    }
+
+    bool is_candidate(main_index_t i) const {
+        auto const& node = all_elements_[i];
+        return node.index() != null_index_;
+    }
+
+    size_t candidate_rank(main_index_t i) const {
+        //precondition: is_candidate(i)
+        auto const& node = all_elements_[i];
+        return std::distance(std::begin(candidate_elements_), candidate_index_const_t(node.index()));
+    }
+
+    value_type const& operator[](std::size_t i) const { 
+        return all_elements_[i].element();
+    }
+
+    value_type& operator[](std::size_t i) {
+        return all_elements_[i].element();
+    }
+
+    //TODO(fernando): have to be private
+    void erase_index(std::size_t i) {
+        // return 
+        all_elements_.erase(std::next(std::begin(all_elements_), i));
+    }
+
+    void clear_candidates() {
+        candidate_elements_.clear();
+        sorted_ = false;
+        for (size_t i = 0; i < all_elements_.size(); ++i) {
+            auto& elem = all_elements_[i];
+            elem.set_index(null_index_);
+            state_.reset_element(elem.element());
+        }
+
+#ifndef NDEBUG
+        check_invariant();
+#endif
+
+    }
+
+    void re_construct_candidates() {
+        for (size_t i = 0; i < all_elements_.size(); ++i) {
+            re_add_node(i);
+        }
+
+#ifndef NDEBUG
+        check_invariant();
+#endif
+    }
+
+
+    void re_add_node(main_index_t index) {
+        auto& elem = all_elements_[index];
+
+        if (state_.re_add_node(index, elem.element())) {
+            insert_candidate(index, elem);
+        } else {
+            BOOST_ASSERT(false);
+        }
+    }    
+
+    template <typename F>
+    void for_each(F f) {
+        for (auto& node : all_elements_) {
+            if (! f(node.element())) {
+                break;
+            }
+        }        
+    }
+
+    template <typename F>
+    void for_each(F f) const {
+        for (auto const& node : all_elements_) {
+            if (! f(node.element())) {
+                break;
+            }
+        }        
+    }
+
+
+
+// ----------------------------------------------------------------------------------------
+//  Invariant Checks
+// ----------------------------------------------------------------------------------------
+#ifndef NDEBUG
+
+    void check_invariant_partial() const {
+        
+        BOOST_ASSERT(candidate_elements_.size() <= all_elements_.size());
+
+        {
+            for (auto i : candidate_elements_) {
+                if (i >= all_elements_.size()) {
+                    BOOST_ASSERT(false);
+                }
+            }
+        }
+
+        // {
+        //     for (auto const& node : all_elements_) {
+        //         if (node.index() != null_index_ && node.index() >= candidate_elements_.size()) {
+        //             BOOST_ASSERT(false);
+        //         }
+        //     }
+        // }
+
+        {
+            auto ci_sorted = candidate_elements_;
+            ci_sorted.sort();
+            auto last = std::unique(std::begin(ci_sorted), std::end(ci_sorted));
+            BOOST_ASSERT(std::distance(std::begin(ci_sorted), last) == ci_sorted.size());
+        }
+        
+        {
+            std::vector<main_index_t> all_sorted;
+            for (auto const& node : all_elements_) {
+                if (node.index() != null_index_) {
+                    all_sorted.push_back(*(node.index()));
+                }
+            }
+            std::sort(std::begin(all_sorted), std::end(all_sorted));
+            auto last = std::unique(std::begin(all_sorted), std::end(all_sorted));
+            BOOST_ASSERT(std::distance(std::begin(all_sorted), last) == all_sorted.size());
+        }
+
+        {
+            auto it = std::begin(candidate_elements_);
+            auto end = std::end(candidate_elements_);
+            while (it != end) {
+                auto const& node = all_elements_[*it];
+                BOOST_ASSERT(it == node.index());
+                ++it;
+            }
+        }
+
+        {
+            size_t i = 0;
+            size_t non_indexed = 0;
+            for (auto const& node : all_elements_) {
+                if (node.index() != null_index_) {
+                    BOOST_ASSERT(*(node.index()) == i);
+                } else {
+                    ++non_indexed;
+                }
+                ++i;
+            }
+
+            BOOST_ASSERT(candidate_elements_.size() + non_indexed == all_elements_.size());
+        }
+    }
+
+    void check_invariant() const {
+        check_invariant_partial();
+
+        {
+            auto g = getter_const();
+            auto b = bounds_ok();
+            // size_t ci = 0;
+            for (auto i : candidate_elements_) {
+                auto const& node = all_elements_[i];
+                // check_children_accum(i);
+                BOOST_ASSERT(state_.check_node(i, g, b));
+            }
+        }
+
+        {
+            auto g = getter_const();
+            auto b = bounds_ok();
+            size_t i = 0;
+            for (auto const& node : all_elements_) {
+                // check_children_accum(i);
+                BOOST_ASSERT(state_.check_node(i, g, b));
+                ++i;
+            }
+        }        
+
+
+        {
+            if (sorted_) {
+                auto res = std::is_sorted(std::begin(candidate_elements_), std::end(candidate_elements_), candidate_cmp());
+
+                // if (! res) {
+                //     auto res2 = std::is_sorted(std::begin(candidate_elements_), std::end(candidate_elements_), candidate_cmp());
+                //     std::cout << res2;
+                // }
+
+                BOOST_ASSERT(res);
+
+            }
+        }        
+    }
+#endif // NDEBUG
+
+// ----------------------------------------------------------------------------------------
+//  Invariant Checks (End)
+// ----------------------------------------------------------------------------------------
+
+
+
 private:
-    struct candidate_cmp_t;
-    struct sorter_t;
+    // struct candidate_cmp_t;
+    // struct sorter_t;
+    // struct getter_t;
 
-    candidate_cmp_t candidate_cmp() const {
-        return candidate_cmp_t{*this};
-    }
 
-    sorter_t sorter() {
-        return sorter_t{*this};
-    }
 
     struct nested_t {
         explicit
@@ -180,7 +389,6 @@ private:
     private:
         partially_indexed& outer_;
     };
-
 
     struct nested_const_t {
         explicit
@@ -280,7 +488,7 @@ private:
         using nested_t::outer;
         using nested_t::nested_t;
 
-        void operator()(main_index_t index, value_type const& x, candidate_index_t from, candidate_index_t to) {
+        void operator()(main_index_t index, internal_value_type const& x, candidate_index_t from, candidate_index_t to) {
             auto new_pos = std::upper_bound(from, to, index, outer().candidate_cmp());
             outer().candidate_elements_.splice(new_pos, outer().candidate_elements_, x.index());
         }
@@ -416,136 +624,71 @@ private:
         return reverser(*this, std::begin(candidate_elements_), std::end(candidate_elements_));
     }
 
+    candidate_cmp_t candidate_cmp() const {
+        return candidate_cmp_t{*this};
+    }
 
-    value_type& insert_main_element(candidate_index_t index, T const& x) {
+    sorter_t sorter() {
+        return sorter_t{*this};
+    }
+
+    getter_t getter() {
+        return getter_t{*this};
+    }
+
+    remover_t remover() {
+        return remover_t{*this};
+    }
+
+    inserter_t inserter() {
+        return inserter_t{*this};
+    }
+
+    re_sort_left_t re_sort_left() {
+        return re_sort_left_t{*this};
+    }
+
+    re_sort_right_t re_sort_right() {
+        return re_sort_right_t{*this};
+    }
+
+    re_sort_to_end_t re_sort_to_end() {
+        return re_sort_to_end_t{*this};
+    }
+
+    re_sort_t re_sort() {
+        return re_sort_t{*this};
+    }
+
+    re_sort_from_begin_t re_sort_from_begin() {
+        return re_sort_from_begin_t{*this};
+    }
+
+    getter_const_t getter_const() const{
+        return getter_const_t{*this};
+    }
+
+    bounds_ok_t bounds_ok() const{
+        return bounds_ok_t{*this};
+    }
+
+
+
+    internal_value_type& insert_main_element(candidate_index_t index, T const& x) {
         all_elements_.emplace_back(index, x);
         return all_elements_.back();
     }
 
-    value_type& insert_main_element(candidate_index_t index, T&& x) {
+    internal_value_type& insert_main_element(candidate_index_t index, T&& x) {
         all_elements_.emplace_back(index, std::move(x));
         return all_elements_.back();
     }
 
     template <typename... Args>
-    value_type& insert_main_element(candidate_index_t index, Args&&... args) {
+    internal_value_type& insert_main_element(candidate_index_t index, Args&&... args) {
         all_elements_.emplace_back(index, std::forward<Args>(args)...);
         return all_elements_.back();
     }
-
-
-// ----------------------------------------------------------------------------------------
-//  Invariant Checks
-// ----------------------------------------------------------------------------------------
-
-    void check_invariant_partial() const {
-        
-        BOOST_ASSERT(candidate_elements_.size() <= all_elements_.size());
-
-        {
-            for (auto i : candidate_elements_) {
-                if (i >= all_elements_.size()) {
-                    BOOST_ASSERT(false);
-                }
-            }
-        }
-
-        // {
-        //     for (auto const& node : all_elements_) {
-        //         if (node.index() != null_index_ && node.index() >= candidate_elements_.size()) {
-        //             BOOST_ASSERT(false);
-        //         }
-        //     }
-        // }
-
-        {
-            auto ci_sorted = candidate_elements_;
-            ci_sorted.sort();
-            auto last = std::unique(std::begin(ci_sorted), std::end(ci_sorted));
-            BOOST_ASSERT(std::distance(std::begin(ci_sorted), last) == ci_sorted.size());
-        }
-        
-        {
-            std::vector<main_index_t> all_sorted;
-            for (auto const& node : all_elements_) {
-                if (node.index() != null_index_) {
-                    all_sorted.push_back(*(node.index()));
-                }
-            }
-            std::sort(std::begin(all_sorted), std::end(all_sorted));
-            auto last = std::unique(std::begin(all_sorted), std::end(all_sorted));
-            BOOST_ASSERT(std::distance(std::begin(all_sorted), last) == all_sorted.size());
-        }
-
-        {
-            auto it = std::begin(candidate_elements_);
-            auto end = std::end(candidate_elements_);
-            while (it != end) {
-                auto const& node = all_elements_[*it];
-                BOOST_ASSERT(it == node.index());
-                ++it;
-            }
-        }
-
-        {
-            size_t i = 0;
-            size_t non_indexed = 0;
-            for (auto const& node : all_elements_) {
-                if (node.index() != null_index_) {
-                    BOOST_ASSERT(*(node.index()) == i);
-                } else {
-                    ++non_indexed;
-                }
-                ++i;
-            }
-
-            BOOST_ASSERT(candidate_elements_.size() + non_indexed == all_elements_.size());
-        }
-    }
-
-    void check_invariant() const {
-        check_invariant_partial();
-
-        {
-            getter_const_t g{*this};
-            bounds_ok_t b{*this};
-            // size_t ci = 0;
-            for (auto i : candidate_elements_) {
-                auto const& node = all_elements_[i];
-                // check_children_accum(i);
-                BOOST_ASSERT(state_.check_node(i, g, b));
-            }
-        }
-
-        {
-            getter_const_t g{*this};
-            bounds_ok_t b{*this};
-            size_t i = 0;
-            for (auto const& node : all_elements_) {
-                // check_children_accum(i);
-                BOOST_ASSERT(state_.check_node(i, g, b));
-                ++i;
-            }
-        }        
-
-
-        {
-            if (sorted_) {
-                auto res = std::is_sorted(std::begin(candidate_elements_), std::end(candidate_elements_), candidate_cmp());
-
-                // if (! res) {
-                //     auto res2 = std::is_sorted(std::begin(candidate_elements_), std::end(candidate_elements_), candidate_cmp());
-                //     std::cout << res2;
-                // }
-
-                BOOST_ASSERT(res);
-
-            }
-        }        
-    }
-// ----------------------------------------------------------------------------------------
-//  Invariant Checks (End)
-// ----------------------------------------------------------------------------------------
 
 
 
@@ -564,72 +707,30 @@ private:
     template <typename... Args>
     bool insert_internal(Args&&... args) {
         auto const main_index = all_elements_.size();
-        
-        // candidate_elements_.push_back(main_index);
-        // auto cand_index = std::prev(std::end(candidate_elements_));
-        // auto& inserted = insert_main_element(cand_index, std::forward<Args>(args)...);
-
         auto& inserted = insert_main_element(null_index_, std::forward<Args>(args)...);
+        return insert_candidate(main_index, inserted);
+    }
 
-        if (state_.has_room_for(inserted.element()) ) {
+    bool insert_candidate(main_index_t main_index, internal_value_type& inserted) {
+        //TODO(fernando): See if we could use an efficient algorithms if the non-sorted elements are few...
 
-            candidate_elements_.push_back(main_index);
-            auto cand_index = std::prev(std::end(candidate_elements_));
-            inserted.set_index(cand_index);
-
-            state_.accumulate(inserted.element());
-            sorted_ = false;
-        } else {
-            
-            if ( ! sorted_) {
-                //Si los elementos no-ordenados son pocos, ver de usar un algoritmo más eficiente.
-                // candidate_elements_.sort(candidate_cmp_t{*this});
-                candidate_elements_.sort(candidate_cmp());
-                sorted_ = true;
-                auto rev = reverser();
-                state_.remove_insert_several(inserted.element(), main_index, rev, remover_t{*this}, getter_t{*this}, inserter_t{*this}, re_sort_left_t{*this}, re_sort_right_t{*this}, re_sort_to_end_t{*this}, re_sort_t{*this}, re_sort_from_begin_t{*this});
-
-
-                // std::cout << all_elements_[*cand_index].element().fee() << "\n";
-
-                //Quiere decir que en el estado previo, no había ningun elemento no-indexado (todos estaban indexados).
-                //Por lo tanto tengo que  (en el "mejor" de los casos)
-                // remover algunos y sólo insertar el que acabo de insertar.
-            } else {
-                // state_.remove_insert_several(inserted.element(), rev, [](main_index_t i){
-                //     std::cout << i << std::endl;
-                // });
-                // remove elements
-                // could return false
-                // in that case, remove the recently added element from candidate_elements_
+        if ( ! sorted_) {
+            if (state_.has_room_for(inserted.element()) ) {
+                candidate_elements_.push_back(main_index);
+                auto cand_index = std::prev(std::end(candidate_elements_));
+                inserted.set_index(cand_index);
+                state_.accumulate(inserted.element(), getter());
+                return true;
             }
+            candidate_elements_.sort(candidate_cmp());
+            sorted_ = true;
+            return state_.remove_insert_one(inserted.element(), main_index, reverser(), remover(), getter(), inserter(), re_sort_left(), re_sort_right(), re_sort_to_end(), re_sort(), re_sort_from_begin());
         }
 
-
-        // insert_in_candidates(x, main_index);
-        return true;
+        return state_.remove_insert_several(inserted.element(), main_index, reverser(), remover(), getter(), inserter(), re_sort_left(), re_sort_right(), re_sort_to_end(), re_sort(), re_sort_from_begin());
+        
     }
-    // template <typename U>
-    //     //requires (SameType<T, U>)
-    // bool insert_internal(U&& x) {
-    //     auto const main_index = all_elements_.size();
-    //     candidate_elements_.push_back(main_index);
 
-    //     auto& inserted = insert_main_element(std::forward<U>(x));
-
-    //     if ( ! state_(x) ) {
-    //         // remove elements
-    //         // could return false
-    //         // in that case, remove the recently added element from candidate_elements_
-    //     }
-
-    //     // insert_in_candidates(x, main_index);
-    //     return true;
-    // }
-
-    // void add_in_candidates(T const& x, main_index_t main_index) {
-    // }
-    
 private:
     indexes_container_t candidate_elements_;
     main_container_t all_elements_;

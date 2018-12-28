@@ -364,10 +364,12 @@ TEST_CASE("[mempool] Dependencies 0") {
     REQUIRE(mp.candidate_bytes() == 4 * 60);
     REQUIRE(mp.candidate_fees() == a.fees() + b.fees() + c.fees() + d.fees());
 
-    REQUIRE(mp.candidate_rank(a) == 0);
-    REQUIRE(mp.candidate_rank(b) == 1);
-    REQUIRE(mp.candidate_rank(c) == 2);
-    REQUIRE(mp.candidate_rank(d) == 3);
+    if (mp.sorted()) {
+        REQUIRE(mp.candidate_rank(a) == 0);
+        REQUIRE(mp.candidate_rank(b) == 1);
+        REQUIRE(mp.candidate_rank(c) == 2);
+        REQUIRE(mp.candidate_rank(d) == 3);
+    }
 
     mp.check_invariant();
 }
@@ -424,10 +426,12 @@ TEST_CASE("[mempool] Dependencies 1") {
     REQUIRE(mp.candidate_bytes() == 4 * 60);
     REQUIRE(mp.candidate_fees() == a.fees() + b.fees() + c.fees() + d.fees());
 
-    REQUIRE(mp.candidate_rank(a) == 3);
-    REQUIRE(mp.candidate_rank(b) == 2);
-    REQUIRE(mp.candidate_rank(c) == 1);
-    REQUIRE(mp.candidate_rank(d) == 0);
+    if (mp.sorted()) {
+        REQUIRE(mp.candidate_rank(a) == 3);
+        REQUIRE(mp.candidate_rank(b) == 2);
+        REQUIRE(mp.candidate_rank(c) == 1);
+        REQUIRE(mp.candidate_rank(d) == 0);
+    }
 
     mp.check_invariant();
 }
@@ -486,11 +490,12 @@ TEST_CASE("[mempool] Dependencies 2") {
     REQUIRE(mp.candidate_bytes() == 4 * 60);
     REQUIRE(mp.candidate_fees() == a.fees() + b.fees() + c.fees() + d.fees());
 
-    REQUIRE(mp.candidate_rank(a) == 3);
-    REQUIRE(mp.candidate_rank(b) == 2);
-    REQUIRE(mp.candidate_rank(c) == 1);
-    REQUIRE(mp.candidate_rank(d) == 0);
-
+    if (mp.sorted()) {
+        REQUIRE(mp.candidate_rank(a) == 3);
+        REQUIRE(mp.candidate_rank(b) == 2);
+        REQUIRE(mp.candidate_rank(c) == 1);
+        REQUIRE(mp.candidate_rank(d) == 0);
+    }
 
     transaction e {1, 1, {input{output_point{null_hash, 0}, script{}, 1}}, {output{15, script{}}}};
     add_state(e);
@@ -506,11 +511,18 @@ TEST_CASE("[mempool] Dependencies 2") {
     REQUIRE(mp.candidate_bytes() == 1 * 60);
     REQUIRE(mp.candidate_fees() == e.fees());
 
-    REQUIRE(mp.candidate_rank(a) == null_index);
-    REQUIRE(mp.candidate_rank(b) == null_index);
-    REQUIRE(mp.candidate_rank(c) == null_index);
-    REQUIRE(mp.candidate_rank(d) == null_index);
-    REQUIRE(mp.candidate_rank(e) == 0);
+    if (mp.sorted()) {
+        REQUIRE( ! mp.is_candidate(a));
+        REQUIRE( ! mp.is_candidate(b));
+        REQUIRE( ! mp.is_candidate(c));
+        REQUIRE( ! mp.is_candidate(d));
+        // REQUIRE(mp.candidate_rank(a) == null_index);
+        // REQUIRE(mp.candidate_rank(b) == null_index);
+        // REQUIRE(mp.candidate_rank(c) == null_index);
+        // REQUIRE(mp.candidate_rank(d) == null_index);
+
+        REQUIRE(mp.candidate_rank(e) == 0);
+    }
 
     mp.check_invariant();
 }
@@ -549,8 +561,11 @@ TEST_CASE("[mempool] Dependencies 3") {
     REQUIRE(mp.candidate_bytes() == 2 * 60);
     REQUIRE(mp.candidate_fees() == a.fees() + b.fees());
 
-    REQUIRE(mp.candidate_rank(a) == 1);
-    REQUIRE(mp.candidate_rank(b) == 0);
+
+    if (mp.sorted()) {
+        REQUIRE(mp.candidate_rank(a) == 1);
+        REQUIRE(mp.candidate_rank(b) == 0);
+    }
 
     transaction z {1, 1, {input{output_point{null_hash, 0}, script{}, 1}}, {output{19, script{}}}};
     add_state(z);
@@ -565,9 +580,11 @@ TEST_CASE("[mempool] Dependencies 3") {
     REQUIRE(mp.candidate_bytes() == 3 * 60);
     REQUIRE(mp.candidate_fees() == a.fees() + b.fees() + z.fees());
 
-    REQUIRE(mp.candidate_rank(a) == 1);
-    REQUIRE(mp.candidate_rank(b) == 0);
-    REQUIRE(mp.candidate_rank(z) == 2);
+    if (mp.sorted()) {
+        REQUIRE(mp.candidate_rank(a) == 1);
+        REQUIRE(mp.candidate_rank(b) == 0);
+        REQUIRE(mp.candidate_rank(z) == 2);
+    }
 
     transaction c {1, 1, {input{output_point{b.hash(), 0}, script{}, 1}}, {output{34, script{}}}};
     add_state(c);
@@ -582,10 +599,12 @@ TEST_CASE("[mempool] Dependencies 3") {
     REQUIRE(mp.candidate_bytes() == 4 * 60);
     REQUIRE(mp.candidate_fees() ==  a.fees() + b.fees() + z.fees() + c.fees());
 
-    REQUIRE(mp.candidate_rank(a) == 1);
-    REQUIRE(mp.candidate_rank(b) == 2);
-    REQUIRE(mp.candidate_rank(z) == 0);
-    REQUIRE(mp.candidate_rank(c) == 3);
+    if (mp.sorted()) {
+        REQUIRE(mp.candidate_rank(a) == 1);
+        REQUIRE(mp.candidate_rank(b) == 2);
+        REQUIRE(mp.candidate_rank(z) == 0);
+        REQUIRE(mp.candidate_rank(c) == 3);
+    }
 
     mp.check_invariant();
 }
@@ -627,10 +646,11 @@ TEST_CASE("[mempool] Dependencies 4") {
     REQUIRE(mp.candidate_bytes() == 3 * 60);
     REQUIRE(mp.candidate_fees() == x.fees() + y.fees() + z.fees());
 
-    REQUIRE(mp.candidate_rank(x) == 1);
-    REQUIRE(mp.candidate_rank(y) == 2);
-    REQUIRE(mp.candidate_rank(z) == 0);
-
+    if (mp.sorted()) {
+        REQUIRE(mp.candidate_rank(x) == 1);
+        REQUIRE(mp.candidate_rank(y) == 2);
+        REQUIRE(mp.candidate_rank(z) == 0);
+    }
 
 
     transaction a {1, 1, {input{output_point{hash_three, 0}, script{}, 1}}, {output{50, script{}}}};
@@ -655,12 +675,17 @@ TEST_CASE("[mempool] Dependencies 4") {
     REQUIRE(mp.candidate_bytes() == 3 * 60);
     REQUIRE(mp.candidate_fees() == x.fees() + y.fees() + z.fees());
 
-    REQUIRE(mp.candidate_rank(x) == 1);
-    REQUIRE(mp.candidate_rank(y) == 2);
-    REQUIRE(mp.candidate_rank(z) == 0);
-    REQUIRE(mp.candidate_rank(a) == null_index);
-    REQUIRE(mp.candidate_rank(b) == null_index);
+    if (mp.sorted()) {
+        REQUIRE(mp.candidate_rank(x) == 1);
+        REQUIRE(mp.candidate_rank(y) == 2);
+        REQUIRE(mp.candidate_rank(z) == 0);
 
+        // REQUIRE(mp.candidate_rank(a) == null_index);
+        // REQUIRE(mp.candidate_rank(b) == null_index);
+        REQUIRE( ! mp.is_candidate(a));
+        REQUIRE( ! mp.is_candidate(b));
+
+    }
 
 
     transaction c {1, 1, {input{output_point{b.hash(), 0}, script{}, 1}}, {output{40, script{}}}};
@@ -679,12 +704,19 @@ TEST_CASE("[mempool] Dependencies 4") {
     REQUIRE(mp.candidate_bytes() == 3 * 60);
     REQUIRE(mp.candidate_fees() == a.fees() + b.fees() + c.fees());
 
-    REQUIRE(mp.candidate_rank(x) == null_index);
-    REQUIRE(mp.candidate_rank(y) == null_index);
-    REQUIRE(mp.candidate_rank(z) == null_index);
-    REQUIRE(mp.candidate_rank(a) == 2);
-    REQUIRE(mp.candidate_rank(b) == 1);
-    REQUIRE(mp.candidate_rank(c) == 0);
+    if (mp.sorted()) {
+        // REQUIRE(mp.candidate_rank(x) == null_index);
+        // REQUIRE(mp.candidate_rank(y) == null_index);
+        // REQUIRE(mp.candidate_rank(z) == null_index);
+        REQUIRE( ! mp.is_candidate(x));
+        REQUIRE( ! mp.is_candidate(y));
+        REQUIRE( ! mp.is_candidate(z));
+
+
+        REQUIRE(mp.candidate_rank(a) == 2);
+        REQUIRE(mp.candidate_rank(b) == 1);
+        REQUIRE(mp.candidate_rank(c) == 0);
+    }
 
     mp.check_invariant();
 }
@@ -728,10 +760,14 @@ TEST_CASE("[mempool] Dependencies 4b") {
     REQUIRE(mp.candidate_bytes() == 3 * 60);
     REQUIRE(mp.candidate_fees() == x.fees() + y.fees() + z.fees());
 
-    REQUIRE(mp.candidate_rank(x) == 2);
-    REQUIRE(mp.candidate_rank(y) == 1);
-    REQUIRE(mp.candidate_rank(z) == 0);
-
+    REQUIRE(mp.is_candidate(x));
+    REQUIRE(mp.is_candidate(y));
+    REQUIRE(mp.is_candidate(z));
+    // if (mp.sorted()) {
+    //     REQUIRE(mp.candidate_rank(x) == 2);
+    //     REQUIRE(mp.candidate_rank(y) == 1);
+    //     REQUIRE(mp.candidate_rank(z) == 0);
+    // }
 
 
     transaction a {1, 1, {input{output_point{hash_one, 0}, script{}, 1}}, {output{50, script{}}}};
@@ -756,12 +792,19 @@ TEST_CASE("[mempool] Dependencies 4b") {
     REQUIRE(mp.candidate_bytes() == 3 * 60);
     REQUIRE(mp.candidate_fees() == x.fees() + y.fees() + z.fees());
 
-    REQUIRE(mp.candidate_rank(x) == 2);
-    REQUIRE(mp.candidate_rank(y) == 1);
-    REQUIRE(mp.candidate_rank(z) == 0);
-    REQUIRE(mp.candidate_rank(a) == null_index);
-    REQUIRE(mp.candidate_rank(b) == null_index);
+    REQUIRE(mp.is_candidate(x));
+    REQUIRE(mp.is_candidate(y));
+    REQUIRE(mp.is_candidate(z));
+    REQUIRE( ! mp.is_candidate(a));
+    REQUIRE( ! mp.is_candidate(b));
 
+    // if (mp.sorted()) {
+    //     REQUIRE(mp.candidate_rank(x) == 2);
+    //     REQUIRE(mp.candidate_rank(y) == 1);
+    //     REQUIRE(mp.candidate_rank(z) == 0);
+    //     REQUIRE(mp.candidate_rank(a) == null_index);
+    //     REQUIRE(mp.candidate_rank(b) == null_index);
+    // }
 
     transaction c {1, 1, {input{output_point{b.hash(), 0}, script{}, 1}}, {output{40, script{}}}};
     add_state(c);
@@ -779,12 +822,21 @@ TEST_CASE("[mempool] Dependencies 4b") {
     REQUIRE(mp.candidate_bytes() == 3 * 60);
     REQUIRE(mp.candidate_fees() == a.fees() + b.fees() + c.fees());
 
-    REQUIRE(mp.candidate_rank(x) == null_index);
-    REQUIRE(mp.candidate_rank(y) == null_index);
-    REQUIRE(mp.candidate_rank(z) == null_index);
-    REQUIRE(mp.candidate_rank(a) == 2);
-    REQUIRE(mp.candidate_rank(b) == 1);
-    REQUIRE(mp.candidate_rank(c) == 0);
+    REQUIRE( ! mp.is_candidate(x));
+    REQUIRE( ! mp.is_candidate(y));
+    REQUIRE( ! mp.is_candidate(z));
+    REQUIRE(mp.is_candidate(a));
+    REQUIRE(mp.is_candidate(b));
+    REQUIRE(mp.is_candidate(c));
+
+    // if (mp.sorted()) {
+    //     REQUIRE(mp.candidate_rank(x) == null_index);
+    //     REQUIRE(mp.candidate_rank(y) == null_index);
+    //     REQUIRE(mp.candidate_rank(z) == null_index);
+    //     REQUIRE(mp.candidate_rank(a) == 2);
+    //     REQUIRE(mp.candidate_rank(b) == 1);
+    //     REQUIRE(mp.candidate_rank(c) == 0);
+    // }
 
     mp.check_invariant();
 }
@@ -824,8 +876,11 @@ TEST_CASE("[mempool] Dependencies 5") {
     REQUIRE(mp.candidate_transactions() == 2);
     REQUIRE(mp.candidate_bytes() == 2 * 60);
     REQUIRE(mp.candidate_fees() == a.fees() + b.fees());
-    REQUIRE(mp.candidate_rank(a) == 0);
-    REQUIRE(mp.candidate_rank(b) == 1);
+
+    if (mp.sorted()) {
+        REQUIRE(mp.candidate_rank(a) == 0);
+        REQUIRE(mp.candidate_rank(b) == 1);
+    }
 
     auto res = mp.add(c);
     REQUIRE(res == error::low_benefit_transaction);
@@ -833,9 +888,14 @@ TEST_CASE("[mempool] Dependencies 5") {
     REQUIRE(mp.candidate_transactions() == 2);
     REQUIRE(mp.candidate_bytes() == 2 * 60);
     REQUIRE(mp.candidate_fees() == a.fees() + b.fees());
-    REQUIRE(mp.candidate_rank(a) == 0);
-    REQUIRE(mp.candidate_rank(b) == 1);
-    REQUIRE(mp.candidate_rank(c) == null_index);
+
+    if (mp.sorted()) {
+        REQUIRE(mp.candidate_rank(a) == 0);
+        REQUIRE(mp.candidate_rank(b) == 1);
+
+        // REQUIRE(mp.candidate_rank(c) == null_index);
+        REQUIRE( ! mp.is_candidate(c));
+    }
 
     mp.check_invariant();
 }
@@ -875,8 +935,11 @@ TEST_CASE("[mempool] Dependencies 6") {
     REQUIRE(mp.candidate_transactions() == 2);
     REQUIRE(mp.candidate_bytes() == 2 * 60);
     REQUIRE(mp.candidate_fees() == a.fees() + b.fees());
-    REQUIRE(mp.candidate_rank(a) == 0);
-    REQUIRE(mp.candidate_rank(b) == 1);
+
+    if (mp.sorted()) {
+        REQUIRE(mp.candidate_rank(a) == 0);
+        REQUIRE(mp.candidate_rank(b) == 1);
+    }
 
     auto res = mp.add(c);
     REQUIRE(res == error::success);
@@ -884,9 +947,12 @@ TEST_CASE("[mempool] Dependencies 6") {
     REQUIRE(mp.candidate_transactions() == 3);
     REQUIRE(mp.candidate_bytes() == 3 * 60);
     REQUIRE(mp.candidate_fees() == a.fees() + b.fees() + c.fees());
-    REQUIRE(mp.candidate_rank(a) == 1);
-    REQUIRE(mp.candidate_rank(b) == 0);
-    REQUIRE(mp.candidate_rank(c) == 2);
+
+    if (mp.sorted()) {
+        REQUIRE(mp.candidate_rank(a) == 1);
+        REQUIRE(mp.candidate_rank(b) == 0);
+        REQUIRE(mp.candidate_rank(c) == 2);
+    }
 
     mp.check_invariant();
 }
@@ -956,25 +1022,36 @@ TEST_CASE("[mempool] Dependencies 7 - what_to_insert") {
     mempool mp(5 * 60);
 
     REQUIRE(mp.add(a) == error::success);
-    REQUIRE(mp.candidate_rank(a) == 0);
+
+    if (mp.sorted()) {
+        REQUIRE(mp.candidate_rank(a) == 0);
+    }
 
     REQUIRE(mp.add(b) == error::success);
-    REQUIRE(mp.candidate_rank(a) == 0);
-    REQUIRE(mp.candidate_rank(b) == 1);
+    
+    if (mp.sorted()) {
+        REQUIRE(mp.candidate_rank(a) == 0);
+        REQUIRE(mp.candidate_rank(b) == 1);
+    }
 
     REQUIRE(mp.add(c) == error::success);
-    REQUIRE(mp.candidate_rank(a) == 0);
-    REQUIRE(mp.candidate_rank(b) == 1);
-    REQUIRE(mp.candidate_rank(c) == 2);
+
+    if (mp.sorted()) {
+        REQUIRE(mp.candidate_rank(a) == 0);
+        REQUIRE(mp.candidate_rank(b) == 1);
+        REQUIRE(mp.candidate_rank(c) == 2);
+    }
 
     REQUIRE(mp.add(d) == error::success);
 
-    REQUIRE(mp.candidate_rank(a) == 3);
-    REQUIRE(mp.candidate_rank(b) > 0);
-    REQUIRE(mp.candidate_rank(b) < 3);
-    REQUIRE(mp.candidate_rank(c) > 0);
-    REQUIRE(mp.candidate_rank(c) < 3);
-    REQUIRE(mp.candidate_rank(d) == 0);
+    if (mp.sorted()) {
+        REQUIRE(mp.candidate_rank(a) == 3);
+        REQUIRE(mp.candidate_rank(b) > 0);
+        REQUIRE(mp.candidate_rank(b) < 3);
+        REQUIRE(mp.candidate_rank(c) > 0);
+        REQUIRE(mp.candidate_rank(c) < 3);
+        REQUIRE(mp.candidate_rank(d) == 0);
+    }
 
     mp.check_invariant();
 }
@@ -1120,10 +1197,11 @@ TEST_CASE("[mempool] Remove Transactions 0") {
     REQUIRE(mp.candidate_bytes() == 3 * 60);
     REQUIRE(mp.candidate_fees() == x.fees() + y.fees() + z.fees());
 
-    REQUIRE(mp.candidate_rank(x) == 1);
-    REQUIRE(mp.candidate_rank(y) == 2);
-    REQUIRE(mp.candidate_rank(z) == 0);
-
+    if (mp.sorted()) {
+        REQUIRE(mp.candidate_rank(x) == 1);
+        REQUIRE(mp.candidate_rank(y) == 2);
+        REQUIRE(mp.candidate_rank(z) == 0);
+    }
 
     std::vector<transaction> remove {x, y, z};
     mp.remove(remove.begin(), remove.end(), 0);
@@ -1171,9 +1249,11 @@ TEST_CASE("[mempool] Remove Transactions 1") {
     REQUIRE(mp.candidate_bytes() == 3 * 60);
     REQUIRE(mp.candidate_fees() == x.fees() + y.fees() + z.fees());
 
-    REQUIRE(mp.candidate_rank(x) == 1);
-    REQUIRE(mp.candidate_rank(y) == 2);
-    REQUIRE(mp.candidate_rank(z) == 0);
+    if (mp.sorted()) {
+        REQUIRE(mp.candidate_rank(x) == 1);
+        REQUIRE(mp.candidate_rank(y) == 2);
+        REQUIRE(mp.candidate_rank(z) == 0);
+    }
 
     std::vector<transaction> remove {z, x, y};
     mp.remove(remove.begin(), remove.end(), 0);
@@ -1219,9 +1299,11 @@ TEST_CASE("[mempool] Remove Transactions 2") {
     REQUIRE(mp.candidate_bytes() == 3 * 60);
     REQUIRE(mp.candidate_fees() == x.fees() + y.fees() + z.fees());
 
-    REQUIRE(mp.candidate_rank(x) == 0);
-    REQUIRE(mp.candidate_rank(y) == 2);
-    REQUIRE(mp.candidate_rank(z) == 1);
+    if (mp.sorted()) {
+        REQUIRE(mp.candidate_rank(x) == 0);
+        REQUIRE(mp.candidate_rank(y) == 2);
+        REQUIRE(mp.candidate_rank(z) == 1);
+    }
 
 
     transaction w {1, 1, {input{output_point{y.hash(), 0}, script{}, 1}}, {output{46, script{}}}};
@@ -1410,7 +1492,8 @@ TEST_CASE("[mempool] testnet case 0") {
 
     auto segfault = get_tx_from_mempool(mp, internal_utxo, "01000000016653bb0c030b5a361c197a1d97c565cd0cbbef648a8599a835aa2f66738552f3010000006a47304402200eca9a84f0ccadb3a130ae2f0d5c95ba9ed112a0c7dbe494fe300d56f3c84eaf022021a2c4e6695737d06e860b7714df337d238f34060f08dfb71a1f736916917c204121026f77aac396bd82dde783509ccf188c5140a1b3e69809bbe65309fab98e97d95affffffff02d0070000000000001976a91432b57f34861bcbe33a701be9ac3a50288fbc0a3d88ac482a8800000000001976a914e048131a271885ad572722ff444e6b133e123e3088ac00000000");
     auto res = mp.add(segfault);
-    std::cout << res << std::endl;
+    // std::cout << res << std::endl;
+    REQUIRE(res == error::success);
 
     mp.check_invariant();
 
@@ -1419,7 +1502,7 @@ TEST_CASE("[mempool] testnet case 0") {
 TEST_CASE("[mempool] testnet case 1") {
     mempool mp(20000);
     
-    std::cout << "error::low_benefit_transaction: " << error::low_benefit_transaction << std::endl;
+    // std::cout << "error::low_benefit_transaction: " << error::low_benefit_transaction << std::endl;
 
     std::vector<std::string> olds {
         "01000000015d2121df162cb4a7ab369e9e32a0d60ec9815e42eaf6aae122903e802af59590000000006a4730440220553035d3bcffc7134b01e32ee78ebcbd7d645e1791cd55d74b4934e213e3506f022049d8e56dc5cba61067beb99e363f49faf3fb770ef78597ee96afeb96777caab0412102ec71b0b9ac278d1d4c1deab2b18487f3ec5af3aa9ed2b5fec34d2daf6232ed9cfeffffff0200000000000000002c6a09696e7465726c696e6b2018d0dc97df1bb11bccd6d10500d569351bd272bdae46a8ecf514e9a7ce5a4d082bda2600000000001976a9148fecabe27a217c9c4ad30f02eba0fcdf43f24c1588ac00000000",
@@ -1596,8 +1679,8 @@ TEST_CASE("[mempool] testnet case 1") {
 
     chain::block blk{chain::header{}, txs};
     auto res = mp.remove(blk.transactions().begin(), blk.transactions().end());
-
-    std::cout << res << std::endl;
+    // std::cout << res << std::endl;
+    REQUIRE(res == error::success);
 
     mp.check_invariant();
 }
@@ -1895,7 +1978,8 @@ TEST_CASE("[mempool] testnet case 2") {
 
     auto blk = get_block(block_str);
     auto res = mp.remove(blk.transactions().begin() + 1, blk.transactions().end());
-    std::cout << res << std::endl;
+    // std::cout << res << std::endl;
+    REQUIRE(res == error::success);
 
     mp.check_invariant();
 
@@ -2208,7 +2292,8 @@ TEST_CASE("[mempool] testnet case 3") {
 
     auto blk = get_block(block_str);
     auto res = mp.remove(blk.transactions().begin() + 1, blk.transactions().end());
-    std::cout << res << std::endl;
+    // std::cout << res << std::endl;
+    REQUIRE(res == error::success);
 
     mp.check_invariant();
 
