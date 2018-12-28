@@ -122,6 +122,7 @@ class mempool {
 public:
 
     using to_insert_t = std::tuple<indexes_t, uint64_t, size_t, size_t>;
+    // using to_insert_t = std::tuple<indexes_t, uint64_t, size_t, size_t, indexes_t, uint64_t, size_t, size_t>;
     using accum_t = std::tuple<uint64_t, size_t, size_t>;
     using all_transactions_t = std::vector<node>;
     using internal_utxo_set_t = std::unordered_map<chain::point, chain::output>;
@@ -164,9 +165,183 @@ public:
         all_transactions_.reserve(all_capacity);
     }
 
-    void check_indexes() const {
+    void check_children_accum(index_t node_index) const {
+
+        removal_list_t out_removed;
+        auto res = out_removed.insert(node_index);
+        if ( ! res.second) {
+            return;
+        }
+        
+        auto const& node = all_transactions_[node_index];
+        auto fee = node.fee();
+        auto size = node.size();
+        auto sigops = node.sigops();
+
+        if (node.candidate_index() != null_index) {
+            for (auto child_index : node.children()) {
+                auto const& child = all_transactions_[child_index];
+
+                //To verify that the node is inside of the candidate list.
+                if (child.candidate_index() != null_index) {
+                    auto res = out_removed.insert(child_index);
+                    if (res.second) {
+                        fee += child.fee();
+                        size += child.size();
+                        sigops += child.sigops();
+                    }
+                }
+            }
+        }
+
+        // if (node.children_fees() != fee) {
+        //     std::cout << "node_index:           " << node_index << std::endl;
+        //     std::cout << "node.children_fees(): " << node.children_fees() << std::endl;
+        //     std::cout << "fee:                  " << fee << std::endl;
+
+        //     std::cout << "Removed:  ";
+        //     for (auto i : out_removed) {
+        //         std::cout << i << ", ";
+        //     }
+        //     std::cout << std::endl;
+        // }
+
+        // if (node.children_size() != size) {
+        //     std::cout << "node_index:           " << node_index << std::endl;
+        //     std::cout << "node.children_size(): " << node.children_size() << std::endl;
+        //     std::cout << "size:                 " << size << std::endl;
+
+        //     std::cout << "Removed:  ";
+        //     for (auto i : out_removed) {
+        //         std::cout << i << ", ";
+        //     }
+        //     std::cout << std::endl;
+        // }
+
+        // if (node.children_sigops() != sigops) {
+        //     std::cout << "node_index:             " << node_index << std::endl;
+        //     std::cout << "node.children_sigops(): " << node.children_sigops() << std::endl;
+        //     std::cout << "sigops:                 " << sigops << std::endl;
+
+
+        //     std::cout << "Removed:  ";
+        //     for (auto i : out_removed) {
+        //         std::cout << i << ", ";
+        //     }
+        //     std::cout << std::endl;
+        // }
+
+        BITCOIN_ASSERT(node.children_fees() == fee);
+        BITCOIN_ASSERT(node.children_size() == size);
+        BITCOIN_ASSERT(node.children_sigops() == sigops);
+    }
+
+
+    void check_invariant() const {
+        check_invariant_partial();
+
+        {
+            size_t i = 0;
+            for (auto const& node : all_transactions_) {
+                if (node.candidate_index() != null_index) {
+                    for (auto pi : node.parents()) {
+                        auto const& parent = all_transactions_[pi];
+                        BOOST_ASSERT(parent.candidate_index() != null_index);
+                    }
+                }
+                ++i;
+            }
+        } 
+
+        {
+            // size_t ci = 0;
+            for (auto i : candidate_transactions_) {
+                auto const& node = all_transactions_[i];
+                // BOOST_ASSERT(ci == node.candidate_index());
+                // ++ci;
+                check_children_accum(i);
+            }
+        }
+
+        {
+            size_t i = 0;
+            for (auto const& node : all_transactions_) {
+                check_children_accum(i);
+                ++i;
+            }
+        }        
+
+
+        {
+            auto const cmp = [this](index_t a, index_t b) {
+                return fee_per_size_cmp(a, b);
+            };
+
+            auto res = std::is_sorted(candidate_transactions_.begin(), candidate_transactions_.end(), cmp);
+
+            if (! res) {
+                auto res2 = std::is_sorted(candidate_transactions_.begin(), candidate_transactions_.end(), cmp);
+                std::cout << res2;
+            }
+
+            BOOST_ASSERT(res);
+        }        
+    }
+
+    void check_invariant_partial() const {
         
         BOOST_ASSERT(candidate_transactions_.size() <= all_transactions_.size());
+
+
+        // {
+        //     for (auto i : candidate_transactions_) {
+        //         auto const& node = all_transactions_[i];
+                
+        //         if (node.candidate_index() != null_index && node.candidate_index() >= all_transactions_.size()) {
+        //             BOOST_ASSERT(false);
+        //         }
+        //     }
+        // }
+
+        {
+            for (auto i : candidate_transactions_) {
+                if (i >= all_transactions_.size()) {
+                    BOOST_ASSERT(false);
+                }
+            }
+        }
+
+        {
+            for (auto i : candidate_transactions_) {
+                auto const& node = all_transactions_[i];
+                
+                for (auto ci : node.children()) {
+                    if (ci >= all_transactions_.size()) {
+                        BOOST_ASSERT(false);
+                    }
+                }
+            }
+        }
+
+        {
+            for (auto i : candidate_transactions_) {
+                auto const& node = all_transactions_[i];
+                
+                for (auto pi : node.parents()) {
+                    if (pi >= all_transactions_.size()) {
+                        BOOST_ASSERT(false);
+                    }
+                }
+            }
+        }
+
+        {
+            for (auto const& node : all_transactions_) {
+                if (node.candidate_index() != null_index && node.candidate_index() >= candidate_transactions_.size()) {
+                    BOOST_ASSERT(false);
+                }
+            }
+        }
 
         {
             auto ci_sorted = candidate_transactions_;
@@ -196,6 +371,8 @@ public:
             }
         }
 
+
+
         {
             size_t i = 0;
             size_t non_indexed = 0;
@@ -211,6 +388,9 @@ public:
 
             BOOST_ASSERT(candidate_transactions_.size() + non_indexed == all_transactions_.size());
         }
+
+
+
     }
 
     error::error_code_t add(chain::transaction const& tx) {
@@ -229,28 +409,48 @@ public:
             }
 
             all_transactions_.push_back(std::move(temp_node));
-            return add_node(index);
+            res = add_node(index);
+
+#ifndef NDEBUG
+            check_invariant();
+#endif
+            return res;
         });
     }
 
     void reindex_xxx(size_t index) {    //TODO: rename
 
 
-        size_t i = index;
-        while (i < all_transactions_.size()) {
-            auto& node = all_transactions_[i];
+        // size_t i = index;
+        // while (i < all_transactions_.size()) {
+        //     auto& node = all_transactions_[i];
+
+        //     for (auto& ci : node.children()) {
+        //         --ci;
+        //     }
+
+        //     for (auto& pi : node.parents()) {
+        //         if (pi >= index) {
+        //             --pi;
+        //         }
+        //     }
+
+        //     ++i;
+        // }
+
+        for (auto& node : all_transactions_) {
 
             for (auto& ci : node.children()) {
-                --ci;
+                if (ci >= index) {
+                    --ci;
+                }
             }
 
             for (auto& pi : node.parents()) {
                 if (pi >= index) {
                     --pi;
                 }
-            }
-
-            ++i;
+            }            
         }
     }
 
@@ -263,7 +463,7 @@ public:
             return error::success;
         }
 
-        // std::cout << "Arrive Block -------------------------------------------------------------------" << std::endl;
+        std::cout << "Arrive Block -------------------------------------------------------------------" << std::endl;
         // std::cout << encode_base16(tx.to_data(true, BITPRIM_WITNESS_DEFAULT)) << std::endl;
 
 
@@ -381,13 +581,13 @@ public:
             }
 
 #ifndef NDEBUG
-            check_indexes();
+            check_invariant();
 #endif
 
             for (size_t i = 0; i < all_transactions_.size(); ++i) {
                 re_add_node(i);
 #ifndef NDEBUG
-                check_indexes();
+                check_invariant();
 #endif
             }
             return error::success;
@@ -549,9 +749,6 @@ private:
                 // previous_outputs_.left.insert(previous_outputs_t::left_value_type(i.previous_output(), node_index));
                 previous_outputs_.insert({i.previous_output(), index});
             }        
-            if (index == 140) {
-                std::cout << std::endl;
-            }
             add_node(index);
         } else {
             //No debería pasar por aca
@@ -565,18 +762,35 @@ private:
 
         if (candidate_transactions_.size() > 0 && ! has_room_for(std::get<2>(to_insert), std::get<3>(to_insert))) {
             //TODO: what_to_remove_time
-            auto to_remove = what_to_remove(std::get<1>(to_insert), std::get<2>(to_insert), std::get<3>(to_insert));
+            auto to_remove = what_to_remove(index, std::get<1>(to_insert), std::get<2>(to_insert), std::get<3>(to_insert));
 
+#ifndef NDEBUG
+            for (auto const& wtr : to_remove) {
+                for (auto const& wti : std::get<0>(to_insert)) {
+                    if (wtr == wti) {
+                        BOOST_ASSERT(false);
+                    }
+                }
+            }
+#endif
             if (to_remove.empty()) {
                 // ++low_benefit_tx_counter;
                 return error::low_benefit_transaction;
             } 
             do_candidate_removal(to_remove);
+#ifndef NDEBUG
+            check_invariant();
+#endif
+
         }
-       
+
+
         do_candidates_insertion(to_insert);
 
-        // check_indexes();
+#ifndef NDEBUG
+        check_invariant();
+#endif
+
         return error::success;
     }    
     
@@ -638,7 +852,8 @@ private:
 
 
     //TODO(fernando): replace tuple with a struct with names
-    accum_t get_accum(removal_list_t& out_removed, index_t node_index, indexes_t const& children) {
+    // accum_t get_accum(removal_list_t& out_removed, index_t node_index, indexes_t const& children) {
+    accum_t get_accum(removal_list_t& out_removed, index_t node_index) const {
         auto res = out_removed.insert(node_index);
         if ( ! res.second) {
             return {0, 0, 0};
@@ -649,7 +864,7 @@ private:
         auto size = node.size();
         auto sigops = node.sigops();
 
-        for (auto child_index : children) {
+        for (auto child_index : node.children()) {
             auto const& child = all_transactions_[child_index];
 
             //To verify that the node is inside of the candidate list.
@@ -666,15 +881,20 @@ private:
         return {fee, size, sigops};
     }
 
-    to_insert_t what_to_insert(index_t node_index) {
-        indexes_t to_insert;
+    to_insert_t what_to_insert(index_t node_index) const {
+        indexes_t to_insert_no_inserted;
+        // indexes_t to_insert_inserted;
 
         auto const& node = all_transactions_[node_index];
         auto fees = node.fee();
         auto size = node.size();
         auto sigops = node.sigops();
 
-        to_insert.push_back(node_index);
+        to_insert_no_inserted.push_back(node_index);
+
+        // uint64_t fees_inserted = 0;
+        // size_t size_inserted = 0;
+        // size_t sigops_inserted = 0;
 
         for (auto pi : node.parents()) {
             auto const& parent = all_transactions_[pi];
@@ -682,14 +902,27 @@ private:
                 fees += parent.fee();
                 size += parent.size();
                 sigops += parent.sigops();
-                to_insert.push_back(pi);
-            }
+                to_insert_no_inserted.push_back(pi);
+            } 
+            // else {
+            //     fees_inserted += parent.fee();
+            //     size_inserted += parent.size();
+            //     sigops_inserted += parent.sigops();
+            //     to_insert_inserted.push_back(pi);
+            // }
         }
 
-        return {std::move(to_insert), fees, size, sigops};
+        return {std::move(to_insert_no_inserted), fees, size, sigops};
+        // return {std::move(to_insert_no_inserted), fees, size, sigops, std::move(to_insert_inserted), fees_inserted, size_inserted, sigops_inserted};
     }
 
-    removal_list_t what_to_remove(uint64_t fees, size_t size, size_t sigops) {
+    bool shares_parents(mining::node const& to_insert_node, index_t remove_candidate_index) const {
+        auto const& parents = to_insert_node.parents();
+        auto it = std::find(parents.begin(), parents.end(), remove_candidate_index);
+        return it != parents.end();
+    }
+
+    removal_list_t what_to_remove(index_t to_insert_index, uint64_t fees, size_t size, size_t sigops) const {
         //precondition: candidate_transactions_.size() > 0
 
         // auto const& node = all_transactions_[node_index];
@@ -711,29 +944,35 @@ private:
         while (true) {
             auto elem_index = *it;
             auto const& elem = all_transactions_[elem_index];
+            auto const& to_insert_elem = all_transactions_[to_insert_index];
             
-            auto res = get_accum(removed, elem_index, elem.children());
-            if (std::get<1>(res) != 0) {
-                fee_accum += std::get<0>(res);
-                size_accum += std::get<1>(res);
+            //TODO(fernando): Do I have to check if elem_idex is any of the to_insert elements
+            bool shares = shares_parents(to_insert_elem, elem_index);
 
-                auto to_remove_benefit = static_cast<double>(fee_accum) / size_accum;
-                //El beneficio del elemento que voy a insertar es "peor" que el peor que el del peor elemento que tengo como candidato. Entonces, no sigo.
-                if (pack_benefit <= to_remove_benefit) {
-                    //El beneficio acumulado de los elementos a remover es "mejor" que el que tengo para insertar.
-                    //No tengo que hacer nada.
-                    // return candidate_transactions_.end();
-                    return {};
-                }
+            if ( ! shares) {
+                auto res = get_accum(removed, elem_index);
+                if (std::get<1>(res) != 0) {
+                    fee_accum += std::get<0>(res);
+                    size_accum += std::get<1>(res);
 
-                next_size -= std::get<1>(res);
-                next_sigops -= std::get<2>(res);
+                    auto to_remove_benefit = static_cast<double>(fee_accum) / size_accum;
+                    //El beneficio del elemento que voy a insertar es "peor" que el peor que el del peor elemento que tengo como candidato. Entonces, no sigo.
+                    if (pack_benefit <= to_remove_benefit) {
+                        //El beneficio acumulado de los elementos a remover es "mejor" que el que tengo para insertar.
+                        //No tengo que hacer nada.
+                        // return candidate_transactions_.end();
+                        return {};
+                    }
 
-                if (next_size + size <= max_template_size_) {
-                    auto const sigops_limit = get_allowed_sigops(next_size);
-                    if (next_sigops + sigops <= sigops_limit) {
-                        // return it;
-                        return removed;
+                    next_size -= std::get<1>(res);
+                    next_sigops -= std::get<2>(res);
+
+                    if (next_size + size <= max_template_size_) {
+                        auto const sigops_limit = get_allowed_sigops(next_size);
+                        if (next_sigops + sigops <= sigops_limit) {
+                            // return it;
+                            return removed;
+                        }
                     }
                 }
             }
@@ -764,11 +1003,29 @@ private:
 
     void do_candidates_insertion(to_insert_t const& to_insert) {
 
+        // for (auto i : std::get<0>(to_insert)) {
+        //     auto& node = all_transactions_[i];
+        //     for (auto pi : node.parents()) {
+        //         auto& parent = all_transactions_[pi];
+        //         parent.increment_values(node.fee(), node.size(), node.sigops());
+        //     }
+        // }
+
+        // std::cout << "TO Insert: ";
+        // for (auto i : std::get<0>(to_insert)) {
+        //     std::cout << i << ", ";
+        // }
+        // std::cout << std::endl;
+
         for (auto i : std::get<0>(to_insert)) {
-            insert_in_candidate(i);
+            insert_in_candidate(i, std::get<0>(to_insert));
 
 #ifdef BITPRIM_MINING_CTOR_ENABLED
             insert_in_candidate_ctor(i);
+#endif
+
+#ifndef NDEBUG
+            check_invariant_partial();
 #endif
         }
 
@@ -928,9 +1185,12 @@ private:
 
     void remove_and_reindex(index_t i) {
         //precondition: TODO?
+
         auto it = std::next(std::begin(candidate_transactions_), i);
         auto& node = all_transactions_[*it];
         node.set_candidate_index(null_index);
+
+        node.reset_children_values();
 
         accum_size_ -= node.size();
         accum_sigops_ -= node.sigops();
@@ -1042,7 +1302,6 @@ private:
             auto from = it + 1;
             auto to = std::end(candidate_transactions_);
 
-
             auto it2 = std::upper_bound(from, to, parent_index, cmp);
             reindex_decrement(from, it2);
             it = std::rotate(it, it + 1, it2);
@@ -1059,9 +1318,11 @@ private:
             auto to = it;
 
             auto it2 = std::upper_bound(from, to, parent_index, cmp);
-            reindex_increment(it2, it);
-            std::rotate(it2, it, it + 1);
-            parent.set_candidate_index(std::distance(std::begin(candidate_transactions_), it2));
+            if (it2 != it) {
+                reindex_increment(it2, it);
+                std::rotate(it2, it, it + 1);
+                parent.set_candidate_index(std::distance(std::begin(candidate_transactions_), it2));
+            }
         }
     }
 
@@ -1077,14 +1338,42 @@ private:
         }
     }
 
+
     void reindex_parent_from_insertion(mining::node const& node, mining::node& parent, index_t parent_index) {
-        auto node_benefit = static_cast<double>(node.fee()) / node.size();
-        auto accum_benefit = static_cast<double>(parent.children_fees()) / parent.children_size();
+
+        // std::cout << "hhhhh\n";
+
+        auto node_benefit = static_cast<double>(node.fee()) / node.size();                          //a
+        auto accum_benefit = static_cast<double>(parent.children_fees()) / parent.children_size();  //b
+        auto node_accum_benefit = static_cast<double>(node.children_fees()) / node.children_size(); //c
+        auto old_accum_benefit = static_cast<double>(parent.children_fees() - node.fee()) / (parent.children_size() - node.size());  //d?
+
+        // std::cout << "node_benefit:       " << node_benefit << "\n";
+        // std::cout << "accum_benefit:      " << accum_benefit << "\n";
+        // std::cout << "node_accum_benefit: " << node_accum_benefit << "\n";
+        // std::cout << "old_accum_benefit:  " << old_accum_benefit << "\n";
+
+        // std::cout << "iiiiiii\n";
 
         if (node_benefit == accum_benefit) {
             return;
         }
 
+        // std::cout << "jjjjjjjjj\n";
+
+        if (old_accum_benefit == accum_benefit) {
+            return;
+        }
+
+        // std::cout << "kkkkkkkkkk\n";
+
+        // if (old_accum_benefit > node_accum_benefit) {
+        //     std::cout << "kkkkkkkkkk\n";
+        // } else {
+        //     std::cout << "kkkkkkkkkk\n";
+        // }
+
+    
         auto it = std::next(std::begin(candidate_transactions_), parent.candidate_index());
         auto child_it = std::next(std::begin(candidate_transactions_), node.candidate_index());
 
@@ -1092,77 +1381,388 @@ private:
             return fee_per_size_cmp(a, b);
         };
 
-        if (node_benefit < accum_benefit) {
 
-            // assert(accum_benefit_new < accum_benefit);
+        if (old_accum_benefit > accum_benefit) {
+            //Parent got worse
+/*
+        ------------------------------------
+                 P               P'
+        ------------------------------------
+*/
 
-            // EMPEORA EL PADRE, POR LO TANTO TENGO QUE MOVERLO A LA DERECHA
-            // (FALSO) Sé que el hijo recién insertado está a la derecha del padre y va a permanecer a su derecha.
+            if (old_accum_benefit < node_accum_benefit) {
+                // Parent was worst than child
 
+/*
+        ------------------------------------
+            C    P               P'
+        ------------------------------------
+*/
 
-            if (parent.candidate_index() < node.candidate_index()) {
-                auto from = it + 1;
-                auto to = child_it;       // to = std::end(candidate_transactions_);
+                // std::cout << "Case 1\n";
 
-                auto it2 = std::upper_bound(from, to, parent_index, cmp);
-                reindex_decrement(from, it2);
-                it = std::rotate(it, it + 1, it2);
-                parent.set_candidate_index(std::distance(std::begin(candidate_transactions_), it));
-            } else {
                 auto from = it + 1;
                 auto to = std::end(candidate_transactions_);
 
                 auto it2 = std::upper_bound(from, to, parent_index, cmp);
-                reindex_decrement(from, it2);
+
+                reindex_decrement(it + 1, it2);
                 it = std::rotate(it, it + 1, it2);
                 parent.set_candidate_index(std::distance(std::begin(candidate_transactions_), it));
-            }
-
-
-        } else {
-            // assert(accum_benefit_new > accum_benefit);
-
-            // MEJORA EL PADRE, POR LO TANTO TENGO QUE MOVERLO A LA IZQUIERDA
-            // (FALSO) Sé que el hijo recién insertado está a la izquierda del padre y va a permanecer a su izquierda.
-
-            if (node.candidate_index() < parent.candidate_index()) {
-                auto from = child_it + 1;
-                auto to = it;    // to = std::end(candidate_transactions_);
-
-                auto it2 = std::upper_bound(from, to, parent_index, cmp);
-                reindex_increment(it2, it);
-                std::rotate(it2, it, it + 1);
-                parent.set_candidate_index(std::distance(std::begin(candidate_transactions_), it2));
             } else {
-                auto from = std::begin(candidate_transactions_);
+                // Parent was better than child
+                if (accum_benefit < node_accum_benefit) {
+/*
+        ------------------------------------
+                 P        C     P'      
+        ------------------------------------
+*/
+                    // std::cout << "Case 2\n";
+
+                    auto from = child_it + 1;
+                    auto to = std::end(candidate_transactions_);;
+
+                    auto it2 = std::upper_bound(from, to, parent_index, cmp);
+
+                    reindex_decrement(it + 1, it2);
+                    it = std::rotate(it, it + 1, it2);
+                    parent.set_candidate_index(std::distance(std::begin(candidate_transactions_), it));
+                } else {
+/*
+        ------------------------------------
+                 P              P'      C
+        ------------------------------------
+*/
+                    // std::cout << "Case 3\n";
+
+                    auto from = it + 1;
+                    auto to = child_it;
+
+                    auto it2 = std::upper_bound(from, to, parent_index, cmp);
+                    reindex_decrement(it + 1, it2);
+                    it = std::rotate(it, it + 1, it2);
+                    parent.set_candidate_index(std::distance(std::begin(candidate_transactions_), it));
+                }
+            }
+        }  else {
+            //Parent got better
+/*
+        ------------------------------------
+                 P'              P
+        ------------------------------------
+*/
+
+            if (accum_benefit < node_accum_benefit) {
+
+/*
+        ------------------------------------
+            C    P'              P
+        ------------------------------------
+*/
+                // std::cout << "Case 4\n";
+
+                auto from = child_it + 1;
                 auto to = it;
 
                 auto it2 = std::upper_bound(from, to, parent_index, cmp);
-                reindex_increment(it2, it);
-                std::rotate(it2, it, it + 1);
-                parent.set_candidate_index(std::distance(std::begin(candidate_transactions_), it2));
+
+                if (it2 != it) {
+                    reindex_increment(it2, it);
+                    std::rotate(it2, it, it + 1);
+                    parent.set_candidate_index(std::distance(std::begin(candidate_transactions_), it2));
+                }
+            } else {
+                if (old_accum_benefit < node_accum_benefit) {
+/*
+        ------------------------------------
+             P'        C       P
+        ------------------------------------
+*/
+                    // std::cout << "Case 5\n";
+
+                    auto from = std::begin(candidate_transactions_);
+                    auto to = child_it;
+
+                    auto it2 = std::upper_bound(from, to, parent_index, cmp);
+
+                    reindex_increment(it2, it);
+                    std::rotate(it2, it, it + 1);
+                    parent.set_candidate_index(std::distance(std::begin(candidate_transactions_), it2));
+
+                } else {
+/*
+        ------------------------------------
+             P'        P         C
+        ------------------------------------
+*/
+
+                    // std::cout << "Case 6\n";
+
+                    auto from = std::begin(candidate_transactions_);
+                    auto to = it;
+                    auto it2 = std::upper_bound(from, to, parent_index, cmp);
+
+                    if (it2 != it) {
+                        reindex_increment(it2, it);
+                        std::rotate(it2, it, it + 1);
+                        parent.set_candidate_index(std::distance(std::begin(candidate_transactions_), it2));
+                    } 
+                }
             }
-        
-
-
         }
+
+
+        // if (old_accum_benefit > node_accum_benefit) {
+        //     //Parent was better than child
+        //     if (accum_benefit < node_accum_benefit) {
+        //         // Now parent is worst than child
+
+        //         std::cout << "Case 1\n";
+
+
+        //         auto from = child_it + 1;
+        //         auto to = std::end(candidate_transactions_);
+
+        //         auto it2 = std::upper_bound(from, to, parent_index, cmp);
+
+        //         if (it2 != to) {
+        //             reindex_decrement(it + 1, it2);
+        //             it = std::rotate(it, it + 1, it2);
+        //             parent.set_candidate_index(std::distance(std::begin(candidate_transactions_), it));
+        //         } else {
+        //             std::cout << "kkkkkkkkkk\n";
+        //             reindex_decrement(it + 1, it2);
+        //             it = std::rotate(it, it + 1, it2);
+        //             parent.set_candidate_index(std::distance(std::begin(candidate_transactions_), it));
+        //         }
+        //     } else {
+
+        //         std::cout << "Case 2\n";
+
+        //         // Parent is still better than child
+        //         BOOST_ASSERT(old_accum_benefit > accum_benefit);    //Can not be better than yesterday (?)
+
+        //         auto from = it + 1;
+        //         auto to = child_it;
+
+        //         auto it2 = std::upper_bound(from, to, parent_index, cmp);
+
+        //         if (it2 != to) {
+        //             reindex_decrement(it + 1, it2);
+        //             it = std::rotate(it, it + 1, it2);
+        //             parent.set_candidate_index(std::distance(std::begin(candidate_transactions_), it));
+        //         } else {
+        //             std::cout << "kkkkkkkkkk\n";
+
+        //             reindex_decrement(it + 1, it2);
+        //             it = std::rotate(it, it + 1, it2);
+        //             parent.set_candidate_index(std::distance(std::begin(candidate_transactions_), it));
+
+        //         }
+
+
+        //     }
+        // }  else {
+        //     //Parent was worst than child
+        //     if (accum_benefit < node_accum_benefit) {
+        //         // Parent is still worst than child
+
+        //         std::cout << "Case 3\n";
+
+
+        //         auto from = child_it + 1;
+        //         auto to = it;
+
+        //         auto it2 = std::upper_bound(from, to, parent_index, cmp);
+
+        //         if (it2 != to) {
+        //             reindex_increment(it2, it);
+        //             std::rotate(it2, it, it + 1);
+        //             parent.set_candidate_index(std::distance(std::begin(candidate_transactions_), it2));
+        //         } else {
+        //             std::cout << "kkkkkkkkkk\n";
+        //             reindex_increment(it2, it);
+        //             std::rotate(it2, it, it + 1);
+        //             parent.set_candidate_index(std::distance(std::begin(candidate_transactions_), it2));
+        //         }
+
+        //     } else {
+        //         std::cout << "Case 4\n";
+
+        //         std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
+        //         // BOOST_ASSERT(false);
+        //     }
+        // }
+
+
+        // if (node_benefit < accum_benefit) {
+
+        //     // assert(accum_benefit_new < accum_benefit);
+
+        //     // EMPEORA EL PADRE, POR LO TANTO TENGO QUE MOVERLO A LA DERECHA
+        //     // (FALSO) Sé que el hijo recién insertado está a la derecha del padre y va a permanecer a su derecha.
+
+
+        //     if (parent.candidate_index() < node.candidate_index()) {
+        //         // a < b && b > c
+        //         // BOOST_ASSERT(a < b && b > c);
+        //         // BOOST_ASSERT(node_benefit < accum_benefit && accum_benefit > node_accum_benefit);
+
+        //         if (!(node_benefit < accum_benefit && accum_benefit > node_accum_benefit)) {
+        //             std::cout << "aaa\n";
+        //         }
+
+        //         auto from = it + 1;
+        //         auto to = child_it;       // to = std::end(candidate_transactions_);
+        //         auto it2 = std::upper_bound(from, to, parent_index, cmp);
+
+        //         auto xxx_from = it + 1;
+        //         auto xxx_to = std::end(candidate_transactions_);
+        //         auto xxx_it2 = std::upper_bound(xxx_from, xxx_to, parent_index, cmp);
+
+
+        //         reindex_decrement(from, it2);
+        //         it = std::rotate(it, it + 1, it2);
+        //         parent.set_candidate_index(std::distance(std::begin(candidate_transactions_), it));
+
+
+
+        //         std::cout << "aaa\n";
+
+        //     } else {
+        //         // BOOST_ASSERT(a < b && b < c);
+        //         BOOST_ASSERT(node_benefit < accum_benefit && accum_benefit < node_accum_benefit);
+
+        //         auto from = it + 1;
+        //         auto to = std::end(candidate_transactions_);
+
+        //         auto it2 = std::upper_bound(from, to, parent_index, cmp);
+        //         reindex_decrement(from, it2);
+        //         it = std::rotate(it, it + 1, it2);
+        //         parent.set_candidate_index(std::distance(std::begin(candidate_transactions_), it));
+        //     }
+
+
+        // } else {
+        //     // assert(accum_benefit_new > accum_benefit);
+
+        //     // MEJORA EL PADRE, POR LO TANTO TENGO QUE MOVERLO A LA IZQUIERDA
+        //     // (FALSO) Sé que el hijo recién insertado está a la izquierda del padre y va a permanecer a su izquierda.
+
+        //     if (node.candidate_index() < parent.candidate_index()) {
+
+        //         // BOOST_ASSERT(a > b && b < c);
+        //         BOOST_ASSERT(node_benefit > accum_benefit && accum_benefit < node_accum_benefit);
+
+        //         auto from = child_it + 1;
+        //         auto to = it;    // to = std::end(candidate_transactions_);
+
+        //         auto it2 = std::upper_bound(from, to, parent_index, cmp);
+        //         reindex_increment(it2, it);
+        //         std::rotate(it2, it, it + 1);
+        //         parent.set_candidate_index(std::distance(std::begin(candidate_transactions_), it2));
+        //     } else {
+        //         // BOOST_ASSERT(a > b && b > c);
+        //         BOOST_ASSERT(node_benefit > accum_benefit && accum_benefit > node_accum_benefit);
+
+        //         auto from = std::begin(candidate_transactions_);
+        //         auto to = it;
+
+        //         auto it2 = std::upper_bound(from, to, parent_index, cmp);
+        //         reindex_increment(it2, it);
+        //         std::rotate(it2, it, it + 1);
+        //         parent.set_candidate_index(std::distance(std::begin(candidate_transactions_), it2));
+        //     }
+        // }
     }
 
-    void reindex_parents_from_insertion(mining::node const& node) {
+
+    // void print_candidates() {
+    //     for (auto mi : candidate_transactions_) {
+    //         std::cout << mi << ", ";
+    //     }
+    //     std::cout << std::endl;
+    //     for (auto mi : candidate_transactions_) {
+    //         auto& temp_node = all_transactions_[mi];
+    //         auto benefit = static_cast<double>(temp_node.children_fees()) / temp_node.children_size();
+    //         std::cout << benefit << ", ";
+    //     }
+    //     std::cout << std::endl;
+    // }
+
+    void reindex_parents_from_insertion(mining::node const& node, indexes_t to_insert) {
         //precondition: candidate_transactions_.size() > 0
+
+        // for (auto pi : node.parents()) {
+        //     auto& parent = all_transactions_[pi];
+        //     auto old = parent;
+        //     if (parent.candidate_index() != null_index) {
+        //         reindex_parent_from_insertion(node, parent, pi);
+        //     }
+        // }
+
+
+        // std::cout << "Node " << candidate_transactions_[node.candidate_index()] << " parents: ";
+        // for (auto pi : node.parents()) {
+        //     std::cout << pi << ", ";
+        // }
+        // std::cout << std::endl;
 
         for (auto pi : node.parents()) {
             auto& parent = all_transactions_[pi];
-            parent.increment_values(node.fee(), node.size(), node.sigops());
-            
+            // auto old = parent;
+
+            // parent.increment_values(node.fee(), node.size(), node.sigops());
+           
             if (parent.candidate_index() != null_index) {
+
+                // std::cout << "--------------------------------------------------\n";
+                // std::cout << "Before re-sorting " << pi << "\n";
+                // print_candidates();
+                // std::cout << std::endl;
+                // std::cout << "--------------------------------------------------\n";
+
+                // if (pi == 27) {
+                //     std::cout << "muneco\n";
+                // }
+
+
+                auto parent_benefit = static_cast<double>(parent.children_fees()) / parent.children_size();   
+                // std::cout << "Parent stage0 benefit " << parent_benefit << "\n";
+                parent.increment_values(node.fee(), node.size(), node.sigops());
+                parent_benefit = static_cast<double>(parent.children_fees()) / parent.children_size();   
+                // std::cout << "Parent stage1 benefit " << parent_benefit << "\n";
+
                 reindex_parent_from_insertion(node, parent, pi);
+
+                // std::cout << "--------------------------------------------------\n";
+                // std::cout << "After re-sorting " << pi << "\n";
+                // print_candidates();
+                // std::cout << std::endl;
+                // std::cout << "--------------------------------------------------\n";
+
+            } else {
+                auto it = std::find(std::begin(to_insert), std::end(to_insert), pi);
+                if (it != std::end(to_insert)) {
+                    parent.increment_values(node.fee(), node.size(), node.sigops());
+                }
             }
         }
     }
 
-    void insert_in_candidate(index_t node_index) {
+    void insert_in_candidate(index_t node_index, indexes_t to_insert) {
         auto& node = all_transactions_[node_index];
+
+        // std::cout << "--------------------------------------------------\n";
+        auto node_benefit = static_cast<double>(node.children_fees()) / node.children_size();
+        // std::cout << "Before insert " << node_index << "\n";
+        // std::cout << "New node benefit " << node_benefit << "\n";
+        // print_candidates();
+        // std::cout << std::endl;
+        // std::cout << "--------------------------------------------------\n";
+
+
+
 
         // auto start = std::chrono::high_resolution_clock::now();
 
@@ -1195,7 +1795,13 @@ private:
         // time_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
         // insert_time += time_ns;
 
-        reindex_parents_from_insertion(node);
+        // std::cout << "--------------------------------------------------\n";
+        // std::cout << "After insert " << node_index << "\n";
+        // print_candidates();
+        // std::cout << std::endl;
+        // std::cout << "--------------------------------------------------\n";
+
+        reindex_parents_from_insertion(node, to_insert);
     }
 
 #ifdef BITPRIM_MINING_CTOR_ENABLED
