@@ -76,11 +76,15 @@ public:
         return index_;
     }
 
-    T const& element() const {
+    T& element() & {
         return x_;
     }
 
-    T& element() {
+    T&& element() && {
+        return std::move(x_);
+    }
+
+    T const& element() const& {
         return x_;
     }
 
@@ -203,29 +207,16 @@ public:
 #ifndef NDEBUG
         check_invariant();
 #endif
-
     }
 
     void re_construct_candidates() {
         for (size_t i = 0; i < all_elements_.size(); ++i) {
             re_add_node(i);
         }
-
 #ifndef NDEBUG
         check_invariant();
 #endif
     }
-
-
-    void re_add_node(main_index_t index) {
-        auto& elem = all_elements_[index];
-
-        if (state_.re_add_node(index, elem.element())) {
-            insert_candidate(index, elem);
-        } else {
-            BOOST_ASSERT(false);
-        }
-    }    
 
     template <typename F>
     void for_each(F f) {
@@ -245,7 +236,9 @@ public:
         }        
     }
 
-
+    auto internal_data() const {
+        return std::make_tuple(candidate_elements_, all_elements_, sorted_);
+    }
 
 // ----------------------------------------------------------------------------------------
 //  Invariant Checks
@@ -690,6 +683,15 @@ private:
         return all_elements_.back();
     }
 
+    void re_add_node(main_index_t index) {
+        auto& elem = all_elements_[index];
+
+        if (state_.re_add_node(index, elem.element())) {
+            insert_candidate(index, elem);
+        } else {
+            BOOST_ASSERT(false);
+        }
+    }    
 
 
     // std::cout << all_elements_[*cand_index].element().fee() << "\n";

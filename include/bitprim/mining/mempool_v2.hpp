@@ -107,14 +107,63 @@ struct fee_per_size_cmp {
 };
 
 
+// #if defined(BITPRIM_CURRENCY_BCH)
+// struct ctor_cmp {
+//     bool operator()(node const& a, node const& b) const {
+//         return std::lexicographical_compare(a.txid().rbegin(), a.txid().rend(),
+//                                             b.txid().rbegin(), b.txid().rend());
+//     }
+// };
+// #endif
+
+class mempool;
+using partially_indexed_mempool_t = partially_indexed<node, fee_per_size_cmp, mempool>;
+
 #if defined(BITPRIM_CURRENCY_BCH)
-struct ctor_cmp {
-    bool operator()(node const& a, node const& b) const {
+void sort_ctor(partially_indexed_mempool_t::main_container_t& all, partially_indexed_mempool_t::indexes_container_t& candidates) {
+    auto const cmp = [&all](main_index_t ia, main_index_t ib) {
+        node const& a = all[ia].element(); 
+        node const& b = all[ib].element();
         return std::lexicographical_compare(a.txid().rbegin(), a.txid().rend(),
                                             b.txid().rbegin(), b.txid().rend());
+    };
+    candidates.sort(cmp);
+}
+
+#else
+
+void sort_ltor(bool sorted, partially_indexed_mempool_t::main_container_t& all, partially_indexed_mempool_t::indexes_container_t& candidates) {
+
+    if ( ! sorted) {
+        auto const cmp = [&all](main_index_t ia, main_index_t ib) {
+            node const& a = all[ia].element(); 
+            node const& b = all[ib].element();
+            return fee_per_size_cmp{}(a, b);
+        };
+        candidates.sort(cmp);
     }
-};
-#endif
+
+    auto last_organized = std::begin(candidates);
+
+    while (last_organized != std::end(candidates)) {
+        auto selected_to_move = last_organized++;
+
+        auto most_left_child = std::find_if(std::begin(candidates), selected_to_move, 
+            [&](main_index_t s) {
+                auto const& parent_node = all[*selected_to_move];
+                auto found = std::find(std::begin(parent_node.children()), 
+                                       std::end(parent_node.children()), 
+                                       s);
+                return found != std::end(parent_node.children());
+        });
+
+        if (most_left_child != selected_to_move) {
+            //move to the left of most_left_child
+            candidates.splice(most_left_child, candidates, selected_to_move);
+        }
+    }
+}
+#endif // defined(BITPRIM_CURRENCY_BCH)
 
 
 class mempool {
@@ -429,44 +478,40 @@ public:
     }
 
 
-//     std::pair<std::vector<transaction_element>, uint64_t> get_block_template() const {
-//         //TODO(fernando): implement a cache, outside
+    std::pair<std::vector<transaction_element>, uint64_t> get_block_template() const {
+        //TODO(fernando): implement a cache, outside this class.
 
-//         if (processing_block_) {
-//             return {};
-//         } 
+        if (processing_block_) {
+            return {};
+        } 
 
-//         auto copied_data = prioritizer_.high_job([this]{
-//             return make_tuple(candidate_transactions_, all_transactions_, accum_fees_);
-//         });
+        auto copied_data = prioritizer_.high_job([this]{
+            return std::tuple_cat(data_.internal_data(), std::make_tuple(accum_fees_));
+        });
 
-//         auto& candidates = std::get<0>(copied_data);
-//         auto& all = std::get<1>(copied_data);
-//         auto accum_fees = std::get<2>(copied_data);
+        auto& candidates = std::get<0>(copied_data);
+        auto& all = std::get<1>(copied_data);
+        auto sorted = std::get<2>(copied_data);
+        auto accum_fees = std::get<3>(copied_data);
 
-// #if defined(BITPRIM_CURRENCY_BCH)
+        // start = chrono::high_resolution_clock::now();
+#if defined(BITPRIM_CURRENCY_BCH)
+        sort_ctor(all, candidates);
+#else
+        sort_ltor(sorted, all, candidates);
+#endif
+        // end = chrono::high_resolution_clock::now();
+        // auto sort_time = chrono::duration_cast<chrono::nanoseconds>(end - start).count();
 
-//         auto const cmp = [this](index_t a, index_t b) {
-//             return ctor_cmp(a, b);
-//         };
+        std::vector<transaction_element> res;
+        res.reserve(candidates.size());
 
-//         // start = chrono::high_resolution_clock::now();
-//         std::sort(std::begin(candidates), std::end(candidates), cmp);
-//         // end = chrono::high_resolution_clock::now();
-//         // auto sort_time = chrono::duration_cast<chrono::nanoseconds>(end - start).count();
-// #else
-//         //TODO: Sort LTOR the candidates
-// #endif
+        for (auto i : candidates) {
+            res.push_back(std::move(all[i].element().element()));
+        }
 
-//         std::vector<transaction_element> res;
-//         res.reserve(candidates.size());
-
-//         for (auto i : candidates) {
-//             res.push_back(std::move(all[i].element()));
-//         }
-
-//         return {std::move(res), accum_fees};
-//     }
+        return {std::move(res), accum_fees};
+    }
 
     chain::output get_utxo(chain::point const& point) const {
         // shared_lock_t lock(mutex_);
@@ -974,7 +1019,12 @@ private:
     bool remove_insert_several(node const& x, main_index_t node_index, Reverser reverser, Remover remover, Getter getter, Inserter inserter, ReSortLeft re_sort_left, ReSortRight re_sort_right, ReSortToEnd re_sort_to_end, ReSort re_sort, ReSortFromBegin re_sort_from_begin) {   
         //precondition: candidate_transactions_.size() > 0
 
-        auto [to_insert, fees, size, sigops] = what_to_insert(x, node_index, getter);
+        // auto [to_insert, fees, size, sigops] = what_to_insert(x, node_index, getter);
+        auto wti = what_to_insert(x, node_index, getter);
+        auto const& to_insert = std::get<0>(wti);
+        auto fees = std::get<1>(wti);
+        auto size = std::get<2>(wti);
+        auto sigops = std::get<3>(wti);
 
         if ( ! remove_insert_common(x, fees, size, sigops, reverser, remover, getter, re_sort_left, re_sort_right) ) {
             return false;
