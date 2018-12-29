@@ -2162,9 +2162,9 @@ bool block_chain::stopped() const
 }
 
 #if defined(BITPRIM_WITH_MINING)
-    std::pair<std::vector<libbitcoin::mining::transaction_element>, uint64_t> block_chain::get_block_template() const{
-        return mempool_.get_block_template();
-    }
+std::pair<std::vector<libbitcoin::mining::transaction_element>, uint64_t> block_chain::get_block_template() const {
+    return mempool_.get_block_template();
+}
 #endif
 
 } // namespace blockchain
