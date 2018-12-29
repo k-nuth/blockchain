@@ -2354,11 +2354,13 @@ TEST_CASE("[mempool] GetBlockTemplate CTOR/LTOR") {
     REQUIRE(mp.candidate_bytes() == 4 * 60);
     REQUIRE(mp.candidate_fees() == a.fees() + b.fees() + c.fees() + d.fees());
 
-    REQUIRE(mp.candidate_rank(a) == 1);
-    REQUIRE(mp.candidate_rank(b) == 0);
-    REQUIRE(mp.candidate_rank(c) == 3);
-    REQUIRE(mp.candidate_rank(d) == 2);
-
+    if (mp.sorted()) {
+        REQUIRE(mp.candidate_rank(a) == 1);
+        REQUIRE(mp.candidate_rank(b) == 0);
+        REQUIRE(mp.candidate_rank(c) == 3);
+        REQUIRE(mp.candidate_rank(d) == 2);
+    }
+    
     auto block = get_block_from_template(mp);
 
 #if defined(BITPRIM_CURRENCY_BCH)
@@ -2742,11 +2744,13 @@ TEST_CASE("[mempool] GetBlockTemplate CTOR/LTOR 3 - Dependencies graph") {
     REQUIRE(mp.candidate_transactions() == 5);
     REQUIRE(mp.candidate_fees() == a.fees() + b.fees() + c.fees() + d.fees() + e.fees());
 
-    REQUIRE(mp.candidate_rank(a) == 3);
-    REQUIRE(mp.candidate_rank(b) == 4);
-    REQUIRE(mp.candidate_rank(c) == 2);
-    REQUIRE(mp.candidate_rank(d) == 1);
-    REQUIRE(mp.candidate_rank(e) == 0);
+    if (mp.sorted()) {
+        REQUIRE(mp.candidate_rank(a) == 3);
+        REQUIRE(mp.candidate_rank(b) == 4);
+        REQUIRE(mp.candidate_rank(c) == 2);
+        REQUIRE(mp.candidate_rank(d) == 1);
+        REQUIRE(mp.candidate_rank(e) == 0);
+    }
 
     auto block = get_block_from_template(mp);
    
