@@ -73,13 +73,13 @@ if (WITH_KEOKEN)
   add_definitions(-DBITPRIM_WITH_KEOKEN)
 endif()
 
-# Implement --with-mining and declare WITH_MINING.
-#------------------------------------------------------------------------------
-option(WITH_MINING "Mining enabled." OFF)
-if (WITH_MINING)
-  message(STATUS "Bitprim: Mining enabled")
-  add_definitions(-DBITPRIM_WITH_MINING)
-endif()
+# # Implement --with-mining and declare WITH_MINING.
+# #------------------------------------------------------------------------------
+# option(WITH_MINING "Mining enabled." OFF)
+# if (WITH_MINING)
+#   message(STATUS "Bitprim: Mining enabled")
+#   add_definitions(-DBITPRIM_WITH_MINING)
+# endif()
 
 # Implement --with-mempool and declare WITH_MEMPOOL.
 #------------------------------------------------------------------------------
