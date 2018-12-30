@@ -19,21 +19,11 @@
 #ifndef BITPRIM_BLOCKCHAIN_MINING_PARTIALLY_INDEXED_HPP_
 #define BITPRIM_BLOCKCHAIN_MINING_PARTIALLY_INDEXED_HPP_
 
-// #include <algorithm>
-// #include <chrono>
-// #include <tuple>
-// #include <unordered_map>
-// #include <unordered_set>
-// #include <type_traits>
 #include <list>
 #include <vector>
 
-#define BITPRIM_MEMPOOL_USE_LIST
-
-
 #include <bitprim/mining/common.hpp>
-// #include <bitprim/mining/node.hpp>
-// #include <bitprim/mining/result_code.hpp>
+#include <bitprim/mining/partially_indexed_node.hpp>
 
 #include <bitcoin/bitcoin.hpp>
 
@@ -42,68 +32,6 @@ namespace libbitcoin {
 namespace mining {
 
 using main_index_t = size_t;
-
-
-template <typename I, typename T>
-    // requires(Regular<T>)
-class partially_indexed_node {
-public:
-    using value_type = T;
-
-    partially_indexed_node(I index, T const& x) 
-        : index_(index)
-        , x_(x)
-    {}
-
-    partially_indexed_node(I index, T&& x) 
-        : index_(index)
-        , x_(std::move(x))
-    {}
-
-    // template <typename... Args>
-    // partially_indexed_node(std::piecewise_construct_t, I index, Args&&... args)
-    //     : index_(index)
-    //     , x_(std::forward<Args>(args)...)
-    // {}
-
-    template <typename... Args>
-    partially_indexed_node(I index, Args&&... args)
-        : index_(index)
-        , x_(std::forward<Args>(args)...)
-    {}
-
-    I const& index() const {
-        return index_;
-    }
-
-    T& element() & {
-        return x_;
-    }
-
-    T&& element() && {
-        return std::move(x_);
-    }
-
-    T const& element() const& {
-        return x_;
-    }
-
-    void set_index(I index) {
-        index_ = index;
-    }
-
-    void set_element(T const& x) {
-        x_ = x;
-    }
-
-    void set_element(T&& x) {
-        x_ = std::move(x);
-    }
-
-private:
-    I index_;
-    T x_;
-};
 
 template <typename T, typename Cmp, typename State>
     // requires(Regular<T>)
@@ -121,14 +49,7 @@ public:
         , sorted_(false)
         , cmp_(cmp)
         , state_(state)
-    {
-        //TODO(fernando): reserve structures, delegate to user
-    }
-
-    // void reserve(size_t all, size_t candidates) {
-    //     all_elements_.reserve(all);
-    //     candidate_elements_.reserve(candidates);
-    // }
+    {}
 
     void reserve(size_t all) {
         all_elements_.reserve(all);
@@ -189,9 +110,8 @@ public:
         return all_elements_[i].element();
     }
 
-    //TODO(fernando): have to be private
+    //TODO(fernando): private
     void erase_index(std::size_t i) {
-        // return 
         all_elements_.erase(std::next(std::begin(all_elements_), i));
     }
 
@@ -335,16 +255,9 @@ public:
             }
         }        
 
-
         {
             if (sorted_) {
                 auto res = std::is_sorted(std::begin(candidate_elements_), std::end(candidate_elements_), candidate_cmp());
-
-                // if (! res) {
-                //     auto res2 = std::is_sorted(std::begin(candidate_elements_), std::end(candidate_elements_), candidate_cmp());
-                //     std::cout << res2;
-                // }
-
                 BOOST_ASSERT(res);
 
             }
@@ -356,15 +269,7 @@ public:
 //  Invariant Checks (End)
 // ----------------------------------------------------------------------------------------
 
-
-
 private:
-    // struct candidate_cmp_t;
-    // struct sorter_t;
-    // struct getter_t;
-
-
-
     struct nested_t {
         explicit
         nested_t(partially_indexed& x)
@@ -476,7 +381,6 @@ private:
         }
     };
 
-
     struct sorter_t : nested_t {
         using nested_t::outer;
         using nested_t::nested_t;
@@ -496,15 +400,6 @@ private:
             auto from = std::begin(outer().candidate_elements_);
             auto to = node.index();
             outer().sorter()(index, node, from, to);
-
-            // auto new_pos = std::upper_bound(from, to, index, outer().candidate_cmp());
-            // // reindex_increment(new_pos, it);
-            // // std::rotate(new_pos, it, it + 1);
-            // // parent.set_candidate_index(std::distance(std::begin(candidate_transactions_), new_pos));
-
-            // outer().candidate_elements_.splice(new_pos, outer().candidate_elements_, node.index());
-
-            
         }
     };
 
@@ -517,13 +412,6 @@ private:
             auto from = std::next(node.index());
             auto to = std::end(outer().candidate_elements_);
             outer().sorter()(index, node, from, to);
-
-            // auto new_pos = std::upper_bound(from, to, index, outer().candidate_cmp());
-            // // reindex_decrement(from, new_pos);
-            // // it = std::rotate(it, it + 1, new_pos);
-            // // parent.set_candidate_index(std::distance(std::begin(candidate_transactions_), it));
-
-            // outer().candidate_elements_.splice(new_pos, outer().candidate_elements_, node.index());
         }
     };
 
@@ -572,13 +460,6 @@ private:
 
     template <typename I>
     struct reverser_t : nested_t {
-
-        // reverser_t(main_container_t& all_elements, I f, I l)
-        //     : all_elements_(all_elements)
-        //     , f(f)
-        //     , l(l)
-        // {}
-
         using nested_t::outer;
 
         reverser_t(partially_indexed& x, I f, I l)
@@ -597,16 +478,9 @@ private:
         }
 
     private:
-        // main_container_t& all_elements_;
         I const f;
         I l;
     };
-
-    // template <typename I>
-    // reverser_t<I> reverser(main_container_t& all_elements, I f, I l) {
-    //     return reverser_t<I>(all_elements, f, l);
-    // }
-
 
     template <typename I>
     reverser_t<I> reverser(partially_indexed& x, I f, I l) {
@@ -664,8 +538,6 @@ private:
     bounds_ok_t bounds_ok() const{
         return bounds_ok_t{*this};
     }
-
-
 
     internal_value_type& insert_main_element(candidate_index_t index, T const& x) {
         all_elements_.emplace_back(index, x);
@@ -730,7 +602,6 @@ private:
         }
 
         return state_.remove_insert_several(inserted.element(), main_index, reverser(), remover(), getter(), inserter(), re_sort_left(), re_sort_right(), re_sort_to_end(), re_sort(), re_sort_from_begin());
-        
     }
 
 private:
