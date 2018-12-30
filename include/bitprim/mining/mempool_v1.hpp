@@ -278,10 +278,10 @@ public:
 
             auto res = std::is_sorted(candidate_transactions_.begin(), candidate_transactions_.end(), cmp);
 
-            if (! res) {
-                auto res2 = std::is_sorted(candidate_transactions_.begin(), candidate_transactions_.end(), cmp);
-                std::cout << res2;
-            }
+            // if (! res) {
+                // auto res2 = std::is_sorted(candidate_transactions_.begin(), candidate_transactions_.end(), cmp);
+                // std::cout << res2;
+            // }
 
             BOOST_ASSERT(res);
         }        
@@ -396,7 +396,7 @@ public:
         //precondition: tx is fully validated: check() && accept() && connect()
         //              ! tx.is_coinbase()
 
-        std::cout << encode_base16(tx.to_data(true, BITPRIM_WITNESS_DEFAULT)) << std::endl;
+        // std::cout << encode_base16(tx.to_data(true, BITPRIM_WITNESS_DEFAULT)) << std::endl;
 
         return prioritizer_.low_job([this, &tx]{
             auto const index = all_transactions_.size();
@@ -462,7 +462,7 @@ public:
             return error::success;
         }
 
-        std::cout << "Arrive Block -------------------------------------------------------------------" << std::endl;
+        // std::cout << "Arrive Block -------------------------------------------------------------------" << std::endl;
         // std::cout << encode_base16(tx.to_data(true, BITPRIM_WITNESS_DEFAULT)) << std::endl;
 
 

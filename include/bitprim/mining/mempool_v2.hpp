@@ -228,7 +228,7 @@ public:
             return error::success;
         }
 
-        std::cout << "Arrive Block -------------------------------------------------------------------" << std::endl;
+        // std::cout << "Arrive Block -------------------------------------------------------------------" << std::endl;
         // std::cout << encode_base16(tx.to_data(true, BITPRIM_WITNESS_DEFAULT)) << std::endl;
 
 
