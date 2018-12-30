@@ -58,20 +58,26 @@ public:
 
     bool insert(T const& x) {
         auto res = insert_internal(x);
+#ifndef NDEBUG
         check_invariant();
+#endif
         return res;
     }
 
     bool insert(T&& x) {
         auto res =  insert_internal(std::move(x));
+#ifndef NDEBUG
         check_invariant();
+#endif
         return res;
     }
 
     template <typename... Args>
     bool emplace(Args&&... args) {
         auto res =  insert_internal(std::forward<Args>(args)...);
+#ifndef NDEBUG
         check_invariant();
+#endif
         return res;
     }
 
@@ -231,6 +237,7 @@ public:
     }
 
     void check_invariant() const {
+        std::cout << "Checking invariants...\n";
         check_invariant_partial();
 
         {

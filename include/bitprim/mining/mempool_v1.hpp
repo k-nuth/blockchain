@@ -30,7 +30,7 @@
 // #include <boost/bimap.hpp>
 
 #include <bitprim/mining/common.hpp>
-#include <bitprim/mining/node.hpp>
+#include <bitprim/mining/node_v1.hpp>
 #include <bitprim/mining/prioritizer.hpp>
 
 #include <bitcoin/bitcoin.hpp>
@@ -162,6 +162,10 @@ public:
         candidate_transactions_ctor_.reserve(candidates_capacity);
 #endif
         all_transactions_.reserve(all_capacity);
+    }
+
+    bool sorted() const {
+        return true;
     }
 
     void check_children_accum(index_t node_index) const {

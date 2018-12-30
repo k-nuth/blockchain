@@ -24,7 +24,6 @@
 #if defined(BITPRIM_WITH_MEMPOOL)
 // #include <bitprim/mining/mempool_v1.hpp>
 #include <bitprim/mining/mempool_v2.hpp>
-
 #endif
 
 
