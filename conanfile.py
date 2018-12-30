@@ -62,14 +62,14 @@ class BitprimBlockchainConan(BitprimConanFile):
         "fix_march=False", \
         "verbose=False", \
         "keoken=False", \
-        # "mining=False", \
-        "mempool=False", \
+        "mempool=True", \
         "use_domain=False", \
         "db=default", \
         "cxxflags=_DUMMY_", \
         "cflags=_DUMMY_", \
         "glibcxx_supports_cxx11_abi=_DUMMY_"
 
+        # "mining=False", \
 
     # "with_remote_database=False"
 
