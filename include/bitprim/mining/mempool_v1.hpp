@@ -32,7 +32,6 @@
 #include <bitprim/mining/common.hpp>
 #include <bitprim/mining/node.hpp>
 #include <bitprim/mining/prioritizer.hpp>
-// #include <bitprim/mining/result_code.hpp>
 
 #include <bitcoin/bitcoin.hpp>
 
