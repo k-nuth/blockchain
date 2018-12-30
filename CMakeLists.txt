@@ -77,8 +77,16 @@ endif()
 #------------------------------------------------------------------------------
 option(WITH_MINING "Mining enabled." OFF)
 if (WITH_MINING)
-  message(STATUS "Bitprim: MINING enabled")
+  message(STATUS "Bitprim: Mining enabled")
   add_definitions(-DBITPRIM_WITH_MINING)
+endif()
+
+# Implement --with-mempool and declare WITH_MEMPOOL.
+#------------------------------------------------------------------------------
+option(WITH_MEMPOOL "Mempool enabled." OFF)
+if (WITH_MEMPOOL)
+  message(STATUS "Bitprim: Mempool enabled")
+  add_definitions(-DBITPRIM_WITH_MEMPOOL)
 endif()
 
 # Implement --use-domain and declare USE_DOMAIN.

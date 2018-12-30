@@ -43,6 +43,7 @@ class BitprimBlockchainConan(BitprimConanFile):
                "verbose": [True, False],
                "keoken": [True, False],
                "mining": [True, False],
+               "mempool": [True, False],
                "use_domain": [True, False],
                "db": ['legacy', 'legacy_full', 'pruned', 'default', 'full'],
                "cxxflags": "ANY",
@@ -62,6 +63,7 @@ class BitprimBlockchainConan(BitprimConanFile):
         "verbose=False", \
         "keoken=False", \
         "mining=False", \
+        "mempool=False", \
         "use_domain=False", \
         "db=default", \
         "cxxflags=_DUMMY_", \
@@ -136,9 +138,11 @@ class BitprimBlockchainConan(BitprimConanFile):
 
         self.options["*"].use_domain = self.options.use_domain
         self.options["*"].mining = self.options.mining
+        # self.options["*"].mempool = self.options.mempool  
         self.options["*"].currency = self.options.currency
         self.output.info("Compiling for currency: %s" % (self.options.currency,))
         self.output.info("Compiling with mining optimizations: %s" % (self.options.mining,))
+        self.output.info("Compiling with mempool: %s" % (self.options.mining,))
         self.output.info("Compiling for DB: %s" % (self.options.db,))
 
     def package_id(self):
@@ -173,6 +177,7 @@ class BitprimBlockchainConan(BitprimConanFile):
         cmake.definitions["WITH_KEOKEN"] = option_on_off(self.is_keoken)
         cmake.definitions["CURRENCY"] = self.options.currency
         cmake.definitions["WITH_MINING"] = option_on_off(self.options.mining)
+        cmake.definitions["WITH_MEMPOOL"] = option_on_off(self.options.mempool)
         cmake.definitions["USE_DOMAIN"] = option_on_off(self.options.use_domain)
 
 
