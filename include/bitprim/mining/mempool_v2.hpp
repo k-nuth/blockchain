@@ -22,17 +22,14 @@
 #include <algorithm>
 #include <chrono>
 #include <tuple>
+#include <type_traits>
 #include <unordered_map>
 #include <unordered_set>
-#include <type_traits>
 #include <vector>
-
-// #include <boost/bimap.hpp>
 
 #include <bitprim/mining/common.hpp>
 #include <bitprim/mining/node_v2.hpp>
 #include <bitprim/mining/prioritizer.hpp>
-// #include <bitprim/mining/result_code.hpp>
 
 #include <bitprim/mining/partially_indexed.hpp>
 
@@ -46,11 +43,6 @@ auto scope_guard(F&& f) {
 
 namespace libbitcoin {
 namespace mining {
-
-// inline
-// node make_node(chain::transaction const& tx) {
-//     return node(transaction_element(tx));
-// }
 
 inline
 node make_node(chain::transaction const& tx) {
@@ -83,7 +75,6 @@ void measure(F f, measurements_t&) {
 }
 #endif
 
-
 template <typename F, typename Container, typename Cmp = std::greater<typename Container::value_type>>
 std::set<typename Container::value_type, Cmp> to_ordered_set(F f, Container const& to_remove) {
     std::set<typename Container::value_type, Cmp> ordered;
@@ -93,7 +84,7 @@ std::set<typename Container::value_type, Cmp> to_ordered_set(F f, Container cons
     return ordered;
 }
 
-constexpr
+constexpr inline
 double benefit(uint64_t fee, size_t size) {
     return static_cast<double>(fee) / size;
 }
@@ -106,20 +97,11 @@ struct fee_per_size_cmp {
     }
 };
 
-
-// #if defined(BITPRIM_CURRENCY_BCH)
-// struct ctor_cmp {
-//     bool operator()(node const& a, node const& b) const {
-//         return std::lexicographical_compare(a.txid().rbegin(), a.txid().rend(),
-//                                             b.txid().rbegin(), b.txid().rend());
-//     }
-// };
-// #endif
-
 class mempool;
 using partially_indexed_mempool_t = partially_indexed<node, fee_per_size_cmp, mempool>;
 
 #if defined(BITPRIM_CURRENCY_BCH)
+inline
 void sort_ctor(partially_indexed_mempool_t::main_container_t& all, partially_indexed_mempool_t::indexes_container_t& candidates) {
     auto const cmp = [&all](main_index_t ia, main_index_t ib) {
         node const& a = all[ia].element(); 
@@ -132,6 +114,7 @@ void sort_ctor(partially_indexed_mempool_t::main_container_t& all, partially_ind
 
 #else
 
+inline
 void sort_ltor(bool sorted, partially_indexed_mempool_t::main_container_t& all, partially_indexed_mempool_t::indexes_container_t& candidates) {
 
     if ( ! sorted) {
