@@ -213,7 +213,7 @@ void populate_block::populate_transactions(branch::const_ptr branch, size_t buck
         //---------------------------------------------------------------------
 
         //TODO(fernando): check again why this is not implemented?
-#ifdef BITPRIM_DB_LEGACY
+#if defined(BITPRIM_DB_LEGACY)  || defined(BITPRIM_DB_NEW_FULL)
         if (relay_transactions_) {
             populate_base::populate_pooled(tx, forks);
         }
@@ -223,8 +223,8 @@ void populate_block::populate_transactions(branch::const_ptr branch, size_t buck
         // CONSENSUS: Satoshi implemented allow collisions in Nov 2015. This is
         // a hard fork that destroys unspent outputs in case of hash collision.
         //*********************************************************************
-        //TODO(fernando): check again why this is not implemented?
-#ifdef BITPRIM_DB_LEGACY
+        //Bitprim: we are not validating tx duplicates.
+#if defined(BITPRIM_DB_LEGACY)
         if ( ! collide) {
             populate_base::populate_duplicate(branch->height(), tx, true);
             ////populate_duplicate(branch, coinbase);

@@ -47,7 +47,7 @@ public:
     typedef handle1<chain::history_compact::list> history_fetch_handler;
     typedef handle1<chain::stealth_compact::list> stealth_fetch_handler;
     typedef handle2<size_t, size_t> transaction_index_fetch_handler;
-#ifdef WITH_KEOKEN
+#ifdef BITPRIM_WITH_KEOKEN
     typedef std::function<void (const code&, const std::shared_ptr <std::vector <libbitcoin::transaction_const_ptr>> ) > keoken_history_fetch_handler;
     typedef std::function<void (const code&,  header_const_ptr, size_t,  const std::shared_ptr <std::vector <libbitcoin::transaction_const_ptr>> , uint64_t, size_t ) > block_keoken_fetch_handler;
     virtual void fetch_keoken_history(const short_hash& address_hash, size_t limit,
@@ -80,7 +80,7 @@ public:
     typedef std::function<void(const code&, transaction_const_ptr, size_t,
         size_t)> transaction_fetch_handler;
 
-#ifdef BITPRIM_DB_TRANSACTION_UNCONFIRMED
+#if defined(BITPRIM_DB_TRANSACTION_UNCONFIRMED) || defined(BITPRIM_DB_NEW_FULL)
     using transaction_unconfirmed_fetch_handler = std::function<void(const code&, transaction_const_ptr)>;
 #endif // BITPRIM_DB_TRANSACTION_UNCONFIRMED
 
@@ -111,7 +111,7 @@ public:
     // Node Queries.
     // ------------------------------------------------------------------------
 
-#if defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_DB_NEW_BLOCKS)
+#if defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_DB_NEW_BLOCKS) || defined(BITPRIM_DB_NEW_FULL)
     virtual void fetch_block(size_t height, bool witness, block_fetch_handler handler) const = 0;
 
     virtual void fetch_block(const hash_digest& hash, bool witness, block_fetch_handler handler) const = 0;
@@ -125,24 +125,23 @@ public:
     virtual void fetch_compact_block(const hash_digest& hash, compact_block_fetch_handler handler) const = 0;
 
     virtual void fetch_block_header_txs_size(const hash_digest& hash, block_header_txs_size_fetch_handler handler) const = 0;
-
     
     virtual void fetch_locator_block_hashes(get_blocks_const_ptr locator, const hash_digest& threshold, size_t limit, inventory_fetch_handler handler) const = 0;
-
   
-#endif // BITPRIM_DB_LEGACY || BITPRIM_DB_NEW_BLOCKS
+#endif // BITPRIM_DB_LEGACY || BITPRIM_DB_NEW_BLOCKS || BITPRIM_DB_NEW_FULL
 
-#ifdef BITPRIM_DB_LEGACY
 
+#if defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_DB_NEW_FULL)
+    
     virtual void fetch_transaction(const hash_digest& hash, bool require_confirmed, bool witness, transaction_fetch_handler handler) const = 0;
 
     virtual void fetch_transaction_position(const hash_digest& hash, bool require_confirmed, transaction_index_fetch_handler handler) const = 0;
 
-    void for_each_transaction(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const;
+    virtual void for_each_transaction(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const = 0;
 
-    void for_each_transaction_non_coinbase(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const;
+    virtual void for_each_transaction_non_coinbase(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const = 0;
 
-#endif //BITPRIM_DB_LEGACY
+#endif 
 
 
     virtual void fetch_locator_block_headers(get_headers_const_ptr locator, const hash_digest& threshold, size_t limit, locator_block_headers_fetch_handler handler) const = 0;
@@ -164,14 +163,14 @@ public:
     // Server Queries.
     //-------------------------------------------------------------------------
 
-#ifdef BITPRIM_DB_SPENDS
+#if defined(BITPRIM_DB_SPENDS) || defined(BITPRIM_DB_NEW_FULL)
     virtual void fetch_spend(const chain::output_point& outpoint, spend_fetch_handler handler) const = 0;
-#endif // BITPRIM_DB_SPENDS
+#endif 
 
-#ifdef BITPRIM_DB_HISTORY
+#if defined(BITPRIM_DB_HISTORY) || defined(BITPRIM_DB_NEW_FULL)
     virtual void fetch_history(const short_hash& address_hash, size_t limit, size_t from_height, history_fetch_handler handler) const = 0;
     virtual void fetch_confirmed_transactions(const short_hash& address_hash, size_t limit, size_t from_height, confirmed_transactions_fetch_handler handler) const = 0;
-#endif // BITPRIM_DB_HISTORY
+#endif 
 
 #ifdef BITPRIM_DB_STEALTH
     virtual void fetch_stealth(const binary& filter, size_t from_height, stealth_fetch_handler handler) const = 0;
@@ -183,12 +182,14 @@ public:
     virtual void fetch_template(merkle_block_fetch_handler handler) const = 0;
     virtual void fetch_mempool(size_t count_limit, uint64_t minimum_fee, inventory_fetch_handler handler) const = 0;
 
-#ifdef BITPRIM_DB_TRANSACTION_UNCONFIRMED
+#if defined(BITPRIM_DB_TRANSACTION_UNCONFIRMED) || defined(BITPRIM_DB_NEW_FULL)
     virtual std::vector<mempool_transaction_summary> get_mempool_transactions(std::vector<std::string> const& payment_addresses, bool use_testnet_rules, bool witness) const = 0;
     virtual std::vector<mempool_transaction_summary> get_mempool_transactions(std::string const& payment_address, bool use_testnet_rules, bool witness) const = 0;
     
     virtual std::vector<chain::transaction> get_mempool_transactions_from_wallets(std::vector<wallet::payment_address> const& payment_addresses,
                                                                      bool use_testnet_rules, bool witness) const = 0;
+
+    virtual void fetch_unconfirmed_transaction(const hash_digest& hash, transaction_unconfirmed_fetch_handler handler) const = 0;
 
     virtual mempool_mini_hash_map get_mempool_mini_hash_map(message::compact_block const& block) const = 0;
     virtual void fill_tx_list_from_mempool(message::compact_block const& block, size_t& mempool_count, std::vector<chain::transaction>& txn_available, std::unordered_map<uint64_t, uint16_t> const& shorttxids) const = 0;
@@ -200,9 +201,9 @@ public:
 
     virtual void filter_blocks(get_data_ptr message, result_handler handler) const = 0;
 
-#if defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_WITH_MINING)
+#if defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_DB_NEW_FULL) || defined(BITPRIM_WITH_MINING)
     virtual void filter_transactions(get_data_ptr message, result_handler handler) const = 0;
-#endif // BITPRIM_DB_LEGACY
+#endif 
 
     // Subscribers.
     //-------------------------------------------------------------------------

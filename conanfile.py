@@ -44,7 +44,7 @@ class BitprimBlockchainConan(BitprimConanFile):
                "keoken": [True, False],
                "mining": [True, False],
                "use_domain": [True, False],
-               "db": ['legacy', 'legacy_full', 'new', 'new_with_blocks'],
+               "db": ['legacy', 'legacy_full', 'pruned', 'default', 'full'],
                "cxxflags": "ANY",
                "cflags": "ANY",
                "glibcxx_supports_cxx11_abi": "ANY",
@@ -63,7 +63,7 @@ class BitprimBlockchainConan(BitprimConanFile):
         "keoken=False", \
         "mining=False", \
         "use_domain=False", \
-        "db=legacy_full", \
+        "db=default", \
         "cxxflags=_DUMMY_", \
         "cflags=_DUMMY_", \
         "glibcxx_supports_cxx11_abi=_DUMMY_"
@@ -109,6 +109,8 @@ class BitprimBlockchainConan(BitprimConanFile):
 
 
     def configure(self):
+        BitprimConanFile.configure(self)
+
         if self.settings.arch == "x86_64" and self.options.microarchitecture == "_DUMMY_":
             del self.options.fix_march
             # self.options.remove("fix_march")
@@ -124,6 +126,11 @@ class BitprimBlockchainConan(BitprimConanFile):
         else:
             self.options["*"].keoken = self.options.keoken
 
+        if self.is_keoken:
+            if self.options.db == "pruned" or self.options.db == "default":
+                self.output.warn("Keoken mode requires db=full and your configuration is db=%s, it has been changed automatically..." % (self.options.db,))
+                self.options.db = "full"
+
 
         self.options["*"].db = self.options.db
 
@@ -132,8 +139,11 @@ class BitprimBlockchainConan(BitprimConanFile):
         self.options["*"].currency = self.options.currency
         self.output.info("Compiling for currency: %s" % (self.options.currency,))
         self.output.info("Compiling with mining optimizations: %s" % (self.options.mining,))
+        self.output.info("Compiling for DB: %s" % (self.options.db,))
 
     def package_id(self):
+        BitprimConanFile.package_id(self)
+
         self.info.options.with_tests = "ANY"
         self.info.options.with_tools = "ANY"
         self.info.options.verbose = "ANY"
@@ -141,10 +151,10 @@ class BitprimBlockchainConan(BitprimConanFile):
         self.info.options.cxxflags = "ANY"
         self.info.options.cflags = "ANY"
 
-        #For Bitprim Packages libstdc++ and libstdc++11 are the same
-        if self.settings.compiler == "gcc" or self.settings.compiler == "clang":
-            if str(self.settings.compiler.libcxx) == "libstdc++" or str(self.settings.compiler.libcxx) == "libstdc++11":
-                self.info.settings.compiler.libcxx = "ANY"
+        # #For Bitprim Packages libstdc++ and libstdc++11 are the same
+        # if self.settings.compiler == "gcc" or self.settings.compiler == "clang":
+        #     if str(self.settings.compiler.libcxx) == "libstdc++" or str(self.settings.compiler.libcxx) == "libstdc++11":
+        #         self.info.settings.compiler.libcxx = "ANY"
 
     def build(self):
         cmake = CMake(self)
@@ -175,6 +185,7 @@ class BitprimBlockchainConan(BitprimConanFile):
             cmake.definitions["DB_LEGACY"] = option_on_off(True)
             cmake.definitions["DB_NEW"] = option_on_off(False)
             cmake.definitions["DB_NEW_BLOCKS"] = option_on_off(False)
+            cmake.definitions["DB_NEW_FULL"] = option_on_off(False)
         elif self.options.db == "legacy_full":
             cmake.definitions["DB_TRANSACTION_UNCONFIRMED"] = option_on_off(True)
             cmake.definitions["DB_SPENDS"] = option_on_off(True)
@@ -184,7 +195,8 @@ class BitprimBlockchainConan(BitprimConanFile):
             cmake.definitions["DB_LEGACY"] = option_on_off(True)
             cmake.definitions["DB_NEW"] = option_on_off(False)
             cmake.definitions["DB_NEW_BLOCKS"] = option_on_off(False)
-        elif self.options.db == "new":
+            cmake.definitions["DB_NEW_FULL"] = option_on_off(False)
+        elif self.options.db == "pruned":
             cmake.definitions["DB_TRANSACTION_UNCONFIRMED"] = option_on_off(False)
             cmake.definitions["DB_SPENDS"] = option_on_off(False)
             cmake.definitions["DB_HISTORY"] = option_on_off(False)
@@ -193,7 +205,8 @@ class BitprimBlockchainConan(BitprimConanFile):
             cmake.definitions["DB_LEGACY"] = option_on_off(False)
             cmake.definitions["DB_NEW"] = option_on_off(True)
             cmake.definitions["DB_NEW_BLOCKS"] = option_on_off(False)
-        elif self.options.db == "new_with_blocks":
+            cmake.definitions["DB_NEW_FULL"] = option_on_off(False)
+        elif self.options.db == "default":
             cmake.definitions["DB_TRANSACTION_UNCONFIRMED"] = option_on_off(False)
             cmake.definitions["DB_SPENDS"] = option_on_off(False)
             cmake.definitions["DB_HISTORY"] = option_on_off(False)
@@ -202,6 +215,17 @@ class BitprimBlockchainConan(BitprimConanFile):
             cmake.definitions["DB_LEGACY"] = option_on_off(False)
             cmake.definitions["DB_NEW"] = option_on_off(True)
             cmake.definitions["DB_NEW_BLOCKS"] = option_on_off(True)
+            cmake.definitions["DB_NEW_FULL"] = option_on_off(False)
+        elif self.options.db == "full":
+            cmake.definitions["DB_TRANSACTION_UNCONFIRMED"] = option_on_off(False)
+            cmake.definitions["DB_SPENDS"] = option_on_off(False)
+            cmake.definitions["DB_HISTORY"] = option_on_off(False)
+            cmake.definitions["DB_STEALTH"] = option_on_off(False)
+            cmake.definitions["DB_UNSPENT_LIBBITCOIN"] = option_on_off(False)
+            cmake.definitions["DB_LEGACY"] = option_on_off(False)
+            cmake.definitions["DB_NEW"] = option_on_off(True)
+            cmake.definitions["DB_NEW_BLOCKS"] = option_on_off(False)
+            cmake.definitions["DB_NEW_FULL"] = option_on_off(True)
 
         if self.settings.compiler != "Visual Studio":
             cmake.definitions["CONAN_CXX_FLAGS"] = cmake.definitions.get("CONAN_CXX_FLAGS", "") + " -Wno-deprecated-declarations"

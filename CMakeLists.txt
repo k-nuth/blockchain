@@ -70,7 +70,7 @@ option(WITH_TOOLS "Compile with tools." OFF)
 option(WITH_KEOKEN "Keoken enabled." OFF)
 if (WITH_KEOKEN)
   message(STATUS "Bitprim: Keoken enabled")
-  add_definitions(-DWITH_KEOKEN)
+  add_definitions(-DBITPRIM_WITH_KEOKEN)
 endif()
 
 # Implement --with-mining and declare WITH_MINING.
@@ -151,6 +151,15 @@ option(DB_NEW_BLOCKS "DB Blocks New enabled." OFF)
 if (DB_NEW_BLOCKS)
   message(STATUS "Bitprim: DB Blocks New enabled")
   add_definitions(-DBITPRIM_DB_NEW_BLOCKS)
+endif()
+
+
+# Implement and declare DB_NEW_FULL.
+#------------------------------------------------------------------------------
+option(DB_NEW_FULL "DB New Full enabled." OFF)
+if (DB_NEW_FULL)
+  message(STATUS "Bitprim: DB New Full enabled")
+  add_definitions(-DBITPRIM_DB_NEW_FULL)
 endif()
 
 # Implement --JUST_BITPRIM_SOURCES for linting.
