@@ -82,7 +82,7 @@ public:
     bool bip143;
     bool bip147;
 
-#if defined(BITPRIM_WITH_MINING)
+#if defined(BITPRIM_WITH_MEMPOOL)
     size_t mempool_max_template_size;
     size_t mempool_size_multiplier;
 #endif

@@ -45,7 +45,7 @@ using namespace std::placeholders;
 // block: { bits, version, timestamp }
 // transaction: { exists, height, output }
 
-#if defined(BITPRIM_WITH_MINING)
+#if defined(BITPRIM_WITH_MEMPOOL)
 block_organizer::block_organizer(prioritized_mutex& mutex, dispatcher& dispatch, threadpool& thread_pool, fast_chain& chain, const settings& settings, bool relay_transactions, mining::mempool& mp)
 #else
 block_organizer::block_organizer(prioritized_mutex& mutex, dispatcher& dispatch, threadpool& thread_pool, fast_chain& chain, const settings& settings, bool relay_transactions)
@@ -55,13 +55,13 @@ block_organizer::block_organizer(prioritized_mutex& mutex, dispatcher& dispatch,
     , stopped_(true)
     , dispatch_(dispatch)
     , block_pool_(settings.reorganization_limit)
-#if defined(BITPRIM_WITH_MINING)
+#if defined(BITPRIM_WITH_MEMPOOL)
     , validator_(dispatch, fast_chain_, settings, relay_transactions, mp)
 #else
     , validator_(dispatch, fast_chain_, settings, relay_transactions)
 #endif    
     , subscriber_(std::make_shared<reorganize_subscriber>(thread_pool, NAME))
-#if defined(BITPRIM_WITH_MINING)
+#if defined(BITPRIM_WITH_MEMPOOL)
     , mempool_(mp)
 #endif
 {}
@@ -226,7 +226,7 @@ bool block_organizer::is_branch_double_spend(branch::ptr const& branch) const {
 #endif // BITPRIM_DB_NEW
 
 
-#if defined(BITPRIM_WITH_MINING)
+#if defined(BITPRIM_WITH_MEMPOOL)
 void block_organizer::organize_mempool(block_const_ptr_list_const_ptr const& incoming_blocks, block_const_ptr_list_ptr const& outgoing_blocks) {
 
     std::unordered_set<hash_digest> txs_in;
@@ -236,9 +236,9 @@ void block_organizer::organize_mempool(block_const_ptr_list_const_ptr const& inc
         if (block->transactions().size() > 1) {
 
             //TODO(fernando): Remove!!!!
-            std::cout << "Arrive Block -------------------------------------------------------------------" << std::endl;
-            std::cout << encode_hash(block->hash()) << std::endl;
-            std::cout << "--------------------------------------------------------------------------------" << std::endl;
+            // std::cout << "Arrive Block -------------------------------------------------------------------" << std::endl;
+            // std::cout << encode_hash(block->hash()) << std::endl;
+            // std::cout << "--------------------------------------------------------------------------------" << std::endl;
 
 
             mempool_.remove(block->transactions().begin() + 1, block->transactions().end(), block->non_coinbase_input_count());
@@ -345,7 +345,7 @@ void block_organizer::handle_connect(const code& ec, branch::ptr branch, result_
     fast_chain_.reorganize(branch->fork_point(), branch->blocks(), out_blocks, dispatch_, reorganized_handler);
     //#########################################################################
 
-#if defined(BITPRIM_WITH_MINING)
+#if defined(BITPRIM_WITH_MEMPOOL)
     organize_mempool(branch->blocks(), out_blocks);
 #endif
 }

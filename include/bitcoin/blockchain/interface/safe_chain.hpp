@@ -201,7 +201,7 @@ public:
 
     virtual void filter_blocks(get_data_ptr message, result_handler handler) const = 0;
 
-#if defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_DB_NEW_FULL) || defined(BITPRIM_WITH_MINING)
+#if defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_DB_NEW_FULL) || defined(BITPRIM_WITH_MEMPOOL)
     virtual void filter_transactions(get_data_ptr message, result_handler handler) const = 0;
 #endif 
 

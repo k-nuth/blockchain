@@ -46,7 +46,7 @@ using namespace std::placeholders;
 // transaction: { exists, height, output }
 
 
-#if defined(BITPRIM_WITH_MINING)
+#if defined(BITPRIM_WITH_MEMPOOL)
 validate_transaction::validate_transaction(dispatcher& dispatch, const fast_chain& chain, const settings& settings, mining::mempool const& mp)
 #else
 validate_transaction::validate_transaction(dispatcher& dispatch, const fast_chain& chain, const settings& settings)
@@ -55,7 +55,7 @@ validate_transaction::validate_transaction(dispatcher& dispatch, const fast_chai
     retarget_(settings.retarget),
     dispatch_(dispatch),
 
-#if defined(BITPRIM_WITH_MINING)
+#if defined(BITPRIM_WITH_MEMPOOL)
     transaction_populator_(dispatch, chain, mp),
 #else
     transaction_populator_(dispatch, chain),

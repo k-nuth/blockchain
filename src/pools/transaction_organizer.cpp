@@ -40,7 +40,7 @@ using namespace std::placeholders;
 
 // TODO: create priority pool at blockchain level and use in both organizers. 
 
-#if defined(BITPRIM_WITH_MINING)
+#if defined(BITPRIM_WITH_MEMPOOL)
 transaction_organizer::transaction_organizer(prioritized_mutex& mutex, dispatcher& dispatch, threadpool& thread_pool, fast_chain& chain, const settings& settings, mining::mempool& mp)
 #else
 transaction_organizer::transaction_organizer(prioritized_mutex& mutex, dispatcher& dispatch, threadpool& thread_pool, fast_chain& chain, const settings& settings)
@@ -52,7 +52,7 @@ transaction_organizer::transaction_organizer(prioritized_mutex& mutex, dispatche
     , dispatch_(dispatch)
     , transaction_pool_(settings)
 
-#if defined(BITPRIM_WITH_MINING)
+#if defined(BITPRIM_WITH_MEMPOOL)
     , validator_(dispatch, fast_chain_, settings, mp)
 #else
     , validator_(dispatch, fast_chain_, settings)
@@ -301,7 +301,7 @@ void transaction_organizer::handle_connect(const code& ec,
 
     const auto pushed_handler = std::bind(&transaction_organizer::handle_pushed, this, _1, tx, handler);
 
-#if defined(BITPRIM_WITH_MINING)
+#if defined(BITPRIM_WITH_MEMPOOL)
     auto res = mempool_.add(*tx);
     if (res == error::double_spend_mempool || res == error::double_spend_blockchain) {
         handler(res);

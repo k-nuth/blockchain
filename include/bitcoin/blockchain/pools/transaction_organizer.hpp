@@ -32,7 +32,7 @@
 #include <bitcoin/blockchain/settings.hpp>
 #include <bitcoin/blockchain/validate/validate_transaction.hpp>
 
-#if defined(BITPRIM_WITH_MINING)
+#if defined(BITPRIM_WITH_MEMPOOL)
 // #include <bitprim/mining/mempool_v1.hpp>
 #include <bitprim/mining/mempool_v2.hpp>
 
@@ -55,7 +55,7 @@ public:
 
     /// Construct an instance.
 
-#if defined(BITPRIM_WITH_MINING)
+#if defined(BITPRIM_WITH_MEMPOOL)
     transaction_organizer(prioritized_mutex& mutex, dispatcher& dispatch, threadpool& thread_pool, fast_chain& chain, const settings& settings, mining::mempool& mp);
 #else
     transaction_organizer(prioritized_mutex& mutex, dispatcher& dispatch, threadpool& thread_pool, fast_chain& chain, const settings& settings);
@@ -105,7 +105,7 @@ private:
     validate_transaction validator_;
     transaction_subscriber::ptr subscriber_;
 
-#if defined(BITPRIM_WITH_MINING)
+#if defined(BITPRIM_WITH_MEMPOOL)
     mining::mempool& mempool_;
 #endif
 };

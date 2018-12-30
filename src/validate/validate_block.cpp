@@ -48,7 +48,7 @@ using namespace std::placeholders;
 // If the priority threadpool is shut down when this is running the handlers
 // will never be invoked, resulting in a threadpool.join indefinite hang.
 
-#if defined(BITPRIM_WITH_MINING)
+#if defined(BITPRIM_WITH_MEMPOOL)
 validate_block::validate_block(dispatcher& dispatch, const fast_chain& chain, const settings& settings, bool relay_transactions, mining::mempool const& mp)
 #else
 validate_block::validate_block(dispatcher& dispatch, const fast_chain& chain, const settings& settings, bool relay_transactions)
@@ -56,7 +56,7 @@ validate_block::validate_block(dispatcher& dispatch, const fast_chain& chain, co
     : stopped_(true)
     , fast_chain_(chain)
     , priority_dispatch_(dispatch)
-#if defined(BITPRIM_WITH_MINING)
+#if defined(BITPRIM_WITH_MEMPOOL)
     , block_populator_(dispatch, chain, relay_transactions, mp)
 #else
     , block_populator_(dispatch, chain, relay_transactions)

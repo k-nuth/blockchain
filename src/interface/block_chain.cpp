@@ -90,7 +90,7 @@ block_chain::block_chain(threadpool& pool,
     , priority(chain_settings.priority))
     , dispatch_(priority_pool_, NAME "_priority")
 
-#if defined(BITPRIM_WITH_MINING)
+#if defined(BITPRIM_WITH_MEMPOOL)
     , mempool_(chain_settings.mempool_max_template_size, chain_settings.mempool_size_multiplier)
     , transaction_organizer_(validation_mutex_, dispatch_, pool, *this, chain_settings, mempool_)
     , block_organizer_(validation_mutex_, dispatch_, pool, *this, chain_settings, relay_transactions, mempool_)
@@ -2649,7 +2649,7 @@ bool block_chain::stopped() const
     return stopped_;
 }
 
-#if defined(BITPRIM_WITH_MINING)
+#if defined(BITPRIM_WITH_MEMPOOL)
 std::pair<std::vector<libbitcoin::mining::transaction_element>, uint64_t> block_chain::get_block_template() const {
     return mempool_.get_block_template();
 }

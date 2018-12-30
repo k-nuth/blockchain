@@ -34,7 +34,7 @@
 #include <bitcoin/blockchain/populate/populate_chain_state.hpp>
 #include <bitcoin/blockchain/settings.hpp>
 
-#if defined(BITPRIM_WITH_MINING)
+#if defined(BITPRIM_WITH_MEMPOOL)
 // #include <bitprim/mining/mempool_v1.hpp>
 #include <bitprim/mining/mempool_v2.hpp>
 #endif
@@ -361,7 +361,7 @@ public:
     /// Filter out block by hash that exist in the block pool or store.
     void filter_blocks(get_data_ptr message, result_handler handler) const override;
 
-#if defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_DB_NEW_FULL) || defined(BITPRIM_WITH_MINING)
+#if defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_DB_NEW_FULL) || defined(BITPRIM_WITH_MEMPOOL)
     /// Filter out confirmed and unconfirmed transactions by hash.
     void filter_transactions(get_data_ptr message, result_handler handler) const override;
 #endif 
@@ -417,7 +417,7 @@ public:
       std::shared_ptr<std::vector<transaction_const_ptr>> keoken_txs) const override;
 #endif
 
-#if defined(BITPRIM_WITH_MINING)
+#if defined(BITPRIM_WITH_MEMPOOL)
     std::pair<std::vector<libbitcoin::mining::transaction_element>, uint64_t> get_block_template() const;
 #endif
 
@@ -478,7 +478,7 @@ private:
     mutable dispatcher dispatch_;
 
 
-#if defined(BITPRIM_WITH_MINING)
+#if defined(BITPRIM_WITH_MEMPOOL)
     mining::mempool mempool_;
 #endif
 

@@ -21,7 +21,7 @@
 #include <cstdint>
 
 //TODO(fernando): Avoid this dependency
-#if defined(BITPRIM_WITH_MINING)
+#if defined(BITPRIM_WITH_MEMPOOL)
 // #include <bitprim/mining/mempool_v1.hpp>
 #include <bitprim/mining/mempool_v2.hpp>
 
@@ -67,7 +67,7 @@ settings::settings()
     , bip147(true)
 #endif
 
-#if defined(BITPRIM_WITH_MINING)
+#if defined(BITPRIM_WITH_MEMPOOL)
     , mempool_max_template_size(mining::mempool::max_template_size_default)
     , mempool_size_multiplier(mining::mempool::mempool_size_multiplier_default)
 #endif

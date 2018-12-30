@@ -28,7 +28,7 @@
 #include <bitcoin/blockchain/populate/populate_transaction.hpp>
 #include <bitcoin/blockchain/settings.hpp>
 
-#if defined(BITPRIM_WITH_MINING)
+#if defined(BITPRIM_WITH_MEMPOOL)
 // #include <bitprim/mining/mempool_v1.hpp>
 #include <bitprim/mining/mempool_v2.hpp>
 
@@ -43,7 +43,7 @@ class BCB_API validate_transaction
 public:
     typedef handle0 result_handler;
 
-#if defined(BITPRIM_WITH_MINING)
+#if defined(BITPRIM_WITH_MEMPOOL)
     validate_transaction(dispatcher& dispatch, const fast_chain& chain, const settings& settings, mining::mempool const& mp);
 #else
     validate_transaction(dispatcher& dispatch, const fast_chain& chain, const settings& settings);

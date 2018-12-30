@@ -26,7 +26,7 @@
 #include <bitcoin/blockchain/pools/branch.hpp>
 #include <bitcoin/blockchain/populate/populate_base.hpp>
 
-#if defined(BITPRIM_WITH_MINING)
+#if defined(BITPRIM_WITH_MEMPOOL)
 // #include <bitprim/mining/mempool_v1.hpp>
 #include <bitprim/mining/mempool_v2.hpp>
 #endif
@@ -45,7 +45,7 @@ public:
     using utxo_pool_t = database::internal_database::utxo_pool_t;
 #endif    
 
-#if defined(BITPRIM_WITH_MINING)
+#if defined(BITPRIM_WITH_MEMPOOL)
     populate_block(dispatcher& dispatch, fast_chain const& chain, bool relay_transactions, mining::mempool const& mp);
 #else
     populate_block(dispatcher& dispatch, fast_chain const& chain, bool relay_transactions);
@@ -74,7 +74,7 @@ protected:
 private:
     bool const relay_transactions_;
 
-#if defined(BITPRIM_WITH_MINING)
+#if defined(BITPRIM_WITH_MEMPOOL)
     mining::mempool const& mempool_;
 #endif
 

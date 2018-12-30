@@ -25,7 +25,7 @@
 #include <bitcoin/blockchain/interface/fast_chain.hpp>
 #include <bitcoin/blockchain/populate/populate_base.hpp>
 
-#if defined(BITPRIM_WITH_MINING)
+#if defined(BITPRIM_WITH_MEMPOOL)
 // #include <bitprim/mining/mempool_v1.hpp>
 #include <bitprim/mining/mempool_v2.hpp>
 
@@ -40,7 +40,7 @@ class BCB_API populate_transaction
 {
 public:
 
-#if defined(BITPRIM_WITH_MINING)
+#if defined(BITPRIM_WITH_MEMPOOL)
     populate_transaction(dispatcher& dispatch, const fast_chain& chain, mining::mempool const& mp);
 #else
     populate_transaction(dispatcher& dispatch, const fast_chain& chain);
@@ -53,7 +53,7 @@ protected:
     void populate_inputs(transaction_const_ptr tx, size_t chain_height, size_t bucket, size_t buckets, result_handler handler) const;
 
 private:
-#if defined(BITPRIM_WITH_MINING)
+#if defined(BITPRIM_WITH_MEMPOOL)
     mining::mempool const& mempool_;
 #endif
 };

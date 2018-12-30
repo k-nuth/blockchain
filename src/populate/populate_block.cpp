@@ -35,14 +35,14 @@ using namespace bc::machine;
 
 // Database access is limited to calling populate_base.
 
-#if defined(BITPRIM_WITH_MINING)
+#if defined(BITPRIM_WITH_MEMPOOL)
 populate_block::populate_block(dispatcher& dispatch, fast_chain const& chain, bool relay_transactions, mining::mempool const& mp)
 #else
 populate_block::populate_block(dispatcher& dispatch, fast_chain const& chain, bool relay_transactions)
 #endif
     : populate_base(dispatch, chain)
     , relay_transactions_(relay_transactions)
-#if defined(BITPRIM_WITH_MINING)
+#if defined(BITPRIM_WITH_MEMPOOL)
     , mempool_(mp)
 #endif
 {}
