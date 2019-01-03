@@ -66,6 +66,13 @@ struct hash<libbitcoin::blockchain::spent_value_type> {
 } // namespace std
 
 namespace libbitcoin {
+
+#if defined(BITPRIM_WITH_MEMPOOL)
+namespace mining {
+mempool* mempool::candidate_index_t::parent_ = nullptr;
+} // namespace mining
+#endif
+
 namespace blockchain {
 
 using namespace bc::config;
