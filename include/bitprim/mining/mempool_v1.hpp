@@ -239,6 +239,8 @@ public:
     }
 #endif // NDEBUG
 
+    // class candidate_index_t;
+    // friend candidate_index_t;
 
     class candidate_index_t {
     public:
@@ -250,82 +252,15 @@ public:
         candidate_index_t(candidate_index_t const& x) = default;
         candidate_index_t(candidate_index_t&& x) = default;
 
-        // candidate_index_t(candidate_index_t const& x)
-        //     : index_(x.index())
-        // {
-        //     // std::cout << "calling candidate_index_t CTOR\n";
-        //     // BOOST_ASSERT(false);
-        //     // auto xci = parent_->all_transactions_[x.index()].candidate_index();
-        //     // parent_->all_transactions_[index()].set_candidate_index(xci);
-        //     // index_ x.index();
-        // }
-
-
         candidate_index_t& operator=(candidate_index_t&& x) noexcept {
-            
-            // std::cout << "candidate_index_t move ctor" << std::endl;
-
-            // std::cout << "###################################" << std::endl;
-            // std::cout << "operator=, this.index():         " << index() << std::endl;
-            // std::cout << "operator=, this candidate_index: " << parent_->all_transactions_[index()].candidate_index() << std::endl;
-            // std::cout << "operator=, x.index():            " << x.index() << std::endl;
-            // std::cout << "operator=, x candidate_index:    " << parent_->all_transactions_[x.index()].candidate_index() << std::endl;
-
-            // std::cout << "###################################" << std::endl;
-            // parent_->print_candidates();
-            // std::cout << "###################################" << std::endl;
-            // // parent_->check_invariant();
-
-            auto xci = parent_->all_transactions_[x.index_].candidate_index();
-            auto tci = parent_->all_transactions_[index_].candidate_index();
-            parent_->all_transactions_[x.index_].set_candidate_index(tci);
-            parent_->all_transactions_[index_].set_candidate_index(xci);
+            auto xci = all_transactions()[x.index_].candidate_index();
+            auto tci = all_transactions()[index_].candidate_index();
+            all_transactions()[x.index_].set_candidate_index(tci);
+            all_transactions()[index_].set_candidate_index(xci);
             std::swap(index_, x.index_);
 
-            // std::cout << "###################################" << std::endl;
-            // std::cout << "operator=, this.index():         " << index() << std::endl;
-            // std::cout << "operator=, this candidate_index: " << parent_->all_transactions_[index()].candidate_index() << std::endl;
-            // std::cout << "operator=, x.index():            " << x.index() << std::endl;
-            // std::cout << "operator=, x candidate_index:    " << parent_->all_transactions_[x.index()].candidate_index() << std::endl;
-
-            // std::cout << "###################################" << std::endl;
-            // parent_->print_candidates();
-            // std::cout << "###################################" << std::endl;
-            // // parent_->check_invariant();
-            
             return *this;
         }
-
-        // candidate_index_t& operator=(candidate_index_t const& x) {
-            
-        //     std::cout << "###################################" << std::endl;
-        //     std::cout << "operator=, this.index():         " << index() << std::endl;
-        //     std::cout << "operator=, this candidate_index: " << parent_->all_transactions_[index()].candidate_index() << std::endl;
-        //     std::cout << "operator=, x.index():            " << x.index() << std::endl;
-        //     std::cout << "operator=, x candidate_index:    " << parent_->all_transactions_[x.index()].candidate_index() << std::endl;
-
-        //     std::cout << "###################################" << std::endl;
-        //     parent_->print_candidates();
-        //     std::cout << "###################################" << std::endl;
-        //     parent_->check_invariant();
-
-        //     auto xci = parent_->all_transactions_[x.index()].candidate_index();
-        //     parent_->all_transactions_[index()].set_candidate_index(xci);
-        //     index_ = x.index();
-
-        //     std::cout << "###################################" << std::endl;
-        //     std::cout << "operator=, this.index():         " << index() << std::endl;
-        //     std::cout << "operator=, this candidate_index: " << parent_->all_transactions_[index()].candidate_index() << std::endl;
-        //     std::cout << "operator=, x.index():            " << x.index() << std::endl;
-        //     std::cout << "operator=, x candidate_index:    " << parent_->all_transactions_[x.index()].candidate_index() << std::endl;
-
-        //     std::cout << "###################################" << std::endl;
-        //     parent_->print_candidates();
-        //     std::cout << "###################################" << std::endl;
-        //     parent_->check_invariant();
-            
-        //     return *this;
-        // }
 
         explicit
         operator size_t() const {
@@ -356,50 +291,22 @@ public:
             return !(a < b);
         }
 
-
         friend
         void swap(candidate_index_t& a, candidate_index_t& b) {
-
-            std::cout << "candidate_index_t::swap()" << std::endl;
-            // if (a.index() == 17 && b.index() == 48) {
-            //     std::cout << "pepe\n";
-            // }
-
-            // size_t posa = &a - &(*std::begin(parent_->candidate_transactions_));
-            // size_t posb = &b - &(*std::begin(parent_->candidate_transactions_));
-
-            // std::cout << "----------------------------------" << std::endl;
-
-            // std::cout << "swap, a: " << a.index() << std::endl;
-            // std::cout << "swap, b: " << b.index() << std::endl;
-
-            // std::cout << "swap, a candidate_index: " << parent_->all_transactions_[a.index()].candidate_index() << std::endl;
-            // std::cout << "swap, b candidate_index: " << parent_->all_transactions_[b.index()].candidate_index() << std::endl;
-
-            // std::cout << "swap, posa: " << posa << std::endl;
-            // std::cout << "swap, posb: " << posb << std::endl;
-
-
-            // std::cout << "----------------------------------" << std::endl;
-            // parent_->print_candidates();
-            // std::cout << "----------------------------------" << std::endl;
-            // parent_->check_invariant();
-
-
-            auto tmp = parent_->all_transactions_[a.index()].candidate_index();
-            parent_->all_transactions_[a.index()].set_candidate_index(parent_->all_transactions_[b.index()].candidate_index());
-            parent_->all_transactions_[b.index()].set_candidate_index(tmp);
+            auto tmp = all_transactions()[a.index()].candidate_index();
+            all_transactions()[a.index()].set_candidate_index(all_transactions()[b.index()].candidate_index());
+            all_transactions()[b.index()].set_candidate_index(tmp);
             std::swap(a.index_, b.index_);
-
-            // std::cout << "----------------------------------" << std::endl;
-            // parent_->print_candidates();
-            // std::cout << "----------------------------------" << std::endl;
-
-            // parent_->check_invariant();
         }
 
         friend mempool;
     private:
+
+        static
+        all_transactions_t& all_transactions() {
+             return parent_->all_transactions_;
+        }
+
         static mempool* parent_;
         size_t index_;
     };
