@@ -30,6 +30,7 @@ namespace mining {
 class node {
 public:
 
+    explicit
     node(transaction_element const& te) 
         : te_(te)
         , children_fees_(te_.fee())
@@ -37,6 +38,7 @@ public:
         , children_sigops_(te_.sigops())
     {}
 
+    explicit
     node(transaction_element&& te) 
         : te_(std::move(te))
         , children_fees_(te_.fee())
