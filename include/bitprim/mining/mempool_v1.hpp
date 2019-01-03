@@ -361,6 +361,33 @@ public:
         return sorted_;
     }
 
+    void increment_time(std::chrono::time_point<std::chrono::high_resolution_clock> const& start, std::chrono::time_point<std::chrono::high_resolution_clock> const& end, double& accum) {
+        auto time_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+        accum += double(time_ns);
+    }
+
+    double make_node_time = 0.0;
+    double process_utxo_and_graph_time = 0.0;
+    double all_transactions_push_back_time = 0.0;
+    double insert_candidate_time = 0.0;
+    double hash_index_find_time = 0.0;
+    double check_double_spend_time = 0.0;
+    double insert_outputs_in_utxo_time = 0.0;
+    double hash_index_emplace_time = 0.0;
+
+    double relatives_management_time = 0.0;
+    double relatives_management_part_1_time = 0.0;
+    double relatives_management_part_2_time = 0.0;
+    double relatives_management_part_2_vector_copy_time = 0.0;
+    double relatives_management_part_2_first_loop_time = 0.0;
+    double relatives_management_part_2_remove_duplicates_time = 0.0;
+    double relatives_management_part_2_new_node_add_parents_time = 0.0;
+    double relatives_management_part_2_second_loop_time = 0.0;
+    double relatives_management_part_2_second_loop_parent_add_child_time = 0.0;
+    
+
+
+
     error::error_code_t add(chain::transaction const& tx) {
         //precondition: tx is fully validated: check() && accept() && connect()
         //              ! tx.is_coinbase()
@@ -370,22 +397,77 @@ public:
         return prioritizer_.low_job([this, &tx]{
             auto const index = all_transactions_.size();
 
+            auto start = std::chrono::high_resolution_clock::now();
             auto temp_node = make_node(tx);
+            auto end = std::chrono::high_resolution_clock::now();
+            increment_time(start, end, make_node_time);
+
+            start = std::chrono::high_resolution_clock::now();
             auto res = process_utxo_and_graph(tx, index, temp_node);
+            end = std::chrono::high_resolution_clock::now();
+            increment_time(start, end, process_utxo_and_graph_time);
+
             if (res != error::success) {
                 return res;
             }
 
+            start = std::chrono::high_resolution_clock::now();
             all_transactions_.push_back(std::move(temp_node));
+            end = std::chrono::high_resolution_clock::now();
+            increment_time(start, end, all_transactions_push_back_time);
+
             // res = add_node(index);
             node& inserted = all_transactions_.back();
-            res = insert_candidate(index, inserted);
 
-#ifndef NDEBUG
+            start = std::chrono::high_resolution_clock::now();
+            res = insert_candidate(index, inserted);
+            end = std::chrono::high_resolution_clock::now();
+            increment_time(start, end, insert_candidate_time);
+
+
+    #ifndef NDEBUG
             check_invariant();
-#endif
+    #endif
             return res;
         });
+
+
+
+//         auto const index = all_transactions_.size();
+
+//         auto start = std::chrono::high_resolution_clock::now();
+//         auto temp_node = make_node(tx);
+//         auto end = std::chrono::high_resolution_clock::now();
+//         increment_time(start, end, make_node_time);
+
+//         start = std::chrono::high_resolution_clock::now();
+//         auto res = process_utxo_and_graph(tx, index, temp_node);
+//         end = std::chrono::high_resolution_clock::now();
+//         increment_time(start, end, process_utxo_and_graph_time);
+
+//         if (res != error::success) {
+//             return res;
+//         }
+
+//         start = std::chrono::high_resolution_clock::now();
+//         all_transactions_.push_back(std::move(temp_node));
+//         end = std::chrono::high_resolution_clock::now();
+//         increment_time(start, end, all_transactions_push_back_time);
+
+//         // res = add_node(index);
+//         node& inserted = all_transactions_.back();
+
+//         start = std::chrono::high_resolution_clock::now();
+//         res = insert_candidate(index, inserted);
+//         end = std::chrono::high_resolution_clock::now();
+//         increment_time(start, end, insert_candidate_time);
+
+
+// #ifndef NDEBUG
+//         check_invariant();
+// #endif
+//         return res;
+
     }
 
     // private
@@ -413,6 +495,9 @@ public:
                 return error::success;
             }
 
+            std::cout << "************************** FIRST ITEM DOESNT FIT **************************" << std::endl;
+
+
             auto const cmp = [this](candidate_index_t a, candidate_index_t b) {
                 return fee_per_size_cmp(a.index(), b.index());
             };
@@ -426,6 +511,8 @@ public:
             // std::cout << "----------------------------------" << std::endl;
 
             std::sort(std::begin(candidate_transactions_), std::end(candidate_transactions_), cmp);
+
+            std::cout << "after sort (V1)" << std::endl;
 
             // std::cout << "----------------------------------" << std::endl;
             // print_candidates();
@@ -1146,9 +1233,9 @@ private:
             check_invariant();
 #endif
 
-            for (auto x : to_remove) {
-                std::cout << "to_remove: " << x << std::endl;
-            }
+            // for (auto x : to_remove) {
+            //     std::cout << "to_remove: " << x << std::endl;
+            // }
 
 
             do_candidate_removal(to_remove);
@@ -1382,24 +1469,68 @@ private:
         return (accum_sigops_ <= sigops_limit - sigops);
     }
 
-    error::error_code_t process_utxo_and_graph(chain::transaction const& tx, index_t node_index, node& new_node) {
-        //TODO(fernando): evitar tratar de borrar en el UTXO Local, si el UTXO fue encontrado en la DB
+    template <typename Container>
+    void remove_duplicates(Container& cont) {
+        std::sort(std::begin(cont), std::end(cont), std::greater<>{});
+        cont.erase(std::unique(std::begin(cont), std::end(cont)), std::end(cont));
+    }
 
-        auto it = hash_index_.find(tx.hash());
-        if (it != hash_index_.end()) {
-            return error::duplicate_transaction;
+    void relatives_management_part_2(indexes_t const& parents, index_t node_index, node& new_node) {
+        if ( ! parents.empty()) {
+            // std::set<index_t, std::greater<>> parents_temp(parents.begin(), parents.end());
+            // for (auto pi : parents) {
+            //     auto const& parent = all_transactions_[pi];
+            //     parents_temp.insert(parent.parents().begin(), parent.parents().end());
+            // }
+
+            auto start = std::chrono::high_resolution_clock::now();
+            auto parents_temp = parents;
+            auto end = std::chrono::high_resolution_clock::now();
+            increment_time(start, end, relatives_management_part_2_vector_copy_time);
+
+            start = std::chrono::high_resolution_clock::now();
+            for (auto pi : parents) {
+                auto const& parent = all_transactions_[pi];
+                parents_temp.insert(std::end(parents_temp), std::begin(parent.parents()), std::end(parent.parents()));
+            }
+            end = std::chrono::high_resolution_clock::now();
+            increment_time(start, end, relatives_management_part_2_first_loop_time);
+
+
+            start = std::chrono::high_resolution_clock::now();
+            remove_duplicates(parents_temp);
+            end = std::chrono::high_resolution_clock::now();
+            increment_time(start, end, relatives_management_part_2_remove_duplicates_time);
+
+            start = std::chrono::high_resolution_clock::now();
+            new_node.add_parents(std::begin(parents_temp), std::end(parents_temp));
+            end = std::chrono::high_resolution_clock::now();
+            increment_time(start, end, relatives_management_part_2_new_node_add_parents_time);
+
+            start = std::chrono::high_resolution_clock::now();
+            // size_t temp_counter = 0;
+            for (auto pi : new_node.parents()) {
+                auto& parent = all_transactions_[pi];
+                // parent.add_child(node_index, new_node.fee(), new_node.size(), new_node.sigops());
+
+                // ++temp_counter;
+                auto start_2 = std::chrono::high_resolution_clock::now();
+                parent.add_child(node_index);
+                auto end_2 = std::chrono::high_resolution_clock::now();
+                increment_time(start_2, end_2, relatives_management_part_2_second_loop_parent_add_child_time);
+
+            }
+            end = std::chrono::high_resolution_clock::now();
+            increment_time(start, end, relatives_management_part_2_second_loop_time);
+
+            // std::cout << "temp_counter: " << temp_counter << '\n';
         }
+    }
 
-        auto res = check_double_spend(tx);
-        if (res != error::success) {
-            return res;
-        }
 
-        //--------------------------------------------------
-        // Mutate the state
+    void relatives_management(chain::transaction const& tx, index_t node_index, node& new_node) {
 
-        insert_outputs_in_utxo(tx);
-        hash_index_.emplace(tx.hash(), std::make_pair(node_index, tx));
+        auto start = std::chrono::high_resolution_clock::now();
 
         indexes_t parents;
 
@@ -1416,21 +1547,59 @@ private:
             previous_outputs_.insert({i.previous_output(), node_index});
         }
 
-        if ( ! parents.empty()) {
-            std::set<index_t, std::greater<>> parents_temp(parents.begin(), parents.end());
-            for (auto pi : parents) {
-                auto const& parent = all_transactions_[pi];
-                parents_temp.insert(parent.parents().begin(), parent.parents().end());
-            }
+        auto end = std::chrono::high_resolution_clock::now();
+        increment_time(start, end, relatives_management_part_1_time);
 
-            new_node.add_parents(parents_temp.begin(), parents_temp.end());
+        start = std::chrono::high_resolution_clock::now();
+        relatives_management_part_2(parents, node_index, new_node);
+        end = std::chrono::high_resolution_clock::now();
+        increment_time(start, end, relatives_management_part_2_time);
 
-            for (auto pi : new_node.parents()) {
-                auto& parent = all_transactions_[pi];
-                // parent.add_child(node_index, new_node.fee(), new_node.size(), new_node.sigops());
-                parent.add_child(node_index);
-            }
+    }
+
+    error::error_code_t process_utxo_and_graph(chain::transaction const& tx, index_t node_index, node& new_node) {
+        //TODO(fernando): evitar tratar de borrar en el UTXO Local, si el UTXO fue encontrado en la DB
+
+
+        auto start = std::chrono::high_resolution_clock::now();
+        auto it = hash_index_.find(tx.hash());
+        if (it != hash_index_.end()) {
+            auto end = std::chrono::high_resolution_clock::now();
+            increment_time(start, end, hash_index_find_time);
+            return error::duplicate_transaction;
         }
+        auto end = std::chrono::high_resolution_clock::now();
+        increment_time(start, end, hash_index_find_time);
+
+        start = std::chrono::high_resolution_clock::now();
+        auto res = check_double_spend(tx);
+        if (res != error::success) {
+            end = std::chrono::high_resolution_clock::now();
+            increment_time(start, end, check_double_spend_time);
+            return res;
+        }
+        end = std::chrono::high_resolution_clock::now();
+        increment_time(start, end, check_double_spend_time);
+
+        //--------------------------------------------------
+        // Mutate the state
+
+        start = std::chrono::high_resolution_clock::now();
+        insert_outputs_in_utxo(tx);
+        end = std::chrono::high_resolution_clock::now();
+        increment_time(start, end, insert_outputs_in_utxo_time);
+
+
+        start = std::chrono::high_resolution_clock::now();
+        hash_index_.emplace(tx.hash(), std::make_pair(node_index, tx));
+        end = std::chrono::high_resolution_clock::now();
+        increment_time(start, end, hash_index_emplace_time);
+
+
+        start = std::chrono::high_resolution_clock::now();
+        relatives_management(tx, node_index, new_node);
+        end = std::chrono::high_resolution_clock::now();
+        increment_time(start, end, relatives_management_time);
 
         return error::success;
     }
@@ -2017,35 +2186,3 @@ private:
 }  // namespace libbitcoin
 
 #endif  //BITPRIM_BLOCKCHAIN_MINING_MEMPOOL_V1_HPP_
-
-
-//TODO(fernando): check if these examples are OK
-
-//insert: fee: 6, size: 10, benf: 0.5
-// fee    |010|009|008|007|005|
-// size   |010|010|010|010|010|
-// fee/s  |1.0|0.9|0.8|0.7|0.5|
-//                          ^
-
-//insert: fee: 11, size: 20, benf: 0.55
-// fee    |010|009|008|007|005|
-// size   |010|010|010|010|010|
-// fee/s  |1.0|0.9|0.8|0.7|0.5|
-// ------------------------------
-
-//insert: fee: 13, size: 20, benf: 0.65
-// fee    |010|009|008|007|005|
-// size   |010|010|010|010|010|
-// fee/s  |1.0|0.9|0.8|0.7|0.5|
-//                      ^
-
-
-
-// limits: size: 50, 2 sigops per 10
-//insert: fee: 6, size: 12, benf: 0.65, sigops = 5
-// fee    |010|009|008|007|005|
-// size   |010|010|009|010|010| = 49
-// fee/s  |1.0|0.9|0.8|0.7|0.5|
-// sigops |002|002|002|002|002|
-//                      ^
-
