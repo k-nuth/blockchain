@@ -22,13 +22,15 @@
 #include <algorithm>
 #include <chrono>
 #include <tuple>
+#include <type_traits>
 #include <unordered_map>
 #include <unordered_set>
-#include <type_traits>
 #include <vector>
 
-#include <iostream>
+#ifndef NDEBUG
 #include <iomanip>
+#include <iostream>
+#endif
 
 // #include <boost/bimap.hpp>
 
@@ -41,7 +43,8 @@
 
 template <typename F> 
 auto scope_guard(F&& f) {
-    return std::unique_ptr<void, typename std::decay<F>::type>{(void*)1, std::forward<F>(f)};
+    // return std::unique_ptr<void, typename std::decay<F>::type>{(void*)1, std::forward<F>(f)};
+    return std::unique_ptr<void, typename std::decay<F>::type>{reinterpret_cast<void*>(1), std::forward<F>(f)};
 }
 
 namespace libbitcoin {
@@ -78,7 +81,7 @@ void measure(F f, measurements_t& t) {
 }
 #else
 template <typename F>
-void measure(F f, measurements_t&) {
+void measure(F f, measurements_t& /*unused*/) {
     f();
 }
 #endif
@@ -100,8 +103,8 @@ using all_transactions_t = std::vector<node>;
 inline
 void sort_ctor(all_transactions_t& all, std::vector<size_t>& candidates) {
     auto const cmp = [&all](index_t ia, index_t ib) {
-        node const& a = all[ia].element(); 
-        node const& b = all[ib].element();
+        auto const& a = all[ia]; 
+        auto const& b = all[ib];
         return std::lexicographical_compare(a.txid().rbegin(), a.txid().rend(),
                                             b.txid().rbegin(), b.txid().rend());
     };
@@ -116,8 +119,8 @@ void sort_ltor(bool sorted, all_transactions_t& all, std::vector<size_t>& candid
 
     if ( ! sorted) {
         auto const cmp = [&all](index_t ia, index_t ib) {
-            node const& a = all[ia].element(); 
-            node const& b = all[ib].element();
+            auto const& a = all[ia]; 
+            auto const& b = all[ib];
             return fee_per_size_cmp{}(a, b);
         };
         // candidates.sort(cmp);
@@ -182,7 +185,7 @@ void sort_ltor(bool sorted, all_transactions_t& all, std::vector<size_t>& candid
 class mempool {
 public:
 
-
+#ifndef NDEBUG
     void print_candidates() const {
 
         std::cout.fill('0');
@@ -218,14 +221,14 @@ public:
 
         {
             size_t index = 0;
-            for (auto mi : all_transactions_) {
+            for (auto const& mi : all_transactions_) {
                 std::cout << std::setw(2) << index << ", ";
                 ++index;
             }
             std::cout << std::endl;
         }
 
-        for (auto e : all_transactions_) {
+        for (auto const& e : all_transactions_) {
             if (e.candidate_index() == null_index) {
                 std::cout << "XX, ";
             } else {
@@ -234,6 +237,8 @@ public:
         }
         std::cout << std::endl;
     }
+#endif // NDEBUG
+
 
     class candidate_index_t {
     public:
@@ -256,9 +261,9 @@ public:
         // }
 
 
-        candidate_index_t& operator=(candidate_index_t&& x) {
+        candidate_index_t& operator=(candidate_index_t&& x) noexcept {
             
-            std::cout << "candidate_index_t move ctor" << std::endl;
+            // std::cout << "candidate_index_t move ctor" << std::endl;
 
             // std::cout << "###################################" << std::endl;
             // std::cout << "operator=, this.index():         " << index() << std::endl;
@@ -426,6 +431,7 @@ public:
     static constexpr size_t mempool_size_multiplier_default = 10;
 #endif 
 
+    explicit
     mempool(size_t max_template_size = max_template_size_default, size_t mempool_size_multiplier = mempool_size_multiplier_default) 
         : max_template_size_(max_template_size)
         // , mempool_size_multiplier_(mempool_size_multiplier)
@@ -548,15 +554,15 @@ public:
         processing_block_ = true;
         auto unique = scope_guard([&](void*){ processing_block_ = false; });
 
-        std::set<index_t, std::greater<index_t>> to_remove;
+        std::set<index_t, std::greater<>> to_remove;
         std::vector<chain::point> outs;
         if (non_coinbase_input_count > 0) {
-            outs.reserve(non_coinbase_input_count);   //TODO: unnecesary extra space
+            outs.reserve(non_coinbase_input_count);   //TODO(fernando): unnecesary extra space
         }
 
         return prioritizer_.high_job([&f, l, &to_remove, &outs, this]{
 
-            //TODO: temp code, remove
+            //TODO(fernando): temp code, remove
 // #ifndef NDEBUG
 //             auto old_transactions = all_transactions_;
 // #endif
@@ -585,7 +591,7 @@ public:
             find_double_spend_issues(to_remove, outs);
 
 
-            //TODO: process batches of adjacent elements
+            //TODO(fernando): process batches of adjacent elements
             for (auto i : to_remove) {
                 auto it = std::next(all_transactions_.begin(), i);
                 hash_index_.erase(it->txid());
@@ -653,10 +659,15 @@ public:
             accum_fees_ = 0;
             accum_size_ = 0;
             accum_sigops_ = 0;
+
+            // for (size_t i = 0; i < all_transactions_.size(); ++i) {
+            //     all_transactions_[i].set_candidate_index(null_index);
+            //     all_transactions_[i].reset_children_values();
+            // }
             
-            for (size_t i = 0; i < all_transactions_.size(); ++i) {
-                all_transactions_[i].set_candidate_index(null_index);
-                all_transactions_[i].reset_children_values();
+            for (auto& atx : all_transactions_) {
+                atx.set_candidate_index(null_index);
+                atx.reset_children_values();
             }
 
 #ifndef NDEBUG
@@ -715,7 +726,7 @@ public:
         });
     }
 
-    //TODO:
+    //TODO(fernando):
     bool contains(hash_digest const& txid) const {
         // shared_lock_t lock(mutex_);
         return prioritizer_.low_job([&txid, this]{
@@ -831,14 +842,13 @@ public:
 // ----------------------------------------------------------------------------------------
 //  Invariant Checks
 // ----------------------------------------------------------------------------------------
+#ifndef NDEBUG
 
     void check_children_accum(index_t node_index) const {
 
         if (node_index == 9) {
             std::cout << "fer\n";
         }
-        
-        
 
         removal_list_t out_removed;
         auto res = out_removed.insert(node_index);
@@ -1155,6 +1165,8 @@ public:
         }
     }
 
+#endif // NDEBUG
+
 // ----------------------------------------------------------------------------------------
 //  Invariant Checks (End)
 // ----------------------------------------------------------------------------------------
@@ -1199,11 +1211,12 @@ private:
     }
 
     error::error_code_t add_node(index_t index) {
-        //TODO: what_to_insert_time
+        //TODO(fernando): what_to_insert_time
         auto to_insert = what_to_insert(index);
 
-        if (candidate_transactions_.size() > 0 && ! has_room_for(std::get<2>(to_insert), std::get<3>(to_insert))) {
-            //TODO: what_to_remove_time
+        // if (candidate_transactions_.size() > 0 && ! has_room_for(std::get<2>(to_insert), std::get<3>(to_insert))) {
+        if (  ! candidate_transactions_.empty() && ! has_room_for(std::get<2>(to_insert), std::get<3>(to_insert))) {
+            //TODO(fernando): what_to_remove_time
             auto to_remove = what_to_remove(index, std::get<1>(to_insert), std::get<2>(to_insert), std::get<3>(to_insert));
 
 #ifndef NDEBUG
@@ -1241,8 +1254,8 @@ private:
 
         do_candidates_insertion(to_insert);
 
-        std::cout << "++++++++++++++++++++++++++++++++++" << std::endl;
-        print_candidates();
+        // std::cout << "++++++++++++++++++++++++++++++++++" << std::endl;
+        // print_candidates();
 #ifndef NDEBUG
         check_invariant();
 #endif
@@ -1262,7 +1275,7 @@ private:
         }
     }
 
-    void find_double_spend_issues(std::set<index_t, std::greater<index_t>>& to_remove, std::vector<chain::point> const& outs) {
+    void find_double_spend_issues(std::set<index_t, std::greater<>>& to_remove, std::vector<chain::point> const& outs) {
 
         for (auto const& po : outs) {
             auto it = previous_outputs_.find(po);
@@ -1422,10 +1435,10 @@ private:
     void do_candidate_removal(removal_list_t const& to_remove) {
         // removed_tx_counter += to_remove.size();
 
-        //TODO: remove_time
+        //TODO(fernando): remove_time
         remove_nodes(to_remove);
               
-        //TODO: reindex_parents_for_removal_time
+        //TODO(fernando): reindex_parents_for_removal_time
         reindex_parents_for_removal(to_remove);
 
         
@@ -1462,7 +1475,7 @@ private:
     }
 
     error::error_code_t process_utxo_and_graph(chain::transaction const& tx, index_t node_index, node& new_node) {
-        //TODO: evitar tratar de borrar en el UTXO Local, si el UTXO fue encontrado en la DB
+        //TODO(fernando): evitar tratar de borrar en el UTXO Local, si el UTXO fue encontrado en la DB
 
         auto it = hash_index_.find(tx.hash());
         if (it != hash_index_.end()) {
@@ -1496,7 +1509,7 @@ private:
         }
 
         if ( ! parents.empty()) {
-            std::set<index_t, std::greater<index_t>> parents_temp(parents.begin(), parents.end());
+            std::set<index_t, std::greater<>> parents_temp(parents.begin(), parents.end());
             for (auto pi : parents) {
                 auto const& parent = all_transactions_[pi];
                 parents_temp.insert(parent.parents().begin(), parent.parents().end());
@@ -1573,15 +1586,21 @@ private:
             accum_sigops_ -= node.sigops();
             accum_fees_ -= node.fee();
 
-            std::cout << "++++++++++++++++++++++++++++++++++" << std::endl;
-            print_candidates();
+            // std::cout << "++++++++++++++++++++++++++++++++++" << std::endl;
+            // print_candidates();
+
+#ifndef NDEBUG
             check_invariant_consistency_partial();
+#endif
 
             candidate_transactions_.pop_back();
 
-            std::cout << "++++++++++++++++++++++++++++++++++" << std::endl;
-            print_candidates();
+            // std::cout << "++++++++++++++++++++++++++++++++++" << std::endl;
+            // print_candidates();
+
+#ifndef NDEBUG
             check_invariant_consistency_partial();      
+#endif
             return;      
         }
 
@@ -1596,9 +1615,11 @@ private:
         accum_sigops_ -= node.sigops();
         accum_fees_ -= node.fee();
 
-        std::cout << "++++++++++++++++++++++++++++++++++" << std::endl;
-        print_candidates();
+        // std::cout << "++++++++++++++++++++++++++++++++++" << std::endl;
+        // print_candidates();
+#ifndef NDEBUG
         check_invariant_consistency_partial();
+#endif
 
         // reindex_decrement(std::next(it), std::end(candidate_transactions_));
         // std::cout << "++++++++++++++++++++++++++++++++++" << std::endl;
@@ -1607,16 +1628,18 @@ private:
 
         candidate_transactions_.erase(it);
 
-        std::cout << "++++++++++++++++++++++++++++++++++" << std::endl;
-        print_candidates();
+        // std::cout << "++++++++++++++++++++++++++++++++++" << std::endl;
+        // print_candidates();
 
         all_transactions_[ci].set_candidate_index(null_index);
         all_transactions_[ci].reset_children_values();
 
-        std::cout << "++++++++++++++++++++++++++++++++++" << std::endl;
-        print_candidates();
+        // std::cout << "++++++++++++++++++++++++++++++++++" << std::endl;
+        // print_candidates();
 
+#ifndef NDEBUG
         check_invariant_consistency_partial();
+#endif
     }
 
     template <typename RO, typename RU, typename F>
@@ -1661,7 +1684,9 @@ private:
         // reduce_values(node, parent);
         parent.decrement_values(node.fee(), node.size(), node.sigops());
 
+#ifndef NDEBUG
         auto accum_benefit_new = static_cast<double>(parent.children_fees()) / parent.children_size();
+#endif
 
         if (node_benefit == accum_benefit) {
             return;
@@ -1682,11 +1707,17 @@ private:
 
             auto it2 = std::upper_bound(from, to, candidate_index_t{parent_index}, cmp);
             // reindex_decrement(from, it2);
+#ifndef NDEBUG
             check_invariant_consistency_partial();
+#endif
             it = std::rotate(it, it + 1, it2);
+#ifndef NDEBUG
             check_invariant_consistency_partial();
+#endif
             parent.set_candidate_index(std::distance(std::begin(candidate_transactions_), it));
+#ifndef NDEBUG
             check_invariant_consistency_partial();
+#endif
 
         } else {
             BOOST_ASSERT(accum_benefit_new > accum_benefit);
@@ -1713,9 +1744,13 @@ private:
                 // std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
                 // check_invariant_consistency_partial();
 
+#ifndef NDEBUG
                 check_invariant_consistency_partial();
+#endif
                 std::rotate(it2, it, it + 1);
+#ifndef NDEBUG
                 check_invariant_consistency_partial();
+#endif
 
                 // std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
                 // print_candidates();
@@ -1723,7 +1758,9 @@ private:
                 // check_invariant();
 
                 parent.set_candidate_index(std::distance(std::begin(candidate_transactions_), it2));
+#ifndef NDEBUG
                 check_invariant_consistency_partial();
+#endif
                 // std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
                 // print_candidates();
                 // std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
@@ -1782,11 +1819,17 @@ private:
                 auto it2 = std::upper_bound(from, to, candidate_index_t{parent_index}, cmp);
 
                 // reindex_decrement(it + 1, it2);
+#ifndef NDEBUG
                 check_invariant_consistency_partial();
+#endif
                 it = std::rotate(it, it + 1, it2);
+#ifndef NDEBUG
                 check_invariant_consistency_partial();
+#endif
                 parent.set_candidate_index(std::distance(std::begin(candidate_transactions_), it));
+#ifndef NDEBUG
                 check_invariant_consistency_partial();
+#endif
             } else {
                 if (accum_benefit < node_accum_benefit) {
                     //  P        C     P'      
@@ -1796,11 +1839,17 @@ private:
                     auto it2 = std::upper_bound(from, to, candidate_index_t{parent_index}, cmp);
 
                     // reindex_decrement(it + 1, it2);
+#ifndef NDEBUG
                     check_invariant_consistency_partial();
+#endif
                     it = std::rotate(it, it + 1, it2);
+#ifndef NDEBUG
                     check_invariant_consistency_partial();
+#endif
                     parent.set_candidate_index(std::distance(std::begin(candidate_transactions_), it));
+#ifndef NDEBUG
                     check_invariant_consistency_partial();
+#endif
                 } else {
                 //  P              P'      C
                     auto from = it + 1;
@@ -1812,7 +1861,9 @@ private:
                     it = std::rotate(it, it + 1, it2);
                     // check_invariant_consistency_partial();
                     parent.set_candidate_index(std::distance(std::begin(candidate_transactions_), it));
+#ifndef NDEBUG
                     check_invariant_consistency_partial();
+#endif
                 }
             }
         }  else {
@@ -1826,11 +1877,17 @@ private:
 
                 if (it2 != it) {
                     // reindex_increment(it2, it);
+#ifndef NDEBUG
                     check_invariant_consistency_partial();
+#endif
                     std::rotate(it2, it, it + 1);
+#ifndef NDEBUG
                     check_invariant_consistency_partial();
+#endif
                     parent.set_candidate_index(std::distance(std::begin(candidate_transactions_), it2));
+#ifndef NDEBUG
                     check_invariant_consistency_partial();
+#endif
                 }
             } else {
                 if (old_accum_benefit < node_accum_benefit) {
@@ -1841,11 +1898,17 @@ private:
                     auto it2 = std::upper_bound(from, to, candidate_index_t{parent_index}, cmp);
 
                     // reindex_increment(it2, it);
+#ifndef NDEBUG
                     check_invariant_consistency_partial();
+#endif
                     std::rotate(it2, it, it + 1);
+#ifndef NDEBUG
                     check_invariant_consistency_partial();
+#endif
                     parent.set_candidate_index(std::distance(std::begin(candidate_transactions_), it2));
+#ifndef NDEBUG
                     check_invariant_consistency_partial();
+#endif
 
                 } else {
                     //  P'        P         C
@@ -1855,11 +1918,17 @@ private:
 
                     if (it2 != it) {
                         // reindex_increment(it2, it);
+#ifndef NDEBUG
                         check_invariant_consistency_partial();
+#endif
                         std::rotate(it2, it, it + 1);
+#ifndef NDEBUG
                         check_invariant_consistency_partial();
+#endif
                         parent.set_candidate_index(std::distance(std::begin(candidate_transactions_), it2));
+#ifndef NDEBUG
                         check_invariant_consistency_partial();
+#endif
                     } 
                 }
             }
@@ -1906,21 +1975,10 @@ private:
            
             if (parent.candidate_index() != null_index) {
 
-                // std::cout << "--------------------------------------------------\n";
-                // std::cout << "Before re-sorting " << pi << "\n";
-                // print_candidates();
-                // std::cout << std::endl;
-                // std::cout << "--------------------------------------------------\n";
-
-                // if (pi == 27) {
-                //     std::cout << "muneco\n";
-                // }
-
-
-                auto parent_benefit = static_cast<double>(parent.children_fees()) / parent.children_size();   
+                // auto parent_benefit = static_cast<double>(parent.children_fees()) / parent.children_size();   
                 // std::cout << "Parent stage0 benefit " << parent_benefit << "\n";
                 parent.increment_values(node.fee(), node.size(), node.sigops());
-                parent_benefit = static_cast<double>(parent.children_fees()) / parent.children_size();   
+                // parent_benefit = static_cast<double>(parent.children_fees()) / parent.children_size();   
                 // std::cout << "Parent stage1 benefit " << parent_benefit << "\n";
 
                 reindex_parent_from_insertion(node, parent, pi);
@@ -1970,9 +2028,13 @@ private:
         if (it == std::end(candidate_transactions_)) {
             node.set_candidate_index(candidate_transactions_.size());
             candidate_transactions_.push_back(candidate_index_t{node_index});
+#ifndef NDEBUG
             check_invariant_consistency_partial();
+#endif
         } else {
+#ifndef NDEBUG
             check_invariant_consistency_partial();
+#endif
             // auto xxx = distance(std::begin(candidate_transactions_), it);
             auto xxx = candidate_transactions_.size();
             node.set_candidate_index(xxx);
@@ -2002,7 +2064,9 @@ private:
             // std::cout << "++++++++++++++++++++++++++++++++++" << std::endl;
             // print_candidates();
 
+#ifndef NDEBUG
             check_invariant_consistency_partial();
+#endif
 
         }
 
@@ -2015,7 +2079,9 @@ private:
         // std::cout << "--------------------------------------------------\n";
 
         reindex_parents_from_insertion(node, to_insert);
+#ifndef NDEBUG
         check_invariant_consistency_partial();
+#endif
     }
 
 
@@ -2025,7 +2091,7 @@ private:
     size_t accum_sigops_ = 0;
     uint64_t accum_fees_ = 0;
     
-    //TODO: chequear el anidamiento de TX con su máximo (25??) y si es regla de consenso.
+    //TODO(fernando): chequear el anidamiento de TX con su máximo (25??) y si es regla de consenso.
 
     internal_utxo_set_t internal_utxo_set_;
     all_transactions_t all_transactions_;
@@ -2045,7 +2111,7 @@ private:
 #endif  //BITPRIM_BLOCKCHAIN_MINING_MEMPOOL_V1_HPP_
 
 
-//TODO: check if these examples are OK
+//TODO(fernando): check if these examples are OK
 
 //insert: fee: 6, size: 10, benf: 0.5
 // fee    |010|009|008|007|005|
