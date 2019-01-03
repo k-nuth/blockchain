@@ -19,10 +19,7 @@
 
 #include "doctest.h"
 
-
-// #include <bitprim/mining/mempool_v1.hpp>
-#include <bitprim/mining/mempool_v2.hpp>
-
+#include <bitprim/mining/mempool.hpp>
 
 #include <bitcoin/bitcoin/chain/transaction.hpp>
 #include <bitcoin/blockchain.hpp>
@@ -2672,6 +2669,8 @@ TEST_CASE("[mempool] GetBlockTemplate CTOR/LTOR 2 - testnet case 2") {
     auto blk = get_block(block_str);
     auto res = mp.remove(blk.transactions().begin() + 1, blk.transactions().end());
     std::cout << res << std::endl;
+    
+    mp.check_invariant();
     
     auto block_post = get_block_from_template(mp);
 
