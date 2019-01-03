@@ -47,7 +47,7 @@ constexpr size_t min_transaction_size_for_capacity = 61;
 
 
 
-//TODO: put in a common file
+//TODO(fernando): put in a common file
 using index_t = size_t;
 using measurements_t = double;
 using removal_list_t = std::unordered_set<index_t>;
