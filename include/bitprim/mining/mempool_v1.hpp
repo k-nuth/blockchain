@@ -1999,7 +1999,7 @@ private:
         }
     }
 
-    void insert_in_candidate(index_t node_index, indexes_t to_insert) {
+    void insert_in_candidate(index_t node_index, indexes_t const& to_insert) {
         auto& node = all_transactions_[node_index];
 
         // std::cout << "--------------------------------------------------\n";
