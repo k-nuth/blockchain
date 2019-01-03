@@ -84,22 +84,9 @@ public:
         return candidate_index_;
     }
 
-
-#ifdef BITPRIM_MINING_CTOR_ENABLED
-    index_t candidate_ctor_index() const {
-        return candidate_ctor_index_;
-    }
-#endif
-
     void set_candidate_index(index_t i) {
         candidate_index_ = i;
     }
-
-#ifdef BITPRIM_MINING_CTOR_ENABLED
-    void set_candidate_ctor_index(index_t i) {
-        candidate_ctor_index_ = i;
-    }
-#endif
 
     std::vector<index_t> const& parents() const {
         return parents_;
@@ -174,10 +161,6 @@ private:
     size_t children_sigops_;
 
     index_t candidate_index_ = null_index;
-
-#ifdef BITPRIM_MINING_CTOR_ENABLED
-    index_t candidate_ctor_index_ = null_index;
-#endif
 };
 
 }  // namespace mining
