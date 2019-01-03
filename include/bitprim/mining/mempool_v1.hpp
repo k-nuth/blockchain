@@ -436,7 +436,7 @@ public:
         : max_template_size_(max_template_size)
         // , mempool_size_multiplier_(mempool_size_multiplier)
         , mempool_total_size_(get_max_block_weight() * mempool_size_multiplier)
-        , sorted_(false)
+        // , sorted_(false)
     {
         BOOST_ASSERT(max_template_size <= get_max_block_weight()); //TODO(fernando): what happend in BTC with SegWit.
 
@@ -1467,11 +1467,12 @@ private:
         auto const next_size = accum_size_ + size;
         auto const sigops_limit = get_allowed_sigops(next_size);
 
-        if (accum_sigops_ > sigops_limit - sigops) {
-            return false;
-        }
+        // if (accum_sigops_ > sigops_limit - sigops) {
+        //     return false;
+        // }
+        // return true;
 
-        return true;
+        return (accum_sigops_ <= sigops_limit - sigops);
     }
 
     error::error_code_t process_utxo_and_graph(chain::transaction const& tx, index_t node_index, node& new_node) {
@@ -1949,7 +1950,7 @@ private:
     //     std::cout << std::endl;
     // }
 
-    void reindex_parents_from_insertion(mining::node const& node, indexes_t to_insert) {
+    void reindex_parents_from_insertion(mining::node const& node, indexes_t const& to_insert) {
         //precondition: candidate_transactions_.size() > 0
 
         // for (auto pi : node.parents()) {
@@ -2002,7 +2003,7 @@ private:
         auto& node = all_transactions_[node_index];
 
         // std::cout << "--------------------------------------------------\n";
-        auto node_benefit = static_cast<double>(node.children_fees()) / node.children_size();
+        // auto node_benefit = static_cast<double>(node.children_fees()) / node.children_size();
         // std::cout << "Before insert " << node_index << "\n";
         // std::cout << "New node benefit " << node_benefit << "\n";
         // print_candidates();
@@ -2097,7 +2098,7 @@ private:
     all_transactions_t all_transactions_;
     hash_index_t hash_index_;
     candidate_indexes_t candidate_transactions_;
-    bool sorted_;
+    bool sorted_ {false};
 
     previous_outputs_t previous_outputs_;
     // mutable mutex_t mutex_;
