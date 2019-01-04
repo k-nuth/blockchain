@@ -502,25 +502,18 @@ public:
                 return fee_per_size_cmp(a.index(), b.index());
             };
 
-#ifndef NDEBUG
-            check_invariant();
-#endif
+// #ifndef NDEBUG
+//             check_invariant();
+// #endif
 
-            // std::cout << "----------------------------------" << std::endl;
-            // print_candidates();
-            // std::cout << "----------------------------------" << std::endl;
-
+            //TODO(fernando): measure sort and save stats
             std::sort(std::begin(candidate_transactions_), std::end(candidate_transactions_), cmp);
+            // std::cout << "after sort (V1)" << std::endl;
 
-            std::cout << "after sort (V1)" << std::endl;
 
-            // std::cout << "----------------------------------" << std::endl;
-            // print_candidates();
-            // std::cout << "----------------------------------" << std::endl;
-
-#ifndef NDEBUG
-            check_invariant();
-#endif
+// #ifndef NDEBUG
+//             check_invariant();
+// #endif
 
 
             sorted_ = true;
@@ -664,16 +657,30 @@ public:
                 atx.reset_children_values();
             }
 
+// #ifndef NDEBUG
+//             check_invariant();
+// #endif
+
+            for (size_t i = 0; i < all_transactions_.size(); ++i) {
+
+                auto it = hash_index_.find(all_transactions_[i].txid());
+                if (it != hash_index_.end()) {
+                    // if (it->second.first != i) {
+                    //     std::cout << "pepe\n";
+                    // }
+                    it->second.first = i;
+                }
+
+                re_add_node(i);
+// #ifndef NDEBUG
+//                 check_invariant();
+// #endif
+            }
+
 #ifndef NDEBUG
             check_invariant();
 #endif
 
-            for (size_t i = 0; i < all_transactions_.size(); ++i) {
-                re_add_node(i);
-#ifndef NDEBUG
-                check_invariant();
-#endif
-            }
             return error::success;
         });
     }
@@ -839,11 +846,6 @@ public:
 #ifndef NDEBUG
 
     void check_children_accum(index_t node_index) const {
-
-        if (node_index == 9) {
-            std::cout << "fer\n";
-        }
-
         removal_list_t out_removed;
         auto res = out_removed.insert(node_index);
         if ( ! res.second) {
@@ -915,11 +917,20 @@ public:
 
 
     void check_invariant() const {
-        std::cout << "**********************************" << std::endl;
-        print_candidates();
-        std::cout << "**********************************" << std::endl;
+        // std::cout << "**********************************" << std::endl;
+        // print_candidates();
+        // std::cout << "**********************************" << std::endl;
 
         check_invariant_partial();
+
+        //TODO(fernando): replicate this invariant test in V2
+        {
+            for (size_t i = 0; i < all_transactions_.size(); ++i) {
+                auto it = hash_index_.find(all_transactions_[i].txid());
+                BOOST_ASSERT(it != hash_index_.end());
+                BOOST_ASSERT(it->second.first == i);
+            }
+        }
 
         {
             size_t i = 0;
@@ -1186,7 +1197,7 @@ private:
     }
 
     void re_add_node(index_t index) {
-        auto const& elem = all_transactions_[index];
+        auto& elem = all_transactions_[index];
 
         auto it = hash_index_.find(elem.txid());
         if (it != hash_index_.end()) {
@@ -1197,7 +1208,8 @@ private:
             for (auto const& i : tx.inputs()) {
                 previous_outputs_.insert({i.previous_output(), index});
             }        
-            add_node(index);
+            // add_node(index);
+            insert_candidate(index, elem);
         } else {
             //No debería pasar por aca
             BOOST_ASSERT(false);
@@ -1227,37 +1239,10 @@ private:
                 return error::low_benefit_transaction;
             } 
 
-            // std::cout << "++++++++++++++++++++++++++++++++++" << std::endl;
-            // print_candidates();
-#ifndef NDEBUG
-            check_invariant();
-#endif
-
-            // for (auto x : to_remove) {
-            //     std::cout << "to_remove: " << x << std::endl;
-            // }
-
-
             do_candidate_removal(to_remove);
-            // std::cout << "++++++++++++++++++++++++++++++++++" << std::endl;
-            // print_candidates();
-#ifndef NDEBUG
-            check_invariant();
-#endif
         }
 
         do_candidates_insertion(to_insert);
-
-        // std::cout << "++++++++++++++++++++++++++++++++++" << std::endl;
-        // print_candidates();
-#ifndef NDEBUG
-        check_invariant();
-#endif
-
-
-// #ifndef NDEBUG
-//         check_invariant();
-// #endif
 
         return error::success;
     }    
