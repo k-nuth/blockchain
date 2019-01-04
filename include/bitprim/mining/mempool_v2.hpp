@@ -354,6 +354,18 @@ public:
             data_.check_invariant();
 #endif
 
+        //TODO(fernando): implement this recent change made un V1
+                            // for (size_t i = 0; i < all_transactions_.size(); ++i) {
+
+                            //     auto it = hash_index_.find(elem.txid());
+                            //     if (it != hash_index_.end()) {
+                            //         if (it->second.first != i) {
+                            //             std::cout << "pepe\n";
+                            //         }
+                            //         it->second.first = i;
+                            //     }
+
+
             previous_outputs_.clear();
             data_.re_construct_candidates();
 
