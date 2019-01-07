@@ -37,15 +37,33 @@ namespace v0 {
 
 template <typename T>
 struct dispatcher {
+
+
+#ifdef BITPRIM_USE_DOMAIN
+    // template <Reader R, BITPRIM_IS_READER(R)>
+    template <typename State, typename Fastchain, Reader R, size_t... Is>
+    constexpr 
+    error::error_code_t call_impl(message_type_t, State&, Fastchain const&, size_t, bc::chain::transaction const&, R&, bitprim::index_sequence<Is...>) const {
+#else
     template <typename State, typename Fastchain, size_t... Is>
     constexpr 
     error::error_code_t call_impl(message_type_t, State&, Fastchain const&, size_t, bc::chain::transaction const&, bc::reader&, bitprim::index_sequence<Is...>) const {
+#endif // BITPRIM_USE_DOMAIN
         return error::not_recognized_type;
     }
 
+
+#ifdef BITPRIM_USE_DOMAIN
+    // template <Reader R, BITPRIM_IS_READER(R)>
+    template <typename State, typename Fastchain, size_t I, Reader R, size_t... Is>
+    constexpr 
+    error::error_code_t call_impl(message_type_t mt, State& state, Fastchain const& fast_chain, size_t block_height, bc::chain::transaction const& tx, R& source, bitprim::index_sequence<I, Is...>) const {
+#else
     template <typename State, typename Fastchain, size_t I, size_t... Is>
     constexpr 
     error::error_code_t call_impl(message_type_t mt, State& state, Fastchain const& fast_chain, size_t block_height, bc::chain::transaction const& tx, bc::reader& source, bitprim::index_sequence<I, Is...>) const {
+#endif // BITPRIM_USE_DOMAIN
+
         using msg_t = bitprim::tuple_element_t<I, T>;
         using idxs_t = bitprim::index_sequence<Is...>;
         return mt == msg_t::message_type 
@@ -53,9 +71,17 @@ struct dispatcher {
                 : call_impl(mt, state, fast_chain, block_height, tx, source, idxs_t{});
     }
 
+
+#ifdef BITPRIM_USE_DOMAIN
+    template <typename State, typename Fastchain, Reader R, BITPRIM_IS_READER(R)>
+    constexpr 
+    error::error_code_t operator()(message_type_t mt, State& state, Fastchain const& fast_chain, size_t block_height, bc::chain::transaction const& tx, R& source) const {
+#else
     template <typename State, typename Fastchain>
     constexpr 
     error::error_code_t operator()(message_type_t mt, State& state, Fastchain const& fast_chain, size_t block_height, bc::chain::transaction const& tx, bc::reader& source) const {
+#endif // BITPRIM_USE_DOMAIN
+
         static_assert(detail::no_repeated_types<T>{}(), "repeated transaction types in transaction list");
         using idxs_t = bitprim::make_index_sequence<std::tuple_size<T>::value>;
         return call_impl(mt, state, fast_chain, block_height, tx, source, idxs_t{});
