@@ -109,10 +109,16 @@ void populate_block::populate(branch::const_ptr branch, result_handler&& handler
     // auto local_utxo = create_local_utxo_set(*block);
     auto branch_utxo = create_branch_utxo_set(branch);
 
+#if defined(BITPRIM_WITH_MEMPOOL)
     auto validated_txs = mempool_.get_validated_txs_high();
+#endif
 
     for (size_t bucket = 0; bucket < buckets; ++bucket) {
+#if defined(BITPRIM_WITH_MEMPOOL)
         dispatch_.concurrent(&populate_block::populate_transactions, this, branch, bucket, buckets, branch_utxo, validated_txs, join_handler);
+#else
+        dispatch_.concurrent(&populate_block::populate_transactions, this, branch, bucket, buckets, branch_utxo, join_handler);
+#endif
     }
 }
 
@@ -182,8 +188,11 @@ populate_block::utxo_pool_t populate_block::get_reorg_subset_conditionally(size_
 #endif // BITPRIM_DB_NEW
 
 
+#if defined(BITPRIM_WITH_MEMPOOL)
 void populate_block::populate_transactions(branch::const_ptr branch, size_t bucket, size_t buckets, std::vector<local_utxo_t> const& branch_utxo, mining::mempool::hash_index_t const& validated_txs, result_handler handler) const {
-
+#else
+void populate_block::populate_transactions(branch::const_ptr branch, size_t bucket, size_t buckets, std::vector<local_utxo_t> const& branch_utxo, result_handler handler) const {
+#endif
     // TODO(fernando): check how to replace it with UTXO
     // asm("int $3");  //TODO(fernando): remover
 
