@@ -81,6 +81,11 @@ public:
     bool bip141;
     bool bip143;
     bool bip147;
+
+#if defined(BITPRIM_WITH_MEMPOOL)
+    size_t mempool_max_template_size;
+    size_t mempool_size_multiplier;
+#endif
 };
 
 }} // namespace libbitcoin::blockchain

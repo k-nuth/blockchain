@@ -34,6 +34,11 @@
 #include <bitcoin/blockchain/populate/populate_chain_state.hpp>
 #include <bitcoin/blockchain/settings.hpp>
 
+#if defined(BITPRIM_WITH_MEMPOOL)
+#include <bitprim/mining/mempool.hpp>
+#endif
+
+
 #if WITH_BLOCKCHAIN_REQUESTER
 #include <bitcoin/protocol/requester.hpp>
 #endif
@@ -230,9 +235,7 @@ public:
 
     /// fetch position and height within block of transaction by hash.
     void fetch_transaction_position(const hash_digest& hash, bool require_confirmed, transaction_index_fetch_handler handler) const override;
-
 #endif
-
 
     /// fetch the set of block headers indicated by the block locator.
     void fetch_locator_block_headers(get_headers_const_ptr locator, const hash_digest& threshold, size_t limit, locator_block_headers_fetch_handler handler) const override;
@@ -359,7 +362,7 @@ public:
 #if defined(BITPRIM_DB_TRANSACTION_UNCONFIRMED) || defined(BITPRIM_DB_NEW_FULL)    
     std::vector<mempool_transaction_summary> get_mempool_transactions(std::vector<std::string> const& payment_addresses, bool use_testnet_rules, bool witness) const override;
     std::vector<mempool_transaction_summary> get_mempool_transactions(std::string const& payment_address, bool use_testnet_rules, bool witness) const override;
-    std::vector<chain::transaction> get_mempool_transactions_from_wallets(std::vector<wallet::payment_address> const& payment_addresses, bool use_testnet_rules, bool witness) const;
+    std::vector<chain::transaction> get_mempool_transactions_from_wallets(std::vector<wallet::payment_address> const& payment_addresses, bool use_testnet_rules, bool witness) const override;
 
     /// fetch unconfirmed transaction by hash.
     void fetch_unconfirmed_transaction(const hash_digest& hash, transaction_unconfirmed_fetch_handler handler) const;
@@ -374,10 +377,11 @@ public:
     /// Filter out block by hash that exist in the block pool or store.
     void filter_blocks(get_data_ptr message, result_handler handler) const override;
 
-#if defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_DB_NEW_FULL)
+#if defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_DB_NEW_FULL) || defined(BITPRIM_WITH_MEMPOOL)
     /// Filter out confirmed and unconfirmed transactions by hash.
     void filter_transactions(get_data_ptr message, result_handler handler) const override;
 #endif 
+
 
     // Subscribers.
     //-------------------------------------------------------------------------
@@ -411,32 +415,12 @@ public:
     /// True if the blockchain is stale based on configured age limit.
     bool is_stale() const override;
 
+    /// True if the blockchain is stale based on configured age limit.
+    bool is_stale_fast() const override;
+
     /// Get a reference to the blockchain configuration settings.
     const settings& chain_settings() const;
 
-#ifdef BITPRIM_WITH_MINING
-    struct tx_benefit {
-        double benefit;
-        size_t tx_sigops;
-        size_t tx_size;
-        size_t tx_fees;
-        libbitcoin::data_chunk tx_hex;
-        libbitcoin::hash_digest tx_id;
-
-#ifndef BITPRIM_CURRENCY_BCH
-        libbitcoin::hash_digest tx_hash;
-#endif // BITPRIM_CURRENCY_BCH
-    };
-
-    struct prev_output {
-        libbitcoin::hash_digest output_hash;
-        uint32_t output_index;
-    };
-
-    std::vector<block_chain::tx_benefit> get_gbt_tx_list() const;
-    bool add_to_chosen_list(transaction_const_ptr tx) override;
-    void remove_mined_txs_from_chosen_list(block_const_ptr blk) override;
-#endif // BITPRIM_WITH_MINING
 
 #ifdef BITPRIM_WITH_KEOKEN    
     virtual void fetch_keoken_history(const short_hash& address_hash, size_t limit,
@@ -447,6 +431,10 @@ public:
 
     virtual void convert_to_keo_transaction(const hash_digest& hash,
       std::shared_ptr<std::vector<transaction_const_ptr>> keoken_txs) const override;
+#endif
+
+#if defined(BITPRIM_WITH_MEMPOOL)
+    std::pair<std::vector<libbitcoin::mining::transaction_element>, uint64_t> get_block_template() const;
 #endif
 
 protected:
@@ -504,28 +492,16 @@ private:
     mutable prioritized_mutex validation_mutex_;
     mutable threadpool priority_pool_;
     mutable dispatcher dispatch_;
+
+
+#if defined(BITPRIM_WITH_MEMPOOL)
+    mining::mempool mempool_;
+#endif
+
     transaction_organizer transaction_organizer_;
     block_organizer block_organizer_;
 
-#ifdef BITPRIM_WITH_MINING
-    bool get_transaction_is_confirmed(libbitcoin::hash_digest tx_hash);
-    void append_spend(transaction_const_ptr tx);
-    void remove_spend(libbitcoin::hash_digest const& hash);
-    bool check_is_double_spend(transaction_const_ptr tx);
-    std::set<libbitcoin::hash_digest> get_double_spend_chosen_list(transaction_const_ptr tx);
-    bool insert_to_chosen_list(transaction_const_ptr& tx, double benefit, size_t tx_size, size_t tx_sigops);
-    size_t find_txs_to_remove_from_chosen(const size_t sigops_limit, const size_t tx_size,
-        const size_t tx_sigops, const size_t tx_fees, const double benefit,
-            size_t& acum_sigops, size_t& acum_size, double& acum_benefit);
 
-
-    uint64_t chosen_size_; // Size in bytes of the chosen unconfirmed transaction list
-    uint64_t chosen_sigops_; // Total Amount of sigops in the chosen unconfirmed transaction list
-    std::list <tx_benefit> chosen_unconfirmed_; // Chosen unconfirmed transaction list
-    std::unordered_map<hash_digest, std::vector<prev_output>> chosen_spent_;
-    mutable std::mutex gbt_mutex_; // Protect chosen unconfirmed transaction list
-    std::atomic_bool gbt_ready_; // Getblocktemplate ready
-#endif // BITPRIM_WITH_MINING
 
 #endif // WITH_BLOCKCHAIN_REQUESTER
 };

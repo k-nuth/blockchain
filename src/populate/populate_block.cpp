@@ -35,9 +35,16 @@ using namespace bc::machine;
 
 // Database access is limited to calling populate_base.
 
+#if defined(BITPRIM_WITH_MEMPOOL)
+populate_block::populate_block(dispatcher& dispatch, fast_chain const& chain, bool relay_transactions, mining::mempool const& mp)
+#else
 populate_block::populate_block(dispatcher& dispatch, fast_chain const& chain, bool relay_transactions)
+#endif
     : populate_base(dispatch, chain)
     , relay_transactions_(relay_transactions)
+#if defined(BITPRIM_WITH_MEMPOOL)
+    , mempool_(mp)
+#endif
 {}
 
 local_utxo_t create_local_utxo_set(chain::block const& block) {
@@ -102,8 +109,16 @@ void populate_block::populate(branch::const_ptr branch, result_handler&& handler
     // auto local_utxo = create_local_utxo_set(*block);
     auto branch_utxo = create_branch_utxo_set(branch);
 
+#if defined(BITPRIM_WITH_MEMPOOL)
+    auto validated_txs = mempool_.get_validated_txs_high();
+#endif
+
     for (size_t bucket = 0; bucket < buckets; ++bucket) {
+#if defined(BITPRIM_WITH_MEMPOOL)
+        dispatch_.concurrent(&populate_block::populate_transactions, this, branch, bucket, buckets, branch_utxo, validated_txs, join_handler);
+#else
         dispatch_.concurrent(&populate_block::populate_transactions, this, branch, bucket, buckets, branch_utxo, join_handler);
+#endif
     }
 }
 
@@ -151,12 +166,9 @@ void populate_block::populate_coinbase(branch::const_ptr branch, block_const_ptr
 ////}
 
 
-#ifdef BITPRIM_DB_NEW
+#if defined(BITPRIM_DB_NEW)
 populate_block::utxo_pool_t populate_block::get_reorg_subset_conditionally(size_t first_height, size_t& out_chain_top) const {
 
-    // auto temp1 = branch->top_height();
-
-    out_chain_top;
     if ( ! fast_chain_.get_last_height(out_chain_top)) {
         out_chain_top = 0;
         return {};
@@ -176,8 +188,37 @@ populate_block::utxo_pool_t populate_block::get_reorg_subset_conditionally(size_
 #endif // BITPRIM_DB_NEW
 
 
-void populate_block::populate_transactions(branch::const_ptr branch, size_t bucket, size_t buckets, std::vector<local_utxo_t> const& branch_utxo, result_handler handler) const {
+#if defined(BITPRIM_DB_NEW)
+void populate_block::populate_transaction_inputs(branch::const_ptr branch, chain::input::list const& inputs, size_t bucket, size_t buckets, size_t input_position, std::vector<local_utxo_t> const& branch_utxo, size_t first_height, size_t chain_top, utxo_pool_t const& reorg_subset) const {
+#else
+void populate_block::populate_transaction_inputs(branch::const_ptr branch, chain::input::list const& inputs, size_t bucket, size_t buckets, size_t input_position, std::vector<local_utxo_t> const& branch_utxo) const {
+#endif
 
+    auto const branch_height = branch->height();
+
+    for (size_t input_index = 0; input_index < inputs.size(); ++input_index, ++input_position) {
+        if (input_position % buckets != bucket) {
+            continue;
+        }
+
+        auto const& input = inputs[input_index];
+        auto const& prevout = input.previous_output();
+        populate_base::populate_prevout(branch_height, prevout, true);  //Populate from Database
+        populate_prevout(branch, prevout, branch_utxo);                 //Populate from the Blocks in the Branch
+
+#if defined(BITPRIM_DB_NEW)
+        if (first_height <= chain_top) {
+            populate_from_reorg_subset(prevout, reorg_subset);
+        }
+#endif // BITPRIM_DB_NEW
+    }
+}
+
+#if defined(BITPRIM_WITH_MEMPOOL)
+void populate_block::populate_transactions(branch::const_ptr branch, size_t bucket, size_t buckets, std::vector<local_utxo_t> const& branch_utxo, mining::mempool::hash_index_t const& validated_txs, result_handler handler) const {
+#else
+void populate_block::populate_transactions(branch::const_ptr branch, size_t bucket, size_t buckets, std::vector<local_utxo_t> const& branch_utxo, result_handler handler) const {
+#endif
     // TODO(fernando): check how to replace it with UTXO
     // asm("int $3");  //TODO(fernando): remover
 
@@ -226,8 +267,7 @@ void populate_block::populate_transactions(branch::const_ptr branch, size_t buck
 #endif
     }
 
-
-#ifdef BITPRIM_DB_NEW
+#if defined(BITPRIM_DB_NEW)
     size_t first_height = branch_height + 1u;
     size_t chain_top;
     auto reorg_subset = get_reorg_subset_conditionally(first_height, /*out*/ chain_top);
@@ -236,30 +276,70 @@ void populate_block::populate_transactions(branch::const_ptr branch, size_t buck
 
     // Must skip coinbase here as it is already accounted for.
     for (auto tx = txs.begin() + 1; tx != txs.end(); ++tx) {
-        auto const& inputs = tx->inputs();
 
-        for (size_t input_index = 0; input_index < inputs.size(); ++input_index, ++input_position) {
-            if (input_position % buckets != bucket) {
-                continue;
+#if defined(BITPRIM_WITH_MEMPOOL)
+        auto it = validated_txs.find(tx->hash());
+        if (it == validated_txs.end()) {
+            auto const& inputs = tx->inputs();
+#if defined(BITPRIM_DB_NEW)
+            populate_transaction_inputs(branch, inputs, bucket, buckets, input_position, branch_utxo, first_height, chain_top, reorg_subset);
+#else
+            populate_transaction_inputs(branch, inputs, bucket, buckets, input_position, branch_utxo);
+#endif
+        } else {
+            tx->validation.validated = true;
+            auto const& tx_cached = it->second.second;
+            for (size_t i = 0; i < tx_cached.inputs().size(); ++i) {
+                tx->inputs()[i].previous_output().validation = tx_cached.inputs()[i].previous_output().validation;
             }
-
-            auto const& input = inputs[input_index];
-            auto const& prevout = input.previous_output();
-            populate_base::populate_prevout(branch_height, prevout, true);  //Populate from Database
-            populate_prevout(branch, prevout, branch_utxo);                 //Populate from the Blocks in the Branch
-
-#ifdef BITPRIM_DB_NEW
-            if (first_height <= chain_top) {
-                populate_from_reorg_subset(prevout, reorg_subset);
-            }
-#endif // BITPRIM_DB_NEW
         }
+#else
+        auto const& inputs = tx->inputs();
+#if defined(BITPRIM_DB_NEW)
+        populate_transaction_inputs(branch, inputs, bucket, buckets, input_position, branch_utxo, first_height, chain_top, reorg_subset);
+#else
+        populate_transaction_inputs(branch, inputs, bucket, buckets, input_position, branch_utxo);
+#endif
+#endif // defined(BITPRIM_WITH_MEMPOOL)
+
+
+
+
+
+//         auto it = validated_txs.find(tx->hash());
+//         if (it == validated_txs.end()) {
+//             auto const& inputs = tx->inputs();
+
+//             for (size_t input_index = 0; input_index < inputs.size(); ++input_index, ++input_position) {
+//                 if (input_position % buckets != bucket) {
+//                     continue;
+//                 }
+
+//                 auto const& input = inputs[input_index];
+//                 auto const& prevout = input.previous_output();
+//                 populate_base::populate_prevout(branch_height, prevout, true);  //Populate from Database
+//                 populate_prevout(branch, prevout, branch_utxo);                 //Populate from the Blocks in the Branch
+
+// #ifdef BITPRIM_DB_NEW
+//                 if (first_height <= chain_top) {
+//                     populate_from_reorg_subset(prevout, reorg_subset);
+//                 }
+// #endif // BITPRIM_DB_NEW
+//             }
+
+//         } else {
+//             tx->validation.validated = true;
+//             auto const& tx_cached = it->second.second;
+//             for (size_t i = 0; i < tx_cached.inputs().size(); ++i) {
+//                 tx->inputs()[i].previous_output().validation = tx_cached.inputs()[i].previous_output().validation;
+//             }
+//         }
     }
 
     handler(error::success);
 }
 
-#ifdef BITPRIM_DB_NEW
+#if defined(BITPRIM_DB_NEW)
 void populate_block::populate_from_reorg_subset(output_point const& outpoint, utxo_pool_t const& reorg_subset) const {
     if (outpoint.validation.cache.is_valid()) {
         return;

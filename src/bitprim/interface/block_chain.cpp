@@ -340,7 +340,7 @@ void block_chain::fetch_block_keoken(const hash_digest& hash, bool witness,
 
 #endif //defined(BITPRIM_DB_LEGACY)
 
-#endif //WITH_KEOKEN
+#endif //BITPRIM_WITH_KEOKEN
 
 } // namespace blockchain
 } // namespace libbitcoin

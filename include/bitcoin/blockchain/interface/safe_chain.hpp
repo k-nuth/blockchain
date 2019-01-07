@@ -186,8 +186,7 @@ public:
     virtual std::vector<mempool_transaction_summary> get_mempool_transactions(std::vector<std::string> const& payment_addresses, bool use_testnet_rules, bool witness) const = 0;
     virtual std::vector<mempool_transaction_summary> get_mempool_transactions(std::string const& payment_address, bool use_testnet_rules, bool witness) const = 0;
     
-    virtual std::vector<chain::transaction> get_mempool_transactions_from_wallets(std::vector<wallet::payment_address> const& payment_addresses,
-                                                                     bool use_testnet_rules, bool witness) const = 0;
+    virtual std::vector<chain::transaction> get_mempool_transactions_from_wallets(std::vector<wallet::payment_address> const& payment_addresses, bool use_testnet_rules, bool witness) const = 0;
 
     virtual void fetch_unconfirmed_transaction(const hash_digest& hash, transaction_unconfirmed_fetch_handler handler) const = 0;
 
@@ -201,7 +200,7 @@ public:
 
     virtual void filter_blocks(get_data_ptr message, result_handler handler) const = 0;
 
-#if defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_DB_NEW_FULL)
+#if defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_DB_NEW_FULL) || defined(BITPRIM_WITH_MEMPOOL)
     virtual void filter_transactions(get_data_ptr message, result_handler handler) const = 0;
 #endif 
 
@@ -228,11 +227,6 @@ public:
     // ------------------------------------------------------------------------
 
     virtual bool is_stale() const = 0;
-
-#ifdef BITPRIM_WITH_MINING
-    virtual bool add_to_chosen_list(transaction_const_ptr tx) = 0;
-    virtual void remove_mined_txs_from_chosen_list(block_const_ptr blk) = 0;
-#endif // BITPRIM_WITH_MINING
 
     //TODO(Mario) temporary duplication 
     /// Get a determination of whether the block hash exists in the store.
