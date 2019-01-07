@@ -111,11 +111,14 @@ public:
     // Node Queries.
     // ------------------------------------------------------------------------
 
-#if defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_DB_NEW_BLOCKS) || defined(BITPRIM_DB_NEW_FULL)
+
     virtual void fetch_block(size_t height, bool witness, block_fetch_handler handler) const = 0;
 
     virtual void fetch_block(const hash_digest& hash, bool witness, block_fetch_handler handler) const = 0;
 
+    virtual void fetch_locator_block_hashes(get_blocks_const_ptr locator, const hash_digest& threshold, size_t limit, inventory_fetch_handler handler) const = 0;
+
+#if defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_DB_NEW_BLOCKS) || defined(BITPRIM_DB_NEW_FULL)
     virtual void fetch_merkle_block(size_t height, merkle_block_fetch_handler handler) const = 0;
 
     virtual void fetch_merkle_block(const hash_digest& hash, merkle_block_fetch_handler handler) const = 0;
@@ -125,9 +128,6 @@ public:
     virtual void fetch_compact_block(const hash_digest& hash, compact_block_fetch_handler handler) const = 0;
 
     virtual void fetch_block_header_txs_size(const hash_digest& hash, block_header_txs_size_fetch_handler handler) const = 0;
-    
-    virtual void fetch_locator_block_hashes(get_blocks_const_ptr locator, const hash_digest& threshold, size_t limit, inventory_fetch_handler handler) const = 0;
-  
 #endif // BITPRIM_DB_LEGACY || BITPRIM_DB_NEW_BLOCKS || BITPRIM_DB_NEW_FULL
 
 
