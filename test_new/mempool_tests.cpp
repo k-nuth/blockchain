@@ -1334,7 +1334,7 @@ TEST_CASE("[mempool] Remove Transactions 2") {
     mp.check_invariant();
 }
 
-    
+//TODO(review-Dario): put this test data in a file to simplify the code
 TEST_CASE("[mempool] testnet case 0") {
     mempool mp(20000);
     

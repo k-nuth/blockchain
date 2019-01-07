@@ -525,6 +525,8 @@ public:
         // return state_.remove_insert_several(inserted.element(), main_index, reverser(), remover(), getter(), inserter(), re_sort_left(), re_sort_right(), re_sort_to_end(), re_sort(), re_sort_from_begin());
     }
 
+
+    // TODO(review-Dario): This method is too long and complex, can it be simplified?
     template <typename I>
     error::error_code_t remove(I f, I l, size_t non_coinbase_input_count = 0) {
         // precondition: [f, l) is a valid non-empty range
@@ -1062,6 +1064,7 @@ public:
 
     }
 
+    // TODO(review-Dario): This method is too long, wouldn't it be more readable breaking it into inlined submethods?
     void check_invariant_partial() const {
         
         BOOST_ASSERT(candidate_transactions_.size() <= all_transactions_.size());
@@ -1844,6 +1847,7 @@ private:
         }
     }
 
+    //TODO(review-Dario): This method is very hard to follow
     void reindex_parent_from_insertion(mining::node const& node, mining::node& parent, index_t parent_index) {
         auto node_benefit = static_cast<double>(node.fee()) / node.size();                          //a
         auto accum_benefit = static_cast<double>(parent.children_fees()) / parent.children_size();  //b
