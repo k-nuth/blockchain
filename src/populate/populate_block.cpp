@@ -294,6 +294,7 @@ void populate_block::populate_transactions(branch::const_ptr branch, size_t buck
             }
         }
 #else
+        auto const& inputs = tx->inputs();
 #if defined(BITPRIM_DB_NEW)
         populate_transaction_inputs(branch, inputs, bucket, buckets, input_position, branch_utxo, first_height, chain_top, reorg_subset);
 #else
