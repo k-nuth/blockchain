@@ -61,6 +61,7 @@ block_organizer::block_organizer(prioritized_mutex& mutex, dispatcher& dispatch,
     , validator_(dispatch, fast_chain_, settings, relay_transactions)
 #endif    
     , subscriber_(std::make_shared<reorganize_subscriber>(thread_pool, NAME))
+
 #if defined(BITPRIM_WITH_MEMPOOL)
     , mempool_(mp)
 #endif

@@ -59,7 +59,10 @@ transaction_organizer::transaction_organizer(prioritized_mutex& mutex, dispatche
 #endif
 
     , subscriber_(std::make_shared<transaction_subscriber>(thread_pool, NAME))
+
+#if defined(BITPRIM_WITH_MEMPOOL)
     , mempool_(mp)
+#endif
 {}
 
 // Properties.
