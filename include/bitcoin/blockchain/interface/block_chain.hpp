@@ -307,7 +307,7 @@ public:
     }
     
     template <typename I>
-    void for_each_tx(I f, I l, size_t height, bool witness, for_each_tx_handler handler) const {
+    void for_each_tx_valid(I f, I l, size_t height, bool witness, for_each_tx_handler handler) const {
     #ifdef BITPRIM_CURRENCY_BCH
         witness = false;    //TODO(fernando): check what to do here. I dont like it
     #endif
