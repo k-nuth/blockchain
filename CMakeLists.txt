@@ -531,14 +531,14 @@ endif()
 #------------------------------------------------------------------------------
 if (WITH_TESTS)
   add_executable(bitprim_blockchain_test
-    # test/block_chain.cpp
-    # test/block_entry.cpp
-    # test/block_pool.cpp
-    # test/branch.cpp
-    # test/transaction_entry.cpp
-    # test/transaction_pool.cpp
-    # test/validate_block.cpp
-    # test/validate_transaction.cpp
+    test/block_chain.cpp
+    test/block_entry.cpp
+    test/block_pool.cpp
+    test/branch.cpp
+    test/transaction_entry.cpp
+    test/transaction_pool.cpp
+    test/validate_block.cpp
+    test/validate_transaction.cpp
     test/utxo.cpp
     test/main.cpp
   )
@@ -548,14 +548,14 @@ if (WITH_TESTS)
 
   # _add_tests(bitprim_blockchain_test "blockchain" transaction_pool_tests) # validate_block_tests) # no test cases
 
-  # _add_tests(bitprim_blockchain_test 
-  #   block_entry_tests
-  #   block_pool_tests
-  #   branch_tests
-  #   transaction_entry_tests
-  #   validate_block_tests
-  #   validate_transaction_tests
-  # )
+  _add_tests(bitprim_blockchain_test 
+    block_entry_tests
+    block_pool_tests
+    branch_tests
+    transaction_entry_tests
+    validate_block_tests
+    validate_transaction_tests
+  )
 
   if (DB_LEGACY)
     _add_tests(bitprim_blockchain_test 
