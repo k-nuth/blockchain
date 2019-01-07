@@ -31,8 +31,13 @@ namespace v0 {
 struct create_asset {
     static constexpr message_type_t message_type = message_type_t::create_asset;
 
+#ifdef BITPRIM_USE_DOMAIN
+    template <typename State, typename Fastchain, Reader R, BITPRIM_IS_READER(R)>
+    error::error_code_t operator()(State& state, Fastchain const& fast_chain, size_t block_height, bc::chain::transaction const& tx, R& source) const {
+#else
     template <typename State, typename Fastchain>
     error::error_code_t operator()(State& state, Fastchain const& fast_chain, size_t block_height, bc::chain::transaction const& tx, bc::reader& source) const {
+#endif // BITPRIM_USE_DOMAIN
         auto msg = message::create_asset::factory_from_data(source);
         if ( ! source) return error::invalid_create_asset_message;
 

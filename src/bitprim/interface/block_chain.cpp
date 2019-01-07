@@ -111,7 +111,7 @@ void block_chain::for_each_transaction(size_t from, size_t to, bool witness, for
         //BITCOIN_ASSERT(block_result.height() == from);
         //auto const tx_hashes = block_result.transaction_hashes();
 
-        for_each_tx_hash(block_result.transactions().begin(), 
+        for_each_tx_valid(block_result.transactions().begin(), 
                          block_result.transactions().end(), from, witness, handler);
 
         ++from;
@@ -140,7 +140,7 @@ void block_chain::for_each_transaction_non_coinbase(size_t from, size_t to, bool
         //BITCOIN_ASSERT(block_result.height() == from);
         auto const tx_hashes = block_result.transactions();
 
-        for_each_tx_hash(std::next(tx_hashes.begin()), 
+        for_each_tx_valid(std::next(tx_hashes.begin()), 
                          tx_hashes.end(), from, witness, handler);
 
         ++from;
@@ -340,7 +340,7 @@ void block_chain::fetch_block_keoken(const hash_digest& hash, bool witness,
 
 #endif //defined(BITPRIM_DB_LEGACY)
 
-#endif //WITH_KEOKEN
+#endif //BITPRIM_WITH_KEOKEN
 
 } // namespace blockchain
 } // namespace libbitcoin

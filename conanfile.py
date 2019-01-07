@@ -42,11 +42,13 @@ class BitprimBlockchainConan(BitprimConanFile):
                "fix_march": [True, False],
                "verbose": [True, False],
                "keoken": [True, False],
-               "mining": [True, False],
+            #    "mining": [True, False],
+               "mempool": [True, False],
                "use_domain": [True, False],
                "db": ['legacy', 'legacy_full', 'pruned', 'default', 'full'],
                "cxxflags": "ANY",
                "cflags": "ANY",
+               "glibcxx_supports_cxx11_abi": "ANY",
     }
     # "with_remote_database": [True, False],
 
@@ -60,12 +62,14 @@ class BitprimBlockchainConan(BitprimConanFile):
         "fix_march=False", \
         "verbose=False", \
         "keoken=False", \
-        "mining=False", \
+        "mempool=True", \
         "use_domain=False", \
         "db=default", \
         "cxxflags=_DUMMY_", \
-        "cflags=_DUMMY_"
+        "cflags=_DUMMY_", \
+        "glibcxx_supports_cxx11_abi=_DUMMY_"
 
+        # "mining=False", \
 
     # "with_remote_database=False"
 
@@ -133,10 +137,12 @@ class BitprimBlockchainConan(BitprimConanFile):
         self.options["*"].db = self.options.db
 
         self.options["*"].use_domain = self.options.use_domain
-        self.options["*"].mining = self.options.mining
+        # self.options["*"].mining = self.options.mining
+        # self.options["*"].mempool = self.options.mempool  
         self.options["*"].currency = self.options.currency
         self.output.info("Compiling for currency: %s" % (self.options.currency,))
-        self.output.info("Compiling with mining optimizations: %s" % (self.options.mining,))
+        # self.output.info("Compiling with mining optimizations: %s" % (self.options.mining,))
+        self.output.info("Compiling with mempool: %s" % (self.options.mempool,))
         self.output.info("Compiling for DB: %s" % (self.options.db,))
 
     def package_id(self):
@@ -170,7 +176,8 @@ class BitprimBlockchainConan(BitprimConanFile):
         cmake.definitions["WITH_TOOLS"] = option_on_off(self.options.with_tools)
         cmake.definitions["WITH_KEOKEN"] = option_on_off(self.is_keoken)
         cmake.definitions["CURRENCY"] = self.options.currency
-        cmake.definitions["WITH_MINING"] = option_on_off(self.options.mining)
+        # cmake.definitions["WITH_MINING"] = option_on_off(self.options.mining)
+        cmake.definitions["WITH_MEMPOOL"] = option_on_off(self.options.mempool)
         cmake.definitions["USE_DOMAIN"] = option_on_off(self.options.use_domain)
 
 

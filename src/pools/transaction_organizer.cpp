@@ -39,19 +39,31 @@ using namespace std::placeholders;
 #define NAME "transaction_organizer"
 
 // TODO: create priority pool at blockchain level and use in both organizers. 
-transaction_organizer::transaction_organizer(prioritized_mutex& mutex,
-    dispatcher& dispatch, threadpool& thread_pool, fast_chain& chain,
-    const settings& settings)
-  : fast_chain_(chain),
-    mutex_(mutex),
-    stopped_(true),
-    settings_(settings),
-    dispatch_(dispatch),
-    transaction_pool_(settings),
-    validator_(dispatch, fast_chain_, settings),
-    subscriber_(std::make_shared<transaction_subscriber>(thread_pool, NAME))
-{
-}
+
+#if defined(BITPRIM_WITH_MEMPOOL)
+transaction_organizer::transaction_organizer(prioritized_mutex& mutex, dispatcher& dispatch, threadpool& thread_pool, fast_chain& chain, const settings& settings, mining::mempool& mp)
+#else
+transaction_organizer::transaction_organizer(prioritized_mutex& mutex, dispatcher& dispatch, threadpool& thread_pool, fast_chain& chain, const settings& settings)
+#endif
+    : fast_chain_(chain)
+    , mutex_(mutex)
+    , stopped_(true)
+    , settings_(settings)
+    , dispatch_(dispatch)
+    , transaction_pool_(settings)
+
+#if defined(BITPRIM_WITH_MEMPOOL)
+    , validator_(dispatch, fast_chain_, settings, mp)
+#else
+    , validator_(dispatch, fast_chain_, settings)
+#endif
+
+    , subscriber_(std::make_shared<transaction_subscriber>(thread_pool, NAME))
+
+#if defined(BITPRIM_WITH_MEMPOOL)
+    , mempool_(mp)
+#endif
+{}
 
 // Properties.
 //-----------------------------------------------------------------------------
@@ -158,9 +170,7 @@ void transaction_organizer::validate_handle_connect(code const& ec, transaction_
 //-----------------------------------------------------------------------------
 
 // This is called from block_chain::organize.
-void transaction_organizer::organize(transaction_const_ptr tx,
-    result_handler handler)
-{
+void transaction_organizer::organize(transaction_const_ptr tx, result_handler handler) {
     // Critical Section
     ///////////////////////////////////////////////////////////////////////////
     mutex_.lock_low_priority();
@@ -292,9 +302,16 @@ void transaction_organizer::handle_connect(const code& ec,
         return;
     }
 
-    const auto pushed_handler =
-        std::bind(&transaction_organizer::handle_pushed,
-            this, _1, tx, handler);
+    const auto pushed_handler = std::bind(&transaction_organizer::handle_pushed, this, _1, tx, handler);
+
+#if defined(BITPRIM_WITH_MEMPOOL)
+    auto res = mempool_.add(*tx);
+    if (res == error::double_spend_mempool || res == error::double_spend_blockchain) {
+        handler(res);
+        return;
+    }
+    // LOG_INFO(LOG_BLOCKCHAIN) << "Transaction " << encode_hash(tx->hash()) << " added to mempool.";
+#endif
 
     //#########################################################################
     fast_chain_.push(tx, dispatch_, pushed_handler);

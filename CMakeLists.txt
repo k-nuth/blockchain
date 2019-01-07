@@ -73,12 +73,20 @@ if (WITH_KEOKEN)
   add_definitions(-DBITPRIM_WITH_KEOKEN)
 endif()
 
-# Implement --with-mining and declare WITH_MINING.
+# # Implement --with-mining and declare WITH_MINING.
+# #------------------------------------------------------------------------------
+# option(WITH_MINING "Mining enabled." OFF)
+# if (WITH_MINING)
+#   message(STATUS "Bitprim: Mining enabled")
+#   add_definitions(-DBITPRIM_WITH_MINING)
+# endif()
+
+# Implement --with-mempool and declare WITH_MEMPOOL.
 #------------------------------------------------------------------------------
-option(WITH_MINING "Mining enabled." OFF)
-if (WITH_MINING)
-  message(STATUS "Bitprim: MINING enabled")
-  add_definitions(-DBITPRIM_WITH_MINING)
+option(WITH_MEMPOOL "Mempool enabled." OFF)
+if (WITH_MEMPOOL)
+  message(STATUS "Bitprim: Mempool enabled")
+  add_definitions(-DBITPRIM_WITH_MEMPOOL)
 endif()
 
 # Implement --use-domain and declare USE_DOMAIN.
@@ -393,7 +401,7 @@ add_library(bitprim-blockchain ${MODE} ${bitprim_blockchain_sources})
 
 
 if (ENABLE_POSITION_INDEPENDENT_CODE)
-  set_property(TARGET bitprim-blockchain PROPERTY POSITION_INDEPENDENT_CODE ON)
+    set_property(TARGET bitprim-blockchain PROPERTY POSITION_INDEPENDENT_CODE ON)
 endif(ENABLE_POSITION_INDEPENDENT_CODE)
   
 target_include_directories(bitprim-blockchain PUBLIC
@@ -563,24 +571,36 @@ if (WITH_TESTS)
       )
     endif()
   endif()
-
-
 endif()
 
 if (WITH_TESTS_NEW)
-  if (WITH_KEOKEN)
-    
-    add_executable(bitprim_blockchain_test_new
-          test_new/main.cpp
-          test_new/state_delegated_tests.cpp
-          test_new/state_tests.cpp
-          test_new/interpreter_tests.cpp
-    )
-    
-    target_link_libraries(bitprim_blockchain_test_new PUBLIC bitprim-blockchain)
-    add_test(NAME bitprim_blockchain_test_new COMMAND bitprim_blockchain_test_new)
-    
-  endif()
+    if (WITH_MEMPOOL OR WITH_KEOKEN)
+        set(bitprim_blockchain_test_new_sources 
+            test_new/main.cpp
+        )
+
+        if (WITH_MEMPOOL)
+            set(bitprim_blockchain_test_new_sources 
+                ${bitprim_blockchain_test_new_sources}
+                test_new/mempool_tests.cpp
+            )
+        endif()
+
+        if (WITH_KEOKEN)
+            set(bitprim_blockchain_test_new_sources 
+                ${bitprim_blockchain_test_new_sources}   
+                test_new/state_delegated_tests.cpp
+                test_new/state_tests.cpp
+                test_new/interpreter_tests.cpp
+            )
+        endif()
+
+        add_executable(bitprim_blockchain_test_new
+            ${bitprim_blockchain_test_new_sources}
+        )
+        target_link_libraries(bitprim_blockchain_test_new PUBLIC bitprim-blockchain)
+        add_test(NAME bitprim_blockchain_test_new COMMAND bitprim_blockchain_test_new)
+    endif()
 endif()
 
 
@@ -622,10 +642,13 @@ endif()
 # Install
 #==============================================================================
 # install(TARGETS bitprim-blockchain bitprim-blockchain-requester bitprim-blockchain-replier
-install(TARGETS bitprim-blockchain
-  EXPORT bitprim-blockchain
+
+install(TARGETS bitprim-blockchain EXPORT bitprim-blockchain
+  LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
-  RUNTIME DESTINATION bin)
+  RUNTIME DESTINATION bin
+  INCLUDES DESTINATION include
+)
 
 set(_bitprim_headers
   # include_bitcoin_HEADERS =

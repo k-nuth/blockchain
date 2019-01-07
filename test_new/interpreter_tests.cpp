@@ -20,10 +20,19 @@
 #include "doctest.h"
 
 #include <bitcoin/bitcoin/chain/transaction.hpp>
+
+#ifdef BITPRIM_USE_DOMAIN
+#include <bitcoin/infrastructure/formats/base_16.hpp>
+#include <bitcoin/infrastructure/utility/container_source.hpp>
+#include <bitcoin/infrastructure/utility/data.hpp>
+#include <bitcoin/infrastructure/utility/istream_reader.hpp>
+#else
 #include <bitcoin/bitcoin/formats/base_16.hpp>
 #include <bitcoin/bitcoin/utility/container_source.hpp>
 #include <bitcoin/bitcoin/utility/data.hpp>
 #include <bitcoin/bitcoin/utility/istream_reader.hpp>
+#endif // BITPRIM_USE_DOMAIN
+
 
 #include <bitprim/keoken/interpreter.hpp>
 #include <bitprim/keoken/memory_state.hpp>
