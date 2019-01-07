@@ -2505,6 +2505,7 @@ void block_chain::filter_transactions(get_data_ptr message, result_handler handl
         }
     }
 
+//TODO(fernando): Do we have to use the mempool when both BITPRIM_DB_NEW_FULL and BITPRIM_WITH_MEMPOOL are activated?
 #elif defined(BITPRIM_DB_NEW_FULL)
 
     size_t out_height;
@@ -2512,9 +2513,9 @@ void block_chain::filter_transactions(get_data_ptr message, result_handler handl
 
     for (auto it = inventories.begin(); it != inventories.end();) {
         //Bitprim: We don't store spent information
-        if (it->is_transaction_type() {
+        if (it->is_transaction_type()
             //&& get_is_unspent_transaction(it->hash(), max_size_t, false))
-            && get_transaction_position(out_height, out_position, it->hash(), false))
+            && get_transaction_position(out_height, out_position, it->hash(), false)) {
             it = inventories.erase(it);
         } else {
             ++it;
