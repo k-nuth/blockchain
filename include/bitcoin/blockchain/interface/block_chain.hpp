@@ -233,11 +233,8 @@ public:
     /// fetch transaction by hash.
     void fetch_transaction(const hash_digest& hash, bool require_confirmed, bool witness, transaction_fetch_handler handler) const override;
 
-    std::vector<chain::transaction> get_mempool_transactions_from_wallets(std::vector<wallet::payment_address> const& payment_addresses, bool use_testnet_rules, bool witness) const override;
-
     /// fetch position and height within block of transaction by hash.
     void fetch_transaction_position(const hash_digest& hash, bool require_confirmed, transaction_index_fetch_handler handler) const override;
-
 #endif
 
     /// fetch the set of block headers indicated by the block locator.
@@ -345,7 +342,7 @@ public:
 #if defined(BITPRIM_DB_TRANSACTION_UNCONFIRMED) || defined(BITPRIM_DB_NEW_FULL)    
     std::vector<mempool_transaction_summary> get_mempool_transactions(std::vector<std::string> const& payment_addresses, bool use_testnet_rules, bool witness) const override;
     std::vector<mempool_transaction_summary> get_mempool_transactions(std::string const& payment_address, bool use_testnet_rules, bool witness) const override;
-    std::vector<chain::transaction> get_mempool_transactions_from_wallets(std::vector<wallet::payment_address> const& payment_addresses, bool use_testnet_rules, bool witness) const;
+    std::vector<chain::transaction> get_mempool_transactions_from_wallets(std::vector<wallet::payment_address> const& payment_addresses, bool use_testnet_rules, bool witness) const override;
 
     /// fetch unconfirmed transaction by hash.
     void fetch_unconfirmed_transaction(const hash_digest& hash, transaction_unconfirmed_fetch_handler handler) const;
