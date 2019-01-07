@@ -1017,7 +1017,7 @@ void block_chain::fetch_transaction(hash_digest const& hash,
 }
 #endif // BITPRIM_DB_LEGACY
 
-#if defined(BITPRIM_DB_NEW_BLOCKS) || defined(BITPRIM_DB_NEW_FULL)
+#if defined(BITPRIM_DB_NEW) || defined(BITPRIM_DB_NEW_BLOCKS) || defined(BITPRIM_DB_NEW_FULL)
 
 void block_chain::fetch_block(size_t height, bool witness,
     block_fetch_handler handler) const
@@ -1089,7 +1089,9 @@ void block_chain::fetch_block(hash_digest const& hash, bool witness,
 
     handler(error::success, result, height);
 }
+#endif 
 
+#if defined(BITPRIM_DB_NEW_BLOCKS) || defined(BITPRIM_DB_NEW_FULL)
 void block_chain::fetch_block_header_txs_size(hash_digest const& hash,
     block_header_txs_size_fetch_handler handler) const
 {
@@ -1184,7 +1186,9 @@ void block_chain::fetch_compact_block(hash_digest const& hash, compact_block_fet
         }
     });
 }
+#endif
 
+#if defined(BITPRIM_DB_NEW) || defined(BITPRIM_DB_NEW_BLOCKS) || defined(BITPRIM_DB_NEW_FULL)
 // This may execute over 500 queries.
 void block_chain::fetch_locator_block_hashes(get_blocks_const_ptr locator,
     hash_digest const& threshold, size_t limit,
@@ -1265,7 +1269,7 @@ void block_chain::fetch_locator_block_hashes(get_blocks_const_ptr locator,
 }
 
 
-#endif //BITPRIM_DB_NEW_BLOCKS || BITPRIM_DB_NEW_FULL
+#endif //BITPRIM_DB_NEW || BITPRIM_DB_NEW_BLOCKS || BITPRIM_DB_NEW_FULL
 
 
 #if defined(BITPRIM_DB_NEW_FULL)
