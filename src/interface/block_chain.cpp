@@ -66,6 +66,13 @@ struct hash<libbitcoin::blockchain::spent_value_type> {
 } // namespace std
 
 namespace libbitcoin {
+
+#if defined(BITPRIM_WITH_MEMPOOL)
+namespace mining {
+mempool* mempool::candidate_index_t::parent_ = nullptr;
+} // namespace mining
+#endif
+
 namespace blockchain {
 
 using namespace bc::config;
@@ -89,18 +96,16 @@ block_chain::block_chain(threadpool& pool,
     , priority_pool_(thread_ceiling(chain_settings.cores)
     , priority(chain_settings.priority))
     , dispatch_(priority_pool_, NAME "_priority")
+
+#if defined(BITPRIM_WITH_MEMPOOL)
+    , mempool_(chain_settings.mempool_max_template_size, chain_settings.mempool_size_multiplier)
+    , transaction_organizer_(validation_mutex_, dispatch_, pool, *this, chain_settings, mempool_)
+    , block_organizer_(validation_mutex_, dispatch_, pool, *this, chain_settings, relay_transactions, mempool_)
+#else
     , transaction_organizer_(validation_mutex_, dispatch_, pool, *this, chain_settings)
     , block_organizer_(validation_mutex_, dispatch_, pool, *this, chain_settings, relay_transactions)
-#ifdef BITPRIM_WITH_MINING
-    , chosen_size_(0)
-    , chosen_sigops_(0)
-    , chosen_unconfirmed_()
-    , chosen_spent_()
-    , gbt_mutex_()
-    , gbt_ready_(true)
-#endif // BITPRIM_WITH_MINING    
-{
-}
+#endif
+{}
 
 // ============================================================================
 // FAST CHAIN
@@ -495,257 +500,27 @@ void block_chain::push(transaction_const_ptr tx, dispatcher&, result_handler han
     handler(database_.push(*tx, chain_state()->enabled_forks()));
 }
 
-#ifdef BITPRIM_WITH_MINING
-//Mark every previous output of the transaction as TEMPORARY SPENT
-void block_chain::append_spend(transaction_const_ptr tx) {
-    std::vector<prev_output> prev_outputs;
-    for (auto const& input : tx->inputs()) {
-        auto const& output_point = input.previous_output();
-        prev_outputs.push_back({output_point.hash(), output_point.index()});
-    }
-    chosen_spent_.insert({tx->hash(), std::move(prev_outputs)});
-
-}
-
-// Once a transaction was mined, every previous output that was marked
-// as TEMPORARY SPENT, needs to be removed
-// (since it was permanetly added to the spent database)
-void block_chain::remove_spend(libbitcoin::hash_digest const& hash){
-    chosen_spent_.erase(hash);
-}
-
-// Search the TEMPORARY SPENT index for conflicts between previous output
-std::set<libbitcoin::hash_digest> block_chain::get_double_spend_chosen_list(transaction_const_ptr tx) {
-
-    std::set<libbitcoin::hash_digest> spent_conflict{};
-    for (auto const& input : tx->inputs()) {
-        for(auto const& spents : chosen_spent_){
-            for(auto const& previous : spents.second){
-                if(previous.output_hash == input.previous_output().hash() &&
-                    previous.output_index == input.previous_output().index())
-                {
-                    spent_conflict.insert(spents.first);
-                }
-            }
-        }
-    }
-    return spent_conflict;
-}
-
-// Search the spent database and the TEMPORARY SPENT for conflicts
-bool block_chain::check_is_double_spend(transaction_const_ptr tx){
-    bool is_double_spend = false;
-    for(auto const& input : tx->inputs()){
-        boost::latch latch(2);
-        fetch_spend(input.previous_output(), [&](const libbitcoin::code &ec, libbitcoin::chain::input_point input) {
-            if (ec == libbitcoin::error::success) {
-                is_double_spend = true;
-            }
-            latch.count_down();
-        });
-        latch.count_down_and_wait();
-
-        if(is_double_spend) return true;
-    }
-    return !get_double_spend_chosen_list(tx).empty();
-}
-
-
-// Insert to chosen transaction List, ordered by the benefit yielded by the transaction
-bool block_chain::insert_to_chosen_list(transaction_const_ptr& tx, double benefit, size_t tx_size, size_t tx_sigops){
-#ifdef BITPRIM_CURRENCY_BCH
-    tx_benefit txnew{benefit, tx_sigops, tx_size, tx->fees(), tx->to_data(1), tx->hash()};
-#else
-    tx_benefit txnew{benefit, tx_sigops, tx_size, tx->fees(), tx->to_data(1), tx->hash(), tx->hash(true)};
-#endif
-    chosen_unconfirmed_.insert(
-        std::upper_bound(begin(chosen_unconfirmed_), end(chosen_unconfirmed_), txnew, [](tx_benefit const& a, tx_benefit const& b) {
-            return a.benefit < b.benefit;
-    }), txnew);
-
-    chosen_size_ += tx_size;
-    chosen_sigops_ += tx_sigops;
-    append_spend(tx);
-
-    return true;
-}
-
-//Search how many transactions we need to remove from the transaction chosen list, if we want to add a new transaction
-size_t block_chain::find_txs_to_remove_from_chosen(const size_t sigops_limit, const size_t tx_size,
-        const size_t tx_sigops, const size_t tx_fees, const double benefit,
-            size_t& acum_sigops, size_t& acum_size, double& acum_benefit)
+#ifdef BITPRIM_DB_TRANSACTION_UNCONFIRMED
+void block_chain::fetch_unconfirmed_transaction(hash_digest const& hash, transaction_unconfirmed_fetch_handler handler) const
 {
-    // How many transactions should I remove, while still gaining more benefit
-    acum_benefit += (*chosen_unconfirmed_.begin()).benefit;
-    acum_sigops += (*chosen_unconfirmed_.begin()).tx_sigops;
-    acum_size += (*chosen_unconfirmed_.begin()).tx_size;
-
-    size_t removed = 0;
-    auto max_block_size = libbitcoin::get_max_block_size() - libbitcoin::coinbase_reserved_size;
-
-    for(auto to_remove : chosen_unconfirmed_){
-        if(benefit > acum_benefit){
-        //As long as the new transaction generate more benefit than the old ones, keep trying to add to the list
-            if((chosen_sigops_ + tx_sigops - acum_sigops < sigops_limit) &&
-                (chosen_size_ - acum_size + tx_size < (max_block_size))){
-                // If I reached a point where taking out some transaction, i will generate more benefit
-                return 1 + removed;
-            } else {
-                acum_benefit += to_remove.benefit; // Benefit i will loose if i remove this transaction
-                acum_sigops += to_remove.tx_sigops; // Sigops removed from list
-                acum_size += to_remove.tx_size; // Total bytes removed from list
-                removed++;
-            }
-        } else return 0;
+    if (stopped())
+    {
+        handler(error::service_stopped, nullptr);
+        return;
     }
 
-    return 0;
+    auto const result = database_.transactions_unconfirmed().get(hash);
 
+    if (!result)
+    {
+        handler(error::not_found, nullptr);
+        return;
+    }
+
+    auto const tx = std::make_shared<const transaction>(result.transaction());
+    handler(error::success, tx);
 }
-
-bool block_chain::get_transaction_is_confirmed(libbitcoin::hash_digest tx_hash){
-
-#ifdef BITPRIM_CURRENCY_BCH
-    bool witness = false;
-#else
-    bool witness = true;
-#endif
-
-    bool is_confirmed = true;
-    boost::latch latch(2);
-    fetch_transaction(tx_hash, true, witness,
-        [&](const libbitcoin::code &ec, libbitcoin::transaction_const_ptr tx_ptr, size_t index,
-                size_t height) {
-        if (ec != libbitcoin::error::success) {
-            is_confirmed = false;
-        }
-        latch.count_down();
-    });
-    latch.count_down_and_wait();
-    return is_confirmed;
-
-}
-
-//Check if the new transaction can be added to the txs selection.
-bool block_chain::add_to_chosen_list(transaction_const_ptr tx){
-    std::lock_guard<std::mutex> lock(gbt_mutex_);
-
-    //Dont allow dependencies
-    for(auto const& input : tx->inputs()){
-        if( !get_transaction_is_confirmed(input.previous_output().hash())){
-            return false;
-        }
-    }
-
-    //If is not double spend
-    if (!check_is_double_spend(tx)){
-        auto tx_size = tx->serialized_size(0);
-        auto tx_sigops = tx->signature_operations();
-        auto tx_fees = tx->fees();
-
-        auto estimated_size = chosen_size_ + tx_size;
-        auto max_block_size = libbitcoin::get_max_block_size() - libbitcoin::coinbase_reserved_size;
-        auto next_size = (estimated_size > max_block_size)? max_block_size : (estimated_size);
-        auto sigops_limit = (size_t(next_size / libbitcoin::one_million_bytes_block) + 1) * libbitcoin::sigops_per_million_bytes;
-        double benefit = (double(tx_fees) / tx_size );
-
-        // Check if the transaction can be added directly to the chosen transaction list
-        if (((chosen_sigops_ + tx_sigops) > sigops_limit) || (estimated_size > max_block_size)){
-            size_t acum_sigops = 0;
-            size_t acum_size = 0;
-            double acum_benefit = 0;
-
-            size_t txs_to_remove_from_list = find_txs_to_remove_from_chosen(sigops_limit, tx_size, tx_sigops, tx_fees, benefit,
-                acum_sigops, acum_size, acum_benefit);
-
-            if(txs_to_remove_from_list != 0)
-            {
-                // Remove transactions
-                chosen_sigops_ -= acum_sigops;
-                chosen_size_ -= acum_size;
-                while(txs_to_remove_from_list != 0)
-                {
-                    remove_spend((*chosen_unconfirmed_.begin()).tx_id);
-                    chosen_unconfirmed_.pop_front();
-                    txs_to_remove_from_list--;
-                }
-                // Add the new transaction ordered by benefit
-                insert_to_chosen_list(tx, benefit, tx_size, tx_sigops);
-            }
-        } else {
-            // Since there still space to add the transaction
-            // Add the new transaction ordered by benefit
-            insert_to_chosen_list(tx, benefit, tx_size, tx_sigops);
-        }
-    }
-
-    return true;
-} 
-
-std::vector<block_chain::tx_benefit> block_chain::get_gbt_tx_list() const{
-    if (stopped()) {
-        return std::vector<block_chain::tx_benefit>();
-    }
-
-    if (!gbt_ready_) {
-        return std::vector<block_chain::tx_benefit>();
-    }
-
-    std::lock_guard<std::mutex> lock(gbt_mutex_);
-    std::vector<tx_benefit> txs_chosen_list{ std::begin(chosen_unconfirmed_), std::end(chosen_unconfirmed_) };
-
-    return txs_chosen_list;
-}
-
-
-//When a new block arrives, we need to check every transaction on the chosen list
-//to see if it was mined; and remove it if it was.
-//using tx_benefit = std::tuple<double /*benefit*/, size_t /*tx_sigops*/, size_t /*tx_size*/, size_t /*tx_fees*/, libbitcoin::data_chunk /*tx_hex*/, libbitcoin::hash_digest /*tx_hash */> ;
-void block_chain::remove_mined_txs_from_chosen_list(block_const_ptr blk){
-
-    gbt_ready_= false;
-    std::lock_guard<std::mutex> lock(gbt_mutex_);
-    for(auto const& tx : blk->transactions()){
-        //erase transactions by hash
-        auto it = std::find_if (chosen_unconfirmed_.begin(), chosen_unconfirmed_.end(),
-            [&](const tx_benefit& tx_chosen){
-                return tx_chosen.tx_id == tx.hash();
-              });
-        if(it != chosen_unconfirmed_.end()){
-          //If transaction was deleted by hash, remove spended outputs
-          remove_spend(tx.hash());
-          chosen_unconfirmed_.erase(it);
-        } else {
-            //If the tx mined hash wasnt on our chosen list
-            //There may be another transaction wich uses the same prev output as this tx. (double spend attempt) 
-            //This should be extremely rare
-            libbitcoin::message::transaction msg_tx {tx};
-            transaction_const_ptr msg_ptr = std::make_shared<const libbitcoin::message::transaction>(msg_tx);
-            for(auto const& conflict_hash : get_double_spend_chosen_list(msg_ptr)){
-                auto conflict = std::find_if (chosen_unconfirmed_.begin(), chosen_unconfirmed_.end(),
-                [&](const tx_benefit& tx_chosen){
-                    return (tx_chosen.tx_id == conflict_hash);
-                  });
-                if(conflict != chosen_unconfirmed_.end()){
-                    chosen_unconfirmed_.erase(conflict);
-                    remove_spend(conflict_hash); //Do it on get_souble_spend_mempool
-                }
-            }
-        }
-    }
-
-    chosen_size_ = 0;
-    chosen_sigops_ = 0;
-    for(auto const& tx : chosen_unconfirmed_ ){
-        chosen_sigops_ += tx.tx_sigops;
-        chosen_size_ += tx.tx_size;
-    }
-    gbt_ready_ = true;
-
-}
-#endif // BITPRIM_WITH_MINING
-
-
+#endif // BITPRIM_DB_TRANSACTION_UNCONFIRMED
 
 void block_chain::reorganize(const checkpoint& fork_point,
     block_const_ptr_list_const_ptr incoming_blocks,
@@ -1242,7 +1017,7 @@ void block_chain::fetch_transaction(hash_digest const& hash,
 }
 #endif // BITPRIM_DB_LEGACY
 
-#if defined(BITPRIM_DB_NEW_BLOCKS) || defined(BITPRIM_DB_NEW_FULL)
+#if defined(BITPRIM_DB_NEW) || defined(BITPRIM_DB_NEW_BLOCKS) || defined(BITPRIM_DB_NEW_FULL)
 
 void block_chain::fetch_block(size_t height, bool witness,
     block_fetch_handler handler) const
@@ -1314,7 +1089,9 @@ void block_chain::fetch_block(hash_digest const& hash, bool witness,
 
     handler(error::success, result, height);
 }
+#endif 
 
+#if defined(BITPRIM_DB_NEW_BLOCKS) || defined(BITPRIM_DB_NEW_FULL)
 void block_chain::fetch_block_header_txs_size(hash_digest const& hash,
     block_header_txs_size_fetch_handler handler) const
 {
@@ -1409,7 +1186,9 @@ void block_chain::fetch_compact_block(hash_digest const& hash, compact_block_fet
         }
     });
 }
+#endif
 
+#if defined(BITPRIM_DB_NEW) || defined(BITPRIM_DB_NEW_BLOCKS) || defined(BITPRIM_DB_NEW_FULL)
 // This may execute over 500 queries.
 void block_chain::fetch_locator_block_hashes(get_blocks_const_ptr locator,
     hash_digest const& threshold, size_t limit,
@@ -1490,7 +1269,7 @@ void block_chain::fetch_locator_block_hashes(get_blocks_const_ptr locator,
 }
 
 
-#endif //BITPRIM_DB_NEW_BLOCKS || BITPRIM_DB_NEW_FULL
+#endif //BITPRIM_DB_NEW || BITPRIM_DB_NEW_BLOCKS || BITPRIM_DB_NEW_FULL
 
 
 #if defined(BITPRIM_DB_NEW_FULL)
@@ -2703,66 +2482,72 @@ void block_chain::filter_blocks(get_data_ptr message, result_handler handler) co
     handler(error::success);
 }
 
-// This filters against all transactions (confirmed and unconfirmed).
-void block_chain::filter_transactions(get_data_ptr message,
-    result_handler handler) const
-{
-    if (stopped())
-    {
-        handler(error::service_stopped);
-        return;
-    }
-
-    auto& inventories = message->inventories();
-    auto const& transactions = database_.transactions();
-
-    for (auto it = inventories.begin(); it != inventories.end();)
-    {
-        //TODO(fernando): check how to replace it with UTXO
-        if (it->is_transaction_type() &&
-            get_is_unspent_transaction(it->hash(), max_size_t, false))
-            it = inventories.erase(it);
-        else
-            ++it;
-    }
-
-    handler(error::success);
-}
 #endif // BITPRIM_DB_LEGACY
 
-#if defined(BITPRIM_DB_NEW_FULL)
 
+#if defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_DB_NEW_FULL) || defined(BITPRIM_WITH_MEMPOOL)
 // This filters against all transactions (confirmed and unconfirmed).
-void block_chain::filter_transactions(get_data_ptr message, result_handler handler) const
-{
-    if (stopped())
-    {
+void block_chain::filter_transactions(get_data_ptr message, result_handler handler) const {
+    // This filters against all transactions (confirmed and unconfirmed).
+
+    if (stopped()) {
         handler(error::service_stopped);
         return;
     }
 
     auto& inventories = message->inventories();
-    //auto const& transactions = database_.transactions();
+
+#if defined(BITPRIM_DB_LEGACY)
+
+    auto const& transactions = database_.transactions();
+
+    for (auto it = inventories.begin(); it != inventories.end();) {
+        if (it->is_transaction_type() && get_is_unspent_transaction(it->hash(), max_size_t, false)) {
+            it = inventories.erase(it);
+        } else {
+            ++it;
+        }
+    }
+
+//TODO(fernando): Do we have to use the mempool when both BITPRIM_DB_NEW_FULL and BITPRIM_WITH_MEMPOOL are activated?
+#elif defined(BITPRIM_DB_NEW_FULL)
 
     size_t out_height;
     size_t out_position;
 
-    for (auto it = inventories.begin(); it != inventories.end();)
-    {
+    for (auto it = inventories.begin(); it != inventories.end();) {
         //Bitprim: We don't store spent information
-        if (it->is_transaction_type() 
+        if (it->is_transaction_type()
             //&& get_is_unspent_transaction(it->hash(), max_size_t, false))
-            && get_transaction_position(out_height, out_position, it->hash(), false))
+            && get_transaction_position(out_height, out_position, it->hash(), false)) {
             it = inventories.erase(it);
-        else
+        } else {
             ++it;
+        }
     }
+
+#elif defined(BITPRIM_WITH_MEMPOOL)
+    auto validated_txs = mempool_.get_validated_txs_low();
+
+    if (validated_txs.empty()) {
+        handler(error::success);
+        return;    
+    }
+
+    for (auto it = inventories.begin(); it != inventories.end();) {
+        auto found = validated_txs.find(it->hash());
+        if (it->is_transaction_type() && found != validated_txs.end()) {
+            it = inventories.erase(it);
+        } else {
+            ++it;
+        }
+    }
+#endif
 
     handler(error::success);
 }
 
-#endif //BITPRIM_DB_NEW_FULL
-
+#endif // defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_DB_NEW_FULL) || defined(BITPRIM_WITH_MEMPOOL)
 
 #ifdef BITPRIM_DB_NEW
 // This may execute up to 500 queries.
@@ -2836,6 +2621,11 @@ void block_chain::organize(transaction_const_ptr tx, result_handler handler)
 // Properties (thread safe).
 // ----------------------------------------------------------------------------
 
+inline
+bool block_chain::is_stale_fast() const {
+    return is_stale();
+}
+
 bool block_chain::is_stale() const {
     // If there is no limit set the chain is never considered stale.
     if (notify_limit_seconds_ == 0) {
@@ -2870,6 +2660,12 @@ bool block_chain::stopped() const
 {
     return stopped_;
 }
+
+#if defined(BITPRIM_WITH_MEMPOOL)
+std::pair<std::vector<libbitcoin::mining::transaction_element>, uint64_t> block_chain::get_block_template() const {
+    return mempool_.get_block_template();
+}
+#endif
 
 } // namespace blockchain
 } // namespace libbitcoin

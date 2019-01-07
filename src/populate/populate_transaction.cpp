@@ -37,9 +37,16 @@ using namespace std::placeholders;
 
 // Database access is limited to calling populate_base.
 
+#if defined(BITPRIM_WITH_MEMPOOL)
+populate_transaction::populate_transaction(dispatcher& dispatch, fast_chain const& chain, mining::mempool const& mp)
+    : populate_base(dispatch, chain)
+    , mempool_(mp)
+{}
+#else
 populate_transaction::populate_transaction(dispatcher& dispatch, fast_chain const& chain)
     : populate_base(dispatch, chain)
 {}
+#endif
 
 void populate_transaction::populate(transaction_const_ptr tx, result_handler&& handler) const {
     auto const state = tx->validation.state;
@@ -91,6 +98,19 @@ void populate_transaction::populate_inputs(transaction_const_ptr tx, size_t chai
         auto const& input = inputs[input_index];
         auto const& prevout = input.previous_output();
         populate_prevout(chain_height, prevout, false);
+
+#if defined(BITPRIM_DB_NEW) && defined(BITPRIM_WITH_MEMPOOL)
+        if ( ! prevout.validation.cache.is_valid()) {
+            // asm("int $3");  //TODO(fernando): remover
+
+            // BUSCAR EN UTXO DEL MEMPOOL y marcar
+            prevout.validation.cache = mempool_.get_utxo(prevout);
+            if (prevout.validation.cache.is_valid()) {
+                prevout.validation.from_mempool = true;
+            }
+        }
+#endif
+
     }
 
     handler(error::success);

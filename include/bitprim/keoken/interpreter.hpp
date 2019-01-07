@@ -65,7 +65,13 @@ public:
     }
 
 private:
+
+#ifdef BITPRIM_USE_DOMAIN
+    template <Reader R, BITPRIM_IS_READER(R)>
+    error::error_code_t version_dispatcher(size_t block_height, bc::chain::transaction const& tx, R& source) {
+#else
     error::error_code_t version_dispatcher(size_t block_height, bc::chain::transaction const& tx, bc::reader& source) {
+#endif // BITPRIM_USE_DOMAIN
         auto version = source.read_2_bytes_big_endian();
         if ( ! source) return error::invalid_version_number;
 
@@ -76,7 +82,14 @@ private:
         return error::not_recognized_version_number;
     }
 
+
+#ifdef BITPRIM_USE_DOMAIN
+    template <Reader R, BITPRIM_IS_READER(R)>
+    error::error_code_t version_0_type_dispatcher(size_t block_height, bc::chain::transaction const& tx, R& source) {
+#else
     error::error_code_t version_0_type_dispatcher(size_t block_height, bc::chain::transaction const& tx, bc::reader& source) {
+#endif // BITPRIM_USE_DOMAIN
+
         using namespace transaction_processors::v0;
 
         auto type = source.read_2_bytes_big_endian();

@@ -30,6 +30,10 @@
 #include <bitcoin/blockchain/populate/populate_block.hpp>
 #include <bitcoin/blockchain/settings.hpp>
 
+#if defined(BITPRIM_WITH_MEMPOOL)
+#include <bitprim/mining/mempool.hpp>
+#endif
+
 namespace libbitcoin {
 namespace blockchain {
 
@@ -39,8 +43,12 @@ class BCB_API validate_block
 public:
     typedef handle0 result_handler;
 
-    validate_block(dispatcher& dispatch, const fast_chain& chain,
-        const settings& settings, bool relay_transactions);
+#if defined(BITPRIM_WITH_MEMPOOL)
+    validate_block(dispatcher& dispatch, const fast_chain& chain, const settings& settings, bool relay_transactions, mining::mempool const& mp);
+#else
+    validate_block(dispatcher& dispatch, const fast_chain& chain, const settings& settings, bool relay_transactions);
+#endif    
+
 
     void start();
     void stop();

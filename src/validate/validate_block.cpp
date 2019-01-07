@@ -48,14 +48,20 @@ using namespace std::placeholders;
 // If the priority threadpool is shut down when this is running the handlers
 // will never be invoked, resulting in a threadpool.join indefinite hang.
 
-validate_block::validate_block(dispatcher& dispatch, const fast_chain& chain,
-    const settings& settings, bool relay_transactions)
-  : stopped_(true),
-    fast_chain_(chain),
-    priority_dispatch_(dispatch),
-    block_populator_(dispatch, chain, relay_transactions)
-{
-}
+#if defined(BITPRIM_WITH_MEMPOOL)
+validate_block::validate_block(dispatcher& dispatch, const fast_chain& chain, const settings& settings, bool relay_transactions, mining::mempool const& mp)
+#else
+validate_block::validate_block(dispatcher& dispatch, const fast_chain& chain, const settings& settings, bool relay_transactions)
+#endif    
+    : stopped_(true)
+    , fast_chain_(chain)
+    , priority_dispatch_(dispatch)
+#if defined(BITPRIM_WITH_MEMPOOL)
+    , block_populator_(dispatch, chain, relay_transactions, mp)
+#else
+    , block_populator_(dispatch, chain, relay_transactions)
+#endif    
+{}
 
 // Start/stop sequences.
 //-----------------------------------------------------------------------------
@@ -247,10 +253,14 @@ void validate_block::accept_transactions(block_const_ptr block, size_t bucket,
     const auto count = txs.size();
 
     // Run contextual tx non-script checks (not in tx order).
-    for (auto tx = bucket; tx < count && !ec; tx = ceiling_add(tx, buckets))
-    {
+    for (auto tx = bucket; tx < count && !ec; tx = ceiling_add(tx, buckets)) {
         const auto& transaction = txs[tx];
-        ec = transaction.accept(state, false);
+        if ( ! transaction.validation.validated) {
+            // LOG_INFO(LOG_BLOCKCHAIN) << "Transaction " << encode_hash(transaction.hash()) << " has to be validated.";
+            ec = transaction.accept(state, false);
+        } else {
+            // LOG_INFO(LOG_BLOCKCHAIN) << "Transaction " << encode_hash(transaction.hash()) << " validation could be skiped.";
+        }
         *sigops += transaction.signature_operations(bip16, bip141);
     }
 
@@ -340,6 +350,14 @@ void validate_block::connect_inputs(block_const_ptr block, size_t bucket,
             ++hits_;
             continue;
         }
+
+        // The tx was validated before its insertion in the mempool
+        // TODO(fernando): what happend with Blockchain forks?
+        if (tx->validation.validated) {
+            ++hits_;
+            continue;
+        }
+
 
         size_t input_index;
         const auto& inputs = tx->inputs();
