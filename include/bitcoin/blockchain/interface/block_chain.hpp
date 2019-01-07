@@ -197,13 +197,17 @@ public:
     // Node Queries.
     // ------------------------------------------------------------------------
 
-#if defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_DB_NEW_BLOCKS) || defined(BITPRIM_DB_NEW_FULL) 
+
     /// fetch a block by height.
     void fetch_block(size_t height, bool witness, block_fetch_handler handler) const override;
 
     /// fetch a block by hash.
     void fetch_block(const hash_digest& hash, bool witness, block_fetch_handler handler) const override;
 
+    /// fetch the set of block hashes indicated by the block locator.
+    void fetch_locator_block_hashes(get_blocks_const_ptr locator, const hash_digest& threshold, size_t limit, inventory_fetch_handler handler) const override;
+
+#if defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_DB_NEW_BLOCKS) || defined(BITPRIM_DB_NEW_FULL) 
     void fetch_block_header_txs_size(const hash_digest& hash, block_header_txs_size_fetch_handler handler) const override;
 
     /// fetch hashes of transactions for a block, by block height.
@@ -217,10 +221,6 @@ public:
 
     /// fetch compact block by block hash.
     void fetch_compact_block(const hash_digest& hash, compact_block_fetch_handler handler) const override;
-
-    /// fetch the set of block hashes indicated by the block locator.
-    void fetch_locator_block_hashes(get_blocks_const_ptr locator, const hash_digest& threshold, size_t limit, inventory_fetch_handler handler) const override;
-
     
 #endif // BITPRIM_DB_LEGACY || BITPRIM_DB_NEW_BLOCKS || BITPRIM_DB_NEW_FULL
 
@@ -286,8 +286,28 @@ public:
 #ifdef BITPRIM_DB_NEW_FULL
     // Bitprim non-virtual functions.
     //-------------------------------------------------------------------------
+    
     template <typename I>
     void for_each_tx_hash(I f, I l, size_t height, bool witness, for_each_tx_handler handler) const {
+    #ifdef BITPRIM_CURRENCY_BCH
+        witness = false;    //TODO(fernando): check what to do here. I dont like it
+    #endif
+        while (f != l) {
+            auto const& hash = *f;
+            auto const tx_result = database_.internal_db().get_transaction(hash, max_size_t);
+        
+            if ( ! tx_result.is_valid()) {
+                handler(error::operation_failed_16, 0, chain::transaction{});
+                return;
+            }
+            BITCOIN_ASSERT(tx_result.height() == height);
+            handler(error::success, height, tx_result.transaction(witness));
+            ++f;
+        }
+    }
+    
+    template <typename I>
+    void for_each_tx_valid(I f, I l, size_t height, bool witness, for_each_tx_handler handler) const {
     #ifdef BITPRIM_CURRENCY_BCH
         witness = false;    //TODO(fernando): check what to do here. I dont like it
     #endif
