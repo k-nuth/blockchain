@@ -286,8 +286,28 @@ public:
 #ifdef BITPRIM_DB_NEW_FULL
     // Bitprim non-virtual functions.
     //-------------------------------------------------------------------------
+    
     template <typename I>
     void for_each_tx_hash(I f, I l, size_t height, bool witness, for_each_tx_handler handler) const {
+    #ifdef BITPRIM_CURRENCY_BCH
+        witness = false;    //TODO(fernando): check what to do here. I dont like it
+    #endif
+        while (f != l) {
+            auto const& hash = *f;
+            auto const tx_result = database_.internal_db().get_transaction(hash, max_size_t);
+        
+            if ( ! tx_result.is_valid()) {
+                handler(error::operation_failed_16, 0, chain::transaction{});
+                return;
+            }
+            BITCOIN_ASSERT(tx_result.height() == height);
+            handler(error::success, height, tx_result.transaction(witness));
+            ++f;
+        }
+    }
+    
+    template <typename I>
+    void for_each_tx_valid(I f, I l, size_t height, bool witness, for_each_tx_handler handler) const {
     #ifdef BITPRIM_CURRENCY_BCH
         witness = false;    //TODO(fernando): check what to do here. I dont like it
     #endif
