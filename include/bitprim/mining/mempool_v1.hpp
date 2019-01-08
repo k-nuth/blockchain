@@ -121,7 +121,10 @@ void sort_ltor(bool sorted, all_transactions_t& all, std::vector<size_t>& candid
         auto const cmp = [&all](index_t ia, index_t ib) {
             auto const& a = all[ia]; 
             auto const& b = all[ib];
-            return fee_per_size_cmp{}(a, b);
+            // return fee_per_size_cmp{}(a, b);
+            auto const value_a = static_cast<double>(a.children_fees()) / a.children_size();
+            auto const value_b = static_cast<double>(b.children_fees()) / b.children_size();
+            return value_b < value_a;
         };
         // candidates.sort(cmp);
         std::sort(std::begin(candidates), std::end(candidates), cmp);
