@@ -793,13 +793,14 @@ public:
                     }
             );
 
-            return make_tuple(std::move(candidates), all_transactions_, accum_fees_);
+            return make_tuple(std::move(candidates), all_transactions_, accum_fees_, sorted_);
             // return make_tuple(candidate_transactions_, all_transactions_, accum_fees_);
         });
 
         auto& candidates = std::get<0>(copied_data);
         auto& all = std::get<1>(copied_data);
         auto accum_fees = std::get<2>(copied_data);
+        auto sorted = std::get<3>(copied_data);
 
 // #if defined(BITPRIM_CURRENCY_BCH)
 
