@@ -301,39 +301,6 @@ void populate_block::populate_transactions(branch::const_ptr branch, size_t buck
         populate_transaction_inputs(branch, inputs, bucket, buckets, input_position, branch_utxo);
 #endif
 #endif // defined(BITPRIM_WITH_MEMPOOL)
-
-
-
-
-
-//         auto it = validated_txs.find(tx->hash());
-//         if (it == validated_txs.end()) {
-//             auto const& inputs = tx->inputs();
-
-//             for (size_t input_index = 0; input_index < inputs.size(); ++input_index, ++input_position) {
-//                 if (input_position % buckets != bucket) {
-//                     continue;
-//                 }
-
-//                 auto const& input = inputs[input_index];
-//                 auto const& prevout = input.previous_output();
-//                 populate_base::populate_prevout(branch_height, prevout, true);  //Populate from Database
-//                 populate_prevout(branch, prevout, branch_utxo);                 //Populate from the Blocks in the Branch
-
-// #ifdef BITPRIM_DB_NEW
-//                 if (first_height <= chain_top) {
-//                     populate_from_reorg_subset(prevout, reorg_subset);
-//                 }
-// #endif // BITPRIM_DB_NEW
-//             }
-
-//         } else {
-//             tx->validation.validated = true;
-//             auto const& tx_cached = it->second.second;
-//             for (size_t i = 0; i < tx_cached.inputs().size(); ++i) {
-//                 tx->inputs()[i].previous_output().validation = tx_cached.inputs()[i].previous_output().validation;
-//             }
-//         }
     }
 
     handler(error::success);
