@@ -37,7 +37,7 @@ def send_raw_block(rawblock):
     else:
         ok_blks = ok_blks + 1
 
-with open('/Users/fernando/dev/bitprim-blockchain/blocks.txt') as fp:
+with open('blocks.txt') as fp:
     rawblocks = fp.readlines()
 
 line = 1

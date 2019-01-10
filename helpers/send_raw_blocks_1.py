@@ -1,31 +1,32 @@
 import requests
 import json
 
-ok_txs = 0
+ok_blks = 0
 error_19 = 0
 error_other = 0
 
-def send_raw_tx(rawtx):
-    global ok_txs
+def send_raw_block(rawblock):
+    global ok_blks
     global error_19
     global error_other
 
     url = "http://127.0.0.1:18332"
     headers = {'Content-type': 'text/plain;'}
-    datatx = '{"jsonrpc": "1.0", "id":"curltest", "method": "sendrawtransaction", "params": ["' + rawtx + '"] }'
+
+    # curl --user myusername --data-binary '{"jsonrpc": "1.0", "id":"curltest", "method": "submitblock", "params": ["mydata"] }' -H 'content-type: text/plain;' http://127.0.0.1:8332/
+
+    datatx = '{"jsonrpc": "1.0", "id":"curltest", "method": "submitblock", "params": ["' + rawblock + '"] }'
     r = requests.post(url, data=datatx, headers=headers)
-    # rsp = requests.post(url, json=datas, headers=headers)
 
 
     # print(r.status_code, r.reason)
     # print(r.text)
     d = json.loads(r.text)
     # print(d)
-    # print(d['rawtx'])
-    # out_file.write(d['rawtx'])
+    # print(d['rawblock'])
+    # out_file.write(d['rawblock'])
     # out_file.write('\n')
 
-    # {u'id': u'curltest', u'error': {u'message': u'Failed to submit transaction.', u'code': 19}}
 
     if d['error'] is not None:
         if d['error']['code'] != 19:
@@ -34,20 +35,20 @@ def send_raw_tx(rawtx):
         else:
             error_other = error_other + 1
     else:
-        ok_txs = ok_txs + 1
+        ok_blks = ok_blks + 1
 
-with open('txs.txt') as fp:
-    rawtxs = fp.readlines()
+with open('blocks1.txt') as fp:
+    rawblocks = fp.readlines()
 
 line = 1
-for rawtx in rawtxs:
+for rawblock in rawblocks:
     print("line " + str(line))
-    rawtx = rawtx[:len(rawtx)-1]
-    send_raw_tx(rawtx)
+    rawblock = rawblock[:len(rawblock)-1]
+    send_raw_block(rawblock)
     line = line + 1
     # break
 
-print("ok_txs      " + str(ok_txs))
+print("ok_blks      " + str(ok_blks))
 print("error_19    " + str(error_19))
 print("error_other " + str(error_other))
 
