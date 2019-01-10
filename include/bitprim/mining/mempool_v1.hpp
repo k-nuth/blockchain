@@ -392,7 +392,8 @@ public:
 
 
     error::error_code_t add(chain::transaction const& tx) {
-        //precondition: tx is fully validated: check() && accept() && connect()
+        //precondition: tx.validation.state != nullptr
+        //              tx is fully validated: check() && accept() && connect()
         //              ! tx.is_coinbase()
 
         // std::cout << encode_base16(tx.to_data(true, BITPRIM_WITNESS_DEFAULT)) << std::endl;
@@ -985,7 +986,25 @@ public:
 
                 BOOST_ASSERT(res);
             }
-        }        
+        }   
+
+        // **FER**
+        {
+            for (auto const& p : hash_index_) {
+                auto const& tx_cached = p.second.second;
+                for (size_t i = 0; i < tx_cached.inputs().size(); ++i) {
+                    auto const& output_cache = tx_cached.inputs()[i].previous_output().validation.cache;
+                    if ( ! output_cache.is_valid()) {
+                        BOOST_ASSERT(false);
+                    }
+                }
+
+            }
+        }
+
+
+
+
     }
 
     void check_invariant_consistency_full() const {
