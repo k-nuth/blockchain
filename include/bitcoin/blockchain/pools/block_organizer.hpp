@@ -78,7 +78,10 @@ private:
     void signal_completion(const code& ec);
 
 #if defined(BITPRIM_WITH_MEMPOOL)
-    void organize_mempool(block_const_ptr_list_const_ptr const& incoming_blocks, block_const_ptr_list_ptr const& outgoing_blocks);
+    void populate_prevout(size_t branch_height, chain::output_point const& outpoint, bool require_confirmed) const;
+    void populate_transaction_inputs(size_t branch_height, chain::input::list const& inputs) const;
+    void populate_transactions(size_t branch_height, chain::block const& block) const;
+    void organize_mempool(size_t branch_height, block_const_ptr_list_const_ptr const& incoming_blocks, block_const_ptr_list_ptr const& outgoing_blocks);
 #endif
 
 #ifdef BITPRIM_DB_NEW
