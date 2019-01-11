@@ -229,13 +229,12 @@ bool block_organizer::is_branch_double_spend(branch::ptr const& branch) const {
 
 #if defined(BITPRIM_WITH_MEMPOOL)
 
-
-// Unspent outputs are cached by the store. If the cache is large enough this
-// may never hit the file system. However on high RAM systems the file system
-// is faster than the cache due to reduced paging of the memory-mapped file.
-void block_organizer::populate_prevout(size_t branch_height, chain::output_point const& outpoint, bool require_confirmed) const {
+//TODO(fernando): similar function in populate_block class
+void block_organizer::populate_prevout_1(branch::const_ptr branch, chain::output_point const& outpoint, bool require_confirmed) const {
     // The previous output will be cached on the input's outpoint.
     auto& prevout = outpoint.validation;
+
+    auto const branch_height = branch->height();
 
     prevout.spent = false;
     prevout.confirmed = false;
@@ -250,11 +249,9 @@ void block_organizer::populate_prevout(size_t branch_height, chain::output_point
 #if defined(BITPRIM_DB_NEW)
     //TODO(fernando): check the value of the parameters: branch_height and require_confirmed
     if ( ! fast_chain_.get_utxo(prevout.cache, prevout.height, prevout.median_time_past, prevout.coinbase, outpoint, branch_height)) {
-        std::cout << "outpoint not found in UTXO: " << encode_hash(outpoint.hash()) << " - " << outpoint.index() << std::endl;
+        // std::cout << "outpoint not found in UTXO: " << encode_hash(outpoint.hash()) << " - " << outpoint.index() << std::endl;
         return;
     }
-    
-
 
 #elif defined(BITPRIM_DB_LEGACY)
     // Get the prevout/cache (and spender height) and its metadata.
@@ -289,28 +286,54 @@ void block_organizer::populate_prevout(size_t branch_height, chain::output_point
     }
 }
 
-void block_organizer::populate_transaction_inputs(size_t branch_height, chain::input::list const& inputs) const {
+//TODO(fernando): similar function in populate_block class
+void block_organizer::populate_prevout_2(branch::const_ptr branch, output_point const& outpoint, local_utxo_set_t const& branch_utxo) const {
+    if ( ! outpoint.validation.spent) {
+        branch->populate_spent(outpoint);
+    }
+
+    // Populate the previous output even if it is spent.
+    if ( ! outpoint.validation.cache.is_valid()) {
+        branch->populate_prevout(outpoint, branch_utxo);
+    }
+}
+
+//TODO(fernando): similar function in populate_block class
+void block_organizer::populate_transaction_inputs(branch::const_ptr branch, chain::input::list const& inputs, local_utxo_set_t const& branch_utxo) const {
     // auto const branch_height = branch->height();
 
     for (auto const& input : inputs) {
         auto const& prevout = input.previous_output();
-        populate_prevout(branch_height, prevout, true);  //Populate from Database
-        // populate_prevout(branch, prevout, branch_utxo);                 //Populate from the Blocks in the Branch
+        populate_prevout_1(branch, prevout, true);            //Populate from Database
+        populate_prevout_2(branch, prevout, branch_utxo);     //Populate from the Blocks in the Branch
     }
 }
 
-void block_organizer::populate_transactions(size_t branch_height, chain::block const& block) const {
+//TODO(fernando): similar function in populate_block class
+void block_organizer::populate_transactions(branch::const_ptr branch, chain::block const& block, local_utxo_set_t const& branch_utxo) const {
 
     auto const& txs = block.transactions();
 
     // Must skip coinbase here as it is already accounted for.
     for (auto tx = txs.begin() + 1; tx != txs.end(); ++tx) {
         auto const& inputs = tx->inputs();
-        populate_transaction_inputs(branch_height, inputs);
+        populate_transaction_inputs(branch, inputs, branch_utxo);
     }
 }
 
-void block_organizer::organize_mempool(size_t branch_height, block_const_ptr_list_const_ptr const& incoming_blocks, block_const_ptr_list_ptr const& outgoing_blocks) {
+local_utxo_set_t create_outgoing_utxo_set(block_const_ptr_list_ptr const& outgoing_blocks) {
+    local_utxo_set_t res;
+    res.reserve(outgoing_blocks->size());
+
+    for (auto const& block : *outgoing_blocks) {
+        // std::cout << "create_branch_utxo_set - block: {" << encode_hash(block->hash()) << "}" << std::endl;
+        res.push_back(create_local_utxo_set(*block));
+    }
+
+    return res;
+}
+
+void block_organizer::organize_mempool(branch::const_ptr branch, block_const_ptr_list_const_ptr const& incoming_blocks, block_const_ptr_list_ptr const& outgoing_blocks) {
 
     std::unordered_set<hash_digest> txs_in;
     std::unordered_set<chain::point> prevouts_in;
@@ -339,28 +362,31 @@ void block_organizer::organize_mempool(size_t branch_height, block_const_ptr_lis
     }
 
     if ( ! fast_chain_.is_stale_fast() && ! outgoing_blocks->empty()) {
+        auto branch_utxo = create_outgoing_utxo_set(outgoing_blocks);
+
         for (auto const& block : *outgoing_blocks) {
 
-            std::cout << "Inserting Block in Mempool: " << encode_hash(block->hash()) << std::endl;
+            // std::cout << "Inserting Block in Mempool: " << encode_hash(block->hash()) << std::endl;
 
             if (block->transactions().size() > 1) {
-                std::for_each(block->transactions().begin() + 1, block->transactions().end(), [this, branch_height, &txs_in, &prevouts_in](chain::transaction const& tx){
+                std::for_each(block->transactions().begin() + 1, block->transactions().end(), 
+                [this, branch, &txs_in, &prevouts_in, &branch_utxo](chain::transaction const& tx) {
                     auto it = txs_in.find(tx.hash());
                     if (it == txs_in.end()) {
 
 
-                        auto double_spend = std::any_of(tx.inputs().begin(), tx.inputs().end(), [this, &prevouts_in](chain::input const& in){
+                        auto double_spend = std::any_of(tx.inputs().begin(), tx.inputs().end(), [this, &prevouts_in](chain::input const& in) {
                             return prevouts_in.find(in.previous_output()) != prevouts_in.end();
                         });
 
                         if ( ! double_spend) {
-                            std::cout << "Inserting Transaction in Mempool: " << encode_hash(tx.hash()) << std::endl;
+                            // std::cout << "Inserting Transaction in Mempool: " << encode_hash(tx.hash()) << std::endl;
 
-                            if (tx.validation.state == nullptr) {
-                                std::cout << "tx.validation.state == nullptr" << std::endl;
-                            }
+                            // if (tx.validation.state == nullptr) {
+                            //     std::cout << "tx.validation.state == nullptr" << std::endl;
+                            // }
                             tx.validation.state = fast_chain_.chain_state();
-                            populate_transaction_inputs(branch_height, tx.inputs());
+                            populate_transaction_inputs(branch, tx.inputs(), branch_utxo);
                             mempool_.add(tx);       //TODO(fernando): add bulk
                         }
                     }
@@ -455,7 +481,7 @@ void block_organizer::handle_reorganized(const code& ec, branch::const_ptr branc
 
 
 #if defined(BITPRIM_WITH_MEMPOOL)
-    organize_mempool(branch->height(), branch->blocks(), outgoing);
+    organize_mempool(branch, branch->blocks(), outgoing);
 #endif
 
     // v3 reorg block order is reverse of v2, branch.back() is the new top.
