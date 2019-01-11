@@ -34,9 +34,6 @@
 namespace libbitcoin {
 namespace blockchain {
 
-// using local_utxo_t = std::unordered_map<point, output>;
-using local_utxo_t = std::unordered_map<chain::point, chain::output const*>;
-
 /// This class is NOT thread safe.
 class BCB_API populate_block  : public populate_base {
 public:
@@ -62,18 +59,18 @@ protected:
 #if defined(BITPRIM_DB_NEW)
     utxo_pool_t get_reorg_subset_conditionally(size_t first_height, size_t& out_chain_top) const;
     void populate_from_reorg_subset(chain::output_point const& outpoint, utxo_pool_t const& reorg_subset) const;
-    void populate_transaction_inputs(branch::const_ptr branch, chain::input::list const& inputs, size_t bucket, size_t buckets, size_t input_position, std::vector<local_utxo_t> const& branch_utxo, size_t first_height, size_t chain_top, utxo_pool_t const& reorg_subset) const;
+    void populate_transaction_inputs(branch::const_ptr branch, chain::input::list const& inputs, size_t bucket, size_t buckets, size_t input_position, local_utxo_set_t const& branch_utxo, size_t first_height, size_t chain_top, utxo_pool_t const& reorg_subset) const;
 #else
-    void populate_transaction_inputs(branch::const_ptr branch, chain::input::list const& inputs, size_t bucket, size_t buckets, size_t input_position, std::vector<local_utxo_t> const& branch_utxo) const;
+    void populate_transaction_inputs(branch::const_ptr branch, chain::input::list const& inputs, size_t bucket, size_t buckets, size_t input_position, local_utxo_set_t const& branch_utxo) const;
 #endif
 
 #if defined(BITPRIM_WITH_MEMPOOL)
-    void populate_transactions(branch::const_ptr branch, size_t bucket, size_t buckets, std::vector<local_utxo_t> const& branch_utxo, mining::mempool::hash_index_t const& validated_txs, result_handler handler) const;
+    void populate_transactions(branch::const_ptr branch, size_t bucket, size_t buckets, local_utxo_set_t const& branch_utxo, mining::mempool::hash_index_t const& validated_txs, result_handler handler) const;
 #else
-    void populate_transactions(branch::const_ptr branch, size_t bucket, size_t buckets, std::vector<local_utxo_t> const& branch_utxo, result_handler handler) const;
+    void populate_transactions(branch::const_ptr branch, size_t bucket, size_t buckets, local_utxo_set_t const& branch_utxo, result_handler handler) const;
 #endif
 
-    void populate_prevout(branch_ptr branch, chain::output_point const& outpoint, std::vector<local_utxo_t> const& branch_utxo) const;
+    void populate_prevout(branch_ptr branch, chain::output_point const& outpoint, local_utxo_set_t const& branch_utxo) const;
 
 private:
     bool const relay_transactions_;

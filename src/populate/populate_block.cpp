@@ -47,34 +47,6 @@ populate_block::populate_block(dispatcher& dispatch, fast_chain const& chain, bo
 #endif
 {}
 
-local_utxo_t create_local_utxo_set(chain::block const& block) {
-    //TODO(fernando): confirm if there is a validation to check that the coinbase tx is not spend, before this.
-    //                we avoid to insert the coinbase in the local utxo set
-
-    local_utxo_t res;
-    res.reserve(block.transactions().size());
-    for (auto const& tx : block.transactions()) {
-        auto const& outputs = tx.outputs();
-        for (uint32_t idx = 0; idx < outputs.size(); ++idx) {
-            auto const& output = outputs[idx];
-            res.emplace(output_point{tx.hash(), idx}, std::addressof(output));
-        }
-    }
-    return res;
-}
-
-std::vector<local_utxo_t> create_branch_utxo_set(branch::const_ptr const& branch) {
-    auto blocks = *branch->blocks();
-
-    std::vector<local_utxo_t> res;
-    res.reserve(branch->size());
-
-    for (auto const& block : blocks) {
-        res.push_back(create_local_utxo_set(*block));
-    }
-
-    return res;
-}
 
 
 void populate_block::populate(branch::const_ptr branch, result_handler&& handler) const {
@@ -189,9 +161,9 @@ populate_block::utxo_pool_t populate_block::get_reorg_subset_conditionally(size_
 
 
 #if defined(BITPRIM_DB_NEW)
-void populate_block::populate_transaction_inputs(branch::const_ptr branch, chain::input::list const& inputs, size_t bucket, size_t buckets, size_t input_position, std::vector<local_utxo_t> const& branch_utxo, size_t first_height, size_t chain_top, utxo_pool_t const& reorg_subset) const {
+void populate_block::populate_transaction_inputs(branch::const_ptr branch, chain::input::list const& inputs, size_t bucket, size_t buckets, size_t input_position, local_utxo_set_t const& branch_utxo, size_t first_height, size_t chain_top, utxo_pool_t const& reorg_subset) const {
 #else
-void populate_block::populate_transaction_inputs(branch::const_ptr branch, chain::input::list const& inputs, size_t bucket, size_t buckets, size_t input_position, std::vector<local_utxo_t> const& branch_utxo) const {
+void populate_block::populate_transaction_inputs(branch::const_ptr branch, chain::input::list const& inputs, size_t bucket, size_t buckets, size_t input_position, local_utxo_set_t const& branch_utxo) const {
 #endif
 
     auto const branch_height = branch->height();
@@ -215,9 +187,9 @@ void populate_block::populate_transaction_inputs(branch::const_ptr branch, chain
 }
 
 #if defined(BITPRIM_WITH_MEMPOOL)
-void populate_block::populate_transactions(branch::const_ptr branch, size_t bucket, size_t buckets, std::vector<local_utxo_t> const& branch_utxo, mining::mempool::hash_index_t const& validated_txs, result_handler handler) const {
+void populate_block::populate_transactions(branch::const_ptr branch, size_t bucket, size_t buckets, local_utxo_set_t const& branch_utxo, mining::mempool::hash_index_t const& validated_txs, result_handler handler) const {
 #else
-void populate_block::populate_transactions(branch::const_ptr branch, size_t bucket, size_t buckets, std::vector<local_utxo_t> const& branch_utxo, result_handler handler) const {
+void populate_block::populate_transactions(branch::const_ptr branch, size_t bucket, size_t buckets, local_utxo_set_t const& branch_utxo, result_handler handler) const {
 #endif
     // TODO(fernando): check how to replace it with UTXO
     // asm("int $3");  //TODO(fernando): remover
@@ -325,7 +297,7 @@ void populate_block::populate_from_reorg_subset(output_point const& outpoint, ut
 }
 #endif // BITPRIM_DB_NEW
 
-void populate_block::populate_prevout(branch::const_ptr branch, output_point const& outpoint, std::vector<local_utxo_t> const& branch_utxo) const {
+void populate_block::populate_prevout(branch::const_ptr branch, output_point const& outpoint, local_utxo_set_t const& branch_utxo) const {
     if ( ! outpoint.validation.spent) {
         branch->populate_spent(outpoint);
     }
