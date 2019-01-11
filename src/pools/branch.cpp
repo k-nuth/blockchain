@@ -32,6 +32,39 @@ namespace blockchain {
 using namespace bc::chain;
 using namespace bc::config;
 
+local_utxo_t create_local_utxo_set(chain::block const& block) {
+    //TODO(fernando): confirm if there is a validation to check that the coinbase tx is not spend, before this.
+    //                we avoid to insert the coinbase in the local utxo set
+
+    local_utxo_t res;
+    res.reserve(block.transactions().size());
+    for (auto const& tx : block.transactions()) {
+        auto const& outputs = tx.outputs();
+        for (uint32_t idx = 0; idx < outputs.size(); ++idx) {
+            auto const& output = outputs[idx];
+            // std::cout << "create_local_utxo_set - output: {" << encode_hash(tx.hash()) << " - " << idx << "}" << std::endl;
+            res.emplace(output_point{tx.hash(), idx}, std::addressof(output));
+        }
+    }
+    return res;
+}
+
+local_utxo_set_t create_branch_utxo_set(branch::const_ptr const& branch) {
+    auto blocks = *branch->blocks();
+
+    local_utxo_set_t res;
+    res.reserve(branch->size());
+
+    for (auto const& block : blocks) {
+        // std::cout << "create_branch_utxo_set - block: {" << encode_hash(block->hash()) << "}" << std::endl;
+        res.push_back(create_local_utxo_set(*block));
+    }
+
+    return res;
+}
+
+
+
 // This will be eliminated once weak block headers are moved to the store.
 branch::branch(size_t height)
     : height_(height)

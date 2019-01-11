@@ -29,9 +29,11 @@
 namespace libbitcoin {
 namespace blockchain {
 
+using local_utxo_t = std::unordered_map<chain::point, chain::output const*>;
+using local_utxo_set_t = std::vector<local_utxo_t>;
+
 /// This class is not thread safe.
-class BCB_API branch
-{
+class BCB_API branch {
 public:
     typedef std::shared_ptr<branch> ptr;
     typedef std::shared_ptr<const branch> const_ptr;
@@ -105,6 +107,9 @@ private:
     /// The chain of blocks in the branch.
     block_const_ptr_list_ptr blocks_;
 };
+
+local_utxo_t create_local_utxo_set(chain::block const& block);
+local_utxo_set_t create_branch_utxo_set(branch::const_ptr const& branch);
 
 } // namespace blockchain
 } // namespace libbitcoin
