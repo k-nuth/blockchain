@@ -8,9 +8,11 @@ import json
 # block_counter = 1282234
 # bhash = '00000000000024c283ff5e61895d70883065503f6ed5c87f99a1c5f44cbbdd23'
 
-block_counter = 1282356
-bhash = '00000000000001b0134ea7d9b2cf527d1365cdd717320631eddaa8e7c8a3b6b0'
+# block_counter = 1282356
+# bhash = '00000000000001b0134ea7d9b2cf527d1365cdd717320631eddaa8e7c8a3b6b0'
 
+block_counter = 1282427
+bhash = '00000000000001cb9040d377b3f8ec77674827ea4299932957d5f71724c8749a'
 
 
 
@@ -58,7 +60,7 @@ def process_block(bhash, out_file):
 # ------------------------------------
 
 
-with open("raw_blocks_from_1282356.txt", "w") as out_file:
+with open("raw_blocks_from_1282427.txt", "w") as out_file:
     process_block(bhash, out_file)
 
 
