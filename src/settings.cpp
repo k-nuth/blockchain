@@ -54,8 +54,10 @@ settings::settings()
     // , uahf_height(478559)
     // , daa_height(504031)
     // , monolith_activation_time(bch_monolith_activation_time)                        //1526400000
-    , magnetic_anomaly_activation_time(bch_magnetic_anomaly_activation_time)        //1542300000
-    , great_wall_activation_time(bch_great_wall_activation_time)        //1542300000
+    // , magnetic_anomaly_activation_time(bch_magnetic_anomaly_activation_time)        //1542300000
+    , great_wall_activation_time(bch_great_wall_activation_time)                       //1542300000
+    , graviton_activation_time(bch_graviton_activation_time)                           //1542300000
+    
     , bip141(false)
     , bip143(false)
     , bip147(false)
@@ -165,6 +167,8 @@ uint32_t settings::enabled_forks() const {
     forks |= rule_fork::cash_verify_flags_script_enable_sighash_forkid;
     forks |= rule_fork::cash_replay_protection;
     forks |= rule_fork::cash_checkdatasig;
+    forks |= rule_fork::cash_schnorr;
+    forks |= rule_fork::cash_segwit_recovery;
 #else
     forks |= (bip141 ? rule_fork::bip141_rule : 0);
     forks |= (bip143 ? rule_fork::bip143_rule : 0);

@@ -77,7 +77,13 @@ uint32_t validate_input::convert_flags(uint32_t native_forks) {
         flags |= verify_flags_script_enable_checkdatasig;
     }
 
+    if (script::is_enabled(native_forks, rule_fork::cash_schnorr)) {
+        flags |= verify_flags_script_enable_schnorr;
+    }
 
+    if (script::is_enabled(native_forks, rule_fork::cash_segwit_recovery)) {
+        flags |= verify_flags_script_enable_segwit_recovery;
+    }
 
 #else //BITPRIM_CURRENCY_BCH
     if (script::is_enabled(native_forks, rule_fork::bip141_rule)) {

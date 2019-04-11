@@ -129,6 +129,9 @@ BOOST_AUTO_TEST_CASE(validate_block__2018NOV__block_520679_tx__valid)
     native_forks |= rule_fork::cash_verify_flags_script_enable_sighash_forkid;
     native_forks |= rule_fork::cash_low_s_rule;
     native_forks |= rule_fork::cash_checkdatasig;
+    native_forks |= rule_fork::cash_schnorr;
+    native_forks |= rule_fork::cash_segwit_recovery;
+
 
     data_chunk decoded_tx;
     BOOST_REQUIRE(decode_base16(decoded_tx, encoded_tx));
