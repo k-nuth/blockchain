@@ -23,9 +23,9 @@
 #include <knuth/keoken/state_delegated.hpp>
 
 using namespace knuth::keoken;
-using libbitcoin::hash_digest;
-using libbitcoin::hash_literal;
-using libbitcoin::wallet::payment_address;
+using kth::hash_digest;
+using kth::hash_literal;
+using kth::wallet::payment_address;
 
 
 TEST_CASE("[state_delegated_asset_id_exists_empty] ") {

@@ -28,7 +28,7 @@ struct fixture
 #endif
     {
 #ifdef WITH_CONSENSUS_REPLIER
-        libbitcoin::consensus::requester.connect({ "tcp://localhost:5501" });
+        kth::consensus::requester.connect({ "tcp://localhost:5501" });
 #endif
     }
 
@@ -37,7 +37,7 @@ struct fixture
         replier.terminate();
         replier.join();
 
-        libbitcoin::consensus::requester.disconnect();
+        kth::consensus::requester.disconnect();
         consensus.terminate();
         consensus.join();
     }

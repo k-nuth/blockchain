@@ -1,10 +1,4 @@
 #!/bin/sh
-###############################################################################
-#  Copyright (c) 2014-2015 libbitcoin-blockchain developers (see COPYING).
-#
-#         GENERATED SOURCE CODE, DO NOT EDIT EXCEPT EXPERIMENTALLY
-#
-###############################################################################
 
 # Define tests and options.
 #==============================================================================
@@ -18,4 +12,4 @@ BOOST_UNIT_TEST_OPTIONS=\
 
 # Run tests.
 #==============================================================================
-./test/libbitcoin-blockchain-test ${BOOST_UNIT_TEST_OPTIONS} > test.log
+./test/kth-blockchain-test ${BOOST_UNIT_TEST_OPTIONS} > test.log

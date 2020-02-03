@@ -18,7 +18,7 @@
  */
 #include <bitcoin/blockchain/pools/mempool_transaction_summary.hpp>
 
-namespace libbitcoin {
+namespace kth {
 namespace blockchain {
 
 mempool_transaction_summary::mempool_transaction_summary(std::string const& address, std::string const& hash, std::string const& previous_output_hash,

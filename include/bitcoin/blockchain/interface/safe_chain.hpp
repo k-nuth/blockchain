@@ -14,7 +14,7 @@
 #include <bitcoin/blockchain/define.hpp>
 #include <bitcoin/blockchain/pools/mempool_transaction_summary.hpp>
 
-namespace libbitcoin {
+namespace kth {
 namespace blockchain {
 
 /// This interface is thread safe.
@@ -34,8 +34,8 @@ public:
     typedef handle1<chain::stealth_compact::list> stealth_fetch_handler;
     typedef handle2<size_t, size_t> transaction_index_fetch_handler;
 #ifdef KTH_WITH_KEOKEN
-    typedef std::function<void (const code&, const std::shared_ptr <std::vector <libbitcoin::transaction_const_ptr>> ) > keoken_history_fetch_handler;
-    typedef std::function<void (const code&,  header_const_ptr, size_t,  const std::shared_ptr <std::vector <libbitcoin::transaction_const_ptr>> , uint64_t, size_t ) > block_keoken_fetch_handler;
+    typedef std::function<void (const code&, const std::shared_ptr <std::vector <kth::transaction_const_ptr>> ) > keoken_history_fetch_handler;
+    typedef std::function<void (const code&,  header_const_ptr, size_t,  const std::shared_ptr <std::vector <kth::transaction_const_ptr>> , uint64_t, size_t ) > block_keoken_fetch_handler;
     virtual void fetch_keoken_history(const short_hash& address_hash, size_t limit,
         size_t from_height, keoken_history_fetch_handler handler) const = 0;
 

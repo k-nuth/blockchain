@@ -14,7 +14,7 @@
 #include <bitcoin/bitcoin.hpp>
 
 
-namespace libbitcoin {
+namespace kth {
 namespace mining {
 
 using main_index_t = size_t;

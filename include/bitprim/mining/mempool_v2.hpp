@@ -27,7 +27,7 @@ auto scope_guard(F&& f) {
     return std::unique_ptr<void, typename std::decay<F>::type>{(void*)1, std::forward<F>(f)};
 }
 
-namespace libbitcoin {
+namespace kth {
 namespace mining {
 
 inline

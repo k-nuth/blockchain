@@ -12,7 +12,7 @@
 #endif
 
 
-namespace libbitcoin {
+namespace kth {
 namespace blockchain {
 
 settings::settings()

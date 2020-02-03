@@ -11,7 +11,7 @@
 #include <bitcoin/blockchain/interface/fast_chain.hpp>
 #include <bitcoin/blockchain/pools/branch.hpp>
 
-namespace libbitcoin {
+namespace kth {
 namespace blockchain {
 
 using namespace bc::chain;

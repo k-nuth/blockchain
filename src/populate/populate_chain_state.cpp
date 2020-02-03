@@ -13,7 +13,7 @@
 #include <bitcoin/blockchain/pools/branch.hpp>
 #include <bitcoin/blockchain/settings.hpp>
 
-namespace libbitcoin {
+namespace kth {
 namespace blockchain {
 
 using namespace bc::chain;

@@ -14,7 +14,7 @@
 #include <bitcoin/bitcoin.hpp>
 #include <bitcoin/blockchain/define.hpp>
 
-namespace libbitcoin {
+namespace kth {
 namespace blockchain {
 
 /// This class is not thread safe.

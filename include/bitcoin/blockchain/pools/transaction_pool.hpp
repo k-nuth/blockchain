@@ -12,7 +12,7 @@
 #include <bitcoin/blockchain/interface/safe_chain.hpp>
 #include <bitcoin/blockchain/settings.hpp>
 
-namespace libbitcoin {
+namespace kth {
 namespace blockchain {
 
 /// TODO: this class is not implemented or utilized.

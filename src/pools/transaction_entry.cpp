@@ -11,7 +11,7 @@
 #include <bitcoin/bitcoin.hpp>
 #include <bitcoin/blockchain/define.hpp>
 
-namespace libbitcoin {
+namespace kth {
 namespace blockchain {
 
 // Space optimization since valid sigops and size are never close to 32 bits.

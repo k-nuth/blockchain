@@ -13,7 +13,7 @@
 // Atomicity is not required for these operations as each validation call is
 // sequenced. Locking is performed only to guard concurrent filtering.
 
-namespace libbitcoin {
+namespace kth {
 namespace blockchain {
 
 using namespace boost;

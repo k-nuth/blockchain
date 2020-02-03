@@ -13,7 +13,7 @@
 namespace bitprim {
 namespace keoken {
 
-using balance_key = std::tuple<asset_id_t, libbitcoin::wallet::payment_address>;
+using balance_key = std::tuple<asset_id_t, kth::wallet::payment_address>;
 
 } // namespace keoken
 } // namespace bitprim
@@ -32,7 +32,7 @@ struct hash<knuth::keoken::balance_key> {
         // boost::hash_combine(seed, std::get<1>(key));
         // return seed;
         size_t h1 = std::hash<knuth::keoken::asset_id_t>{}(std::get<0>(key));
-        size_t h2 = std::hash<libbitcoin::wallet::payment_address>{}(std::get<1>(key));
+        size_t h2 = std::hash<kth::wallet::payment_address>{}(std::get<1>(key));
         return h1 ^ (h2 << 1u);
     }
 };
@@ -43,7 +43,7 @@ namespace bitprim {
 namespace keoken {
 
 struct balance_entry {
-    balance_entry(amount_t amount, size_t block_height, libbitcoin::hash_digest const& txid)
+    balance_entry(amount_t amount, size_t block_height, kth::hash_digest const& txid)
         : amount(amount), block_height(block_height), txid(txid)
     {}
 
@@ -55,7 +55,7 @@ struct balance_entry {
 
     amount_t amount;
     size_t block_height;
-    libbitcoin::hash_digest txid;
+    kth::hash_digest txid;
 };
 
 } // namespace keoken

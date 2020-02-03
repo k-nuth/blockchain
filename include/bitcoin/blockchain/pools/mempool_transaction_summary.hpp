@@ -7,7 +7,7 @@
 
 #include <string>
 
-namespace libbitcoin {
+namespace kth {
 namespace blockchain {
 
 /// This class is not thread safe.

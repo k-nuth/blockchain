@@ -9,7 +9,7 @@
 #include <bitcoin/bitcoin.hpp>
 #include <bitcoin/blockchain/define.hpp>
 
-namespace libbitcoin {
+namespace kth {
 namespace blockchain {
 
 block_entry::block_entry(block_const_ptr block)

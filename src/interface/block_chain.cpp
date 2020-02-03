@@ -29,7 +29,7 @@
 #include <boost/thread/latch.hpp>
 
 
-namespace libbitcoin { namespace blockchain {
+namespace kth { namespace blockchain {
 
 using spent_value_type = std::pair<hash_digest, uint32_t>;
 //using spent_container = std::vector<spent_value_type>;
@@ -40,8 +40,8 @@ using spent_container = std::unordered_set<spent_value_type>;
 namespace std {
 
 template <>
-struct hash<libbitcoin::blockchain::spent_value_type> {
-    size_t operator()(libbitcoin::blockchain::spent_value_type const& point) const {
+struct hash<kth::blockchain::spent_value_type> {
+    size_t operator()(kth::blockchain::spent_value_type const& point) const {
         size_t seed = 0;
         boost::hash_combine(seed, point.first);
         boost::hash_combine(seed, point.second);
@@ -51,7 +51,7 @@ struct hash<libbitcoin::blockchain::spent_value_type> {
 
 } // namespace std
 
-namespace libbitcoin {
+namespace kth {
 
 #if defined(KTH_WITH_MEMPOOL)
 namespace mining {
@@ -1383,7 +1383,7 @@ hash_digest generate_merkle_root(std::vector<chain::transaction> transactions) {
 
 #ifdef KTH_DB_NEW_FULL
 //TODO(fernando): refactor!!!
-std::vector<libbitcoin::blockchain::mempool_transaction_summary> block_chain::get_mempool_transactions(std::vector<std::string> const& payment_addresses, bool use_testnet_rules, bool witness) const {
+std::vector<kth::blockchain::mempool_transaction_summary> block_chain::get_mempool_transactions(std::vector<std::string> const& payment_addresses, bool use_testnet_rules, bool witness) const {
 /*          "    \"address\"  (string) The base58check encoded address\n"
             "    \"txid\"  (string) The related txid\n"
             "    \"index\"  (number) The related input or output index\n"
@@ -1401,18 +1401,18 @@ std::vector<libbitcoin::blockchain::mempool_transaction_summary> block_chain::ge
     uint8_t encoding_p2sh;
 
     if (use_testnet_rules) {
-        encoding_p2kh = libbitcoin::wallet::payment_address::testnet_p2kh;
-        encoding_p2sh = libbitcoin::wallet::payment_address::testnet_p2sh;
+        encoding_p2kh = kth::wallet::payment_address::testnet_p2kh;
+        encoding_p2sh = kth::wallet::payment_address::testnet_p2sh;
     } else {
-        encoding_p2kh = libbitcoin::wallet::payment_address::mainnet_p2kh;
-        encoding_p2sh = libbitcoin::wallet::payment_address::mainnet_p2sh;
+        encoding_p2kh = kth::wallet::payment_address::mainnet_p2kh;
+        encoding_p2sh = kth::wallet::payment_address::mainnet_p2sh;
     }
     
-    std::vector<libbitcoin::blockchain::mempool_transaction_summary> ret;
+    std::vector<kth::blockchain::mempool_transaction_summary> ret;
     
-    std::unordered_set<libbitcoin::wallet::payment_address> addrs;
+    std::unordered_set<kth::wallet::payment_address> addrs;
     for (auto const& payment_address : payment_addresses) {
-        libbitcoin::wallet::payment_address address(payment_address);
+        kth::wallet::payment_address address(payment_address);
         if (address){
             addrs.insert(address);
         }
@@ -1425,12 +1425,12 @@ std::vector<libbitcoin::blockchain::mempool_transaction_summary> block_chain::ge
         //tx.recompute_hash();
         size_t i = 0;
         for (auto const& output : tx.outputs()) {
-            auto const tx_addresses = libbitcoin::wallet::payment_address::extract(output.script(), encoding_p2kh, encoding_p2sh);
+            auto const tx_addresses = kth::wallet::payment_address::extract(output.script(), encoding_p2kh, encoding_p2sh);
             for(auto const tx_address : tx_addresses) {
                 if (tx_address && addrs.find(tx_address) != addrs.end()) {
                     ret.push_back
-                            (libbitcoin::blockchain::mempool_transaction_summary
-                                     (tx_address.encoded(), libbitcoin::encode_hash(tx.hash()), "",
+                            (kth::blockchain::mempool_transaction_summary
+                                     (tx_address.encoded(), kth::encode_hash(tx.hash()), "",
                                       "", std::to_string(output.value()), i, tx_res.arrival_time()));
                 }
             }
@@ -1440,19 +1440,19 @@ std::vector<libbitcoin::blockchain::mempool_transaction_summary> block_chain::ge
         for (auto const& input : tx.inputs()) {
             // TODO: payment_addrress::extract should use the prev_output script instead of the input script
             // see https://github.com/k-nuth/core/blob/v0.10.0/src/wallet/payment_address.cpp#L505
-            auto const tx_addresses = libbitcoin::wallet::payment_address::extract(input.script(), encoding_p2kh, encoding_p2sh);
+            auto const tx_addresses = kth::wallet::payment_address::extract(input.script(), encoding_p2kh, encoding_p2sh);
             for(auto const tx_address : tx_addresses)
             if (tx_address && addrs.find(tx_address) != addrs.end()) {
                 boost::latch latch(2);
                 fetch_transaction(input.previous_output().hash(), false, witness,
-                                  [&](const libbitcoin::code &ec,
-                                      libbitcoin::transaction_const_ptr tx_ptr, size_t index,
+                                  [&](const kth::code &ec,
+                                      kth::transaction_const_ptr tx_ptr, size_t index,
                                       size_t height) {
-                                      if (ec == libbitcoin::error::success) {
-                                          ret.push_back(libbitcoin::blockchain::mempool_transaction_summary
+                                      if (ec == kth::error::success) {
+                                          ret.push_back(kth::blockchain::mempool_transaction_summary
                                                                 (tx_address.encoded(),
-                                                                libbitcoin::encode_hash(tx.hash()),
-                                                                libbitcoin::encode_hash(input.previous_output().hash()),
+                                                                kth::encode_hash(tx.hash()),
+                                                                kth::encode_hash(input.previous_output().hash()),
                                                                  std::to_string(input.previous_output().index()),
                                                                 "-"+std::to_string(tx_ptr->outputs()[input.previous_output().index()].value()),
                                                                 i,
@@ -1479,11 +1479,11 @@ std::vector<chain::transaction> block_chain::get_mempool_transactions_from_walle
     uint8_t encoding_p2kh;
     uint8_t encoding_p2sh;
     if (use_testnet_rules){
-        encoding_p2kh = libbitcoin::wallet::payment_address::testnet_p2kh;
-        encoding_p2sh = libbitcoin::wallet::payment_address::testnet_p2sh;
+        encoding_p2kh = kth::wallet::payment_address::testnet_p2kh;
+        encoding_p2sh = kth::wallet::payment_address::testnet_p2sh;
     } else {
-        encoding_p2kh = libbitcoin::wallet::payment_address::mainnet_p2kh;
-        encoding_p2sh = libbitcoin::wallet::payment_address::mainnet_p2sh;
+        encoding_p2kh = kth::wallet::payment_address::mainnet_p2kh;
+        encoding_p2sh = kth::wallet::payment_address::mainnet_p2sh;
     }
 
     std::vector<chain::transaction> ret;
@@ -1498,7 +1498,7 @@ std::vector<chain::transaction> block_chain::get_mempool_transactions_from_walle
 
         for (auto iter_output = tx.outputs().begin(); (iter_output != tx.outputs().end() && !inserted); ++iter_output) {
         
-            auto const tx_addresses = libbitcoin::wallet::payment_address::extract((*iter_output).script(), encoding_p2kh, encoding_p2sh);
+            auto const tx_addresses = kth::wallet::payment_address::extract((*iter_output).script(), encoding_p2kh, encoding_p2sh);
 
             for (auto iter_addr = tx_addresses.begin(); (iter_addr != tx_addresses.end() && !inserted); ++iter_addr) {
                 if (*iter_addr) {
@@ -1514,7 +1514,7 @@ std::vector<chain::transaction> block_chain::get_mempool_transactions_from_walle
         for (auto iter_input = tx.inputs().begin(); (iter_input != tx.inputs().end() && !inserted); ++iter_input) {
             // TODO: payment_addrress::extract should use the prev_output script instead of the input script
             // see https://github.com/k-nuth/core/blob/v0.10.0/src/wallet/payment_address.cpp#L505
-            auto const tx_addresses = libbitcoin::wallet::payment_address::extract((*iter_input).script(), encoding_p2kh, encoding_p2sh);
+            auto const tx_addresses = kth::wallet::payment_address::extract((*iter_input).script(), encoding_p2kh, encoding_p2sh);
             for (auto iter_addr = tx_addresses.begin(); (iter_addr != tx_addresses.end() && !inserted); ++iter_addr) {
                 if (*iter_addr) {
                     auto it = std::find(payment_addresses.begin(), payment_addresses.end(), *iter_addr);
@@ -1624,7 +1624,7 @@ safe_chain::mempool_mini_hash_map block_chain::get_mempool_mini_hash_map(message
     return mempool;
 }
 
-std::vector<libbitcoin::blockchain::mempool_transaction_summary> block_chain::get_mempool_transactions(std::string const& payment_address, bool use_testnet_rules, bool witness) const{
+std::vector<kth::blockchain::mempool_transaction_summary> block_chain::get_mempool_transactions(std::string const& payment_address, bool use_testnet_rules, bool witness) const{
     std::vector<std::string> addresses = {payment_address};
     return get_mempool_transactions(addresses, use_testnet_rules, witness);
 }
@@ -1655,7 +1655,7 @@ void block_chain::fetch_unconfirmed_transaction(hash_digest const& hash, transac
 
 #ifdef KTH_DB_TRANSACTION_UNCONFIRMED
 //TODO(fernando): refactor!!!
-std::vector<libbitcoin::blockchain::mempool_transaction_summary> block_chain::get_mempool_transactions(std::vector<std::string> const& payment_addresses, bool use_testnet_rules, bool witness) const {
+std::vector<kth::blockchain::mempool_transaction_summary> block_chain::get_mempool_transactions(std::vector<std::string> const& payment_addresses, bool use_testnet_rules, bool witness) const {
 /*          "    \"address\"  (string) The base58check encoded address\n"
             "    \"txid\"  (string) The related txid\n"
             "    \"index\"  (number) The related input or output index\n"
@@ -1672,32 +1672,32 @@ std::vector<libbitcoin::blockchain::mempool_transaction_summary> block_chain::ge
     uint8_t encoding_p2kh;
     uint8_t encoding_p2sh;
     if (use_testnet_rules){
-        encoding_p2kh = libbitcoin::wallet::payment_address::testnet_p2kh;
-        encoding_p2sh = libbitcoin::wallet::payment_address::testnet_p2sh;
+        encoding_p2kh = kth::wallet::payment_address::testnet_p2kh;
+        encoding_p2sh = kth::wallet::payment_address::testnet_p2sh;
     } else {
-        encoding_p2kh = libbitcoin::wallet::payment_address::mainnet_p2kh;
-        encoding_p2sh = libbitcoin::wallet::payment_address::mainnet_p2sh;
+        encoding_p2kh = kth::wallet::payment_address::mainnet_p2kh;
+        encoding_p2sh = kth::wallet::payment_address::mainnet_p2sh;
     }
-    std::vector<libbitcoin::blockchain::mempool_transaction_summary> ret;
-    std::unordered_set<libbitcoin::wallet::payment_address> addrs;
+    std::vector<kth::blockchain::mempool_transaction_summary> ret;
+    std::unordered_set<kth::wallet::payment_address> addrs;
     for (auto const & payment_address : payment_addresses) {
-        libbitcoin::wallet::payment_address address(payment_address);
+        kth::wallet::payment_address address(payment_address);
         if (address){
             addrs.insert(address);
         }
     }
 
-    database_.transactions_unconfirmed().for_each_result([&](libbitcoin::database::transaction_unconfirmed_result const &tx_res) {
+    database_.transactions_unconfirmed().for_each_result([&](kth::database::transaction_unconfirmed_result const &tx_res) {
         auto tx = tx_res.transaction(witness);
         tx.recompute_hash();
         size_t i = 0;
         for (auto const& output : tx.outputs()) {
-            auto const tx_addresses = libbitcoin::wallet::payment_address::extract(output.script(), encoding_p2kh, encoding_p2sh);
+            auto const tx_addresses = kth::wallet::payment_address::extract(output.script(), encoding_p2kh, encoding_p2sh);
             for(auto const tx_address : tx_addresses) {
                 if (tx_address && addrs.find(tx_address) != addrs.end()) {
                     ret.push_back
-                            (libbitcoin::blockchain::mempool_transaction_summary
-                                     (tx_address.encoded(), libbitcoin::encode_hash(tx.hash()), "",
+                            (kth::blockchain::mempool_transaction_summary
+                                     (tx_address.encoded(), kth::encode_hash(tx.hash()), "",
                                       "", std::to_string(output.value()), i, tx_res.arrival_time()));
                 }
             }
@@ -1707,19 +1707,19 @@ std::vector<libbitcoin::blockchain::mempool_transaction_summary> block_chain::ge
         for (auto const& input : tx.inputs()) {
             // TODO: payment_addrress::extract should use the prev_output script instead of the input script
             // see https://github.com/k-nuth/core/blob/v0.10.0/src/wallet/payment_address.cpp#L505
-            auto const tx_addresses = libbitcoin::wallet::payment_address::extract(input.script(), encoding_p2kh, encoding_p2sh);
+            auto const tx_addresses = kth::wallet::payment_address::extract(input.script(), encoding_p2kh, encoding_p2sh);
             for(auto const tx_address : tx_addresses)
             if (tx_address && addrs.find(tx_address) != addrs.end()) {
                 boost::latch latch(2);
                 fetch_transaction(input.previous_output().hash(), false, witness,
-                                  [&](const libbitcoin::code &ec,
-                                      libbitcoin::transaction_const_ptr tx_ptr, size_t index,
+                                  [&](const kth::code &ec,
+                                      kth::transaction_const_ptr tx_ptr, size_t index,
                                       size_t height) {
-                                      if (ec == libbitcoin::error::success) {
-                                          ret.push_back(libbitcoin::blockchain::mempool_transaction_summary
+                                      if (ec == kth::error::success) {
+                                          ret.push_back(kth::blockchain::mempool_transaction_summary
                                                                 (tx_address.encoded(),
-                                                                libbitcoin::encode_hash(tx.hash()),
-                                                                libbitcoin::encode_hash(input.previous_output().hash()),
+                                                                kth::encode_hash(tx.hash()),
+                                                                kth::encode_hash(input.previous_output().hash()),
                                                                  std::to_string(input.previous_output().index()),
                                                                 "-"+std::to_string(tx_ptr->outputs()[input.previous_output().index()].value()),
                                                                 i,
@@ -1747,16 +1747,16 @@ std::vector<chain::transaction> block_chain::get_mempool_transactions_from_walle
     uint8_t encoding_p2kh;
     uint8_t encoding_p2sh;
     if (use_testnet_rules){
-        encoding_p2kh = libbitcoin::wallet::payment_address::testnet_p2kh;
-        encoding_p2sh = libbitcoin::wallet::payment_address::testnet_p2sh;
+        encoding_p2kh = kth::wallet::payment_address::testnet_p2kh;
+        encoding_p2sh = kth::wallet::payment_address::testnet_p2sh;
     } else {
-        encoding_p2kh = libbitcoin::wallet::payment_address::mainnet_p2kh;
-        encoding_p2sh = libbitcoin::wallet::payment_address::mainnet_p2sh;
+        encoding_p2kh = kth::wallet::payment_address::mainnet_p2kh;
+        encoding_p2sh = kth::wallet::payment_address::mainnet_p2sh;
     }
 
     std::vector<chain::transaction> ret;
 
-    database_.transactions_unconfirmed().for_each_result([&](libbitcoin::database::transaction_unconfirmed_result const &tx_res) {
+    database_.transactions_unconfirmed().for_each_result([&](kth::database::transaction_unconfirmed_result const &tx_res) {
         auto tx = tx_res.transaction(witness);
         tx.recompute_hash();
         
@@ -1765,7 +1765,7 @@ std::vector<chain::transaction> block_chain::get_mempool_transactions_from_walle
 
         for (auto iter_output = tx.outputs().begin(); (iter_output != tx.outputs().end() && !inserted); ++iter_output) {
         
-            auto const tx_addresses = libbitcoin::wallet::payment_address::extract((*iter_output).script(), encoding_p2kh, encoding_p2sh);
+            auto const tx_addresses = kth::wallet::payment_address::extract((*iter_output).script(), encoding_p2kh, encoding_p2sh);
 
             for (auto iter_addr = tx_addresses.begin(); (iter_addr != tx_addresses.end() && !inserted); ++iter_addr) {
                 if (*iter_addr) {
@@ -1781,7 +1781,7 @@ std::vector<chain::transaction> block_chain::get_mempool_transactions_from_walle
         for (auto iter_input = tx.inputs().begin(); (iter_input != tx.inputs().end() && !inserted); ++iter_input) {
             // TODO: payment_addrress::extract should use the prev_output script instead of the input script
             // see https://github.com/k-nuth/core/blob/v0.10.0/src/wallet/payment_address.cpp#L505
-            auto const tx_addresses = libbitcoin::wallet::payment_address::extract((*iter_input).script(), encoding_p2kh, encoding_p2sh);
+            auto const tx_addresses = kth::wallet::payment_address::extract((*iter_input).script(), encoding_p2kh, encoding_p2sh);
             for (auto iter_addr = tx_addresses.begin(); (iter_addr != tx_addresses.end() && !inserted); ++iter_addr) {
                 if (*iter_addr) {
                     auto it = std::find(payment_addresses.begin(), payment_addresses.end(), *iter_addr);
@@ -1902,7 +1902,7 @@ safe_chain::mempool_mini_hash_map block_chain::get_mempool_mini_hash_map(message
     return mempool;
 }
 
-std::vector<libbitcoin::blockchain::mempool_transaction_summary> block_chain::get_mempool_transactions(std::string const& payment_address, bool use_testnet_rules, bool witness) const{
+std::vector<kth::blockchain::mempool_transaction_summary> block_chain::get_mempool_transactions(std::string const& payment_address, bool use_testnet_rules, bool witness) const{
     std::vector<std::string> addresses = {payment_address};
     return get_mempool_transactions(addresses, use_testnet_rules, witness);
 }
@@ -2648,7 +2648,7 @@ bool block_chain::stopped() const
 }
 
 #if defined(KTH_WITH_MEMPOOL)
-std::pair<std::vector<libbitcoin::mining::transaction_element>, uint64_t> block_chain::get_block_template() const {
+std::pair<std::vector<kth::mining::transaction_element>, uint64_t> block_chain::get_block_template() const {
     return mempool_.get_block_template();
 }
 #endif

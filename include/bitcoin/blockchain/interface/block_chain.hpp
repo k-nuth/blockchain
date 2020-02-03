@@ -29,7 +29,7 @@
 #include <bitcoin/protocol/requester.hpp>
 #endif
 
-namespace libbitcoin {
+namespace kth {
 namespace blockchain {
 
 
@@ -420,7 +420,7 @@ public:
 #endif
 
 #if defined(KTH_WITH_MEMPOOL)
-    std::pair<std::vector<libbitcoin::mining::transaction_element>, uint64_t> get_block_template() const;
+    std::pair<std::vector<kth::mining::transaction_element>, uint64_t> get_block_template() const;
 #endif
 
 protected:

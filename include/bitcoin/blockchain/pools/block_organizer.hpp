@@ -18,7 +18,7 @@
 #include <bitcoin/blockchain/settings.hpp>
 #include <bitcoin/blockchain/validate/validate_block.hpp>
 
-namespace libbitcoin {
+namespace kth {
 namespace blockchain {
 
 /// This class is thread safe.

@@ -23,7 +23,7 @@
 
 #endif
 
-namespace libbitcoin {
+namespace kth {
 namespace blockchain {
 
 /// This class is thread safe.

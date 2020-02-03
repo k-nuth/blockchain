@@ -10,7 +10,7 @@
 #include <knuth/mining/common.hpp>
 #include <knuth/mining/transaction_element.hpp>
 
-namespace libbitcoin {
+namespace kth {
 namespace mining {
 
 class node {

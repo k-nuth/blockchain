@@ -13,7 +13,7 @@
 #include <bitcoin/blockchain/pools/branch.hpp>
 #include <bitcoin/blockchain/settings.hpp>
 
-namespace libbitcoin { namespace blockchain {
+namespace kth { namespace blockchain {
 
 /// This class is NOT thread safe.
 class BCB_API populate_chain_state {

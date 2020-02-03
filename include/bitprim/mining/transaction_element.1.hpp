@@ -10,7 +10,7 @@
 
 #include <bitcoin/bitcoin.hpp>
 
-namespace libbitcoin {
+namespace kth {
 namespace mining {
 
 class transaction_element {

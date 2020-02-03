@@ -9,7 +9,7 @@
 #include <bitcoin/bitcoin.hpp>
 #include <bitcoin/blockchain/settings.hpp>
 
-namespace libbitcoin {
+namespace kth {
 namespace blockchain {
 
 // Duplicate tx hashes are disallowed in a block and therefore same in pool.

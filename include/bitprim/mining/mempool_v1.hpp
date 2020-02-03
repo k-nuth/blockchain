@@ -33,7 +33,7 @@ auto scope_guard(F&& f) {
     return std::unique_ptr<void, typename std::decay<F>::type>{reinterpret_cast<void*>(1), std::forward<F>(f)};
 }
 
-namespace libbitcoin {
+namespace kth {
 namespace mining {
 
 // inline
@@ -145,7 +145,7 @@ void sort_ltor(bool sorted, all_transactions_t& all, std::vector<size_t>& candid
 
 
 // static
-// void sort_ltor( std::vector<libbitcoin::mining::node>& all, libbitcoin::mining::indexes_t& candidates ){
+// void sort_ltor( std::vector<kth::mining::node>& all, kth::mining::indexes_t& candidates ){
 //     auto last_organized = candidates.begin();
 
 //     while (last_organized != candidates.end()){

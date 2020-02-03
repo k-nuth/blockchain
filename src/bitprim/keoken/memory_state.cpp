@@ -8,9 +8,9 @@
 #include <algorithm>
 #include <numeric>
 
-using libbitcoin::data_chunk;
-using libbitcoin::hash_digest;
-using libbitcoin::wallet::payment_address;
+using kth::data_chunk;
+using kth::hash_digest;
+using kth::wallet::payment_address;
 
 namespace bitprim {
 namespace keoken {
@@ -134,7 +134,7 @@ amount_t memory_state::get_balance_internal(balance_value const& entries) const 
     });
 }
 
-amount_t memory_state::get_balance(asset_id_t id, libbitcoin::wallet::payment_address const& addr) const {
+amount_t memory_state::get_balance(asset_id_t id, kth::wallet::payment_address const& addr) const {
     boost::shared_lock<boost::shared_mutex> lock(mutex_);
     
     auto it = balance_.find(balance_key{id, addr});
@@ -145,13 +145,13 @@ amount_t memory_state::get_balance(asset_id_t id, libbitcoin::wallet::payment_ad
     return get_balance_internal(it->second);
 }
 
-memory_state::get_assets_by_address_list memory_state::get_assets_by_address(libbitcoin::wallet::payment_address const& addr) const {
+memory_state::get_assets_by_address_list memory_state::get_assets_by_address(kth::wallet::payment_address const& addr) const {
     get_assets_by_address_list res;
 
     {
     boost::shared_lock<boost::shared_mutex> lock(mutex_);
     for (auto const& entry : asset_list_) {
-        // using balance_key = std::tuple<knuth::keoken::asset_id_t, libbitcoin::wallet::payment_address>;
+        // using balance_key = std::tuple<knuth::keoken::asset_id_t, kth::wallet::payment_address>;
         balance_key key {entry.asset.id(), addr};
         auto it = balance_.find(key);
         if (it != balance_.end()) {

@@ -17,7 +17,7 @@
 // #include <boost/thread/locks.hpp>
 // #include <boost/thread/shared_mutex.hpp>
 
-namespace libbitcoin {
+namespace kth {
 namespace mining {
 
 // template <typename Mutex>

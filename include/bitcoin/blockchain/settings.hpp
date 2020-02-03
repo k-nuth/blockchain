@@ -17,7 +17,7 @@
 
 #include <bitcoin/blockchain/define.hpp>
 
-namespace libbitcoin { namespace blockchain {
+namespace kth { namespace blockchain {
 
 /// Common blockchain configuration settings, properties not thread safe.
 class BCB_API settings {

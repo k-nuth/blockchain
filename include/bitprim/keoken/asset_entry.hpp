@@ -12,7 +12,7 @@ namespace bitprim {
 namespace keoken {
 
 struct asset_entry {
-    asset_entry(entities::asset asset, size_t block_height, libbitcoin::hash_digest const& txid)
+    asset_entry(entities::asset asset, size_t block_height, kth::hash_digest const& txid)
         : asset(std::move(asset))
         , block_height(block_height)
         , txid(txid)
@@ -26,7 +26,7 @@ struct asset_entry {
 
     entities::asset asset;
     size_t block_height;
-    libbitcoin::hash_digest txid;
+    kth::hash_digest txid;
 };
 
 } // namespace keoken

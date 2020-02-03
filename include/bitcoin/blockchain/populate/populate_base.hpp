@@ -12,7 +12,7 @@
 #include <bitcoin/blockchain/interface/fast_chain.hpp>
 #include <bitcoin/blockchain/settings.hpp>
 
-namespace libbitcoin {
+namespace kth {
 namespace blockchain {
 
 /// This class is NOT thread safe.

@@ -20,7 +20,7 @@
 #include <knuth/mining/mempool.hpp>
 #endif
 
-namespace libbitcoin {
+namespace kth {
 namespace blockchain {
 
 /// This class is NOT thread safe.

@@ -14,7 +14,7 @@
 #include <bitcoin/blockchain/pools/block_entry.hpp>
 #include <bitcoin/blockchain/pools/branch.hpp>
 
-namespace libbitcoin {
+namespace kth {
 namespace blockchain {
 
 /// This class is thread safe against concurrent filtering only.

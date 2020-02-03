@@ -5,11 +5,11 @@
 
 #include <bitcoin/blockchain/version.hpp>
 
-namespace libbitcoin { namespace blockchain {
+namespace kth { namespace blockchain {
 
 char const* version() {
     return KTH_BLOCKCHAIN_VERSION;
 }
 
-}} /*namespace libbitcoin::blockchain*/
+}} // namespace kth::blockchain
 

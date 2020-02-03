@@ -24,9 +24,9 @@
 #include <bitcoin/bitcoin/chain/transaction.hpp>
 #include <bitcoin/blockchain.hpp>
 
-using namespace libbitcoin;
-using namespace libbitcoin::chain;
-using namespace libbitcoin::mining;
+using namespace kth;
+using namespace kth::chain;
+using namespace kth::mining;
 
 hash_digest hash_one   {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1};
 hash_digest hash_two   {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2};
@@ -95,7 +95,7 @@ chain::block get_block(std::string const& hex) {
     return blk;
 }
 
-libbitcoin::chain::block get_block_from_template(mempool const& mp) {
+kth::chain::block get_block_from_template(mempool const& mp) {
     auto gbt = mp.get_block_template();
     transaction::list tx_list;
     for (auto const& elem : gbt.first) {

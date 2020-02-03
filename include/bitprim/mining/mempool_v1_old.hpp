@@ -27,7 +27,7 @@ auto scope_guard(F&& f) {
     return std::unique_ptr<void, typename std::decay<F>::type>{(void*)1, std::forward<F>(f)};
 }
 
-namespace libbitcoin {
+namespace kth {
 namespace mining {
 
 // inline
@@ -78,7 +78,7 @@ std::set<typename Container::value_type, Cmp> to_ordered_set(F f, Container cons
 
 
 static
-void sort_ltor( std::vector<libbitcoin::mining::node>& all, libbitcoin::mining::indexes_t& candidates ){
+void sort_ltor( std::vector<kth::mining::node>& all, kth::mining::indexes_t& candidates ){
     auto last_organized = candidates.begin();
 
     while (last_organized != candidates.end()){

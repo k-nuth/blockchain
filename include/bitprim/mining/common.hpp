@@ -20,7 +20,7 @@
 #define KTH_WITNESS_DEFAULT true
 #endif
 
-namespace libbitcoin {
+namespace kth {
 namespace mining {
 
 

@@ -10,7 +10,7 @@
 #include <bitcoin/blockchain/define.hpp>
 #include <bitcoin/blockchain/pools/branch.hpp>
 
-namespace libbitcoin {
+namespace kth {
 namespace blockchain {
 
 /// A low level interface for encapsulation of the blockchain database.

@@ -13,7 +13,7 @@
 #include <bitcoin/consensus.hpp>
 #endif
 
-namespace libbitcoin {
+namespace kth {
 namespace blockchain {
 
 /// This class is static.

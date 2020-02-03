@@ -12,7 +12,7 @@
 
 #include <bitcoin/bitcoin.hpp>
 
-namespace libbitcoin {
+namespace kth {
 namespace mining {
 
 template <typename I, typename T>

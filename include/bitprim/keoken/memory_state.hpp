@@ -26,7 +26,7 @@ public:
     using asset_list_t = std::vector<asset_entry>;
     using balance_value = std::vector<balance_entry>;
     using balance_t = std::unordered_map<balance_key, balance_value>;
-    using payment_address = libbitcoin::wallet::payment_address;
+    using payment_address = kth::wallet::payment_address;
 
     using get_assets_by_address_list = std::vector<get_assets_by_address_data>;
     using get_assets_list = std::vector<get_assets_data>;
@@ -49,12 +49,12 @@ public:
 
     void create_asset(std::string asset_name, amount_t asset_amount, 
                       payment_address owner,
-                      size_t block_height, libbitcoin::hash_digest const& txid);
+                      size_t block_height, kth::hash_digest const& txid);
 
     void create_balance_entry(asset_id_t asset_id, amount_t asset_amount,
                               payment_address source,
                               payment_address target, 
-                              size_t block_height, libbitcoin::hash_digest const& txid);
+                              size_t block_height, kth::hash_digest const& txid);
 
 
 
@@ -62,7 +62,7 @@ public:
     // ---------------------------------------------------------------------------------
     bool asset_id_exists(asset_id_t id) const;
     amount_t get_balance(asset_id_t id, payment_address const& addr) const;
-    get_assets_by_address_list get_assets_by_address(libbitcoin::wallet::payment_address const& addr) const;
+    get_assets_by_address_list get_assets_by_address(kth::wallet::payment_address const& addr) const;
     get_assets_list get_assets() const;
     get_all_asset_addresses_list get_all_asset_addresses() const;
 

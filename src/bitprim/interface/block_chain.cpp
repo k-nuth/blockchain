@@ -8,7 +8,7 @@
 #include <knuth/keoken/transaction_extractor.hpp>
 #endif
 
-namespace libbitcoin {
+namespace kth {
 namespace blockchain {
 
 #ifdef KTH_DB_LEGACY
@@ -136,12 +136,12 @@ void block_chain::for_each_transaction_non_coinbase(size_t from, size_t to, bool
 
 #if defined(KTH_WITH_KEOKEN)
 
-void block_chain::convert_to_keo_transaction(const libbitcoin::hash_digest& hash, std::shared_ptr<std::vector<transaction_const_ptr>> keoken_txs) const {
+void block_chain::convert_to_keo_transaction(const kth::hash_digest& hash, std::shared_ptr<std::vector<transaction_const_ptr>> keoken_txs) const {
    fetch_transaction(hash, true, false,
-              [&](const libbitcoin::code &ec,
-                  libbitcoin::transaction_const_ptr tx_ptr, size_t index,
+              [&](const kth::code &ec,
+                  kth::transaction_const_ptr tx_ptr, size_t index,
                   size_t height) {
-                  if (ec == libbitcoin::error::success) {
+                  if (ec == kth::error::success) {
                       auto keoken_data = knuth::keoken::first_keoken_output(*tx_ptr);
                       if (!keoken_data.empty()) {
                           (*keoken_txs).push_back(tx_ptr);
@@ -207,7 +207,7 @@ void block_chain::fetch_block_keoken(const hash_digest& hash, bool witness,
     }
 
     auto const height = block_result.height();
-    auto const message = std::make_shared<const libbitcoin::message::header>(block_result.header());
+    auto const message = std::make_shared<const kth::message::header>(block_result.header());
     auto const tx_hashes = block_result.transaction_hashes();
     auto const& tx_store = database_.transactions();
     DEBUG_ONLY(size_t position = 0;)
@@ -226,10 +226,10 @@ void block_chain::fetch_block_keoken(const hash_digest& hash, bool witness,
 
         BITCOIN_ASSERT(tx_result.height() == height);
         BITCOIN_ASSERT(tx_result.position() == position++);
-        const libbitcoin::chain::transaction& tx_ptr = tx_result.transaction(witness);
+        const kth::chain::transaction& tx_ptr = tx_result.transaction(witness);
         auto keoken_data = knuth::keoken::first_keoken_output(tx_ptr);
         if (!keoken_data.empty()) {
-            (*keoken_txs).push_back(std::make_shared<const libbitcoin::message::transaction>(tx_result.transaction(witness)));
+            (*keoken_txs).push_back(std::make_shared<const kth::message::transaction>(tx_result.transaction(witness)));
         }
     }
 
@@ -296,7 +296,7 @@ void block_chain::fetch_block_keoken(const hash_digest& hash, bool witness,
     }
 
     auto const height = block_result.second;
-    auto const message = std::make_shared<const libbitcoin::message::header>(block_result.first.header());
+    auto const message = std::make_shared<const kth::message::header>(block_result.first.header());
     //auto const tx_hashes = block_result.first.transaction_hashes();
     
     DEBUG_ONLY(size_t position = 0;)
@@ -313,10 +313,10 @@ void block_chain::fetch_block_keoken(const hash_digest& hash, bool witness,
 
         //BITCOIN_ASSERT(tx_result.height() == height);
         //BITCOIN_ASSERT(tx_result.position() == position++);
-        const libbitcoin::chain::transaction& tx_ptr = tx_result;
+        const kth::chain::transaction& tx_ptr = tx_result;
         auto keoken_data = knuth::keoken::first_keoken_output(tx_ptr);
         if (!keoken_data.empty()) {
-            (*keoken_txs).push_back(std::make_shared<const libbitcoin::message::transaction>(tx_result));
+            (*keoken_txs).push_back(std::make_shared<const kth::message::transaction>(tx_result));
         }
     }
 
