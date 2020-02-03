@@ -1,23 +1,9 @@
-/**
- * Copyright (c) 2011-2017 libbitcoin developers (see AUTHORS)
- *
- * This file is part of libbitcoin.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-#ifndef LIBBITCOIN_BLOCKCHAIN_POPULATE_TRANSACTION_HPP
-#define LIBBITCOIN_BLOCKCHAIN_POPULATE_TRANSACTION_HPP
+// Copyright (c) 2016-2020 Knuth Project developers.
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+#ifndef KTH_BLOCKCHAIN_POPULATE_TRANSACTION_HPP
+#define KTH_BLOCKCHAIN_POPULATE_TRANSACTION_HPP
 
 #include <cstddef>
 #include <bitcoin/bitcoin.hpp>
@@ -25,8 +11,8 @@
 #include <bitcoin/blockchain/interface/fast_chain.hpp>
 #include <bitcoin/blockchain/populate/populate_base.hpp>
 
-#if defined(BITPRIM_WITH_MEMPOOL)
-#include <bitprim/mining/mempool.hpp>
+#if defined(KTH_WITH_MEMPOOL)
+#include <knuth/mining/mempool.hpp>
 #endif
 
 namespace libbitcoin {
@@ -38,7 +24,7 @@ class BCB_API populate_transaction
 {
 public:
 
-#if defined(BITPRIM_WITH_MEMPOOL)
+#if defined(KTH_WITH_MEMPOOL)
     populate_transaction(dispatcher& dispatch, const fast_chain& chain, mining::mempool const& mp);
 #else
     populate_transaction(dispatcher& dispatch, const fast_chain& chain);
@@ -51,12 +37,12 @@ protected:
     void populate_inputs(transaction_const_ptr tx, size_t chain_height, size_t bucket, size_t buckets, result_handler handler) const;
 
 private:
-#if defined(BITPRIM_WITH_MEMPOOL)
+#if defined(KTH_WITH_MEMPOOL)
     mining::mempool const& mempool_;
 #endif
 };
 
 } // namespace blockchain
-} // namespace libbitcoin
+} // namespace kth
 
 #endif

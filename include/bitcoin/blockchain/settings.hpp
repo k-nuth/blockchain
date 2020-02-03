@@ -1,33 +1,19 @@
-/**
- * Copyright (c) 2011-2017 libbitcoin developers (see AUTHORS)
- *
- * This file is part of libbitcoin.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-#ifndef LIBBITCOIN_BLOCKCHAIN_SETTINGS_HPP
-#define LIBBITCOIN_BLOCKCHAIN_SETTINGS_HPP
+// Copyright (c) 2016-2020 Knuth Project developers.
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+#ifndef KTH_BLOCKCHAIN_SETTINGS_HPP
+#define KTH_BLOCKCHAIN_SETTINGS_HPP
 
 #include <cstdint>
 #include <boost/filesystem.hpp>
 #include <bitcoin/bitcoin.hpp>
 
-#ifdef BITPRIM_USE_DOMAIN
+#ifdef KTH_USE_DOMAIN
 #include <bitcoin/infrastructure/config/endpoint.hpp>
 #else
 #include <bitcoin/bitcoin/config/endpoint.hpp>
-#endif // BITPRIM_USE_DOMAIN
+#endif // KTH_USE_DOMAIN
 
 #include <bitcoin/blockchain/define.hpp>
 
@@ -69,7 +55,7 @@ public:
     bool bip112;
     bool bip113;
 
-#ifdef BITPRIM_CURRENCY_BCH
+#ifdef KTH_CURRENCY_BCH
     // size_t uahf_height;                             //2017-Aug-01 hard fork, defaults to 478559 (Mainnet)
     // size_t daa_height;                              //2017-Nov-13 hard fork, defaults to 504031 (Mainnet)
     // uint64_t monolith_activation_time;              //2018-May-15 hard fork, defaults to 1526400000
@@ -106,19 +92,19 @@ public:
                 // {556767, uint256S("0000000000000000004626ff6e3b936941d341c5932e"
                 //                   "ce4357eeccac44e6d56c")},
 
-#endif //BITPRIM_CURRENCY_BCH
+#endif //KTH_CURRENCY_BCH
 
 
     bool bip141;
     bool bip143;
     bool bip147;
 
-#if defined(BITPRIM_WITH_MEMPOOL)
+#if defined(KTH_WITH_MEMPOOL)
     size_t mempool_max_template_size;
     size_t mempool_size_multiplier;
 #endif
 };
 
-}} // namespace libbitcoin::blockchain
+}} // namespace kth::blockchain
 
 #endif

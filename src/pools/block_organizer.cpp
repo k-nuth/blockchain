@@ -1,21 +1,7 @@
-/**
- * Copyright (c) 2011-2017 libbitcoin developers (see AUTHORS)
- *
- * This file is part of libbitcoin.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (c) 2016-2020 Knuth Project developers.
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 #include <bitcoin/blockchain/pools/block_organizer.hpp>
 
 #include <cstddef>
@@ -45,7 +31,7 @@ using namespace std::placeholders;
 // block: { bits, version, timestamp }
 // transaction: { exists, height, output }
 
-#if defined(BITPRIM_WITH_MEMPOOL)
+#if defined(KTH_WITH_MEMPOOL)
 block_organizer::block_organizer(prioritized_mutex& mutex, dispatcher& dispatch, threadpool& thread_pool, fast_chain& chain, const settings& settings, bool relay_transactions, mining::mempool& mp)
 #else
 block_organizer::block_organizer(prioritized_mutex& mutex, dispatcher& dispatch, threadpool& thread_pool, fast_chain& chain, const settings& settings, bool relay_transactions)
@@ -55,14 +41,14 @@ block_organizer::block_organizer(prioritized_mutex& mutex, dispatcher& dispatch,
     , stopped_(true)
     , dispatch_(dispatch)
     , block_pool_(settings.reorganization_limit)
-#if defined(BITPRIM_WITH_MEMPOOL)
+#if defined(KTH_WITH_MEMPOOL)
     , validator_(dispatch, fast_chain_, settings, relay_transactions, mp)
 #else
     , validator_(dispatch, fast_chain_, settings, relay_transactions)
 #endif    
     , subscriber_(std::make_shared<reorganize_subscriber>(thread_pool, NAME))
 
-#if defined(BITPRIM_WITH_MEMPOOL)
+#if defined(KTH_WITH_MEMPOOL)
     , mempool_(mp)
 #endif
 {}
@@ -111,7 +97,7 @@ void block_organizer::organize(block_const_ptr block, result_handler handler) {
     resume_ = std::promise<code>();
 
     const result_handler complete = std::bind(&block_organizer::signal_completion, this, _1);
-    const auto check_handler = std::bind(&block_organizer::handle_check, this, _1, block, complete);
+    auto const check_handler = std::bind(&block_organizer::handle_check, this, _1, block, complete);
 
     // Checks that are independent of chain state.
     validator_.check(block, check_handler);
@@ -153,7 +139,7 @@ void block_organizer::handle_check(const code& ec, block_const_ptr block, result
 
     // Verify the last branch block (all others are verified).
     // Get the path through the block forest to the new block.
-    const auto branch = block_pool_.get_path(block);
+    auto const branch = block_pool_.get_path(block);
 
     //*************************************************************************
     // CONSENSUS: This is the same check performed by satoshi, yet it will
@@ -172,7 +158,7 @@ void block_organizer::handle_check(const code& ec, block_const_ptr block, result
     }
 
 
-    const auto accept_handler = std::bind(&block_organizer::handle_accept, this, _1, branch, handler);
+    auto const accept_handler = std::bind(&block_organizer::handle_accept, this, _1, branch, handler);
 
     // Checks that are dependent on chain state and prevouts.
     validator_.accept(branch, accept_handler);
@@ -190,13 +176,13 @@ void block_organizer::handle_accept(const code& ec, branch::ptr branch, result_h
         return;
     }
 
-    const auto connect_handler = std::bind(&block_organizer::handle_connect, this, _1, branch, handler);
+    auto const connect_handler = std::bind(&block_organizer::handle_connect, this, _1, branch, handler);
 
     // Checks that include script validation.
     validator_.connect(branch, connect_handler);
 }
 
-#ifdef BITPRIM_DB_NEW
+#ifdef KTH_DB_NEW
 bool block_organizer::is_branch_double_spend(branch::ptr const& branch) const {
     // precondition: branch->blocks() != nullptr
 
@@ -224,10 +210,10 @@ bool block_organizer::is_branch_double_spend(branch::ptr const& branch) const {
     auto const distinct = (distinct_end == outs.end());
     return !distinct;
 }
-#endif // BITPRIM_DB_NEW
+#endif // KTH_DB_NEW
 
 
-#if defined(BITPRIM_WITH_MEMPOOL)
+#if defined(KTH_WITH_MEMPOOL)
 
 //TODO(fernando): similar function in populate_block class
 void block_organizer::populate_prevout_1(branch::const_ptr branch, chain::output_point const& outpoint, bool require_confirmed) const {
@@ -246,14 +232,14 @@ void block_organizer::populate_prevout_1(branch::const_ptr branch, chain::output
         return;
     }
 
-#if defined(BITPRIM_DB_NEW)
+#if defined(KTH_DB_NEW)
     //TODO(fernando): check the value of the parameters: branch_height and require_confirmed
     if ( ! fast_chain_.get_utxo(prevout.cache, prevout.height, prevout.median_time_past, prevout.coinbase, outpoint, branch_height)) {
         // std::cout << "outpoint not found in UTXO: " << encode_hash(outpoint.hash()) << " - " << outpoint.index() << std::endl;
         return;
     }
 
-#elif defined(BITPRIM_DB_LEGACY)
+#elif defined(KTH_DB_LEGACY)
     // Get the prevout/cache (and spender height) and its metadata.
     // The output (prevout.cache) is populated only if the return is true.
     if ( ! fast_chain_.get_output(prevout.cache, prevout.height,
@@ -276,7 +262,7 @@ void block_organizer::populate_prevout_1(branch::const_ptr branch, chain::output
     // BUGBUG: Spends are not marked as spent by unconfirmed transactions.
     // So tx pool transactions currently have no double spend limitation.
     // The output is spent only if by a spend at or below the branch height.
-    const auto spend_height = prevout.cache.validation.spender_height;
+    auto const spend_height = prevout.cache.validation.spender_height;
 
     // The previous output has already been spent (double spend).
     if ((spend_height <= branch_height) && (spend_height != output::validation::not_spent)) {
@@ -395,7 +381,7 @@ void block_organizer::organize_mempool(branch::const_ptr branch, block_const_ptr
         }
     }
 }
-#endif // defined(BITPRIM_WITH_MEMPOOL)
+#endif // defined(KTH_WITH_MEMPOOL)
 
 // private
 void block_organizer::handle_connect(const code& ec, branch::ptr branch, result_handler handler) {
@@ -418,8 +404,8 @@ void block_organizer::handle_connect(const code& ec, branch::ptr branch, result_
     top_header.height = branch->top_height();
 
     uint256_t threshold;
-    const auto work = branch->work();
-    const auto first_height = branch->height() + 1u;
+    auto const work = branch->work();
+    auto const first_height = branch->height() + 1u;
     top_block.start_notify = asio::steady_clock::now();
 
     // The chain query will stop if it reaches work level.
@@ -438,7 +424,7 @@ void block_organizer::handle_connect(const code& ec, branch::ptr branch, result_
         return;
     }
 
-#ifdef BITPRIM_DB_NEW
+#ifdef KTH_DB_NEW
     //Note(fernando): If there is just one block, internal double spend was checked previously.
     if (branch->blocks() && branch->blocks()->size() > 1) {
         if (is_branch_double_spend(branch)) {
@@ -455,9 +441,9 @@ void block_organizer::handle_connect(const code& ec, branch::ptr branch, result_
     }
 
     // Get the outgoing blocks to forward to reorg handler.
-    const auto out_blocks = std::make_shared<block_const_ptr_list>();
+    auto const out_blocks = std::make_shared<block_const_ptr_list>();
 
-    const auto reorganized_handler = std::bind(&block_organizer::handle_reorganized, this, _1, branch, out_blocks, handler);
+    auto const reorganized_handler = std::bind(&block_organizer::handle_reorganized, this, _1, branch, out_blocks, handler);
 
     // Replace! Switch!
     //#########################################################################
@@ -480,7 +466,7 @@ void block_organizer::handle_reorganized(const code& ec, branch::const_ptr branc
     block_pool_.add(outgoing);
 
 
-#if defined(BITPRIM_WITH_MEMPOOL)
+#if defined(KTH_WITH_MEMPOOL)
     organize_mempool(branch, branch->blocks(), outgoing);
 #endif
 
@@ -534,4 +520,4 @@ bool block_organizer::set_branch_height(branch::ptr branch) {
 }
 
 } // namespace blockchain
-} // namespace libbitcoin
+} // namespace kth

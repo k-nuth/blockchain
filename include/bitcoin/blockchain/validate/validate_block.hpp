@@ -1,23 +1,9 @@
-/**
- * Copyright (c) 2011-2017 libbitcoin developers (see AUTHORS)
- *
- * This file is part of libbitcoin.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-#ifndef LIBBITCOIN_BLOCKCHAIN_VALIDATE_BLOCK_HPP
-#define LIBBITCOIN_BLOCKCHAIN_VALIDATE_BLOCK_HPP
+// Copyright (c) 2016-2020 Knuth Project developers.
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+#ifndef KTH_BLOCKCHAIN_VALIDATE_BLOCK_HPP
+#define KTH_BLOCKCHAIN_VALIDATE_BLOCK_HPP
 
 #include <atomic>
 #include <cstddef>
@@ -30,8 +16,8 @@
 #include <bitcoin/blockchain/populate/populate_block.hpp>
 #include <bitcoin/blockchain/settings.hpp>
 
-#if defined(BITPRIM_WITH_MEMPOOL)
-#include <bitprim/mining/mempool.hpp>
+#if defined(KTH_WITH_MEMPOOL)
+#include <knuth/mining/mempool.hpp>
 #endif
 
 namespace libbitcoin {
@@ -43,7 +29,7 @@ class BCB_API validate_block
 public:
     typedef handle0 result_handler;
 
-#if defined(BITPRIM_WITH_MEMPOOL)
+#if defined(KTH_WITH_MEMPOOL)
     validate_block(dispatcher& dispatch, const fast_chain& chain, const settings& settings, bool relay_transactions, mining::mempool const& mp);
 #else
     validate_block(dispatcher& dispatch, const fast_chain& chain, const settings& settings, bool relay_transactions);
@@ -99,6 +85,6 @@ private:
 };
 
 } // namespace blockchain
-} // namespace libbitcoin
+} // namespace kth
 
 #endif

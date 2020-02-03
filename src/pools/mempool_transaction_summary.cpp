@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2011-2018 libitcoin developers (see AUTHORS)
  *
- * This file is part of libbitcoin.
+ * This file is part of the Knuth Project.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -63,4 +63,4 @@ uint64_t mempool_transaction_summary::timestamp() const {
 }
 
 } // namespace blockchain
-} // namespace libbitcoin
+} // namespace kth

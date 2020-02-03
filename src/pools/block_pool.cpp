@@ -1,21 +1,7 @@
-/**
- * Copyright (c) 2011-2017 libbitcoin developers (see AUTHORS)
- *
- * This file is part of libbitcoin.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (c) 2016-2020 Knuth Project developers.
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 #include <bitcoin/blockchain/pools/block_pool.hpp>
 
 #include <algorithm>
@@ -51,7 +37,7 @@ void block_pool::add(block_const_ptr valid_block)
     // Not all blocks will have validation state.
     ////BITCOIN_ASSERT(block->validation.state);
     auto height = valid_block->header().validation.height;
-    const auto& left = blocks_.left;
+    auto const& left = blocks_.left;
 
     // Caller ensure the entry does not exist by using get_path, but
     // insert rejects the block if there is an entry of the same hash.
@@ -59,7 +45,7 @@ void block_pool::add(block_const_ptr valid_block)
 
     // Add a back pointer from the parent for clearing the path later.
     const block_entry parent{ valid_block->header().previous_block_hash() };
-    const auto it = left.find(parent);
+    auto const it = left.find(parent);
 
     if (it != left.end())
     {
@@ -76,7 +62,7 @@ void block_pool::add(block_const_ptr valid_block)
 
 void block_pool::add(block_const_ptr_list_const_ptr valid_blocks)
 {
-    const auto insert = [&](const block_const_ptr& block) { add(block); };
+    auto const insert = [&](const block_const_ptr& block) { add(block); };
     std::for_each(valid_blocks->begin(), valid_blocks->end(), insert);
 }
 
@@ -97,7 +83,7 @@ void block_pool::remove(block_const_ptr_list_const_ptr accepted_blocks)
             continue;
 
         // Copy hashes of all children of nodes we delete.
-        const auto& children = it->first.children();
+        auto const& children = it->first.children();
         std::for_each(children.begin(), children.end(), saver);
 
         ///////////////////////////////////////////////////////////////////////
@@ -117,8 +103,8 @@ void block_pool::remove(block_const_ptr_list_const_ptr accepted_blocks)
             continue;
 
         // Copy the entry so that it can be deleted and replanted with height.
-        const auto copy = it->first;
-        const auto height = copy.block()->header().validation.height;
+        auto const copy = it->first;
+        auto const height = copy.block()->header().validation.height;
         BITCOIN_ASSERT(it->second == 0);
 
         // Critical Section
@@ -139,16 +125,16 @@ void block_pool::prune(const hash_list& hashes, size_t minimum_height)
 
     for (auto& hash: hashes)
     {
-        const auto it = left.find(block_entry{ hash });
+        auto const it = left.find(block_entry{ hash });
         BITCOIN_ASSERT(it != left.end());
 
-        const auto height = it->first.block()->header().validation.height;
+        auto const height = it->first.block()->header().validation.height;
 
         // Delete all roots and expired non-roots and recurse their children.
         if (it->second != 0 || height < minimum_height)
         {
             // delete
-            const auto& children = it->first.children();
+            auto const& children = it->first.children();
             std::for_each(children.begin(), children.end(), saver);
 
             ///////////////////////////////////////////////////////////////////
@@ -161,7 +147,7 @@ void block_pool::prune(const hash_list& hashes, size_t minimum_height)
         }
 
         // Copy the entry so that it can be deleted and replanted with height.
-        const auto copy = it->first;
+        auto const copy = it->first;
 
         // Critical Section
         ///////////////////////////////////////////////////////////////////////
@@ -179,7 +165,7 @@ void block_pool::prune(const hash_list& hashes, size_t minimum_height)
 void block_pool::prune(size_t top_height)
 {
     hash_list hashes;
-    const auto minimum_height = floor_subtract(top_height, maximum_depth_);
+    auto const minimum_height = floor_subtract(top_height, maximum_depth_);
 
     // TODO: not using table sort here, should stop iterating once above min.
     // Iterate over all root nodes with insufficient height.
@@ -195,7 +181,7 @@ void block_pool::prune(size_t top_height)
 void block_pool::filter(get_data_ptr message) const
 {
     auto& inventories = message->inventories();
-    const auto& left = blocks_.left;
+    auto const& left = blocks_.left;
 
     for (auto it = inventories.begin(); it != inventories.end();)
     {
@@ -210,7 +196,7 @@ void block_pool::filter(get_data_ptr message) const
         ///////////////////////////////////////////////////////////////////////
         // Critical Section
         mutex_.lock_shared();
-        const auto found = (left.find(entry) != left.end());
+        auto const found = (left.find(entry) != left.end());
         mutex_.unlock_shared();
         ///////////////////////////////////////////////////////////////////////
 
@@ -224,7 +210,7 @@ bool block_pool::exists(block_const_ptr candidate_block) const
 {
     // The block must not yet be successfully validated.
     ////BITCOIN_ASSERT(candidate_block->validation.error);
-    const auto& left = blocks_.left;
+    auto const& left = blocks_.left;
 
     // Critical Section
     ///////////////////////////////////////////////////////////////////////////
@@ -238,12 +224,12 @@ block_const_ptr block_pool::parent(block_const_ptr block) const
 {
     // The block may be validated (pool) or not (new).
     const block_entry parent_entry{ block->header().previous_block_hash() };
-    const auto& left = blocks_.left;
+    auto const& left = blocks_.left;
 
     // Critical Section
     ///////////////////////////////////////////////////////////////////////////
     shared_lock lock(mutex_);
-    const auto parent = left.find(parent_entry);
+    auto const parent = left.find(parent_entry);
     return parent == left.end() ? nullptr : parent->first.block();
     ///////////////////////////////////////////////////////////////////////////
 }
@@ -251,7 +237,7 @@ block_const_ptr block_pool::parent(block_const_ptr block) const
 branch::ptr block_pool::get_path(block_const_ptr block) const
 {
     ////log_content();
-    const auto trace = std::make_shared<branch>();
+    auto const trace = std::make_shared<branch>();
 
     if (exists(block))
         return trace;
@@ -271,7 +257,7 @@ branch::ptr block_pool::get_path(block_const_ptr block) const
 ////    LOG_INFO(LOG_BLOCKCHAIN) << "pool: ";
 ////
 ////    // Dump in hash order with height suffix (roots have height).
-////    for (const auto& entry: blocks_.left)
+////    for (auto const& entry: blocks_.left)
 ////    {
 ////        LOG_INFO(LOG_BLOCKCHAIN)
 ////            << entry.first << " " << entry.second;
@@ -279,4 +265,4 @@ branch::ptr block_pool::get_path(block_const_ptr block) const
 ////}
 
 } // namespace blockchain
-} // namespace libbitcoin
+} // namespace kth

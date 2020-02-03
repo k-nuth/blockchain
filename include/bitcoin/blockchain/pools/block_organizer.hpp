@@ -1,23 +1,9 @@
-/**
- * Copyright (c) 2011-2017 libbitcoin developers (see AUTHORS)
- *
- * This file is part of libbitcoin.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-#ifndef LIBBITCOIN_BLOCKCHAIN_BLOCK_ORGANIZER_HPP
-#define LIBBITCOIN_BLOCKCHAIN_BLOCK_ORGANIZER_HPP
+// Copyright (c) 2016-2020 Knuth Project developers.
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+#ifndef KTH_BLOCKCHAIN_BLOCK_ORGANIZER_HPP
+#define KTH_BLOCKCHAIN_BLOCK_ORGANIZER_HPP
 
 #include <atomic>
 #include <cstddef>
@@ -46,7 +32,7 @@ public:
     typedef resubscriber<code, size_t, block_const_ptr_list_const_ptr, block_const_ptr_list_const_ptr> reorganize_subscriber;
 
     /// Construct an instance.
-#if defined(BITPRIM_WITH_MEMPOOL)
+#if defined(KTH_WITH_MEMPOOL)
     block_organizer(prioritized_mutex& mutex, dispatcher& dispatch, threadpool& thread_pool, fast_chain& chain, const settings& settings, bool relay_transactions, mining::mempool& mp);
 #else
     block_organizer(prioritized_mutex& mutex, dispatcher& dispatch, threadpool& thread_pool, fast_chain& chain, const settings& settings, bool relay_transactions);
@@ -77,7 +63,7 @@ private:
     void handle_reorganized(const code& ec, branch::const_ptr branch, block_const_ptr_list_ptr outgoing, result_handler handler);
     void signal_completion(const code& ec);
 
-#if defined(BITPRIM_WITH_MEMPOOL)
+#if defined(KTH_WITH_MEMPOOL)
     void populate_prevout_1(branch::const_ptr branch, chain::output_point const& outpoint, bool require_confirmed) const;
     void populate_prevout_2(branch::const_ptr branch, chain::output_point const& outpoint, local_utxo_set_t const& branch_utxo) const;
     void populate_transaction_inputs(branch::const_ptr branch, chain::input::list const& inputs, local_utxo_set_t const& branch_utxo) const;
@@ -86,7 +72,7 @@ private:
     void organize_mempool(branch::const_ptr branch, block_const_ptr_list_const_ptr const& incoming_blocks, block_const_ptr_list_ptr const& outgoing_blocks);
 #endif
 
-#ifdef BITPRIM_DB_NEW
+#ifdef KTH_DB_NEW
     bool is_branch_double_spend(branch::ptr const& branch) const;
 #endif
 
@@ -105,12 +91,12 @@ private:
     validate_block validator_;
     reorganize_subscriber::ptr subscriber_;
 
-#if defined(BITPRIM_WITH_MEMPOOL)
+#if defined(KTH_WITH_MEMPOOL)
     mining::mempool& mempool_;
 #endif
 };
 
 } // namespace blockchain
-} // namespace libbitcoin
+} // namespace kth
 
 #endif

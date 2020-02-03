@@ -1,27 +1,13 @@
-/**
- * Copyright (c) 2016-2018 Bitprim Inc.
- *
- * This file is part of Bitprim.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (c) 2016-2020 Knuth Project developers.
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITPRIM_BLOCKCHAIN_KEOKEN_TRANSACTION_PROCESSORS_V0_SEND_TOKENS_HPP_
-#define BITPRIM_BLOCKCHAIN_KEOKEN_TRANSACTION_PROCESSORS_V0_SEND_TOKENS_HPP_
 
-#include <bitprim/keoken/error.hpp>
-#include <bitprim/keoken/transaction_processors/commons.hpp>
+#ifndef KTH_BLOCKCHAIN_KEOKEN_TRANSACTION_PROCESSORS_V0_SEND_TOKENS_HPP_
+#define KTH_BLOCKCHAIN_KEOKEN_TRANSACTION_PROCESSORS_V0_SEND_TOKENS_HPP_
+
+#include <knuth/keoken/error.hpp>
+#include <knuth/keoken/transaction_processors/commons.hpp>
 
 namespace bitprim {
 namespace keoken {
@@ -31,13 +17,13 @@ namespace v0 {
 struct send_tokens {
     static constexpr message_type_t message_type = message_type_t::send_tokens;
 
-#ifdef BITPRIM_USE_DOMAIN
-    template <typename State, typename Fastchain, Reader R, BITPRIM_IS_READER(R)>
+#ifdef KTH_USE_DOMAIN
+    template <typename State, typename Fastchain, Reader R, KTH_IS_READER(R)>
     error::error_code_t operator()(State& state, Fastchain const& fast_chain, size_t block_height, bc::chain::transaction const& tx, R& source) const {
 #else
     template <typename State, typename Fastchain>
     error::error_code_t operator()(State& state, Fastchain const& fast_chain, size_t block_height, bc::chain::transaction const& tx, bc::reader& source) const {
-#endif // BITPRIM_USE_DOMAIN
+#endif // KTH_USE_DOMAIN
 
 
         auto msg = message::send_tokens::factory_from_data(source);
@@ -73,4 +59,4 @@ struct send_tokens {
 } // namespace keoken
 } // namespace bitprim
 
-#endif //BITPRIM_BLOCKCHAIN_KEOKEN_TRANSACTION_PROCESSORS_V0_SEND_TOKENS_HPP_
+#endif //KTH_BLOCKCHAIN_KEOKEN_TRANSACTION_PROCESSORS_V0_SEND_TOKENS_HPP_

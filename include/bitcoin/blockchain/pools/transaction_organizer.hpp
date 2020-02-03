@@ -1,23 +1,9 @@
-/**
- * Copyright (c) 2011-2017 libbitcoin developers (see AUTHORS)
- *
- * This file is part of libbitcoin.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-#ifndef LIBBITCOIN_BLOCKCHAIN_TRANSACTION_ORGANIZER_HPP
-#define LIBBITCOIN_BLOCKCHAIN_TRANSACTION_ORGANIZER_HPP
+// Copyright (c) 2016-2020 Knuth Project developers.
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+#ifndef KTH_BLOCKCHAIN_TRANSACTION_ORGANIZER_HPP
+#define KTH_BLOCKCHAIN_TRANSACTION_ORGANIZER_HPP
 
 #include <atomic>
 #include <cstddef>
@@ -32,8 +18,8 @@
 #include <bitcoin/blockchain/settings.hpp>
 #include <bitcoin/blockchain/validate/validate_transaction.hpp>
 
-#if defined(BITPRIM_WITH_MEMPOOL)
-#include <bitprim/mining/mempool.hpp>
+#if defined(KTH_WITH_MEMPOOL)
+#include <knuth/mining/mempool.hpp>
 
 #endif
 
@@ -54,7 +40,7 @@ public:
 
     /// Construct an instance.
 
-#if defined(BITPRIM_WITH_MEMPOOL)
+#if defined(KTH_WITH_MEMPOOL)
     transaction_organizer(prioritized_mutex& mutex, dispatcher& dispatch, threadpool& thread_pool, fast_chain& chain, const settings& settings, mining::mempool& mp);
 #else
     transaction_organizer(prioritized_mutex& mutex, dispatcher& dispatch, threadpool& thread_pool, fast_chain& chain, const settings& settings);
@@ -104,12 +90,12 @@ private:
     validate_transaction validator_;
     transaction_subscriber::ptr subscriber_;
 
-#if defined(BITPRIM_WITH_MEMPOOL)
+#if defined(KTH_WITH_MEMPOOL)
     mining::mempool& mempool_;
 #endif
 };
 
 } // namespace blockchain
-} // namespace libbitcoin
+} // namespace kth
 
 #endif

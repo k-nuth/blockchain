@@ -1,21 +1,7 @@
-/**
- * Copyright (c) 2011-2017 libbitcoin developers (see AUTHORS)
- *
- * This file is part of libbitcoin.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (c) 2016-2020 Knuth Project developers.
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 #include <bitcoin/blockchain/validate/validate_block.hpp>
 
 #include <algorithm>
@@ -48,7 +34,7 @@ using namespace std::placeholders;
 // If the priority threadpool is shut down when this is running the handlers
 // will never be invoked, resulting in a threadpool.join indefinite hang.
 
-#if defined(BITPRIM_WITH_MEMPOOL)
+#if defined(KTH_WITH_MEMPOOL)
 validate_block::validate_block(dispatcher& dispatch, const fast_chain& chain, const settings& settings, bool relay_transactions, mining::mempool const& mp)
 #else
 validate_block::validate_block(dispatcher& dispatch, const fast_chain& chain, const settings& settings, bool relay_transactions)
@@ -56,7 +42,7 @@ validate_block::validate_block(dispatcher& dispatch, const fast_chain& chain, co
     : stopped_(true)
     , fast_chain_(chain)
     , priority_dispatch_(dispatch)
-#if defined(BITPRIM_WITH_MEMPOOL)
+#if defined(KTH_WITH_MEMPOOL)
     , block_populator_(dispatch, chain, relay_transactions, mp)
 #else
     , block_populator_(dispatch, chain, relay_transactions)
@@ -95,13 +81,13 @@ void validate_block::check(block_const_ptr block, result_handler handler) const
 
     // TODO: make configurable for each parallel segment.
     // This one is more efficient with one thread than parallel.
-    const auto threads = std::min(size_t(1), priority_dispatch_.size());
+    auto const threads = std::min(size_t(1), priority_dispatch_.size());
 
-    const auto count = block->transactions().size();
-    const auto buckets = std::min(threads, count);
+    auto const count = block->transactions().size();
+    auto const buckets = std::min(threads, count);
     BITCOIN_ASSERT(buckets != 0);
 
-    const auto join_handler = synchronize(std::move(complete_handler), buckets,
+    auto const join_handler = synchronize(std::move(complete_handler), buckets,
         NAME "_check");
 
     for (size_t bucket = 0; bucket < buckets; ++bucket)
@@ -118,7 +104,7 @@ void validate_block::check_block(block_const_ptr block, size_t bucket,
         return;
     }
 
-    const auto& txs = block->transactions();
+    auto const& txs = block->transactions();
 
     // Generate each tx hash (stored in tx cache).
     for (auto tx = bucket; tx < txs.size(); tx = ceiling_add(tx, buckets))
@@ -147,7 +133,7 @@ void validate_block::handle_checked(const code& ec, block_const_ptr block,
 void validate_block::accept(branch::const_ptr branch,
     result_handler handler) const
 {
-    const auto block = branch->top();
+    auto const block = branch->top();
     BITCOIN_ASSERT(block);
 
     // The block has no population timer, so set externally.
@@ -183,7 +169,7 @@ void validate_block::handle_populated(const code& ec, block_const_ptr block,
         return;
     }
 
-    const auto height = block->validation.state->height();
+    auto const height = block->validation.state->height();
 
     // if (encode_hash(block->hash()) == "000000000000000000812c14e92e484f1beb97456799d8d07e7afe46930ac0d6") {
     //     LOG_INFO(LOG_BLOCKCHAIN) << "This is the block I want to measure";
@@ -194,7 +180,7 @@ void validate_block::handle_populated(const code& ec, block_const_ptr block,
     // }
 
     // Run contextual block non-tx checks (sets start time).
-    const auto error_code = block->accept(false);
+    auto const error_code = block->accept(false);
 
     if (error_code)
     {
@@ -202,13 +188,13 @@ void validate_block::handle_populated(const code& ec, block_const_ptr block,
         return;
     }
 
-    const auto sigops = std::make_shared<atomic_counter>(0);
-    const auto state = block->validation.state;
+    auto const sigops = std::make_shared<atomic_counter>(0);
+    auto const state = block->validation.state;
     BITCOIN_ASSERT(state);
-#ifdef BITPRIM_CURRENCY_BCH
+#ifdef KTH_CURRENCY_BCH
     const bool bip141 = false;
 #else
-    const auto bip141 = state->is_enabled(rule_fork::bip141_rule);
+    auto const bip141 = state->is_enabled(rule_fork::bip141_rule);
 #endif
 
     result_handler complete_handler =
@@ -221,12 +207,12 @@ void validate_block::handle_populated(const code& ec, block_const_ptr block,
         return;
     }
 
-    const auto count = block->transactions().size();
-    const auto bip16 = state->is_enabled(rule_fork::bip16_rule);
-    const auto buckets = std::min(priority_dispatch_.size(), count);
+    auto const count = block->transactions().size();
+    auto const bip16 = state->is_enabled(rule_fork::bip16_rule);
+    auto const buckets = std::min(priority_dispatch_.size(), count);
     BITCOIN_ASSERT(buckets != 0);
 
-    const auto join_handler = synchronize(std::move(complete_handler), buckets,
+    auto const join_handler = synchronize(std::move(complete_handler), buckets,
         NAME "_accept");
 
     for (size_t bucket = 0; bucket < buckets; ++bucket)
@@ -238,7 +224,7 @@ void validate_block::accept_transactions(block_const_ptr block, size_t bucket,
     size_t buckets, atomic_counter_ptr sigops, bool bip16, bool bip141,
     result_handler handler) const
 {
-#ifdef BITPRIM_CURRENCY_BCH
+#ifdef KTH_CURRENCY_BCH
     bip141 = false;
 #endif
     if (stopped())
@@ -248,13 +234,13 @@ void validate_block::accept_transactions(block_const_ptr block, size_t bucket,
     }
 
     code ec(error::success);
-    const auto& state = *block->validation.state;
-    const auto& txs = block->transactions();
-    const auto count = txs.size();
+    auto const& state = *block->validation.state;
+    auto const& txs = block->transactions();
+    auto const count = txs.size();
 
     // Run contextual tx non-script checks (not in tx order).
     for (auto tx = bucket; tx < count && !ec; tx = ceiling_add(tx, buckets)) {
-        const auto& transaction = txs[tx];
+        auto const& transaction = txs[tx];
         if ( ! transaction.validation.validated) {
             // LOG_INFO(LOG_BLOCKCHAIN) << "Transaction " << encode_hash(transaction.hash()) << " has to be validated.";
             ec = transaction.accept(state, false);
@@ -276,12 +262,12 @@ void validate_block::handle_accepted(const code& ec, block_const_ptr block,
         return;
     }
 
-#ifdef BITPRIM_CURRENCY_BCH
+#ifdef KTH_CURRENCY_BCH
     size_t allowed_sigops = get_allowed_sigops(block->serialized_size(1));
-    const auto exceeded = *sigops > allowed_sigops;
+    auto const exceeded = *sigops > allowed_sigops;
 #else
-    const auto max_sigops = bip141 ? max_fast_sigops : get_allowed_sigops(block->serialized_size(1));
-    const auto exceeded = *sigops > max_sigops;
+    auto const max_sigops = bip141 ? max_fast_sigops : get_allowed_sigops(block->serialized_size(1));
+    auto const exceeded = *sigops > max_sigops;
 #endif
     handler(exceeded ? error::block_embedded_sigop_limit : error::success);
 }
@@ -293,7 +279,7 @@ void validate_block::handle_accepted(const code& ec, block_const_ptr block,
 void validate_block::connect(branch::const_ptr branch,
     result_handler handler) const
 {
-    const auto block = branch->top();
+    auto const block = branch->top();
     BITCOIN_ASSERT(block && block->validation.state);
 
     // We are reimplementing connect, so must set timer externally.
@@ -304,7 +290,7 @@ void validate_block::connect(branch::const_ptr branch,
         return;
     }
 
-    const auto non_coinbase_inputs = block->total_inputs(false);
+    auto const non_coinbase_inputs = block->total_inputs(false);
 
     // Return if there are no non-coinbase inputs to validate.
     if (non_coinbase_inputs == 0) {
@@ -320,11 +306,11 @@ void validate_block::connect(branch::const_ptr branch,
         std::bind(&validate_block::handle_connected,
             this, _1, block, handler);
 
-    const auto threads = priority_dispatch_.size();
-    const auto buckets = std::min(threads, non_coinbase_inputs);
+    auto const threads = priority_dispatch_.size();
+    auto const buckets = std::min(threads, non_coinbase_inputs);
     BITCOIN_ASSERT(buckets != 0);
 
-    const auto join_handler = synchronize(std::move(complete_handler), buckets,
+    auto const join_handler = synchronize(std::move(complete_handler), buckets,
         NAME "_validate");
 
     for (size_t bucket = 0; bucket < buckets; ++bucket)
@@ -337,8 +323,8 @@ void validate_block::connect_inputs(block_const_ptr block, size_t bucket,
 {
     BITCOIN_ASSERT(bucket < buckets);
     code ec(error::success);
-    const auto forks = block->validation.state->enabled_forks();
-    const auto& txs = block->transactions();
+    auto const forks = block->validation.state->enabled_forks();
+    auto const& txs = block->transactions();
     size_t position = 0;
 
     // Must skip coinbase here as it is already accounted for.
@@ -360,7 +346,7 @@ void validate_block::connect_inputs(block_const_ptr block, size_t bucket,
 
 
         size_t input_index;
-        const auto& inputs = tx->inputs();
+        auto const& inputs = tx->inputs();
 
         for (input_index = 0; input_index < inputs.size(); ++input_index, ++position) {
             if (position % buckets != bucket)
@@ -371,7 +357,7 @@ void validate_block::connect_inputs(block_const_ptr block, size_t bucket,
                 return;
             }
 
-            const auto& prevout = inputs[input_index].previous_output();
+            auto const& prevout = inputs[input_index].previous_output();
 
             if (!prevout.validation.cache.is_valid()) {
                 ec = error::missing_previous_output;
@@ -384,7 +370,7 @@ void validate_block::connect_inputs(block_const_ptr block, size_t bucket,
         }
 
         if (ec) {
-            const auto height = block->validation.state->height();
+            auto const height = block->validation.state->height();
             dump(ec, *tx, input_index, forks, height);
             break;
         }
@@ -411,10 +397,10 @@ void validate_block::handle_connected(const code& ec, block_const_ptr block,
 //-----------------------------------------------------------------------------
 
 void validate_block::dump(const code& ec, const transaction& tx, uint32_t input_index, uint32_t forks, size_t height) {
-    const auto& prevout = tx.inputs()[input_index].previous_output();
-    const auto script = prevout.validation.cache.script().to_data(false);
-    const auto hash = encode_hash(prevout.hash());
-    const auto tx_hash = encode_hash(tx.hash());
+    auto const& prevout = tx.inputs()[input_index].previous_output();
+    auto const script = prevout.validation.cache.script().to_data(false);
+    auto const hash = encode_hash(prevout.hash());
+    auto const tx_hash = encode_hash(tx.hash());
 
     LOG_DEBUG(LOG_BLOCKCHAIN)
         << "Verify failed [" << height << "] : " << ec.message() << std::endl
@@ -427,4 +413,4 @@ void validate_block::dump(const code& ec, const transaction& tx, uint32_t input_
 }
 
 } // namespace blockchain
-} // namespace libbitcoin
+} // namespace kth

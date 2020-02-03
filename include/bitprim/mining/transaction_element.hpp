@@ -1,23 +1,9 @@
-/**
- * Copyright (c) 2016-2018 Bitprim Inc.
- *
- * This file is part of Bitprim.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-#ifndef BITPRIM_BLOCKCHAIN_MINING_TRANSACTION_ELEMENT_HPP_
-#define BITPRIM_BLOCKCHAIN_MINING_TRANSACTION_ELEMENT_HPP_
+// Copyright (c) 2016-2020 Knuth Project developers.
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+#ifndef KTH_BLOCKCHAIN_MINING_TRANSACTION_ELEMENT_HPP_
+#define KTH_BLOCKCHAIN_MINING_TRANSACTION_ELEMENT_HPP_
 
 #include <unordered_map>
 #include <vector>
@@ -31,7 +17,7 @@ class transaction_element {
 public:
 
     transaction_element(hash_digest const& txid,
-#if ! defined(BITPRIM_CURRENCY_BCH)
+#if ! defined(KTH_CURRENCY_BCH)
                         hash_digest const& hash,
 #endif
                         data_chunk const& raw,
@@ -41,7 +27,7 @@ public:
                         // std::vector<chain::point> const& previous_outputs
                         )
         : txid_(txid)
-#if ! defined(BITPRIM_CURRENCY_BCH)
+#if ! defined(KTH_CURRENCY_BCH)
         , hash_(hash)
 #endif
         , raw_(raw)
@@ -52,7 +38,7 @@ public:
     {}
 
     transaction_element(hash_digest const& txid,
-#if ! defined(BITPRIM_CURRENCY_BCH)
+#if ! defined(KTH_CURRENCY_BCH)
                         hash_digest const& hash,
 #endif
                         data_chunk&& raw,
@@ -62,7 +48,7 @@ public:
                         // std::vector<chain::point>&& previous_outputs
                         )
         : txid_(txid)
-#if ! defined(BITPRIM_CURRENCY_BCH)
+#if ! defined(KTH_CURRENCY_BCH)
         , hash_(hash)
 #endif
         , raw_(std::move(raw))
@@ -76,7 +62,7 @@ public:
         return txid_;
     }
 
-#if ! defined(BITPRIM_CURRENCY_BCH)
+#if ! defined(KTH_CURRENCY_BCH)
     hash_digest const& hash() const {
         return hash_;
     }
@@ -109,7 +95,7 @@ public:
 private:
     hash_digest txid_;
 
-#if ! defined(BITPRIM_CURRENCY_BCH)
+#if ! defined(KTH_CURRENCY_BCH)
     hash_digest hash_;
 #endif
 
@@ -121,6 +107,6 @@ private:
 };
 
 }  // namespace mining
-}  // namespace libbitcoin
+}  // namespace kth
 
-#endif  //BITPRIM_BLOCKCHAIN_MINING_TRANSACTION_ELEMENT_HPP_
+#endif  //KTH_BLOCKCHAIN_MINING_TRANSACTION_ELEMENT_HPP_

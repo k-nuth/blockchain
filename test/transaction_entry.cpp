@@ -1,21 +1,7 @@
-/**
- * Copyright (c) 2011-2017 libbitcoin developers (see AUTHORS)
- *
- * This file is part of libbitcoin.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (c) 2016-2020 Knuth Project developers.
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 #include <boost/test/unit_test.hpp>
 
 #include <cstdint>
@@ -29,7 +15,7 @@ using namespace bc::machine;
 
 BOOST_AUTO_TEST_SUITE(transaction_entry_tests)
 
-static const auto default_tx_hash = hash_literal("f702453dd03b0f055e5437d76128141803984fb10acb85fc3b2184fae2f3fa78");
+static auto const default_tx_hash = hash_literal("f702453dd03b0f055e5437d76128141803984fb10acb85fc3b2184fae2f3fa78");
 
 static chain_state::data data()
 {
@@ -43,13 +29,13 @@ static chain_state::data data()
 
 static transaction_const_ptr make_tx()
 {
-    const auto tx = std::make_shared<const message::transaction>();
+    auto const tx = std::make_shared<const message::transaction>();
     tx->validation.state = std::make_shared<chain_state>(
-#ifdef BITPRIM_CURRENCY_BCH
+#ifdef KTH_CURRENCY_BCH
         chain_state{ data(), {}, 0, 0, 0 });
 #else
         chain_state{ data(), {}, 0 });
-#endif //BITPRIM_CURRENCY_BCH
+#endif //KTH_CURRENCY_BCH
         
     return tx;
 }
@@ -98,7 +84,7 @@ BOOST_AUTO_TEST_CASE(transaction_entry__construct1__default_block_hash__expected
 BOOST_AUTO_TEST_CASE(transaction_entry__is_anchor__parents__false)
 {
     transaction_entry instance(make_tx());
-    const auto parent = make_instance();
+    auto const parent = make_instance();
     instance.add_parent(parent);
     BOOST_REQUIRE(!instance.is_anchor());
 }
@@ -106,7 +92,7 @@ BOOST_AUTO_TEST_CASE(transaction_entry__is_anchor__parents__false)
 BOOST_AUTO_TEST_CASE(transaction_entry__is_anchor__children__true)
 {
     transaction_entry instance(make_tx());
-    const auto child = make_instance();
+    auto const child = make_instance();
     instance.add_child(child);
     BOOST_REQUIRE(instance.is_anchor());
 }
@@ -148,7 +134,7 @@ BOOST_AUTO_TEST_CASE(transaction_entry__is_marked__true__true)
 BOOST_AUTO_TEST_CASE(transaction_entry__add_parent__one__expected_parents)
 {
     transaction_entry instance(make_tx());
-    const auto parent = make_instance();
+    auto const parent = make_instance();
     instance.add_parent(parent);
     BOOST_REQUIRE_EQUAL(instance.parents().size(), 1u);
     BOOST_REQUIRE_EQUAL(instance.parents().front(), parent);
@@ -159,7 +145,7 @@ BOOST_AUTO_TEST_CASE(transaction_entry__add_parent__one__expected_parents)
 BOOST_AUTO_TEST_CASE(transaction_entry__add_child__one__expected_children)
 {
     transaction_entry instance(make_tx());
-    const auto child = make_instance();
+    auto const child = make_instance();
     instance.add_child(child);
     BOOST_REQUIRE_EQUAL(instance.children().size(), 1u);
     BOOST_REQUIRE_EQUAL(instance.children().front(), child);
@@ -170,7 +156,7 @@ BOOST_AUTO_TEST_CASE(transaction_entry__add_child__one__expected_children)
 BOOST_AUTO_TEST_CASE(transaction_entry__remove_child__not_found__empty)
 {
     transaction_entry instance(make_tx());
-    const auto child = make_instance();
+    auto const child = make_instance();
     instance.remove_child(child);
     BOOST_REQUIRE(instance.children().empty());
 }
@@ -178,7 +164,7 @@ BOOST_AUTO_TEST_CASE(transaction_entry__remove_child__not_found__empty)
 BOOST_AUTO_TEST_CASE(transaction_entry__remove_child__only_found__empty)
 {
     transaction_entry instance(make_tx());
-    const auto child = make_instance();
+    auto const child = make_instance();
     instance.add_child(child);
     BOOST_REQUIRE_EQUAL(instance.children().size(), 1u);
     instance.remove_child(child);
@@ -188,8 +174,8 @@ BOOST_AUTO_TEST_CASE(transaction_entry__remove_child__only_found__empty)
 BOOST_AUTO_TEST_CASE(transaction_entry__remove_child__one_of_two__expected_one_remains)
 {
     transaction_entry instance(make_tx());
-    const auto child1 = make_instance();
-    const auto child2 = make_instance();
+    auto const child1 = make_instance();
+    auto const child2 = make_instance();
     instance.add_child(child1);
     instance.add_child(child2);
     BOOST_REQUIRE_EQUAL(instance.children().size(), 2u);

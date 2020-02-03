@@ -1,21 +1,7 @@
-/**
- * Copyright (c) 2011-2017 libbitcoin developers (see AUTHORS)
- *
- * This file is part of libbitcoin.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (c) 2016-2020 Knuth Project developers.
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 #include <bitcoin/blockchain/validate/validate_transaction.hpp>
 
 #include <algorithm>
@@ -46,7 +32,7 @@ using namespace std::placeholders;
 // transaction: { exists, height, output }
 
 
-#if defined(BITPRIM_WITH_MEMPOOL)
+#if defined(KTH_WITH_MEMPOOL)
 validate_transaction::validate_transaction(dispatcher& dispatch, const fast_chain& chain, const settings& settings, mining::mempool const& mp)
 #else
 validate_transaction::validate_transaction(dispatcher& dispatch, const fast_chain& chain, const settings& settings)
@@ -55,7 +41,7 @@ validate_transaction::validate_transaction(dispatcher& dispatch, const fast_chai
     retarget_(settings.retarget),
     dispatch_(dispatch),
 
-#if defined(BITPRIM_WITH_MEMPOOL)
+#if defined(KTH_WITH_MEMPOOL)
     transaction_populator_(dispatch, chain, mp),
 #else
     transaction_populator_(dispatch, chain),
@@ -138,7 +124,7 @@ void validate_transaction::connect(transaction_const_ptr tx,
     result_handler handler) const
 {
     BITCOIN_ASSERT(tx->validation.state);
-    const auto total_inputs = tx->inputs().size();
+    auto const total_inputs = tx->inputs().size();
 
     // Return if there are no inputs to validate (will fail later).
     if (total_inputs == 0)
@@ -147,8 +133,8 @@ void validate_transaction::connect(transaction_const_ptr tx,
         return;
     }
 
-    const auto buckets = std::min(dispatch_.size(), total_inputs);
-    const auto join_handler = synchronize(handler, buckets, NAME "_validate");
+    auto const buckets = std::min(dispatch_.size(), total_inputs);
+    auto const join_handler = synchronize(handler, buckets, NAME "_validate");
     BITCOIN_ASSERT(buckets != 0);
 
     // If the priority threadpool is shut down when this is called the handler
@@ -162,8 +148,8 @@ void validate_transaction::connect_inputs(transaction_const_ptr tx, size_t bucke
 {
     BITCOIN_ASSERT(bucket < buckets);
     code ec(error::success);
-    const auto forks = tx->validation.state->enabled_forks();
-    const auto& inputs = tx->inputs();
+    auto const forks = tx->validation.state->enabled_forks();
+    auto const& inputs = tx->inputs();
 
     for (auto input_index = bucket; input_index < inputs.size(); input_index = ceiling_add(input_index, buckets)) {
         if (stopped()) {
@@ -171,7 +157,7 @@ void validate_transaction::connect_inputs(transaction_const_ptr tx, size_t bucke
             break;
         }
 
-        const auto& prevout = inputs[input_index].previous_output();
+        auto const& prevout = inputs[input_index].previous_output();
 
         if (!prevout.validation.cache.is_valid()) {
             ec = error::missing_previous_output;
@@ -187,4 +173,4 @@ void validate_transaction::connect_inputs(transaction_const_ptr tx, size_t bucke
 }
 
 } // namespace blockchain
-} // namespace libbitcoin
+} // namespace kth

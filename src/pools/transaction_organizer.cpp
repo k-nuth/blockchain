@@ -1,21 +1,7 @@
-/**
- * Copyright (c) 2011-2017 libbitcoin developers (see AUTHORS)
- *
- * This file is part of libbitcoin.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (c) 2016-2020 Knuth Project developers.
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 #include <bitcoin/blockchain/pools/transaction_organizer.hpp>
 
 #include <algorithm>
@@ -40,7 +26,7 @@ using namespace std::placeholders;
 
 // TODO: create priority pool at blockchain level and use in both organizers. 
 
-#if defined(BITPRIM_WITH_MEMPOOL)
+#if defined(KTH_WITH_MEMPOOL)
 transaction_organizer::transaction_organizer(prioritized_mutex& mutex, dispatcher& dispatch, threadpool& thread_pool, fast_chain& chain, const settings& settings, mining::mempool& mp)
 #else
 transaction_organizer::transaction_organizer(prioritized_mutex& mutex, dispatcher& dispatch, threadpool& thread_pool, fast_chain& chain, const settings& settings)
@@ -52,7 +38,7 @@ transaction_organizer::transaction_organizer(prioritized_mutex& mutex, dispatche
     , dispatch_(dispatch)
     , transaction_pool_(settings)
 
-#if defined(BITPRIM_WITH_MEMPOOL)
+#if defined(KTH_WITH_MEMPOOL)
     , validator_(dispatch, fast_chain_, settings, mp)
 #else
     , validator_(dispatch, fast_chain_, settings)
@@ -60,7 +46,7 @@ transaction_organizer::transaction_organizer(prioritized_mutex& mutex, dispatche
 
     , subscriber_(std::make_shared<transaction_subscriber>(thread_pool, NAME))
 
-#if defined(BITPRIM_WITH_MEMPOOL)
+#if defined(KTH_WITH_MEMPOOL)
     , mempool_(mp)
 #endif
 {}
@@ -189,7 +175,7 @@ void transaction_organizer::organize(transaction_const_ptr tx, result_handler ha
         std::bind(&transaction_organizer::signal_completion,
             this, _1);
 
-    const auto check_handler =
+    auto const check_handler =
         std::bind(&transaction_organizer::handle_check,
             this, _1, tx, complete);
 
@@ -235,7 +221,7 @@ void transaction_organizer::handle_check(const code& ec,
         return;
     }
 
-    const auto accept_handler =
+    auto const accept_handler =
         std::bind(&transaction_organizer::handle_accept,
             this, _1, tx, handler);
 
@@ -271,7 +257,7 @@ void transaction_organizer::handle_accept(const code& ec,
         return;
     }
 
-    const auto connect_handler =
+    auto const connect_handler =
         std::bind(&transaction_organizer::handle_connect,
             this, _1, tx, handler);
 
@@ -302,9 +288,9 @@ void transaction_organizer::handle_connect(const code& ec,
         return;
     }
 
-    const auto pushed_handler = std::bind(&transaction_organizer::handle_pushed, this, _1, tx, handler);
+    auto const pushed_handler = std::bind(&transaction_organizer::handle_pushed, this, _1, tx, handler);
 
-#if defined(BITPRIM_WITH_MEMPOOL)
+#if defined(KTH_WITH_MEMPOOL)
     auto res = mempool_.add(*tx);
     if (res == error::double_spend_mempool || res == error::double_spend_blockchain) {
         handler(res);
@@ -377,8 +363,8 @@ void transaction_organizer::fetch_mempool(size_t maximum,
 
 uint64_t transaction_organizer::price(transaction_const_ptr tx) const
 {
-    const auto byte_fee = settings_.byte_fee_satoshis;
-    const auto sigop_fee = settings_.sigop_fee_satoshis;
+    auto const byte_fee = settings_.byte_fee_satoshis;
+    auto const sigop_fee = settings_.sigop_fee_satoshis;
 
     // Guard against summing signed values by testing independently.
     if (byte_fee == 0.0f && sigop_fee == 0.0f)
@@ -394,4 +380,4 @@ uint64_t transaction_organizer::price(transaction_const_ptr tx) const
 }
 
 } // namespace blockchain
-} // namespace libbitcoin
+} // namespace kth

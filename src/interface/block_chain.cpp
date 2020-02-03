@@ -1,21 +1,7 @@
-/**
- * Copyright (c) 2011-2017 libbitcoin developers (see AUTHORS)
- *
- * This file is part of libbitcoin.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (c) 2016-2020 Knuth Project developers.
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 #include <bitcoin/blockchain/interface/block_chain.hpp>
 
 #include <algorithm>
@@ -31,11 +17,11 @@
 #include <bitcoin/database.hpp>
 
 
-#ifdef BITPRIM_USE_DOMAIN
+#ifdef KTH_USE_DOMAIN
 #include <bitcoin/infrastructure/math/sip_hash.hpp>
 #else
 #include <bitcoin/bitcoin/math/sip_hash.hpp>
-#endif // BITPRIM_USE_DOMAIN
+#endif // KTH_USE_DOMAIN
 
 #include <bitcoin/bitcoin/multi_crypto_support.hpp>
 #include <bitcoin/blockchain/settings.hpp>
@@ -67,7 +53,7 @@ struct hash<libbitcoin::blockchain::spent_value_type> {
 
 namespace libbitcoin {
 
-#if defined(BITPRIM_WITH_MEMPOOL)
+#if defined(KTH_WITH_MEMPOOL)
 namespace mining {
 mempool* mempool::candidate_index_t::parent_ = nullptr;
 } // namespace mining
@@ -97,7 +83,7 @@ block_chain::block_chain(threadpool& pool,
     , priority(chain_settings.priority))
     , dispatch_(priority_pool_, NAME "_priority")
 
-#if defined(BITPRIM_WITH_MEMPOOL)
+#if defined(KTH_WITH_MEMPOOL)
     , mempool_(chain_settings.mempool_max_template_size, chain_settings.mempool_size_multiplier)
     , transaction_organizer_(validation_mutex_, dispatch_, pool, *this, chain_settings, mempool_)
     , block_organizer_(validation_mutex_, dispatch_, pool, *this, chain_settings, relay_transactions, mempool_)
@@ -119,7 +105,7 @@ uint32_t get_clock_now() {
     return static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::microseconds>(now.time_since_epoch()).count());
 }
 
-#ifdef BITPRIM_DB_LEGACY
+#ifdef KTH_DB_LEGACY
 inline
 void block_chain::prune_reorg_async() {}
 /*
@@ -245,11 +231,11 @@ bool block_chain::get_is_unspent_transaction(hash_digest const& hash, size_t bra
     auto const result = database_.transactions().get(hash, branch_height, require_confirmed);
     return result && !result.is_spent(branch_height);
 }
-#endif // BITPRIM_DB_LEGACY
+#endif // KTH_DB_LEGACY
 
 
 
-#if defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_DB_NEW_FULL) 
+#if defined(KTH_DB_LEGACY) || defined(KTH_DB_NEW_FULL) 
 
 bool block_chain::get_output(chain::output& out_output, size_t& out_height,
     uint32_t& out_median_time_past, bool& out_coinbase,
@@ -257,7 +243,7 @@ bool block_chain::get_output(chain::output& out_output, size_t& out_height,
     bool require_confirmed) const
 {
 
-#if defined(BITPRIM_DB_LEGACY)
+#if defined(KTH_DB_LEGACY)
 
     // This includes a cached value for spender height (or not_spent).
     // Get the highest tx with matching hash, at or below the branch height.
@@ -265,7 +251,7 @@ bool block_chain::get_output(chain::output& out_output, size_t& out_height,
         out_median_time_past, out_coinbase, outpoint, branch_height,
         require_confirmed);
 
-#elif defined(BITPRIM_DB_NEW_FULL)
+#elif defined(KTH_DB_NEW_FULL)
 
     auto const tx = database_.internal_db().get_transaction(outpoint.hash(), branch_height);
 
@@ -288,7 +274,7 @@ bool block_chain::get_output(chain::output& out_output, size_t& out_height,
 
 
 //Bitprim: We don't store spent information
-/*#if defined(BITPRIM_DB_NEW_FULL)
+/*#if defined(KTH_DB_NEW_FULL)
 //TODO(fernando): check if can we do it just with the UTXO
 bool block_chain::get_is_unspent_transaction(hash_digest const& hash, size_t branch_height, bool require_confirmed) const {
     auto const result = database_.internal_db().get_transaction(hash, branch_height, require_confirmed);
@@ -297,10 +283,10 @@ bool block_chain::get_is_unspent_transaction(hash_digest const& hash, size_t bra
 #endif
 */
 
-#if defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_DB_NEW_FULL)
+#if defined(KTH_DB_LEGACY) || defined(KTH_DB_NEW_FULL)
 bool block_chain::get_transaction_position(size_t& out_height, size_t& out_position, hash_digest const& hash, bool require_confirmed) const {
 
-#if defined(BITPRIM_DB_LEGACY)    
+#if defined(KTH_DB_LEGACY)    
     auto const result = database_.transactions().get(hash, max_size_t, require_confirmed);
     if ( ! result) {
         return false;
@@ -336,9 +322,9 @@ bool block_chain::get_transaction_position(size_t& out_height, size_t& out_posit
 
 }
 
-#endif // defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_DB_NEW_FULL)
+#endif // defined(KTH_DB_LEGACY) || defined(KTH_DB_NEW_FULL)
 
-#ifdef BITPRIM_DB_NEW
+#ifdef KTH_DB_NEW
 
 void block_chain::prune_reorg_async() {
     if ( ! is_stale()) {
@@ -458,7 +444,7 @@ std::pair<bool, database::internal_database::utxo_pool_t> block_chain::get_utxo_
     return {true, std::move(p.second)};
 }
 
-#endif // BITPRIM_DB_NEW
+#endif // KTH_DB_NEW
 
 
 ////transaction_ptr block_chain::get_transaction(size_t& out_block_height,
@@ -477,7 +463,7 @@ std::pair<bool, database::internal_database::utxo_pool_t> block_chain::get_utxo_
 // Writers
 // ----------------------------------------------------------------------------
 
-#ifdef BITPRIM_DB_LEGACY
+#ifdef KTH_DB_LEGACY
 bool block_chain::begin_insert() const {
     return database_.begin_insert();
 }
@@ -485,7 +471,7 @@ bool block_chain::begin_insert() const {
 bool block_chain::end_insert() const {
     return database_.end_insert();
 }
-#endif // BITPRIM_DB_LEGACY
+#endif // KTH_DB_LEGACY
 
 bool block_chain::insert(block_const_ptr block, size_t height) {
     return database_.insert(*block, height) == error::success;
@@ -500,7 +486,7 @@ void block_chain::push(transaction_const_ptr tx, dispatcher&, result_handler han
     handler(database_.push(*tx, chain_state()->enabled_forks()));
 }
 
-#ifdef BITPRIM_DB_TRANSACTION_UNCONFIRMED
+#ifdef KTH_DB_TRANSACTION_UNCONFIRMED
 void block_chain::fetch_unconfirmed_transaction(hash_digest const& hash, transaction_unconfirmed_fetch_handler handler) const
 {
     if (stopped())
@@ -520,7 +506,7 @@ void block_chain::fetch_unconfirmed_transaction(hash_digest const& hash, transac
     auto const tx = std::make_shared<const transaction>(result.transaction());
     handler(error::success, tx);
 }
-#endif // BITPRIM_DB_TRANSACTION_UNCONFIRMED
+#endif // KTH_DB_TRANSACTION_UNCONFIRMED
 
 void block_chain::reorganize(const checkpoint& fork_point,
     block_const_ptr_list_const_ptr incoming_blocks,
@@ -662,11 +648,11 @@ block_chain::~block_chain()
 // Blocks are and transactions returned const because they don't change and
 // this eliminates the need to copy the cached items.
 
-#ifdef BITPRIM_DB_LEGACY
+#ifdef KTH_DB_LEGACY
 void block_chain::fetch_block(size_t height, bool witness,
     block_fetch_handler handler) const
 {
-#ifdef BITPRIM_CURRENCY_BCH
+#ifdef KTH_CURRENCY_BCH
     witness = false;
 #endif
     if (stopped())
@@ -723,7 +709,7 @@ void block_chain::fetch_block(size_t height, bool witness,
 void block_chain::fetch_block(hash_digest const& hash, bool witness,
     block_fetch_handler handler) const
 {
-#ifdef BITPRIM_CURRENCY_BCH
+#ifdef KTH_CURRENCY_BCH
     witness = false;
 #endif
     if (stopped())
@@ -913,7 +899,7 @@ void block_chain::fetch_compact_block(size_t height, compact_block_fetch_handler
 }
 
 void block_chain::fetch_compact_block(hash_digest const& hash, compact_block_fetch_handler handler) const {
-#ifdef BITPRIM_CURRENCY_BCH
+#ifdef KTH_CURRENCY_BCH
     bool witness = false;
 #else
     bool witness = true;
@@ -976,7 +962,7 @@ void block_chain::fetch_transaction(hash_digest const& hash,
     bool require_confirmed, bool witness,
     transaction_fetch_handler handler) const
 {
-#ifdef BITPRIM_CURRENCY_BCH
+#ifdef KTH_CURRENCY_BCH
     witness = false;
 #endif
     if (stopped())
@@ -1015,14 +1001,14 @@ void block_chain::fetch_transaction(hash_digest const& hash,
         result.transaction(witness));
     handler(error::success, tx, result.position(), result.height());
 }
-#endif // BITPRIM_DB_LEGACY
+#endif // KTH_DB_LEGACY
 
-#if defined(BITPRIM_DB_NEW) || defined(BITPRIM_DB_NEW_BLOCKS) || defined(BITPRIM_DB_NEW_FULL)
+#if defined(KTH_DB_NEW) || defined(KTH_DB_NEW_BLOCKS) || defined(KTH_DB_NEW_FULL)
 
 void block_chain::fetch_block(size_t height, bool witness,
     block_fetch_handler handler) const
 {
-#ifdef BITPRIM_CURRENCY_BCH
+#ifdef KTH_CURRENCY_BCH
     witness = false;
 #endif
     if (stopped())
@@ -1057,7 +1043,7 @@ void block_chain::fetch_block(size_t height, bool witness,
 void block_chain::fetch_block(hash_digest const& hash, bool witness,
     block_fetch_handler handler) const
 {
-#ifdef BITPRIM_CURRENCY_BCH
+#ifdef KTH_CURRENCY_BCH
     witness = false;
 #endif
     if (stopped())
@@ -1091,7 +1077,7 @@ void block_chain::fetch_block(hash_digest const& hash, bool witness,
 }
 #endif 
 
-#if defined(BITPRIM_DB_NEW_BLOCKS) || defined(BITPRIM_DB_NEW_FULL)
+#if defined(KTH_DB_NEW_BLOCKS) || defined(KTH_DB_NEW_FULL)
 void block_chain::fetch_block_header_txs_size(hash_digest const& hash,
     block_header_txs_size_fetch_handler handler) const
 {
@@ -1167,7 +1153,7 @@ void block_chain::fetch_compact_block(size_t height, compact_block_fetch_handler
 }
 
 void block_chain::fetch_compact_block(hash_digest const& hash, compact_block_fetch_handler handler) const {
-#ifdef BITPRIM_CURRENCY_BCH
+#ifdef KTH_CURRENCY_BCH
     bool witness = false;
 #else
     bool witness = true;
@@ -1188,7 +1174,7 @@ void block_chain::fetch_compact_block(hash_digest const& hash, compact_block_fet
 }
 #endif
 
-#if defined(BITPRIM_DB_NEW) || defined(BITPRIM_DB_NEW_BLOCKS) || defined(BITPRIM_DB_NEW_FULL)
+#if defined(KTH_DB_NEW) || defined(KTH_DB_NEW_BLOCKS) || defined(KTH_DB_NEW_FULL)
 // This may execute over 500 queries.
 void block_chain::fetch_locator_block_hashes(get_blocks_const_ptr locator,
     hash_digest const& threshold, size_t limit,
@@ -1269,14 +1255,14 @@ void block_chain::fetch_locator_block_hashes(get_blocks_const_ptr locator,
 }
 
 
-#endif //BITPRIM_DB_NEW || BITPRIM_DB_NEW_BLOCKS || BITPRIM_DB_NEW_FULL
+#endif //KTH_DB_NEW || KTH_DB_NEW_BLOCKS || KTH_DB_NEW_FULL
 
 
-#if defined(BITPRIM_DB_NEW_FULL)
+#if defined(KTH_DB_NEW_FULL)
 
 void block_chain::fetch_transaction(hash_digest const& hash, bool require_confirmed, bool witness, transaction_fetch_handler handler) const
 {
-#ifdef BITPRIM_CURRENCY_BCH
+#ifdef KTH_CURRENCY_BCH
     witness = false;
 #endif
     if (stopped())
@@ -1395,7 +1381,7 @@ hash_digest generate_merkle_root(std::vector<chain::transaction> transactions) {
     return merkle.front();
 }
 
-#ifdef BITPRIM_DB_NEW_FULL
+#ifdef KTH_DB_NEW_FULL
 //TODO(fernando): refactor!!!
 std::vector<libbitcoin::blockchain::mempool_transaction_summary> block_chain::get_mempool_transactions(std::vector<std::string> const& payment_addresses, bool use_testnet_rules, bool witness) const {
 /*          "    \"address\"  (string) The base58check encoded address\n"
@@ -1407,7 +1393,7 @@ std::vector<libbitcoin::blockchain::mempool_transaction_summary> block_chain::ge
             "    \"prevout\"  (string) The previous transaction output index (if spending)\n"
 */
 
-#ifdef BITPRIM_CURRENCY_BCH
+#ifdef KTH_CURRENCY_BCH
     witness = false;
 #endif
 
@@ -1453,7 +1439,7 @@ std::vector<libbitcoin::blockchain::mempool_transaction_summary> block_chain::ge
         i = 0;
         for (auto const& input : tx.inputs()) {
             // TODO: payment_addrress::extract should use the prev_output script instead of the input script
-            // see https://github.com/bitprim/bitprim-core/blob/v0.10.0/src/wallet/payment_address.cpp#L505
+            // see https://github.com/k-nuth/core/blob/v0.10.0/src/wallet/payment_address.cpp#L505
             auto const tx_addresses = libbitcoin::wallet::payment_address::extract(input.script(), encoding_p2kh, encoding_p2sh);
             for(auto const tx_address : tx_addresses)
             if (tx_address && addrs.find(tx_address) != addrs.end()) {
@@ -1486,7 +1472,7 @@ std::vector<libbitcoin::blockchain::mempool_transaction_summary> block_chain::ge
 // Precondition: valid payment addresses
 std::vector<chain::transaction> block_chain::get_mempool_transactions_from_wallets(std::vector<wallet::payment_address> const& payment_addresses, bool use_testnet_rules, bool witness) const {
 
-#ifdef BITPRIM_CURRENCY_BCH
+#ifdef KTH_CURRENCY_BCH
     witness = false;
 #endif
 
@@ -1512,7 +1498,7 @@ std::vector<chain::transaction> block_chain::get_mempool_transactions_from_walle
 
         for (auto iter_output = tx.outputs().begin(); (iter_output != tx.outputs().end() && !inserted); ++iter_output) {
         
-            const auto tx_addresses = libbitcoin::wallet::payment_address::extract((*iter_output).script(), encoding_p2kh, encoding_p2sh);
+            auto const tx_addresses = libbitcoin::wallet::payment_address::extract((*iter_output).script(), encoding_p2kh, encoding_p2sh);
 
             for (auto iter_addr = tx_addresses.begin(); (iter_addr != tx_addresses.end() && !inserted); ++iter_addr) {
                 if (*iter_addr) {
@@ -1527,8 +1513,8 @@ std::vector<chain::transaction> block_chain::get_mempool_transactions_from_walle
 
         for (auto iter_input = tx.inputs().begin(); (iter_input != tx.inputs().end() && !inserted); ++iter_input) {
             // TODO: payment_addrress::extract should use the prev_output script instead of the input script
-            // see https://github.com/bitprim/bitprim-core/blob/v0.10.0/src/wallet/payment_address.cpp#L505
-            const auto tx_addresses = libbitcoin::wallet::payment_address::extract((*iter_input).script(), encoding_p2kh, encoding_p2sh);
+            // see https://github.com/k-nuth/core/blob/v0.10.0/src/wallet/payment_address.cpp#L505
+            auto const tx_addresses = libbitcoin::wallet::payment_address::extract((*iter_input).script(), encoding_p2kh, encoding_p2sh);
             for (auto iter_addr = tx_addresses.begin(); (iter_addr != tx_addresses.end() && !inserted); ++iter_addr) {
                 if (*iter_addr) {
                     auto it = std::find(payment_addresses.begin(), payment_addresses.end(), *iter_addr);
@@ -1558,7 +1544,7 @@ void block_chain::fill_tx_list_from_mempool(message::compact_block const& block,
     for (auto const& tx_res : result) { 
         auto const& tx = tx_res.transaction();
 
-#ifdef BITPRIM_CURRENCY_BCH
+#ifdef KTH_CURRENCY_BCH
         bool witness = false;
 #else
         bool witness = true;
@@ -1598,7 +1584,7 @@ void block_chain::fill_tx_list_from_mempool(message::compact_block const& block,
 }
 
 safe_chain::mempool_mini_hash_map block_chain::get_mempool_mini_hash_map(message::compact_block const& block) const {
-#ifdef BITPRIM_CURRENCY_BCH
+#ifdef KTH_CURRENCY_BCH
      bool witness = false;
 #else
      bool witness = true;
@@ -1665,9 +1651,9 @@ void block_chain::fetch_unconfirmed_transaction(hash_digest const& hash, transac
 }
 
 
-#endif // BITPRIM_DB_NEW_FULL
+#endif // KTH_DB_NEW_FULL
 
-#ifdef BITPRIM_DB_TRANSACTION_UNCONFIRMED
+#ifdef KTH_DB_TRANSACTION_UNCONFIRMED
 //TODO(fernando): refactor!!!
 std::vector<libbitcoin::blockchain::mempool_transaction_summary> block_chain::get_mempool_transactions(std::vector<std::string> const& payment_addresses, bool use_testnet_rules, bool witness) const {
 /*          "    \"address\"  (string) The base58check encoded address\n"
@@ -1679,7 +1665,7 @@ std::vector<libbitcoin::blockchain::mempool_transaction_summary> block_chain::ge
             "    \"prevout\"  (string) The previous transaction output index (if spending)\n"
 */
 
-#ifdef BITPRIM_CURRENCY_BCH
+#ifdef KTH_CURRENCY_BCH
     witness = false;
 #endif
 
@@ -1720,7 +1706,7 @@ std::vector<libbitcoin::blockchain::mempool_transaction_summary> block_chain::ge
         i = 0;
         for (auto const& input : tx.inputs()) {
             // TODO: payment_addrress::extract should use the prev_output script instead of the input script
-            // see https://github.com/bitprim/bitprim-core/blob/v0.10.0/src/wallet/payment_address.cpp#L505
+            // see https://github.com/k-nuth/core/blob/v0.10.0/src/wallet/payment_address.cpp#L505
             auto const tx_addresses = libbitcoin::wallet::payment_address::extract(input.script(), encoding_p2kh, encoding_p2sh);
             for(auto const tx_address : tx_addresses)
             if (tx_address && addrs.find(tx_address) != addrs.end()) {
@@ -1754,7 +1740,7 @@ std::vector<libbitcoin::blockchain::mempool_transaction_summary> block_chain::ge
 // Precondition: valid payment addresses
 std::vector<chain::transaction> block_chain::get_mempool_transactions_from_wallets(std::vector<wallet::payment_address> const& payment_addresses, bool use_testnet_rules, bool witness) const {
 
-#ifdef BITPRIM_CURRENCY_BCH
+#ifdef KTH_CURRENCY_BCH
     witness = false;
 #endif
 
@@ -1779,7 +1765,7 @@ std::vector<chain::transaction> block_chain::get_mempool_transactions_from_walle
 
         for (auto iter_output = tx.outputs().begin(); (iter_output != tx.outputs().end() && !inserted); ++iter_output) {
         
-            const auto tx_addresses = libbitcoin::wallet::payment_address::extract((*iter_output).script(), encoding_p2kh, encoding_p2sh);
+            auto const tx_addresses = libbitcoin::wallet::payment_address::extract((*iter_output).script(), encoding_p2kh, encoding_p2sh);
 
             for (auto iter_addr = tx_addresses.begin(); (iter_addr != tx_addresses.end() && !inserted); ++iter_addr) {
                 if (*iter_addr) {
@@ -1794,8 +1780,8 @@ std::vector<chain::transaction> block_chain::get_mempool_transactions_from_walle
 
         for (auto iter_input = tx.inputs().begin(); (iter_input != tx.inputs().end() && !inserted); ++iter_input) {
             // TODO: payment_addrress::extract should use the prev_output script instead of the input script
-            // see https://github.com/bitprim/bitprim-core/blob/v0.10.0/src/wallet/payment_address.cpp#L505
-            const auto tx_addresses = libbitcoin::wallet::payment_address::extract((*iter_input).script(), encoding_p2kh, encoding_p2sh);
+            // see https://github.com/k-nuth/core/blob/v0.10.0/src/wallet/payment_address.cpp#L505
+            auto const tx_addresses = libbitcoin::wallet::payment_address::extract((*iter_input).script(), encoding_p2kh, encoding_p2sh);
             for (auto iter_addr = tx_addresses.begin(); (iter_addr != tx_addresses.end() && !inserted); ++iter_addr) {
                 if (*iter_addr) {
                     auto it = std::find(payment_addresses.begin(), payment_addresses.end(), *iter_addr);
@@ -1839,7 +1825,7 @@ void block_chain::fill_tx_list_from_mempool(message::compact_block const& block,
             
 
     database_.transactions_unconfirmed().for_each([&](chain::transaction const &tx) {
-#ifdef BITPRIM_CURRENCY_BCH
+#ifdef KTH_CURRENCY_BCH
         bool witness = false;
 #else
         bool witness = true;
@@ -1880,7 +1866,7 @@ void block_chain::fill_tx_list_from_mempool(message::compact_block const& block,
 }
 
 safe_chain::mempool_mini_hash_map block_chain::get_mempool_mini_hash_map(message::compact_block const& block) const {
-#ifdef BITPRIM_CURRENCY_BCH
+#ifdef KTH_CURRENCY_BCH
      bool witness = false;
 #else
      bool witness = true;
@@ -1944,9 +1930,9 @@ void block_chain::fetch_unconfirmed_transaction(hash_digest const& hash, transac
 }
 
 
-#endif // BITPRIM_DB_TRANSACTION_UNCONFIRMED
+#endif // KTH_DB_TRANSACTION_UNCONFIRMED
 
-#ifdef BITPRIM_DB_LEGACY
+#ifdef KTH_DB_LEGACY
 // This is same as fetch_transaction but skips deserializing the tx payload.
 void block_chain::fetch_transaction_position(hash_digest const& hash,
     bool require_confirmed, transaction_index_fetch_handler handler) const
@@ -2155,9 +2141,9 @@ void block_chain::fetch_block_locator(const block::indexes& heights, block_locat
 
     handler(error::success, message);
 }
-#endif // BITPRIM_DB_LEGACY
+#endif // KTH_DB_LEGACY
 
-#ifdef BITPRIM_DB_NEW
+#ifdef KTH_DB_NEW
 
 
 void block_chain::fetch_block_hash_timestamp(size_t height, block_hash_time_fetch_handler handler) const
@@ -2360,12 +2346,12 @@ void block_chain::fetch_block_locator(block::indexes const& heights, block_locat
 
     handler(error::success, message);
 }
-#endif // BITPRIM_DB_NEW
+#endif // KTH_DB_NEW
 
 // Server Queries.
 //-----------------------------------------------------------------------------
 
-#if defined(BITPRIM_DB_SPENDS) || defined(BITPRIM_DB_NEW_FULL)
+#if defined(KTH_DB_SPENDS) || defined(KTH_DB_NEW_FULL)
 void block_chain::fetch_spend(const chain::output_point& outpoint, spend_fetch_handler handler) const {
     if (stopped())
     {
@@ -2373,7 +2359,7 @@ void block_chain::fetch_spend(const chain::output_point& outpoint, spend_fetch_h
         return;
     }
 
-    #if defined(BITPRIM_DB_SPENDS)
+    #if defined(KTH_DB_SPENDS)
         auto point = database_.spends().get(outpoint);
     #else
         auto point = database_.internal_db().get_spend(outpoint);
@@ -2387,17 +2373,17 @@ void block_chain::fetch_spend(const chain::output_point& outpoint, spend_fetch_h
 
     handler(error::success, std::move(point));
 }
-#endif // BITPRIM_DB_SPENDS
+#endif // KTH_DB_SPENDS
 
 
-#if defined(BITPRIM_DB_HISTORY) || defined(BITPRIM_DB_NEW_FULL)
+#if defined(KTH_DB_HISTORY) || defined(KTH_DB_NEW_FULL)
 void block_chain::fetch_history(short_hash const& address_hash, size_t limit, size_t from_height, history_fetch_handler handler) const {
     if (stopped()) {
         handler(error::service_stopped, {});
         return;
     }
 
-#if defined(BITPRIM_DB_HISTORY)
+#if defined(KTH_DB_HISTORY)
     handler(error::success, database_.history().get(address_hash, limit, from_height));
 #else
     handler(error::success, database_.internal_db().get_history(address_hash, limit, from_height));
@@ -2411,16 +2397,16 @@ void block_chain::fetch_confirmed_transactions(const short_hash& address_hash, s
         return;
     }
 
-#if defined(BITPRIM_DB_HISTORY)
+#if defined(KTH_DB_HISTORY)
     handler(error::success, database_.history().get_txns(address_hash, limit, from_height));
 #else
     handler(error::success, database_.internal_db().get_history_txns(address_hash, limit, from_height));
 #endif
 }
 
-#endif // BITPRIM_DB_HISTORY
+#endif // KTH_DB_HISTORY
 
-#ifdef BITPRIM_DB_STEALTH
+#ifdef KTH_DB_STEALTH
 void block_chain::fetch_stealth(const binary& filter, size_t from_height, stealth_fetch_handler handler) const
 {
     if (stopped()) {
@@ -2430,7 +2416,7 @@ void block_chain::fetch_stealth(const binary& filter, size_t from_height, stealt
 
     handler(error::success, database_.stealth().scan(filter, from_height));
 }
-#endif // BITPRIM_DB_STEALTH
+#endif // KTH_DB_STEALTH
 
 // Transaction Pool.
 //-----------------------------------------------------------------------------
@@ -2455,7 +2441,7 @@ void block_chain::fetch_mempool(size_t count_limit, uint64_t minimum_fee,
 // Filters.
 //-----------------------------------------------------------------------------
 
-#ifdef BITPRIM_DB_LEGACY
+#ifdef KTH_DB_LEGACY
 // This may execute up to 500 queries.
 // This filters against the block pool and then the block chain.
 void block_chain::filter_blocks(get_data_ptr message, result_handler handler) const {
@@ -2482,10 +2468,10 @@ void block_chain::filter_blocks(get_data_ptr message, result_handler handler) co
     handler(error::success);
 }
 
-#endif // BITPRIM_DB_LEGACY
+#endif // KTH_DB_LEGACY
 
 
-#if defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_DB_NEW_FULL) || defined(BITPRIM_WITH_MEMPOOL)
+#if defined(KTH_DB_LEGACY) || defined(KTH_DB_NEW_FULL) || defined(KTH_WITH_MEMPOOL)
 // This filters against all transactions (confirmed and unconfirmed).
 void block_chain::filter_transactions(get_data_ptr message, result_handler handler) const {
     // This filters against all transactions (confirmed and unconfirmed).
@@ -2497,7 +2483,7 @@ void block_chain::filter_transactions(get_data_ptr message, result_handler handl
 
     auto& inventories = message->inventories();
 
-#if defined(BITPRIM_DB_LEGACY)
+#if defined(KTH_DB_LEGACY)
 
     auto const& transactions = database_.transactions();
 
@@ -2509,8 +2495,8 @@ void block_chain::filter_transactions(get_data_ptr message, result_handler handl
         }
     }
 
-//TODO(fernando): Do we have to use the mempool when both BITPRIM_DB_NEW_FULL and BITPRIM_WITH_MEMPOOL are activated?
-#elif defined(BITPRIM_DB_NEW_FULL)
+//TODO(fernando): Do we have to use the mempool when both KTH_DB_NEW_FULL and KTH_WITH_MEMPOOL are activated?
+#elif defined(KTH_DB_NEW_FULL)
 
     size_t out_height;
     size_t out_position;
@@ -2526,7 +2512,7 @@ void block_chain::filter_transactions(get_data_ptr message, result_handler handl
         }
     }
 
-#elif defined(BITPRIM_WITH_MEMPOOL)
+#elif defined(KTH_WITH_MEMPOOL)
     auto validated_txs = mempool_.get_validated_txs_low();
 
     if (validated_txs.empty()) {
@@ -2547,9 +2533,9 @@ void block_chain::filter_transactions(get_data_ptr message, result_handler handl
     handler(error::success);
 }
 
-#endif // defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_DB_NEW_FULL) || defined(BITPRIM_WITH_MEMPOOL)
+#endif // defined(KTH_DB_LEGACY) || defined(KTH_DB_NEW_FULL) || defined(KTH_WITH_MEMPOOL)
 
-#ifdef BITPRIM_DB_NEW
+#ifdef KTH_DB_NEW
 // This may execute up to 500 queries.
 // This filters against the block pool and then the block chain.
 void block_chain::filter_blocks(get_data_ptr message, result_handler handler) const {
@@ -2574,7 +2560,7 @@ void block_chain::filter_blocks(get_data_ptr message, result_handler handler) co
 
     handler(error::success);
 }
-#endif // BITPRIM_DB_NEW
+#endif // KTH_DB_NEW
 
 
 // Subscribers.
@@ -2661,11 +2647,11 @@ bool block_chain::stopped() const
     return stopped_;
 }
 
-#if defined(BITPRIM_WITH_MEMPOOL)
+#if defined(KTH_WITH_MEMPOOL)
 std::pair<std::vector<libbitcoin::mining::transaction_element>, uint64_t> block_chain::get_block_template() const {
     return mempool_.get_block_template();
 }
 #endif
 
 } // namespace blockchain
-} // namespace libbitcoin
+} // namespace kth

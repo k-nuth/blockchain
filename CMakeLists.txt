@@ -1,21 +1,7 @@
-#
-# Copyright (c) 2017 Bitprim developers (see AUTHORS)
-#
-# This file is part of Bitprim.
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Affero General Public License for more details.
-#
-# You should have received a copy of the GNU Affero General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
+# Copyright (c) 2016-2020 Knuth Project developers.
+# Distributed under the MIT software license, see the accompanying
+# file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 
 cmake_minimum_required(VERSION 3.4)
 
@@ -29,7 +15,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 # Check for baseline language coverage in the compiler for the C++14 standard.
 #------------------------------------------------------------------------------
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Process options.
@@ -70,7 +56,7 @@ option(WITH_TOOLS "Compile with tools." OFF)
 option(WITH_KEOKEN "Keoken enabled." OFF)
 if (WITH_KEOKEN)
   message(STATUS "Bitprim: Keoken enabled")
-  add_definitions(-DBITPRIM_WITH_KEOKEN)
+  add_definitions(-DKTH_WITH_KEOKEN)
 endif()
 
 # # Implement --with-mining and declare WITH_MINING.
@@ -78,7 +64,7 @@ endif()
 # option(WITH_MINING "Mining enabled." OFF)
 # if (WITH_MINING)
 #   message(STATUS "Bitprim: Mining enabled")
-#   add_definitions(-DBITPRIM_WITH_MINING)
+#   add_definitions(-DKTH_WITH_MINING)
 # endif()
 
 # Implement --with-mempool and declare WITH_MEMPOOL.
@@ -86,7 +72,7 @@ endif()
 option(WITH_MEMPOOL "Mempool enabled." OFF)
 if (WITH_MEMPOOL)
   message(STATUS "Bitprim: Mempool enabled")
-  add_definitions(-DBITPRIM_WITH_MEMPOOL)
+  add_definitions(-DKTH_WITH_MEMPOOL)
 endif()
 
 # Implement --use-domain and declare USE_DOMAIN.
@@ -94,7 +80,7 @@ endif()
 option(USE_DOMAIN "Domain enabled." ON)
 if (USE_DOMAIN)
   message(STATUS "Bitprim: Using Domain enabled")
-  add_definitions(-DBITPRIM_USE_DOMAIN)
+  add_definitions(-DKTH_USE_DOMAIN)
 endif()
 
 # Implement and declare DB_TRANSACTION_UNCONFIRMED.
@@ -102,7 +88,7 @@ endif()
 option(DB_TRANSACTION_UNCONFIRMED "DB Transactions Unconfirmed enabled." ON)
 if (DB_TRANSACTION_UNCONFIRMED)
   message(STATUS "Bitprim: DB Transactions Unconfirmed enabled")
-  add_definitions(-DBITPRIM_DB_TRANSACTION_UNCONFIRMED)
+  add_definitions(-DKTH_DB_TRANSACTION_UNCONFIRMED)
 endif()
 
 # Implement and declare DB_SPENDS.
@@ -110,7 +96,7 @@ endif()
 option(DB_SPENDS "DB Spends enabled." ON)
 if (DB_SPENDS)
   message(STATUS "Bitprim: DB Spends enabled")
-  add_definitions(-DBITPRIM_DB_SPENDS)
+  add_definitions(-DKTH_DB_SPENDS)
 endif()
 
 # Implement and declare DB_HISTORY.
@@ -118,7 +104,7 @@ endif()
 option(DB_HISTORY "DB History enabled." ON)
 if (DB_HISTORY)
   message(STATUS "Bitprim: DB History enabled")
-  add_definitions(-DBITPRIM_DB_HISTORY)
+  add_definitions(-DKTH_DB_HISTORY)
 endif()
 
 # Implement and declare DB_STEALTH.
@@ -126,7 +112,7 @@ endif()
 option(DB_STEALTH "DB Stealth enabled." ON)
 if (DB_STEALTH)
   message(STATUS "Bitprim: DB Stealth enabled")
-  add_definitions(-DBITPRIM_DB_STEALTH)
+  add_definitions(-DKTH_DB_STEALTH)
 endif()
 
 # Implement and declare DB_UNSPENT_LIBBITCOIN.
@@ -134,7 +120,7 @@ endif()
 option(DB_UNSPENT_LIBBITCOIN "DB Unspent Libbitcoin enabled." ON)
 if (DB_UNSPENT_LIBBITCOIN)
   message(STATUS "Bitprim: DB Unspent Libbitcoin enabled")
-  add_definitions(-DBITPRIM_DB_UNSPENT_LIBBITCOIN)
+  add_definitions(-DKTH_DB_UNSPENT_LIBBITCOIN)
 endif()
 
 # Implement and declare DB_LEGACY.
@@ -142,7 +128,7 @@ endif()
 option(DB_LEGACY "DB Legacy enabled." ON)
 if (DB_LEGACY)
   message(STATUS "Bitprim: DB Legacy enabled")
-  add_definitions(-DBITPRIM_DB_LEGACY)
+  add_definitions(-DKTH_DB_LEGACY)
 endif()
 
 # Implement and declare DB_NEW.
@@ -150,7 +136,7 @@ endif()
 option(DB_NEW "DB New enabled." OFF)
 if (DB_NEW)
   message(STATUS "Bitprim: DB New enabled")
-  add_definitions(-DBITPRIM_DB_NEW)
+  add_definitions(-DKTH_DB_NEW)
 endif()
 
 # Implement and declare DB_NEW_BLOCKS.
@@ -158,7 +144,7 @@ endif()
 option(DB_NEW_BLOCKS "DB Blocks New enabled." OFF)
 if (DB_NEW_BLOCKS)
   message(STATUS "Bitprim: DB Blocks New enabled")
-  add_definitions(-DBITPRIM_DB_NEW_BLOCKS)
+  add_definitions(-DKTH_DB_NEW_BLOCKS)
 endif()
 
 
@@ -167,35 +153,35 @@ endif()
 option(DB_NEW_FULL "DB New Full enabled." OFF)
 if (DB_NEW_FULL)
   message(STATUS "Bitprim: DB New Full enabled")
-  add_definitions(-DBITPRIM_DB_NEW_FULL)
+  add_definitions(-DKTH_DB_NEW_FULL)
 endif()
 
-# Implement --JUST_BITPRIM_SOURCES for linting.
+# Implement --JUST_KTH_SOURCES for linting.
 #------------------------------------------------------------------------------
-option(JUST_BITPRIM_SOURCES "Just Bitprim source code to be linted." OFF)
-if (JUST_BITPRIM_SOURCES)
+option(JUST_KTH_SOURCES "Just Bitprim source code to be linted." OFF)
+if (JUST_KTH_SOURCES)
   message(STATUS "Bitprim: Just Bitprim source code to be linted: enabled")
 endif()
 
 
-set(BITPRIM_PROJECT_VERSION "-" CACHE STRING "Specify the Bitprim Project Version.")
-# message(${BITPRIM_PROJECT_VERSION})
+set(KTH_PROJECT_VERSION "-" CACHE STRING "Specify the Bitprim Project Version.")
+# message(${KTH_PROJECT_VERSION})
 
 
 set(MICROARCHITECTURE "x86_64" CACHE STRING "Specify the Cryptocurrency (x86_64|...).")
 message( STATUS "Bitprim: Compiling for ${MICROARCHITECTURE}")
-# add_definitions(-DBITPRIM_MICROARCHITECTURE=${MICROARCHITECTURE})
-# add_definitions(-DBITPRIM_MICROARCHITECTURE_STR="${MICROARCHITECTURE}")
+# add_definitions(-DKTH_MICROARCHITECTURE=${MICROARCHITECTURE})
+# add_definitions(-DKTH_MICROARCHITECTURE_STR="${MICROARCHITECTURE}")
 
 
 set(CURRENCY "BCH" CACHE STRING "Specify the Cryptocurrency (BCH|BTC|LTC).")
 
 if (${CURRENCY} STREQUAL "BCH")
-  add_definitions(-DBITPRIM_CURRENCY_BCH)
+  add_definitions(-DKTH_CURRENCY_BCH)
 elseif (${CURRENCY} STREQUAL "BTC")
-  add_definitions(-DBITPRIM_CURRENCY_BTC)
+  add_definitions(-DKTH_CURRENCY_BTC)
 elseif (${CURRENCY} STREQUAL "LTC")
-  add_definitions(-DBITPRIM_CURRENCY_LTC)
+  add_definitions(-DKTH_CURRENCY_LTC)
 else()
   message(FATAL_ERROR "Invalid Cryptocurrency: ${CURRENCY}")
 endif()
@@ -205,7 +191,7 @@ message(STATUS "Bitprim: Cryptocurrency: ${CURRENCY}")
 
 # Implement --with-remote-database and declare WITH_REMOTE_DATABASE.
 #------------------------------------------------------------------------------
-option(WITH_REMOTE_DATABASE "Compile with remote bitprim-database (aka. bitprim-database-requester)." OFF)
+option(WITH_REMOTE_DATABASE "Compile with remote kth-database (aka. kth-database-requester)." OFF)
 
 
 
@@ -213,10 +199,10 @@ option(WITH_REMOTE_DATABASE "Compile with remote bitprim-database (aka. bitprim-
 
 # Conan infrastructure.
 #==============================================================================
-if(EXISTS ${CMAKE_SOURCE_DIR}/ci_utils/cmake/bitprimbuildinfo.cmake)
-    include(${CMAKE_SOURCE_DIR}/ci_utils/cmake/bitprimbuildinfo.cmake)
+if(EXISTS ${CMAKE_SOURCE_DIR}/ci_utils/cmake/knuthbuildinfo.cmake)
+    include(${CMAKE_SOURCE_DIR}/ci_utils/cmake/knuthbuildinfo.cmake)
 else()
-    message( STATUS "bitprimbuildinfo doent exists")
+    message( STATUS "knuthbuildinfo doent exists")
 endif()
 
 
@@ -245,15 +231,15 @@ if (NO_CONAN_AT_ALL)
 endif()
 
 if (NOT USE_CONAN)
-  # Require bitprim-database (or bitprim-database-requester) of at least version 0 and output ${bitprim_database_CPPFLAGS/LIBS/PKG}.
+  # Require kth-database (or kth-database-requester) of at least version 0 and output ${kth_database_CPPFLAGS/LIBS/PKG}.
   #------------------------------------------------------------------------------
   if (WITH_REMOTE_DATABASE)
-    if (NOT TARGET bitprim-database-requester)
-      find_package(bitprim-database-requester 0 REQUIRED)
+    if (NOT TARGET kth-database-requester)
+      find_package(kth-database-requester 0 REQUIRED)
     endif()
     else()
-    if (NOT TARGET bitprim-database)
-      find_package(bitprim-database 0 REQUIRED)
+    if (NOT TARGET kth-database)
+      find_package(kth-database 0 REQUIRED)
     endif()
   endif()
 
@@ -277,7 +263,7 @@ include(CheckCXXCompilerFlag)
 #set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/ci_utils/cmake)
 
-include(BitprimTools)
+include(KnuthTools)
 
 
 # Warn on all stuff.
@@ -347,7 +333,7 @@ if (ENABLE_SHARED)
   set(MODE SHARED)
 endif()
 
-set(bitprim_blockchain_sources_just_libbitcoin
+set(bitprim_blockchain_sources_just_legacy
   src/interface/block_chain.cpp
 
   src/pools/block_entry.cpp
@@ -385,9 +371,9 @@ if (WITH_KEOKEN)
   )
 endif()
 
-if (NOT JUST_BITPRIM_SOURCES)
+if (NOT JUST_KTH_SOURCES)
   set(bitprim_blockchain_sources 
-    ${bitprim_blockchain_sources_just_libbitcoin}
+    ${bitprim_blockchain_sources_just_legacy}
   )
 endif()
 
@@ -408,7 +394,7 @@ target_include_directories(bitprim-blockchain PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
 
-target_compile_definitions(bitprim-blockchain PUBLIC -DBITPRIM_PROJECT_VERSION="\\"${BITPRIM_PROJECT_VERSION}\\"") #TODO(fernando): manage with Conan????  
+target_compile_definitions(bitprim-blockchain PUBLIC -DKTH_PROJECT_VERSION="\\"${KTH_PROJECT_VERSION}\\"") #TODO(fernando): manage with Conan????  
 
 if (NOT ENABLE_SHARED)
   target_compile_definitions(bitprim-blockchain PUBLIC -DBCB_STATIC -DBCD_STATIC -DBC_STATIC)
@@ -420,13 +406,13 @@ endif(WITH_CONSENSUS)
 
 if (WITH_REMOTE_DATABASE)
   if (NOT USE_CONAN)
-    target_link_libraries(bitprim-blockchain bitprim-database-requester)
+    target_link_libraries(bitprim-blockchain kth-database-requester)
   endif(NOT USE_CONAN)
 
   target_compile_definitions(bitprim-blockchain PUBLIC -DWITH_REMOTE_DATABASE)
 else()
   if (NOT USE_CONAN)
-    target_link_libraries(bitprim-blockchain PUBLIC bitprim-database)
+    target_link_libraries(bitprim-blockchain PUBLIC kth-database)
   endif(NOT USE_CONAN)
 endif()
 
@@ -513,7 +499,7 @@ _group_sources(bitprim-blockchain "${CMAKE_CURRENT_LIST_DIR}")
 #   -DWITH_BLOCKCHAIN_REQUESTER)
 # add_dependencies(bitprim-blockchain-requester bitprim-blockchain-replier)
 # 
-# target_link_libraries(bitprim-blockchain-requester bitprim-database bitprim-protocol)
+# target_link_libraries(bitprim-blockchain-requester kth-database bitprim-protocol)
 # if (WITH_CONSENSUS)
 #   target_link_libraries(bitprim-blockchain-requester bitprim-consensus-requester)
 # endif()
@@ -650,7 +636,7 @@ install(TARGETS bitprim-blockchain EXPORT bitprim-blockchain
   INCLUDES DESTINATION include
 )
 
-set(_bitprim_headers
+set(_kth_headers
   # include_bitcoin_HEADERS =
   bitcoin/blockchain.hpp
   # include_bitcoin_blockchain_HEADERS =
@@ -688,7 +674,7 @@ set(_bitprim_headers
 
 )
   
-foreach (_header ${_bitprim_headers})
+foreach (_header ${_kth_headers})
   get_filename_component(_directory "${_header}" DIRECTORY)
   install(FILES "include/${_header}" DESTINATION "include/${_directory}")
 endforeach()

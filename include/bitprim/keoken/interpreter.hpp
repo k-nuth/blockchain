@@ -1,33 +1,19 @@
-/**
- * Copyright (c) 2016-2018 Bitprim Inc.
- *
- * This file is part of Bitprim.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (c) 2016-2020 Knuth Project developers.
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITPRIM_BLOCKCHAIN_KEOKEN_INTERPRETER_HPP_
-#define BITPRIM_BLOCKCHAIN_KEOKEN_INTERPRETER_HPP_
 
-#include <bitprim/integer_sequence.hpp>
-#include <bitprim/keoken/dispatcher.hpp>
-#include <bitprim/keoken/error.hpp>
-#include <bitprim/keoken/message/create_asset.hpp>
-#include <bitprim/keoken/message/send_tokens.hpp>
-#include <bitprim/keoken/transaction_extractor.hpp>
-#include <bitprim/keoken/transaction_processors/v0/transactions.hpp>
-#include <bitprim/tuple_element.hpp>
+#ifndef KTH_BLOCKCHAIN_KEOKEN_INTERPRETER_HPP_
+#define KTH_BLOCKCHAIN_KEOKEN_INTERPRETER_HPP_
+
+#include <knuth/integer_sequence.hpp>
+#include <knuth/keoken/dispatcher.hpp>
+#include <knuth/keoken/error.hpp>
+#include <knuth/keoken/message/create_asset.hpp>
+#include <knuth/keoken/message/send_tokens.hpp>
+#include <knuth/keoken/transaction_extractor.hpp>
+#include <knuth/keoken/transaction_processors/v0/transactions.hpp>
+#include <knuth/tuple_element.hpp>
 
 // #define Tuple typename
 
@@ -66,12 +52,12 @@ public:
 
 private:
 
-#ifdef BITPRIM_USE_DOMAIN
-    template <Reader R, BITPRIM_IS_READER(R)>
+#ifdef KTH_USE_DOMAIN
+    template <Reader R, KTH_IS_READER(R)>
     error::error_code_t version_dispatcher(size_t block_height, bc::chain::transaction const& tx, R& source) {
 #else
     error::error_code_t version_dispatcher(size_t block_height, bc::chain::transaction const& tx, bc::reader& source) {
-#endif // BITPRIM_USE_DOMAIN
+#endif // KTH_USE_DOMAIN
         auto version = source.read_2_bytes_big_endian();
         if ( ! source) return error::invalid_version_number;
 
@@ -83,12 +69,12 @@ private:
     }
 
 
-#ifdef BITPRIM_USE_DOMAIN
-    template <Reader R, BITPRIM_IS_READER(R)>
+#ifdef KTH_USE_DOMAIN
+    template <Reader R, KTH_IS_READER(R)>
     error::error_code_t version_0_type_dispatcher(size_t block_height, bc::chain::transaction const& tx, R& source) {
 #else
     error::error_code_t version_0_type_dispatcher(size_t block_height, bc::chain::transaction const& tx, bc::reader& source) {
-#endif // BITPRIM_USE_DOMAIN
+#endif // KTH_USE_DOMAIN
 
         using namespace transaction_processors::v0;
 
@@ -106,4 +92,4 @@ private:
 } // namespace keoken
 } // namespace bitprim
 
-#endif //BITPRIM_BLOCKCHAIN_KEOKEN_INTERPRETER_HPP_
+#endif //KTH_BLOCKCHAIN_KEOKEN_INTERPRETER_HPP_

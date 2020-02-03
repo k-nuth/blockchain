@@ -1,21 +1,7 @@
-/**
- * Copyright (c) 2011-2017 libbitcoin developers (see AUTHORS)
- *
- * This file is part of libbitcoin.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (c) 2016-2020 Knuth Project developers.
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 #include <bitcoin/blockchain/populate/populate_block.hpp>
 
 #include <algorithm>
@@ -35,14 +21,14 @@ using namespace bc::machine;
 
 // Database access is limited to calling populate_base.
 
-#if defined(BITPRIM_WITH_MEMPOOL)
+#if defined(KTH_WITH_MEMPOOL)
 populate_block::populate_block(dispatcher& dispatch, fast_chain const& chain, bool relay_transactions, mining::mempool const& mp)
 #else
 populate_block::populate_block(dispatcher& dispatch, fast_chain const& chain, bool relay_transactions)
 #endif
     : populate_base(dispatch, chain)
     , relay_transactions_(relay_transactions)
-#if defined(BITPRIM_WITH_MEMPOOL)
+#if defined(KTH_WITH_MEMPOOL)
     , mempool_(mp)
 #endif
 {}
@@ -81,12 +67,12 @@ void populate_block::populate(branch::const_ptr branch, result_handler&& handler
     // auto local_utxo = create_local_utxo_set(*block);
     auto branch_utxo = create_branch_utxo_set(branch);
 
-#if defined(BITPRIM_WITH_MEMPOOL)
+#if defined(KTH_WITH_MEMPOOL)
     auto validated_txs = mempool_.get_validated_txs_high();
 #endif
 
     for (size_t bucket = 0; bucket < buckets; ++bucket) {
-#if defined(BITPRIM_WITH_MEMPOOL)
+#if defined(KTH_WITH_MEMPOOL)
         dispatch_.concurrent(&populate_block::populate_transactions, this, branch, bucket, buckets, branch_utxo, validated_txs, join_handler);
 #else
         dispatch_.concurrent(&populate_block::populate_transactions, this, branch, bucket, buckets, branch_utxo, join_handler);
@@ -138,7 +124,7 @@ void populate_block::populate_coinbase(branch::const_ptr branch, block_const_ptr
 ////}
 
 
-#if defined(BITPRIM_DB_NEW)
+#if defined(KTH_DB_NEW)
 populate_block::utxo_pool_t populate_block::get_reorg_subset_conditionally(size_t first_height, size_t& out_chain_top) const {
 
     if ( ! fast_chain_.get_last_height(out_chain_top)) {
@@ -157,10 +143,10 @@ populate_block::utxo_pool_t populate_block::get_reorg_subset_conditionally(size_
     
     return std::move(p.second);
 }
-#endif // BITPRIM_DB_NEW
+#endif // KTH_DB_NEW
 
 
-#if defined(BITPRIM_DB_NEW)
+#if defined(KTH_DB_NEW)
 void populate_block::populate_transaction_inputs(branch::const_ptr branch, chain::input::list const& inputs, size_t bucket, size_t buckets, size_t input_position, local_utxo_set_t const& branch_utxo, size_t first_height, size_t chain_top, utxo_pool_t const& reorg_subset) const {
 #else
 void populate_block::populate_transaction_inputs(branch::const_ptr branch, chain::input::list const& inputs, size_t bucket, size_t buckets, size_t input_position, local_utxo_set_t const& branch_utxo) const {
@@ -178,15 +164,15 @@ void populate_block::populate_transaction_inputs(branch::const_ptr branch, chain
         populate_base::populate_prevout(branch_height, prevout, true);  //Populate from Database
         populate_prevout(branch, prevout, branch_utxo);                 //Populate from the Blocks in the Branch
 
-#if defined(BITPRIM_DB_NEW)
+#if defined(KTH_DB_NEW)
         if (first_height <= chain_top) {
             populate_from_reorg_subset(prevout, reorg_subset);
         }
-#endif // BITPRIM_DB_NEW
+#endif // KTH_DB_NEW
     }
 }
 
-#if defined(BITPRIM_WITH_MEMPOOL)
+#if defined(KTH_WITH_MEMPOOL)
 void populate_block::populate_transactions(branch::const_ptr branch, size_t bucket, size_t buckets, local_utxo_set_t const& branch_utxo, mining::mempool::hash_index_t const& validated_txs, result_handler handler) const {
 #else
 void populate_block::populate_transactions(branch::const_ptr branch, size_t bucket, size_t buckets, local_utxo_set_t const& branch_utxo, result_handler handler) const {
@@ -220,7 +206,7 @@ void populate_block::populate_transactions(branch::const_ptr branch, size_t buck
         //---------------------------------------------------------------------
 
         //TODO(fernando): check again why this is not implemented?
-#if defined(BITPRIM_DB_LEGACY)  || defined(BITPRIM_DB_NEW_FULL)
+#if defined(KTH_DB_LEGACY)  || defined(KTH_DB_NEW_FULL)
         if (relay_transactions_) {
             populate_base::populate_pooled(tx, forks);
         }
@@ -231,7 +217,7 @@ void populate_block::populate_transactions(branch::const_ptr branch, size_t buck
         // a hard fork that destroys unspent outputs in case of hash collision.
         //*********************************************************************
         //Bitprim: we are not validating tx duplicates.
-#if defined(BITPRIM_DB_LEGACY)
+#if defined(KTH_DB_LEGACY)
         if ( ! collide) {
             populate_base::populate_duplicate(branch->height(), tx, true);
             ////populate_duplicate(branch, coinbase);
@@ -239,21 +225,21 @@ void populate_block::populate_transactions(branch::const_ptr branch, size_t buck
 #endif
     }
 
-#if defined(BITPRIM_DB_NEW)
+#if defined(KTH_DB_NEW)
     size_t first_height = branch_height + 1u;
     size_t chain_top;
     auto reorg_subset = get_reorg_subset_conditionally(first_height, /*out*/ chain_top);
-#endif // BITPRIM_DB_NEW
+#endif // KTH_DB_NEW
 
 
     // Must skip coinbase here as it is already accounted for.
     for (auto tx = txs.begin() + 1; tx != txs.end(); ++tx) {
 
-#if defined(BITPRIM_WITH_MEMPOOL)
+#if defined(KTH_WITH_MEMPOOL)
         auto it = validated_txs.find(tx->hash());
         if (it == validated_txs.end()) {
             auto const& inputs = tx->inputs();
-#if defined(BITPRIM_DB_NEW)
+#if defined(KTH_DB_NEW)
             populate_transaction_inputs(branch, inputs, bucket, buckets, input_position, branch_utxo, first_height, chain_top, reorg_subset);
 #else
             populate_transaction_inputs(branch, inputs, bucket, buckets, input_position, branch_utxo);
@@ -267,18 +253,18 @@ void populate_block::populate_transactions(branch::const_ptr branch, size_t buck
         }
 #else
         auto const& inputs = tx->inputs();
-#if defined(BITPRIM_DB_NEW)
+#if defined(KTH_DB_NEW)
         populate_transaction_inputs(branch, inputs, bucket, buckets, input_position, branch_utxo, first_height, chain_top, reorg_subset);
 #else
         populate_transaction_inputs(branch, inputs, bucket, buckets, input_position, branch_utxo);
 #endif
-#endif // defined(BITPRIM_WITH_MEMPOOL)
+#endif // defined(KTH_WITH_MEMPOOL)
     }
 
     handler(error::success);
 }
 
-#if defined(BITPRIM_DB_NEW)
+#if defined(KTH_DB_NEW)
 void populate_block::populate_from_reorg_subset(output_point const& outpoint, utxo_pool_t const& reorg_subset) const {
     if (outpoint.validation.cache.is_valid()) {
         return;
@@ -295,7 +281,7 @@ void populate_block::populate_from_reorg_subset(output_point const& outpoint, ut
     }
 
 }
-#endif // BITPRIM_DB_NEW
+#endif // KTH_DB_NEW
 
 void populate_block::populate_prevout(branch::const_ptr branch, output_point const& outpoint, local_utxo_set_t const& branch_utxo) const {
     if ( ! outpoint.validation.spent) {
@@ -309,4 +295,4 @@ void populate_block::populate_prevout(branch::const_ptr branch, output_point con
 }
 
 } // namespace blockchain
-} // namespace libbitcoin
+} // namespace kth

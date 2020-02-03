@@ -1,23 +1,9 @@
-/**
- * Copyright (c) 2016-2018 Bitprim Inc.
- *
- * This file is part of Bitprim.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-#ifndef BITPRIM_BLOCKCHAIN_MINING_MEMPOOL_V1_HPP_
-#define BITPRIM_BLOCKCHAIN_MINING_MEMPOOL_V1_HPP_
+// Copyright (c) 2016-2020 Knuth Project developers.
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+#ifndef KTH_BLOCKCHAIN_MINING_MEMPOOL_V1_HPP_
+#define KTH_BLOCKCHAIN_MINING_MEMPOOL_V1_HPP_
 
 #include <algorithm>
 #include <chrono>
@@ -34,9 +20,9 @@
 
 // #include <boost/bimap.hpp>
 
-#include <bitprim/mining/common.hpp>
-#include <bitprim/mining/node_v1.hpp>
-#include <bitprim/mining/prioritizer.hpp>
+#include <knuth/mining/common.hpp>
+#include <knuth/mining/node_v1.hpp>
+#include <knuth/mining/prioritizer.hpp>
 
 #include <bitcoin/bitcoin.hpp>
 
@@ -59,17 +45,17 @@ inline
 node make_node(chain::transaction const& tx) {
     return node(
                 transaction_element(tx.hash()
-#if ! defined(BITPRIM_CURRENCY_BCH)
+#if ! defined(KTH_CURRENCY_BCH)
                                   , tx.hash(true)
 #endif
-                                  , tx.to_data(true, BITPRIM_WITNESS_DEFAULT)
+                                  , tx.to_data(true, KTH_WITNESS_DEFAULT)
                                   , tx.fees() 
                                   , tx.signature_operations()
                                   , tx.outputs().size())
                         );
 }
 
-#ifdef BITPRIM_MINING_STATISTICS_ENABLED
+#ifdef KTH_MINING_STATISTICS_ENABLED
 template <typename F>
 void measure(F f, measurements_t& t) {
     auto start = std::chrono::high_resolution_clock::now();
@@ -99,7 +85,7 @@ std::set<typename Container::value_type, Cmp> to_ordered_set(F f, Container cons
 using all_transactions_t = std::vector<node>;
 
 
-#if defined(BITPRIM_CURRENCY_BCH)
+#if defined(KTH_CURRENCY_BCH)
 inline
 void sort_ctor(all_transactions_t& all, std::vector<size_t>& candidates) {
     auto const cmp = [&all](index_t ia, index_t ib) {
@@ -153,7 +139,7 @@ void sort_ltor(bool sorted, all_transactions_t& all, std::vector<size_t>& candid
         }
     }
 }
-#endif // defined(BITPRIM_CURRENCY_BCH)
+#endif // defined(KTH_CURRENCY_BCH)
 
 
 
@@ -333,9 +319,9 @@ public:
 
     static constexpr size_t max_template_size_default = get_max_block_weight() - coinbase_reserved_size;
 
-#if defined(BITPRIM_CURRENCY_BCH)
+#if defined(KTH_CURRENCY_BCH)
     static constexpr size_t mempool_size_multiplier_default = 10;
-#elif defined(BITPRIM_CURRENCY_BTC)
+#elif defined(KTH_CURRENCY_BTC)
     static constexpr size_t mempool_size_multiplier_default = 10;
 #else
     static constexpr size_t mempool_size_multiplier_default = 10;
@@ -396,7 +382,7 @@ public:
         //              tx is fully validated: check() && accept() && connect()
         //              ! tx.is_coinbase()
 
-        // std::cout << encode_base16(tx.to_data(true, BITPRIM_WITNESS_DEFAULT)) << std::endl;
+        // std::cout << encode_base16(tx.to_data(true, KTH_WITNESS_DEFAULT)) << std::endl;
 
         return prioritizer_.low_job([this, &tx]{
             auto const index = all_transactions_.size();
@@ -541,7 +527,7 @@ public:
         }
 
         // std::cout << "Arrive Block -------------------------------------------------------------------" << std::endl;
-        // std::cout << encode_base16(tx.to_data(true, BITPRIM_WITNESS_DEFAULT)) << std::endl;
+        // std::cout << encode_base16(tx.to_data(true, KTH_WITNESS_DEFAULT)) << std::endl;
 
 
         processing_block_ = true;
@@ -803,7 +789,7 @@ public:
         auto accum_fees = std::get<2>(copied_data);
         auto sorted = std::get<3>(copied_data);
 
-// #if defined(BITPRIM_CURRENCY_BCH)
+// #if defined(KTH_CURRENCY_BCH)
 
 //         auto const cmp = [this](size_t a, size_t b) {
 //             return ctor_cmp(a, b);
@@ -817,7 +803,7 @@ public:
 //         sort_ltor(all, candidates);
 // #endif
 
-#if defined(BITPRIM_CURRENCY_BCH)
+#if defined(KTH_CURRENCY_BCH)
         sort_ctor(all, candidates);
 #else
         sort_ltor(sorted, all, candidates);
@@ -1318,7 +1304,7 @@ private:
         return value_b < value_a;
     }
 
-#if defined(BITPRIM_CURRENCY_BCH)
+#if defined(KTH_CURRENCY_BCH)
     bool ctor_cmp(index_t a, index_t b) const {
         auto const& node_a = all_transactions_[a];
         auto const& node_b = all_transactions_[b];
@@ -2195,6 +2181,6 @@ private:
 };
 
 }  // namespace mining
-}  // namespace libbitcoin
+}  // namespace kth
 
-#endif  //BITPRIM_BLOCKCHAIN_MINING_MEMPOOL_V1_HPP_
+#endif  //KTH_BLOCKCHAIN_MINING_MEMPOOL_V1_HPP_

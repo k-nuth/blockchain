@@ -1,23 +1,9 @@
-/**
- * Copyright (c) 2011-2017 libbitcoin developers (see AUTHORS)
- *
- * This file is part of libbitcoin.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-#ifndef LIBBITCOIN_BLOCKCHAIN_BLOCK_CHAIN_HPP
-#define LIBBITCOIN_BLOCKCHAIN_BLOCK_CHAIN_HPP
+// Copyright (c) 2016-2020 Knuth Project developers.
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+#ifndef KTH_BLOCKCHAIN_BLOCK_CHAIN_HPP
+#define KTH_BLOCKCHAIN_BLOCK_CHAIN_HPP
 
 #include <atomic>
 #include <cstddef>
@@ -34,8 +20,8 @@
 #include <bitcoin/blockchain/populate/populate_chain_state.hpp>
 #include <bitcoin/blockchain/settings.hpp>
 
-#if defined(BITPRIM_WITH_MEMPOOL)
-#include <bitprim/mining/mempool.hpp>
+#if defined(KTH_WITH_MEMPOOL)
+#include <knuth/mining/mempool.hpp>
 #endif
 
 
@@ -71,7 +57,7 @@ public:
     // ------------------------------------------------------------------------
     // Thread safe, unprotected by sequential lock.
 
-#ifdef BITPRIM_DB_LEGACY
+#ifdef KTH_DB_LEGACY
     /// Get the set of block gaps in the chain.
     bool get_gaps(database::block_database::heights& out_gaps) const override;
 
@@ -81,9 +67,9 @@ public:
     /// Determine if an unspent transaction exists with the given hash.
     bool get_is_unspent_transaction(const hash_digest& hash, size_t branch_height, bool require_confirmed) const override;
 
-#endif// BITPRIM_DB_LEGACY
+#endif// KTH_DB_LEGACY
 
-#if defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_DB_NEW_FULL) 
+#if defined(KTH_DB_LEGACY) || defined(KTH_DB_NEW_FULL) 
    
     /// Get the output that is referenced by the outpoint.
     bool get_output(chain::output& out_output, size_t& out_height, uint32_t& out_median_time_past, bool& out_coinbase, const chain::output_point& outpoint, size_t branch_height, bool require_confirmed) const override;
@@ -92,13 +78,13 @@ public:
     bool get_transaction_position(size_t& out_height, size_t& out_position, const hash_digest& hash, bool require_confirmed) const override;
 #endif
 
-#ifdef BITPRIM_DB_NEW
+#ifdef KTH_DB_NEW
     /// Get the output that is referenced by the outpoint in the UTXO Set.
     bool get_utxo(chain::output& out_output, size_t& out_height, uint32_t& out_median_time_past, bool& out_coinbase, chain::output_point const& outpoint, size_t branch_height) const override;
 
     // std::pair<result_code, utxo_pool_t> get_utxo_pool_from(uint32_t from, uint32_t to) const {
     std::pair<bool, database::internal_database::utxo_pool_t> get_utxo_pool_from(uint32_t from, uint32_t to) const override;
-#endif// BITPRIM_DB_NEW
+#endif// KTH_DB_NEW
 
     /// Get a determination of whether the block hash exists in the store.
     bool get_block_exists(const hash_digest& block_hash) const override;
@@ -144,13 +130,13 @@ public:
     // ------------------------------------------------------------------------
     // Thread safe, insert does not set sequential lock.
 
-#ifdef BITPRIM_DB_LEGACY
+#ifdef KTH_DB_LEGACY
     /// Create flush lock if flush_writes is true, and set sequential lock.
     bool begin_insert() const override;
 
     /// Clear flush lock if flush_writes is true, and clear sequential lock.
     bool end_insert() const override;
-#endif // BITPRIM_DB_LEGACY
+#endif // KTH_DB_LEGACY
 
     /// Insert a block to the blockchain, height is checked for existence.
     /// Reads and reorgs are undefined when chain is gapped.
@@ -207,7 +193,7 @@ public:
     /// fetch the set of block hashes indicated by the block locator.
     void fetch_locator_block_hashes(get_blocks_const_ptr locator, const hash_digest& threshold, size_t limit, inventory_fetch_handler handler) const override;
 
-#if defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_DB_NEW_BLOCKS) || defined(BITPRIM_DB_NEW_FULL) 
+#if defined(KTH_DB_LEGACY) || defined(KTH_DB_NEW_BLOCKS) || defined(KTH_DB_NEW_FULL) 
     void fetch_block_header_txs_size(const hash_digest& hash, block_header_txs_size_fetch_handler handler) const override;
 
     /// fetch hashes of transactions for a block, by block height.
@@ -222,9 +208,9 @@ public:
     /// fetch compact block by block hash.
     void fetch_compact_block(const hash_digest& hash, compact_block_fetch_handler handler) const override;
     
-#endif // BITPRIM_DB_LEGACY || BITPRIM_DB_NEW_BLOCKS || BITPRIM_DB_NEW_FULL
+#endif // KTH_DB_LEGACY || KTH_DB_NEW_BLOCKS || KTH_DB_NEW_FULL
 
-#if defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_DB_NEW_FULL) 
+#if defined(KTH_DB_LEGACY) || defined(KTH_DB_NEW_FULL) 
 
     void for_each_transaction(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const;
 
@@ -259,12 +245,12 @@ public:
 
 
 
-#ifdef BITPRIM_DB_LEGACY
+#ifdef KTH_DB_LEGACY
     // Bitprim non-virtual functions.
     //-------------------------------------------------------------------------
     template <typename I>
     void for_each_tx_hash(I f, I l, database::transaction_database const& tx_store, size_t height, bool witness, for_each_tx_handler handler) const {
-    #ifdef BITPRIM_CURRENCY_BCH
+    #ifdef KTH_CURRENCY_BCH
         witness = false;    //TODO(fernando): check what to do here. I dont like it
     #endif
         while (f != l) {
@@ -280,16 +266,16 @@ public:
             ++f;
         }
     }
-#endif // BITPRIM_DB_LEGACY    
+#endif // KTH_DB_LEGACY    
 
 
-#ifdef BITPRIM_DB_NEW_FULL
+#ifdef KTH_DB_NEW_FULL
     // Bitprim non-virtual functions.
     //-------------------------------------------------------------------------
     
     template <typename I>
     void for_each_tx_hash(I f, I l, size_t height, bool witness, for_each_tx_handler handler) const {
-    #ifdef BITPRIM_CURRENCY_BCH
+    #ifdef KTH_CURRENCY_BCH
         witness = false;    //TODO(fernando): check what to do here. I dont like it
     #endif
         while (f != l) {
@@ -308,7 +294,7 @@ public:
     
     template <typename I>
     void for_each_tx_valid(I f, I l, size_t height, bool witness, for_each_tx_handler handler) const {
-    #ifdef BITPRIM_CURRENCY_BCH
+    #ifdef KTH_CURRENCY_BCH
         witness = false;    //TODO(fernando): check what to do here. I dont like it
     #endif
         while (f != l) {
@@ -323,31 +309,31 @@ public:
             ++f;
         }
     }
-#endif // BITPRIM_DB_NEW_FULL    
+#endif // KTH_DB_NEW_FULL    
 
 
 
     // Server Queries.
     //-------------------------------------------------------------------------
 
-#if defined(BITPRIM_DB_SPENDS) || defined(BITPRIM_DB_NEW_FULL)
+#if defined(KTH_DB_SPENDS) || defined(KTH_DB_NEW_FULL)
     /// fetch the inpoint (spender) of an outpoint.
     void fetch_spend(const chain::output_point& outpoint, spend_fetch_handler handler) const override;
-#endif // BITPRIM_DB_SPENDS
+#endif // KTH_DB_SPENDS
 
-#if defined(BITPRIM_DB_HISTORY) || defined(BITPRIM_DB_NEW_FULL)
+#if defined(KTH_DB_HISTORY) || defined(KTH_DB_NEW_FULL)
     /// fetch outputs, values and spends for an address_hash.
     void fetch_history(const short_hash& address_hash, size_t limit, size_t from_height, history_fetch_handler handler) const override;
 
     /// Fetch all the txns used by the wallet
     void fetch_confirmed_transactions(const short_hash& address_hash, size_t limit, size_t from_height, confirmed_transactions_fetch_handler handler) const override;
-#endif // BITPRIM_DB_HISTORY
+#endif // KTH_DB_HISTORY
 
 
-#ifdef BITPRIM_DB_STEALTH
+#ifdef KTH_DB_STEALTH
     /// fetch stealth results.
     void fetch_stealth(const binary& filter, size_t from_height, stealth_fetch_handler handler) const override;
-#endif // BITPRIM_DB_STEALTH
+#endif // KTH_DB_STEALTH
 
     // Transaction Pool.
     //-------------------------------------------------------------------------
@@ -359,7 +345,7 @@ public:
     void fetch_mempool(size_t count_limit, uint64_t minimum_fee, inventory_fetch_handler handler) const override;
 
 
-#if defined(BITPRIM_DB_TRANSACTION_UNCONFIRMED) || defined(BITPRIM_DB_NEW_FULL)    
+#if defined(KTH_DB_TRANSACTION_UNCONFIRMED) || defined(KTH_DB_NEW_FULL)    
     std::vector<mempool_transaction_summary> get_mempool_transactions(std::vector<std::string> const& payment_addresses, bool use_testnet_rules, bool witness) const override;
     std::vector<mempool_transaction_summary> get_mempool_transactions(std::string const& payment_address, bool use_testnet_rules, bool witness) const override;
     std::vector<chain::transaction> get_mempool_transactions_from_wallets(std::vector<wallet::payment_address> const& payment_addresses, bool use_testnet_rules, bool witness) const override;
@@ -369,7 +355,7 @@ public:
     
     mempool_mini_hash_map get_mempool_mini_hash_map(message::compact_block const& block) const override;
     void fill_tx_list_from_mempool(message::compact_block const& block, size_t& mempool_count, std::vector<chain::transaction>& txn_available, std::unordered_map<uint64_t, uint16_t> const& shorttxids) const override;
-#endif // BITPRIM_DB_TRANSACTION_UNCONFIRMED
+#endif // KTH_DB_TRANSACTION_UNCONFIRMED
 
     // Filters.
     //-------------------------------------------------------------------------
@@ -377,7 +363,7 @@ public:
     /// Filter out block by hash that exist in the block pool or store.
     void filter_blocks(get_data_ptr message, result_handler handler) const override;
 
-#if defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_DB_NEW_FULL) || defined(BITPRIM_WITH_MEMPOOL)
+#if defined(KTH_DB_LEGACY) || defined(KTH_DB_NEW_FULL) || defined(KTH_WITH_MEMPOOL)
     /// Filter out confirmed and unconfirmed transactions by hash.
     void filter_transactions(get_data_ptr message, result_handler handler) const override;
 #endif 
@@ -422,7 +408,7 @@ public:
     const settings& chain_settings() const;
 
 
-#ifdef BITPRIM_WITH_KEOKEN    
+#ifdef KTH_WITH_KEOKEN    
     virtual void fetch_keoken_history(const short_hash& address_hash, size_t limit,
         size_t from_height, keoken_history_fetch_handler handler) const override;
 
@@ -433,7 +419,7 @@ public:
       std::shared_ptr<std::vector<transaction_const_ptr>> keoken_txs) const override;
 #endif
 
-#if defined(BITPRIM_WITH_MEMPOOL)
+#if defined(KTH_WITH_MEMPOOL)
     std::pair<std::vector<libbitcoin::mining::transaction_element>, uint64_t> get_block_template() const;
 #endif
 
@@ -494,7 +480,7 @@ private:
     mutable dispatcher dispatch_;
 
 
-#if defined(BITPRIM_WITH_MEMPOOL)
+#if defined(KTH_WITH_MEMPOOL)
     mining::mempool mempool_;
 #endif
 
@@ -507,6 +493,6 @@ private:
 };
 
 } // namespace blockchain
-} // namespace libbitcoin
+} // namespace kth
 
-#endif // LIBBITCOIN_BLOCKCHAIN_BLOCK_CHAIN_HPP
+#endif // KTH_BLOCKCHAIN_BLOCK_CHAIN_HPP

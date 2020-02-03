@@ -1,23 +1,9 @@
-/**
- * Copyright (c) 2011-2017 libbitcoin developers (see AUTHORS)
- *
- * This file is part of libbitcoin.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-#ifndef LIBBITCOIN_BLOCKCHAIN_SAFE_CHAIN_HPP
-#define LIBBITCOIN_BLOCKCHAIN_SAFE_CHAIN_HPP
+// Copyright (c) 2016-2020 Knuth Project developers.
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+#ifndef KTH_BLOCKCHAIN_SAFE_CHAIN_HPP
+#define KTH_BLOCKCHAIN_SAFE_CHAIN_HPP
 
 #include <cstddef>
 #include <cstdint>
@@ -47,7 +33,7 @@ public:
     typedef handle1<chain::history_compact::list> history_fetch_handler;
     typedef handle1<chain::stealth_compact::list> stealth_fetch_handler;
     typedef handle2<size_t, size_t> transaction_index_fetch_handler;
-#ifdef BITPRIM_WITH_KEOKEN
+#ifdef KTH_WITH_KEOKEN
     typedef std::function<void (const code&, const std::shared_ptr <std::vector <libbitcoin::transaction_const_ptr>> ) > keoken_history_fetch_handler;
     typedef std::function<void (const code&,  header_const_ptr, size_t,  const std::shared_ptr <std::vector <libbitcoin::transaction_const_ptr>> , uint64_t, size_t ) > block_keoken_fetch_handler;
     virtual void fetch_keoken_history(const short_hash& address_hash, size_t limit,
@@ -80,9 +66,9 @@ public:
     typedef std::function<void(const code&, transaction_const_ptr, size_t,
         size_t)> transaction_fetch_handler;
 
-#if defined(BITPRIM_DB_TRANSACTION_UNCONFIRMED) || defined(BITPRIM_DB_NEW_FULL)
+#if defined(KTH_DB_TRANSACTION_UNCONFIRMED) || defined(KTH_DB_NEW_FULL)
     using transaction_unconfirmed_fetch_handler = std::function<void(const code&, transaction_const_ptr)>;
-#endif // BITPRIM_DB_TRANSACTION_UNCONFIRMED
+#endif // KTH_DB_TRANSACTION_UNCONFIRMED
 
     typedef std::function<void(const code&, headers_ptr)>
         locator_block_headers_fetch_handler;
@@ -118,7 +104,7 @@ public:
 
     virtual void fetch_locator_block_hashes(get_blocks_const_ptr locator, const hash_digest& threshold, size_t limit, inventory_fetch_handler handler) const = 0;
 
-#if defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_DB_NEW_BLOCKS) || defined(BITPRIM_DB_NEW_FULL)
+#if defined(KTH_DB_LEGACY) || defined(KTH_DB_NEW_BLOCKS) || defined(KTH_DB_NEW_FULL)
     virtual void fetch_merkle_block(size_t height, merkle_block_fetch_handler handler) const = 0;
 
     virtual void fetch_merkle_block(const hash_digest& hash, merkle_block_fetch_handler handler) const = 0;
@@ -128,10 +114,10 @@ public:
     virtual void fetch_compact_block(const hash_digest& hash, compact_block_fetch_handler handler) const = 0;
 
     virtual void fetch_block_header_txs_size(const hash_digest& hash, block_header_txs_size_fetch_handler handler) const = 0;
-#endif // BITPRIM_DB_LEGACY || BITPRIM_DB_NEW_BLOCKS || BITPRIM_DB_NEW_FULL
+#endif // KTH_DB_LEGACY || KTH_DB_NEW_BLOCKS || KTH_DB_NEW_FULL
 
 
-#if defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_DB_NEW_FULL)
+#if defined(KTH_DB_LEGACY) || defined(KTH_DB_NEW_FULL)
     
     virtual void fetch_transaction(const hash_digest& hash, bool require_confirmed, bool witness, transaction_fetch_handler handler) const = 0;
 
@@ -163,18 +149,18 @@ public:
     // Server Queries.
     //-------------------------------------------------------------------------
 
-#if defined(BITPRIM_DB_SPENDS) || defined(BITPRIM_DB_NEW_FULL)
+#if defined(KTH_DB_SPENDS) || defined(KTH_DB_NEW_FULL)
     virtual void fetch_spend(const chain::output_point& outpoint, spend_fetch_handler handler) const = 0;
 #endif 
 
-#if defined(BITPRIM_DB_HISTORY) || defined(BITPRIM_DB_NEW_FULL)
+#if defined(KTH_DB_HISTORY) || defined(KTH_DB_NEW_FULL)
     virtual void fetch_history(const short_hash& address_hash, size_t limit, size_t from_height, history_fetch_handler handler) const = 0;
     virtual void fetch_confirmed_transactions(const short_hash& address_hash, size_t limit, size_t from_height, confirmed_transactions_fetch_handler handler) const = 0;
 #endif 
 
-#ifdef BITPRIM_DB_STEALTH
+#ifdef KTH_DB_STEALTH
     virtual void fetch_stealth(const binary& filter, size_t from_height, stealth_fetch_handler handler) const = 0;
-#endif // BITPRIM_DB_STEALTH
+#endif // KTH_DB_STEALTH
 
     // Transaction Pool.
     //-------------------------------------------------------------------------
@@ -182,7 +168,7 @@ public:
     virtual void fetch_template(merkle_block_fetch_handler handler) const = 0;
     virtual void fetch_mempool(size_t count_limit, uint64_t minimum_fee, inventory_fetch_handler handler) const = 0;
 
-#if defined(BITPRIM_DB_TRANSACTION_UNCONFIRMED) || defined(BITPRIM_DB_NEW_FULL)
+#if defined(KTH_DB_TRANSACTION_UNCONFIRMED) || defined(KTH_DB_NEW_FULL)
     virtual std::vector<mempool_transaction_summary> get_mempool_transactions(std::vector<std::string> const& payment_addresses, bool use_testnet_rules, bool witness) const = 0;
     virtual std::vector<mempool_transaction_summary> get_mempool_transactions(std::string const& payment_address, bool use_testnet_rules, bool witness) const = 0;
     
@@ -192,7 +178,7 @@ public:
 
     virtual mempool_mini_hash_map get_mempool_mini_hash_map(message::compact_block const& block) const = 0;
     virtual void fill_tx_list_from_mempool(message::compact_block const& block, size_t& mempool_count, std::vector<chain::transaction>& txn_available, std::unordered_map<uint64_t, uint16_t> const& shorttxids) const = 0;
-#endif // BITPRIM_DB_TRANSACTION_UNCONFIRMED
+#endif // KTH_DB_TRANSACTION_UNCONFIRMED
 
   
     // Filters.
@@ -200,7 +186,7 @@ public:
 
     virtual void filter_blocks(get_data_ptr message, result_handler handler) const = 0;
 
-#if defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_DB_NEW_FULL) || defined(BITPRIM_WITH_MEMPOOL)
+#if defined(KTH_DB_LEGACY) || defined(KTH_DB_NEW_FULL) || defined(KTH_WITH_MEMPOOL)
     virtual void filter_transactions(get_data_ptr message, result_handler handler) const = 0;
 #endif 
 
@@ -235,6 +221,6 @@ public:
 };
 
 } // namespace blockchain
-} // namespace libbitcoin
+} // namespace kth
 
 #endif

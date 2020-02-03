@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2018 Bitprim developers (see AUTHORS)
  *
- * This file is part of Bitprim.
+ * This file is part of the Knuth Project.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,7 +21,7 @@
 
 #include <bitcoin/bitcoin/chain/transaction.hpp>
 
-#ifdef BITPRIM_USE_DOMAIN
+#ifdef KTH_USE_DOMAIN
 #include <bitcoin/infrastructure/formats/base_16.hpp>
 #include <bitcoin/infrastructure/utility/container_source.hpp>
 #include <bitcoin/infrastructure/utility/data.hpp>
@@ -31,14 +31,14 @@
 #include <bitcoin/bitcoin/utility/container_source.hpp>
 #include <bitcoin/bitcoin/utility/data.hpp>
 #include <bitcoin/bitcoin/utility/istream_reader.hpp>
-#endif // BITPRIM_USE_DOMAIN
+#endif // KTH_USE_DOMAIN
 
 
-#include <bitprim/keoken/interpreter.hpp>
-#include <bitprim/keoken/memory_state.hpp>
-#include <bitprim/keoken/transaction_extractor.hpp>
+#include <knuth/keoken/interpreter.hpp>
+#include <knuth/keoken/memory_state.hpp>
+#include <knuth/keoken/transaction_extractor.hpp>
 
-using namespace bitprim::keoken;
+using namespace knuth::keoken;
 using bc::hash_digest;
 using bc::hash_literal;
 using bc::wallet::payment_address;

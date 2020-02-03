@@ -1,23 +1,9 @@
-/**
- * Copyright (c) 2011-2017 libbitcoin developers (see AUTHORS)
- *
- * This file is part of libbitcoin.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-#ifndef LIBBITCOIN_BLOCKCHAIN_FAST_CHAIN_HPP
-#define LIBBITCOIN_BLOCKCHAIN_FAST_CHAIN_HPP
+// Copyright (c) 2016-2020 Knuth Project developers.
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+#ifndef KTH_BLOCKCHAIN_FAST_CHAIN_HPP
+#define KTH_BLOCKCHAIN_FAST_CHAIN_HPP
 
 #include <cstddef>
 #include <bitcoin/database.hpp>
@@ -42,7 +28,7 @@ public:
 
 
 
-#ifdef BITPRIM_DB_LEGACY
+#ifdef KTH_DB_LEGACY
     /// Get the set of block gaps in the chain.
     virtual bool get_gaps(database::block_database::heights& out_gaps) const = 0;
     
@@ -51,10 +37,10 @@ public:
     /// Determine if an unspent transaction exists with the given hash.
     virtual bool get_is_unspent_transaction(const hash_digest& hash, size_t branch_height, bool require_confirmed) const = 0;
 
-#endif // BITPRIM_DB_LEGACY
+#endif // KTH_DB_LEGACY
 
 
-#if defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_DB_NEW_FULL) 
+#if defined(KTH_DB_LEGACY) || defined(KTH_DB_NEW_FULL) 
     /// Get position data for a transaction.
     virtual bool get_transaction_position(size_t& out_height, size_t& out_position, const hash_digest& hash, bool require_confirmed) const = 0;
 
@@ -91,14 +77,14 @@ public:
     virtual bool get_last_height(size_t& out_height) const = 0;
 
 
-#ifdef BITPRIM_DB_NEW
+#ifdef KTH_DB_NEW
     /// Get the output that is referenced by the outpoint in the UTXO Set.
     virtual bool get_utxo(chain::output& out_output, size_t& out_height, uint32_t& out_median_time_past, bool& out_coinbase, chain::output_point const& outpoint, size_t branch_height) const = 0;
 
     /// Get a UTXO subset from the reorganization pool, [from, to] the specified heights.
     virtual std::pair<bool, database::internal_database::utxo_pool_t> get_utxo_pool_from(uint32_t from, uint32_t to) const = 0;
 
-#endif// BITPRIM_DB_NEW
+#endif// KTH_DB_NEW
 
     virtual void prune_reorg_async() = 0;
 
@@ -111,13 +97,13 @@ public:
     // Writers.
     // ------------------------------------------------------------------------
 
-#ifdef BITPRIM_DB_LEGACY
+#ifdef KTH_DB_LEGACY
     /// Create flush lock if flush_writes is true, and set sequential lock.
     virtual bool begin_insert() const = 0;
 
     /// Clear flush lock if flush_writes is true, and clear sequential lock.
     virtual bool end_insert() const = 0;
-#endif // BITPRIM_DB_LEGACY
+#endif // KTH_DB_LEGACY
 
     /// Insert a block to the blockchain, height is checked for existence.
     virtual bool insert(block_const_ptr block, size_t height) = 0;
@@ -146,6 +132,6 @@ public:
 };
 
 } // namespace blockchain
-} // namespace libbitcoin
+} // namespace kth
 
 #endif

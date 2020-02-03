@@ -1,23 +1,9 @@
-/**
- * Copyright (c) 2016-2018 Bitprim Inc.
- *
- * This file is part of Bitprim.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-#ifndef BITPRIM_BLOCKCHAIN_MINING_TRANSACTION_ELEMENT_HPP_
-#define BITPRIM_BLOCKCHAIN_MINING_TRANSACTION_ELEMENT_HPP_
+// Copyright (c) 2016-2020 Knuth Project developers.
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+#ifndef KTH_BLOCKCHAIN_MINING_TRANSACTION_ELEMENT_HPP_
+#define KTH_BLOCKCHAIN_MINING_TRANSACTION_ELEMENT_HPP_
 
 #include <unordered_map>
 #include <vector>
@@ -33,10 +19,10 @@ public:
     transaction_element(chain::transaction const& tx)
         : transaction_(tx)
         , txid_(transaction_.hash())
-#if ! defined(BITPRIM_CURRENCY_BCH)
+#if ! defined(KTH_CURRENCY_BCH)
         , hash_(transaction_.hash(true))
 #endif
-        , raw_(transaction_.to_data(true, BITPRIM_WITNESS_DEFAULT))
+        , raw_(transaction_.to_data(true, KTH_WITNESS_DEFAULT))
         , fee_(transaction_.fees())
         , sigops_(transaction_.signature_operations())
     {}
@@ -44,10 +30,10 @@ public:
     transaction_element(chain::transaction&& tx)
         : transaction_(std::move(tx))
         , txid_(transaction_.hash())
-#if ! defined(BITPRIM_CURRENCY_BCH)
+#if ! defined(KTH_CURRENCY_BCH)
         , hash_(transaction_.hash(true))
 #endif
-        , raw_(transaction_.to_data(true, BITPRIM_WITNESS_DEFAULT))
+        , raw_(transaction_.to_data(true, KTH_WITNESS_DEFAULT))
         , fee_(transaction_.fees())
         , sigops_(transaction_.signature_operations())
     {}
@@ -60,7 +46,7 @@ public:
         return txid_;
     }
 
-#if ! defined(BITPRIM_CURRENCY_BCH)
+#if ! defined(KTH_CURRENCY_BCH)
     hash_digest const& hash() const {
         return hash_;
     }
@@ -90,7 +76,7 @@ private:
     chain::transaction transaction_;
     hash_digest txid_;
 
-#if ! defined(BITPRIM_CURRENCY_BCH)
+#if ! defined(KTH_CURRENCY_BCH)
     hash_digest hash_;
 #endif
 
@@ -100,6 +86,6 @@ private:
 };
 
 }  // namespace mining
-}  // namespace libbitcoin
+}  // namespace kth
 
-#endif  //BITPRIM_BLOCKCHAIN_MINING_TRANSACTION_ELEMENT_HPP_
+#endif  //KTH_BLOCKCHAIN_MINING_TRANSACTION_ELEMENT_HPP_

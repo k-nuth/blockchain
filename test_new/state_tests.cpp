@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2018 Bitprim developers (see AUTHORS)
  *
- * This file is part of Bitprim.
+ * This file is part of the Knuth Project.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -19,9 +19,9 @@
 
 #include "doctest.h"
 
-#include <bitprim/keoken/memory_state.hpp>
+#include <knuth/keoken/memory_state.hpp>
 
-using namespace bitprim::keoken;
+using namespace knuth::keoken;
 using libbitcoin::hash_digest;
 using libbitcoin::hash_literal;
 using libbitcoin::wallet::payment_address;

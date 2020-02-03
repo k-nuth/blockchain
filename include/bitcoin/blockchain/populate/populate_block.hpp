@@ -1,23 +1,9 @@
-/**
- * Copyright (c) 2011-2017 libbitcoin developers (see AUTHORS)
- *
- * This file is part of libbitcoin.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-#ifndef LIBBITCOIN_BLOCKCHAIN_POPULATE_BLOCK_HPP
-#define LIBBITCOIN_BLOCKCHAIN_POPULATE_BLOCK_HPP
+// Copyright (c) 2016-2020 Knuth Project developers.
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+#ifndef KTH_BLOCKCHAIN_POPULATE_BLOCK_HPP
+#define KTH_BLOCKCHAIN_POPULATE_BLOCK_HPP
 
 #include <cstddef>
 #include <bitcoin/bitcoin.hpp>
@@ -26,8 +12,8 @@
 #include <bitcoin/blockchain/pools/branch.hpp>
 #include <bitcoin/blockchain/populate/populate_base.hpp>
 
-#if defined(BITPRIM_WITH_MEMPOOL)
-#include <bitprim/mining/mempool.hpp>
+#if defined(KTH_WITH_MEMPOOL)
+#include <knuth/mining/mempool.hpp>
 #endif
 
 
@@ -37,11 +23,11 @@ namespace blockchain {
 /// This class is NOT thread safe.
 class BCB_API populate_block  : public populate_base {
 public:
-#if defined(BITPRIM_DB_NEW)
+#if defined(KTH_DB_NEW)
     using utxo_pool_t = database::internal_database::utxo_pool_t;
 #endif    
 
-#if defined(BITPRIM_WITH_MEMPOOL)
+#if defined(KTH_WITH_MEMPOOL)
     populate_block(dispatcher& dispatch, fast_chain const& chain, bool relay_transactions, mining::mempool const& mp);
 #else
     populate_block(dispatcher& dispatch, fast_chain const& chain, bool relay_transactions);
@@ -56,7 +42,7 @@ protected:
     void populate_coinbase(branch::const_ptr branch, block_const_ptr block) const;
     ////void populate_duplicate(branch_ptr branch, const chain::transaction& tx) const;
 
-#if defined(BITPRIM_DB_NEW)
+#if defined(KTH_DB_NEW)
     utxo_pool_t get_reorg_subset_conditionally(size_t first_height, size_t& out_chain_top) const;
     void populate_from_reorg_subset(chain::output_point const& outpoint, utxo_pool_t const& reorg_subset) const;
     void populate_transaction_inputs(branch::const_ptr branch, chain::input::list const& inputs, size_t bucket, size_t buckets, size_t input_position, local_utxo_set_t const& branch_utxo, size_t first_height, size_t chain_top, utxo_pool_t const& reorg_subset) const;
@@ -64,7 +50,7 @@ protected:
     void populate_transaction_inputs(branch::const_ptr branch, chain::input::list const& inputs, size_t bucket, size_t buckets, size_t input_position, local_utxo_set_t const& branch_utxo) const;
 #endif
 
-#if defined(BITPRIM_WITH_MEMPOOL)
+#if defined(KTH_WITH_MEMPOOL)
     void populate_transactions(branch::const_ptr branch, size_t bucket, size_t buckets, local_utxo_set_t const& branch_utxo, mining::mempool::hash_index_t const& validated_txs, result_handler handler) const;
 #else
     void populate_transactions(branch::const_ptr branch, size_t bucket, size_t buckets, local_utxo_set_t const& branch_utxo, result_handler handler) const;
@@ -75,13 +61,13 @@ protected:
 private:
     bool const relay_transactions_;
 
-#if defined(BITPRIM_WITH_MEMPOOL)
+#if defined(KTH_WITH_MEMPOOL)
     mining::mempool const& mempool_;
 #endif
 
 };
 
 } // namespace blockchain
-} // namespace libbitcoin
+} // namespace kth
 
 #endif

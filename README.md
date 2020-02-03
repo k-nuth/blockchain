@@ -4,12 +4,12 @@
 
 | **master(linux/osx)** | **dev(linux/osx)**   | **master(windows)**   | **dev(windows)** |
 |:------:|:-:|:-:|:-:|
-| [![Build Status](https://travis-ci.org/bitprim/bitprim-blockchain.svg)](https://travis-ci.org/bitprim/bitprim-blockchain)       | [![Build StatusB](https://travis-ci.org/bitprim/bitprim-blockchain.svg?branch=dev)](https://travis-ci.org/bitprim/bitprim-blockchain?branch=dev)  | [![Appveyor Status](https://ci.appveyor.com/api/projects/status/github/bitprim/bitprim-blockchain?svg=true)](https://ci.appveyor.com/project/bitprim/bitprim-blockchain)  | [![Appveyor StatusB](https://ci.appveyor.com/api/projects/status/github/bitprim/bitprim-blockchain?branch=dev&svg=true)](https://ci.appveyor.com/project/bitprim/bitprim-blockchain?branch=dev)  |
+| [![Build Status](https://travis-ci.org/k-nuth/blockchain.svg)](https://travis-ci.org/k-nuth/blockchain)       | [![Build StatusB](https://travis-ci.org/k-nuth/blockchain.svg?branch=dev)](https://travis-ci.org/k-nuth/blockchain?branch=dev)  | [![Appveyor Status](https://ci.appveyor.com/api/projects/status/github/k-nuth/blockchain?svg=true)](https://ci.appveyor.com/project/k-nuth/blockchain)  | [![Appveyor StatusB](https://ci.appveyor.com/api/projects/status/github/k-nuth/blockchain?branch=dev&svg=true)](https://ci.appveyor.com/project/k-nuth/blockchain?branch=dev)  |
 
-Make sure you have installed [bitprim-core](https://github.com/bitprim/bitprim-core), [bitprim-database](https://github.com/bitprim/bitprim-database) and [bitprim-consensus](https://github.com/bitprim/bitprim-consensus) (optional) beforehand according to their respective build instructions.
+Make sure you have installed [kth-domain](https://github.com/k-nuth/core), [kth-database](https://github.com/k-nuth/database) and [bitprim-consensus](https://github.com/k-nuth/consensus) (optional) beforehand according to their respective build instructions.
 
 ```
-$ git clone https://github.com/bitprim/bitprim-blockchain.git
+$ git clone https://github.com/k-nuth/blockchain.git
 $ cd bitprim-blockchain
 $ mkdir build
 $ cd build
@@ -22,6 +22,6 @@ bitprim-blockchain is now installed in `/usr/local/`.
 
 ## Configure Options
 
-The default configuration requires `bitprim-consensus`. This ensures consensus parity with the Satoshi client. To eliminate the `bitprim-consensus` dependency use the `--without-consensus` option. This results in use of `bitprim-core` consensus checks.
+The default configuration requires `bitprim-consensus`. This ensures consensus parity with the Satoshi client. To eliminate the `bitprim-consensus` dependency use the `--without-consensus` option. This results in use of `kth-domain` consensus checks.
 
 [badge.Gitter]: https://img.shields.io/badge/gitter-join%20chat-blue.svg

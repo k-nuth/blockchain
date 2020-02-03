@@ -1,21 +1,7 @@
-/**
- * Copyright (c) 2011-2017 libbitcoin developers (see AUTHORS)
- *
- * This file is part of libbitcoin.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (c) 2016-2020 Knuth Project developers.
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 #include <bitcoin/blockchain/populate/populate_chain_state.hpp>
 
 #include <cstddef>
@@ -41,9 +27,9 @@ static constexpr uint32_t unspecified = max_uint32;
 
 populate_chain_state::populate_chain_state(const fast_chain& chain, const settings& settings)
     :
-#ifdef BITPRIM_CURRENCY_BCH
+#ifdef KTH_CURRENCY_BCH
       settings_(settings),
-#endif //BITPRIM_CURRENCY_BCH
+#endif //KTH_CURRENCY_BCH
 
       configured_forks_(settings.enabled_forks())
     , checkpoints_(config::checkpoint::sort(settings.checkpoints))
@@ -125,11 +111,11 @@ bool populate_chain_state::populate_timestamps(chain_state::data& data, const ch
     // Retarget is required if timestamp_retarget is not unrequested.
     if (map.timestamp_retarget != chain_state::map::unrequested &&
 // #ifdef LITECOIN
-#ifdef BITPRIM_CURRENCY_LTC
+#ifdef KTH_CURRENCY_LTC
         ! get_timestamp(data.timestamp.retarget, map.timestamp_retarget != 0 ? map.timestamp_retarget - 1 : 0, branch))
 #else
         ! get_timestamp(data.timestamp.retarget, map.timestamp_retarget, branch))
-#endif //BITPRIM_CURRENCY_LTC
+#endif //KTH_CURRENCY_LTC
     {
         return false;
     }
@@ -214,12 +200,12 @@ chain_state::ptr populate_chain_state::populate() const {
     }
 
     return std::make_shared<chain_state>(std::move(data), checkpoints_, configured_forks_
-#ifdef BITPRIM_CURRENCY_BCH
+#ifdef KTH_CURRENCY_BCH
             // , settings_.monolith_activation_time
             // , settings_.magnetic_anomaly_activation_time
             , settings_.great_wall_activation_time
             , settings_.graviton_activation_time
-#endif //BITPRIM_CURRENCY_BCH
+#endif //KTH_CURRENCY_BCH
     );
 }
 
@@ -241,12 +227,12 @@ chain_state::ptr populate_chain_state::populate(chain_state::ptr pool, branch::c
     }
 
     return std::make_shared<chain_state>(std::move(data), checkpoints_, configured_forks_
-#ifdef BITPRIM_CURRENCY_BCH
+#ifdef KTH_CURRENCY_BCH
             // , settings_.monolith_activation_time
             // , settings_.magnetic_anomaly_activation_time
             , settings_.great_wall_activation_time
             , settings_.graviton_activation_time
-#endif //BITPRIM_CURRENCY_BCH
+#endif //KTH_CURRENCY_BCH
     );
 }
 
@@ -262,4 +248,4 @@ chain_state::ptr populate_chain_state::populate(chain_state::ptr top) const {
 }
 
 } // namespace blockchain
-} // namespace libbitcoin
+} // namespace kth
