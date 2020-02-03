@@ -216,7 +216,7 @@ void populate_block::populate_transactions(branch::const_ptr branch, size_t buck
         // CONSENSUS: Satoshi implemented allow collisions in Nov 2015. This is
         // a hard fork that destroys unspent outputs in case of hash collision.
         //*********************************************************************
-        //Bitprim: we are not validating tx duplicates.
+        //Knuth: we are not validating tx duplicates.
 #if defined(KTH_DB_LEGACY)
         if ( ! collide) {
             populate_base::populate_duplicate(branch->height(), tx, true);

@@ -10,7 +10,7 @@
 #include <knuth/keoken/entities/asset.hpp>
 #include <knuth/keoken/primitives.hpp>
 
-namespace bitprim {
+namespace kth {
 namespace keoken {
 
 struct get_assets_by_address_data {
@@ -40,6 +40,6 @@ struct get_all_asset_addresses_data : get_assets_by_address_data {
 };
 
 } // namespace keoken
-} // namespace bitprim
+} // namespace kth
 
 #endif //KTH_BLOCKCHAIN_KEOKEN_STATE_DTO_HPP_

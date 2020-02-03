@@ -163,7 +163,7 @@ void block_chain::fetch_keoken_history(const short_hash& address_hash, size_t li
         return;
     }
 
-//TODO (rama): RESTRICT MINIMUM HEIGHT (define knuth::starting_keoken_height)
+//TODO(rama): RESTRICT MINIMUM HEIGHT (define knuth::starting_keoken_height)
 /*
     if(from_height < knuth::starting_keoken_height)
         from_height = knuth::starting_keoken_height;

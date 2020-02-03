@@ -33,7 +33,7 @@ public:
     virtual bool get_gaps(database::block_database::heights& out_gaps) const = 0;
     
     
-    //Bitprim: we don't store spent information
+    //Knuth: we don't store spent information
     /// Determine if an unspent transaction exists with the given hash.
     virtual bool get_is_unspent_transaction(const hash_digest& hash, size_t branch_height, bool require_confirmed) const = 0;
 

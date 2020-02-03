@@ -196,7 +196,7 @@ code validate_input::verify_script(const transaction& tx, uint32_t input_index,
 
     // Wire serialization is cached in support of large numbers of inputs.
 
-    //TODO(fernando): implement KTH_CACHED_RPC_DATA (See bitprim-domain) for the last parameter (unconfirmed = false).
+    //TODO(fernando): implement KTH_CACHED_RPC_DATA (See domain) for the last parameter (unconfirmed = false).
     // auto const tx_data = tx.to_data(true, witness, false);
     auto const tx_data = tx.to_data(true, witness);
 

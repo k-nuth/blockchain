@@ -10,13 +10,13 @@
 #include <knuth/keoken/entities/asset.hpp>
 #include <knuth/keoken/primitives.hpp>
 
-namespace bitprim {
+namespace kth {
 namespace keoken {
 
 using balance_key = std::tuple<asset_id_t, kth::wallet::payment_address>;
 
 } // namespace keoken
-} // namespace bitprim
+} // namespace kth
 
 
 // Standard hash.
@@ -39,7 +39,7 @@ struct hash<knuth::keoken::balance_key> {
 } // namespace std
 //-----------------------------------------------------------------------------
 
-namespace bitprim {
+namespace kth {
 namespace keoken {
 
 struct balance_entry {
@@ -59,6 +59,6 @@ struct balance_entry {
 };
 
 } // namespace keoken
-} // namespace bitprim
+} // namespace kth
 
 #endif //KTH_BLOCKCHAIN_KEOKEN_BALANCE_HPP_

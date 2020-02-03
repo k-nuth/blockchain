@@ -9,7 +9,7 @@
 #include <bitcoin/bitcoin/wallet/payment_address.hpp>
 
 
-namespace bitprim {
+namespace kth {
 namespace keoken {
 
 enum class message_type_t {
@@ -54,6 +54,6 @@ std::pair<bc::wallet::payment_address, bc::wallet::payment_address> get_send_tok
 }
 
 } // namespace keoken
-} // namespace bitprim
+} // namespace kth
 
 #endif //KTH_BLOCKCHAIN_KEOKEN_TRANSACTION_PROCESSORS_COMMON_HPP_

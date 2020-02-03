@@ -6,7 +6,7 @@
 #ifndef KTH_BLOCKCHAIN_KEOKEN_ERROR_HPP_
 #define KTH_BLOCKCHAIN_KEOKEN_ERROR_HPP_
 
-namespace bitprim {
+namespace kth {
 namespace keoken {
 namespace error {
 
@@ -33,6 +33,6 @@ enum error_code_t {
 
 } // namespace error
 } // namespace keoken
-} // namespace bitprim
+} // namespace kth
 
 #endif //KTH_BLOCKCHAIN_KEOKEN_ERROR_HPP_

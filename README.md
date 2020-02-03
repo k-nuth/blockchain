@@ -1,27 +1,43 @@
-# Bitprim Blockchain <a target="_blank" href="https://gitter.im/bitprim/Lobby">![Gitter Chat][badge.Gitter]</a>
+# Knuth Blockchain <a target="_blank" href="http://semver.org">![Version][badge.version]</a> <a target="_blank" href="https://travis-ci.org/k-nuth/blockchain">![Travis status][badge.Travis]</a> <a target="_blank" href="https://ci.appveyor.com/project/k-nuth/blockchain">![Appveyor status][badge.Appveyor]</a> <a target="_blank" href="https://gitter.im/k-nuth/Lobby">![Gitter Chat][badge.Gitter]</a>
 
-*Bitcoin blockchain library*
+> Blockchain library
 
-| **master(linux/osx)** | **dev(linux/osx)**   | **master(windows)**   | **dev(windows)** |
-|:------:|:-:|:-:|:-:|
-| [![Build Status](https://travis-ci.org/k-nuth/blockchain.svg)](https://travis-ci.org/k-nuth/blockchain)       | [![Build StatusB](https://travis-ci.org/k-nuth/blockchain.svg?branch=dev)](https://travis-ci.org/k-nuth/blockchain?branch=dev)  | [![Appveyor Status](https://ci.appveyor.com/api/projects/status/github/k-nuth/blockchain?svg=true)](https://ci.appveyor.com/project/k-nuth/blockchain)  | [![Appveyor StatusB](https://ci.appveyor.com/api/projects/status/github/k-nuth/blockchain?branch=dev&svg=true)](https://ci.appveyor.com/project/k-nuth/blockchain?branch=dev)  |
+## Installation Requirements
 
-Make sure you have installed [kth-domain](https://github.com/k-nuth/core), [kth-database](https://github.com/k-nuth/database) and [bitprim-consensus](https://github.com/k-nuth/consensus) (optional) beforehand according to their respective build instructions.
+- 64-bit machine.
+- [Conan](https://www.conan.io/) package manager, version 1.4.0 or newer. See [Conan Installation](http://docs.conan.io/en/latest/installation.html#install-with-pip-recommended).
+
+## Installation Procedure
+
+The *Knuth* libraries can be installed on Linux, macOS, FreeBSD, Windows and others. These binaries are pre-built for the most usual operating system/compiler combinations and hosted in an online repository. If there are no pre-built binaries for your platform, a build from source will be attempted.
+
+So, for any platform, an installation can be performed in 2 simple steps:
+
+1. Configure the Conan remote:
+```
+conan remote add kth https://api.bintray.com/conan/k-nuth/kth
+```
+
+2. Install the appropriate library:
 
 ```
-$ git clone https://github.com/k-nuth/blockchain.git
-$ cd bitprim-blockchain
-$ mkdir build
-$ cd build
-$ cmake .. -DWITH_TESTS=OFF -DWITH_TOOLS=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="-std=c++14"
-$ make -j2 
-$ sudo make install
+conan install blockchain/0.X@kth/stable 
 ```
 
-bitprim-blockchain is now installed in `/usr/local/`.
+In you want to tune the installation for better performance, please refer to [this](https://kth.github.io/docfx/content/user_guide/installation.html#advanced-installation).
 
-## Configure Options
 
-The default configuration requires `bitprim-consensus`. This ensures consensus parity with the Satoshi client. To eliminate the `bitprim-consensus` dependency use the `--without-consensus` option. This results in use of `kth-domain` consensus checks.
-
+<!-- Links -->
+[badge.Appveyor]: https://ci.appveyor.com/api/projects/status/github/k-nuth/blockchain?svg=true&branch=dev
 [badge.Gitter]: https://img.shields.io/badge/gitter-join%20chat-blue.svg
+[badge.Travis]: https://travis-ci.org/k-nuth/blockchain.svg?branch=master
+[badge.version]: https://badge.fury.io/gh/kth%2Fblockchain.svg
+
+[CMake]: http://www.cmake.org
+[Doxygen]: http://www.doxygen.org
+[eRuby]: http://en.wikipedia.org/wiki/ERuby
+[Hana.docs]: http://boostorg.github.io/hana
+[Hana.wiki]: https://github.com/boostorg/hana/wiki
+[Homebrew formula]: https://github.com/Homebrew/homebrew-blockchain/blob/master/Formula/hana.rb
+
+

@@ -9,7 +9,7 @@
 #include <knuth/keoken/error.hpp>
 #include <knuth/keoken/transaction_processors/commons.hpp>
 
-namespace bitprim {
+namespace kth {
 namespace keoken {
 namespace transaction_processors {
 namespace v0 {
@@ -57,6 +57,6 @@ struct send_tokens {
 } // namespace v0
 } // namespace transaction_processors
 } // namespace keoken
-} // namespace bitprim
+} // namespace kth
 
 #endif //KTH_BLOCKCHAIN_KEOKEN_TRANSACTION_PROCESSORS_V0_SEND_TOKENS_HPP_

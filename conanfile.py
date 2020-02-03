@@ -13,7 +13,7 @@ class KnuthBlockchainConan(KnuthConanFile):
     name = "blockchain"
     license = "http://www.boost.org/users/license.html"
     url = "https://github.com/k-nuth/blockchain/blob/conan-build/conanfile.py"
-    description = "Bitprim Blockchain Library"
+    description = "Knuth Blockchain Library"
     settings = "os", "compiler", "build_type", "arch"
 
     options = {"shared": [True, False],
@@ -62,8 +62,8 @@ class KnuthBlockchainConan(KnuthConanFile):
 
     generators = "cmake"
     exports = "conan_*", "ci_utils/*"
-    exports_sources = "src/*", "CMakeLists.txt", "cmake/*", "bitprim-blockchainConfig.cmake.in", "knuthbuildinfo.cmake", "include/*", "test/*", "test_new/*", "tools/*"
-    package_files = "build/lbitprim-blockchain.a"
+    exports_sources = "src/*", "CMakeLists.txt", "cmake/*", "kth-blockchainConfig.cmake.in", "knuthbuildinfo.cmake", "include/*", "test/*", "test_new/*", "tools/*"
+    package_files = "build/lkth-blockchain.a"
     build_policy = "missing"
 
     @property
@@ -135,4 +135,4 @@ class KnuthBlockchainConan(KnuthConanFile):
 
     def package_info(self):
         self.cpp_info.includedirs = ['include']
-        self.cpp_info.libs = ["bitprim-blockchain"]
+        self.cpp_info.libs = ["kth-blockchain"]

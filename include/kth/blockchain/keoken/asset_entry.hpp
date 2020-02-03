@@ -8,7 +8,7 @@
 #include <knuth/keoken/entities/asset.hpp>
 #include <knuth/keoken/primitives.hpp>
 
-namespace bitprim {
+namespace kth {
 namespace keoken {
 
 struct asset_entry {
@@ -30,6 +30,6 @@ struct asset_entry {
 };
 
 } // namespace keoken
-} // namespace bitprim
+} // namespace kth
 
 #endif //KTH_BLOCKCHAIN_KEOKEN_ASSET_ENTRY_HPP_

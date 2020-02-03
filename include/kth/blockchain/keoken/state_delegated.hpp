@@ -12,7 +12,7 @@
 
 #include <knuth/keoken/state_dto.hpp>
 
-namespace bitprim {
+namespace kth {
 namespace keoken {
 
 struct state_delegated {
@@ -80,6 +80,6 @@ void bind_to_state(State& st, state_delegated& st_del) {
 }
 
 } // namespace keoken
-} // namespace bitprim
+} // namespace kth
 
 #endif //KTH_BLOCKCHAIN_KEOKEN_STATE_DELEGATED_HPP_

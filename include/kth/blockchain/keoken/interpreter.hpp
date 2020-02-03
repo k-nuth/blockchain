@@ -6,18 +6,16 @@
 #ifndef KTH_BLOCKCHAIN_KEOKEN_INTERPRETER_HPP_
 #define KTH_BLOCKCHAIN_KEOKEN_INTERPRETER_HPP_
 
-#include <knuth/integer_sequence.hpp>
 #include <knuth/keoken/dispatcher.hpp>
 #include <knuth/keoken/error.hpp>
 #include <knuth/keoken/message/create_asset.hpp>
 #include <knuth/keoken/message/send_tokens.hpp>
 #include <knuth/keoken/transaction_extractor.hpp>
 #include <knuth/keoken/transaction_processors/v0/transactions.hpp>
-#include <knuth/tuple_element.hpp>
 
 // #define Tuple typename
 
-namespace bitprim {
+namespace kth {
 namespace keoken {
 
 enum class version_t {
@@ -90,6 +88,6 @@ private:
 };
 
 } // namespace keoken
-} // namespace bitprim
+} // namespace kth
 
 #endif //KTH_BLOCKCHAIN_KEOKEN_INTERPRETER_HPP_

@@ -12,7 +12,7 @@ using kth::data_chunk;
 using kth::hash_digest;
 using kth::wallet::payment_address;
 
-namespace bitprim {
+namespace kth {
 namespace keoken {
 
 // memory_state::memory_state(asset_id_t asset_id_initial)
@@ -227,4 +227,4 @@ memory_state::get_all_asset_addresses_list memory_state::get_all_asset_addresses
 }
 
 } // namespace keoken
-} // namespace bitprim
+} // namespace kth

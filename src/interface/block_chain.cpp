@@ -273,7 +273,7 @@ bool block_chain::get_output(chain::output& out_output, size_t& out_height,
 
 
 
-//Bitprim: We don't store spent information
+//Knuth: We don't store spent information
 /*#if defined(KTH_DB_NEW_FULL)
 //TODO(fernando): check if can we do it just with the UTXO
 bool block_chain::get_is_unspent_transaction(hash_digest const& hash, size_t branch_height, bool require_confirmed) const {
@@ -479,7 +479,7 @@ bool block_chain::insert(block_const_ptr block, size_t height) {
 
 void block_chain::push(transaction_const_ptr tx, dispatcher&, result_handler handler) {
     
-    //TODO: (bitprim) dissabled this tx cache because we don't want special treatment for the last txn, it affects the explorer rpc methods
+    //TODO(kth):  dissabled this tx cache because we don't want special treatment for the last txn, it affects the explorer rpc methods
     //last_transaction_.store(tx);
 
     // Transaction push is currently sequential so dispatch is not used.
@@ -970,7 +970,7 @@ void block_chain::fetch_transaction(hash_digest const& hash,
         handler(error::service_stopped, nullptr, 0, 0);
         return;
     }
-//TODO: (bitprim) dissabled this tx cache because we don't want special treatment for the last txn, it affects the explorer rpc methods
+//TODO(kth):  dissabled this tx cache because we don't want special treatment for the last txn, it affects the explorer rpc methods
 //    // Try the cached block first if confirmation is not required.
 //    if (!require_confirmed)
 //    {
@@ -1270,7 +1270,7 @@ void block_chain::fetch_transaction(hash_digest const& hash, bool require_confir
         handler(error::service_stopped, nullptr, 0, 0);
         return;
     }
-//TODO: (bitprim) dissabled this tx cache because we don't want special treatment for the last txn, it affects the explorer rpc methods
+//TODO(kth):  dissabled this tx cache because we don't want special treatment for the last txn, it affects the explorer rpc methods
 //    // Try the cached block first if confirmation is not required.
 //    if (!require_confirmed)
 //    {
@@ -2502,7 +2502,7 @@ void block_chain::filter_transactions(get_data_ptr message, result_handler handl
     size_t out_position;
 
     for (auto it = inventories.begin(); it != inventories.end();) {
-        //Bitprim: We don't store spent information
+        //Knuth: We don't store spent information
         if (it->is_transaction_type()
             //&& get_is_unspent_transaction(it->hash(), max_size_t, false))
             && get_transaction_position(out_height, out_position, it->hash(), false)) {
@@ -2621,7 +2621,7 @@ bool block_chain::is_stale() const {
     auto const top = last_block_.load();
 
     // TODO(fernando): refactor this!
-    // BITPRIM: get the last block if there is no cache
+    // Knuth: get the last block if there is no cache
     uint32_t last_timestamp = 0;
     if ( ! top) {
         size_t last_height;

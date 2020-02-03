@@ -6,18 +6,16 @@
 #ifndef KTH_BLOCKCHAIN_KEOKEN_DISPATCHER_HPP_
 #define KTH_BLOCKCHAIN_KEOKEN_DISPATCHER_HPP_
 
-#include <knuth/integer_sequence.hpp>
 #include <knuth/keoken/detail/dispatcher_utils.hpp>
 #include <knuth/keoken/error.hpp>
 #include <knuth/keoken/message/create_asset.hpp>
 #include <knuth/keoken/message/send_tokens.hpp>
 #include <knuth/keoken/transaction_extractor.hpp>
 #include <knuth/keoken/transaction_processors/v0/transactions.hpp>
-#include <knuth/tuple_element.hpp>
 
 // #define Tuple typename
 
-namespace bitprim {
+namespace kth {
 namespace keoken {
 namespace v0 {
 
@@ -76,6 +74,6 @@ struct dispatcher {
 
 } // namespace v0
 } // namespace keoken
-} // namespace bitprim
+} // namespace kth
 
 #endif //KTH_BLOCKCHAIN_KEOKEN_DISPATCHER_HPP_

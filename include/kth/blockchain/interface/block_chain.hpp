@@ -246,7 +246,7 @@ public:
 
 
 #ifdef KTH_DB_LEGACY
-    // Bitprim non-virtual functions.
+    // Knuth non-virtual functions.
     //-------------------------------------------------------------------------
     template <typename I>
     void for_each_tx_hash(I f, I l, database::transaction_database const& tx_store, size_t height, bool witness, for_each_tx_handler handler) const {
@@ -270,7 +270,7 @@ public:
 
 
 #ifdef KTH_DB_NEW_FULL
-    // Bitprim non-virtual functions.
+    // Knuth non-virtual functions.
     //-------------------------------------------------------------------------
     
     template <typename I>
@@ -464,7 +464,7 @@ private:
     const time_t notify_limit_seconds_;
     bc::atomic<block_const_ptr> last_block_;
 
-    //TODO: (bitprim) dissabled this tx cache because we don't want special treatment for the last txn, it affects the explorer rpc methods
+    //TODO(kth):  dissabled this tx cache because we don't want special treatment for the last txn, it affects the explorer rpc methods
     //bc::atomic<transaction_const_ptr> last_transaction_;
     
     const populate_chain_state chain_state_populator_;

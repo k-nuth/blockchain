@@ -18,7 +18,7 @@
 #include <knuth/keoken/primitives.hpp>
 #include <knuth/keoken/state_dto.hpp>
 
-namespace bitprim {
+namespace kth {
 namespace keoken {
 
 class memory_state {
@@ -83,6 +83,6 @@ private:
 };
 
 } // namespace keoken
-} // namespace bitprim
+} // namespace kth
 
 #endif //KTH_BLOCKCHAIN_KEOKEN_MEMORY_STATE_HPP_

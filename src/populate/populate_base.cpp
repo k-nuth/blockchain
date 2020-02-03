@@ -33,7 +33,7 @@ void populate_base::populate_duplicate(size_t branch_height, const chain::transa
 #if defined(KTH_DB_LEGACY)    
     tx.validation.duplicate = fast_chain_.get_is_unspent_transaction(tx.hash(), branch_height, require_confirmed);
 #else
-    //Bitprim: We are not validating tx duplication    
+    //Knuth: We are not validating tx duplication    
     tx.validation.duplicate = false;
 #endif // KTH_DB_LEGACY
 }
