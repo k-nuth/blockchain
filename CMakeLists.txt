@@ -117,9 +117,9 @@ endif()
 
 # Implement and declare DB_UNSPENT_LIBBITCOIN.
 #------------------------------------------------------------------------------
-option(DB_UNSPENT_LIBBITCOIN "DB Unspent Libbitcoin enabled." ON)
+option(DB_UNSPENT_LIBBITCOIN "DB Unspent Legacy enabled." ON)
 if (DB_UNSPENT_LIBBITCOIN)
-  message(STATUS "Bitprim: DB Unspent Libbitcoin enabled")
+  message(STATUS "Bitprim: DB Unspent Legacy enabled")
   add_definitions(-DKTH_DB_UNSPENT_LIBBITCOIN)
 endif()
 
