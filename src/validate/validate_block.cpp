@@ -85,7 +85,7 @@ void validate_block::check(block_const_ptr block, result_handler handler) const
 
     auto const count = block->transactions().size();
     auto const buckets = std::min(threads, count);
-    BITCOIN_ASSERT(buckets != 0);
+    KTH_ASSERT(buckets != 0);
 
     auto const join_handler = synchronize(std::move(complete_handler), buckets,
         NAME "_check");
@@ -134,7 +134,7 @@ void validate_block::accept(branch::const_ptr branch,
     result_handler handler) const
 {
     auto const block = branch->top();
-    BITCOIN_ASSERT(block);
+    KTH_ASSERT(block);
 
     // The block has no population timer, so set externally.
     block->validation.start_populate = asio::steady_clock::now();
@@ -190,7 +190,7 @@ void validate_block::handle_populated(const code& ec, block_const_ptr block,
 
     auto const sigops = std::make_shared<atomic_counter>(0);
     auto const state = block->validation.state;
-    BITCOIN_ASSERT(state);
+    KTH_ASSERT(state);
 #ifdef KTH_CURRENCY_BCH
     const bool bip141 = false;
 #else
@@ -210,7 +210,7 @@ void validate_block::handle_populated(const code& ec, block_const_ptr block,
     auto const count = block->transactions().size();
     auto const bip16 = state->is_enabled(rule_fork::bip16_rule);
     auto const buckets = std::min(priority_dispatch_.size(), count);
-    BITCOIN_ASSERT(buckets != 0);
+    KTH_ASSERT(buckets != 0);
 
     auto const join_handler = synchronize(std::move(complete_handler), buckets,
         NAME "_accept");
@@ -280,7 +280,7 @@ void validate_block::connect(branch::const_ptr branch,
     result_handler handler) const
 {
     auto const block = branch->top();
-    BITCOIN_ASSERT(block && block->validation.state);
+    KTH_ASSERT(block && block->validation.state);
 
     // We are reimplementing connect, so must set timer externally.
     block->validation.start_connect = asio::steady_clock::now();
@@ -308,7 +308,7 @@ void validate_block::connect(branch::const_ptr branch,
 
     auto const threads = priority_dispatch_.size();
     auto const buckets = std::min(threads, non_coinbase_inputs);
-    BITCOIN_ASSERT(buckets != 0);
+    KTH_ASSERT(buckets != 0);
 
     auto const join_handler = synchronize(std::move(complete_handler), buckets,
         NAME "_validate");
@@ -321,7 +321,7 @@ void validate_block::connect(branch::const_ptr branch,
 void validate_block::connect_inputs(block_const_ptr block, size_t bucket,
     size_t buckets, result_handler handler) const
 {
-    BITCOIN_ASSERT(bucket < buckets);
+    KTH_ASSERT(bucket < buckets);
     code ec(error::success);
     auto const forks = block->validation.state->enabled_forks();
     auto const& txs = block->transactions();

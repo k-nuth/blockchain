@@ -903,9 +903,9 @@ public:
         //     std::cout << std::endl;
         // }
 
-        BITCOIN_ASSERT(node.children_fees() == fee);
-        BITCOIN_ASSERT(node.children_size() == size);
-        BITCOIN_ASSERT(node.children_sigops() == sigops);
+        KTH_ASSERT(node.children_fees() == fee);
+        KTH_ASSERT(node.children_size() == size);
+        KTH_ASSERT(node.children_sigops() == sigops);
     }
 
 

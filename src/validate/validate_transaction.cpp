@@ -110,7 +110,7 @@ void validate_transaction::handle_populated(const code& ec,
         return;
     }
 
-    BITCOIN_ASSERT(tx->validation.state);
+    KTH_ASSERT(tx->validation.state);
 
     // Run contextual tx checks.
     handler(tx->accept());
@@ -123,7 +123,7 @@ void validate_transaction::handle_populated(const code& ec,
 void validate_transaction::connect(transaction_const_ptr tx,
     result_handler handler) const
 {
-    BITCOIN_ASSERT(tx->validation.state);
+    KTH_ASSERT(tx->validation.state);
     auto const total_inputs = tx->inputs().size();
 
     // Return if there are no inputs to validate (will fail later).
@@ -135,7 +135,7 @@ void validate_transaction::connect(transaction_const_ptr tx,
 
     auto const buckets = std::min(dispatch_.size(), total_inputs);
     auto const join_handler = synchronize(handler, buckets, NAME "_validate");
-    BITCOIN_ASSERT(buckets != 0);
+    KTH_ASSERT(buckets != 0);
 
     // If the priority threadpool is shut down when this is called the handler
     // will never be invoked, resulting in a threadpool.join indefinite hang.
@@ -146,7 +146,7 @@ void validate_transaction::connect(transaction_const_ptr tx,
 
 void validate_transaction::connect_inputs(transaction_const_ptr tx, size_t bucket, size_t buckets, result_handler handler) const
 {
-    BITCOIN_ASSERT(bucket < buckets);
+    KTH_ASSERT(bucket < buckets);
     code ec(error::success);
     auto const forks = tx->validation.state->enabled_forks();
     auto const& inputs = tx->inputs();

@@ -36,10 +36,10 @@ populate_transaction::populate_transaction(dispatcher& dispatch, fast_chain cons
 
 void populate_transaction::populate(transaction_const_ptr tx, result_handler&& handler) const {
     auto const state = tx->validation.state;
-    BITCOIN_ASSERT(state);
+    KTH_ASSERT(state);
 
     // Chain state is for the next block, so always > 0.
-    BITCOIN_ASSERT(tx->validation.state->height() > 0);
+    KTH_ASSERT(tx->validation.state->height() > 0);
     auto const chain_height = tx->validation.state->height() - 1u;
 
     //*************************************************************************
@@ -69,7 +69,7 @@ void populate_transaction::populate(transaction_const_ptr tx, result_handler&& h
 
     auto const buckets = std::min(dispatch_.size(), total_inputs);
     auto const join_handler = synchronize(std::move(handler), buckets, NAME);
-    BITCOIN_ASSERT(buckets != 0);
+    KTH_ASSERT(buckets != 0);
 
     for (size_t bucket = 0; bucket < buckets; ++bucket) {
         dispatch_.concurrent(&populate_transaction::populate_inputs, this, tx, chain_height, bucket, buckets, join_handler);
@@ -77,7 +77,7 @@ void populate_transaction::populate(transaction_const_ptr tx, result_handler&& h
 }
 
 void populate_transaction::populate_inputs(transaction_const_ptr tx, size_t chain_height, size_t bucket, size_t buckets, result_handler handler) const {
-    BITCOIN_ASSERT(bucket < buckets);
+    KTH_ASSERT(bucket < buckets);
     auto const& inputs = tx->inputs();
 
     for (auto input_index = bucket; input_index < inputs.size(); input_index = ceiling_add(input_index, buckets)) {

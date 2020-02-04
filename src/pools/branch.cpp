@@ -122,7 +122,7 @@ size_t branch::height_at(size_t index) const {
 
 // private
 uint32_t branch::median_time_past_at(size_t index) const {
-    BITCOIN_ASSERT(index < size());
+    KTH_ASSERT(index < size());
     return (*blocks_)[index]->header().validation.median_time_past;
 }
 
@@ -170,7 +170,7 @@ uint256_t branch::work() const {
 ////    auto const count = std::accumulate(blocks_->begin(), blocks_->end(),
 ////        size_t(0), outer);
 ////
-////    BITCOIN_ASSERT(count > 0);
+////    KTH_ASSERT(count > 0);
 ////    tx.validation.duplicate = count > 1u;
 ////}
 
@@ -201,7 +201,7 @@ void branch::populate_spent(output_point const& outpoint) const {
         };
 
         auto const& txs = block->transactions();
-        BITCOIN_ASSERT_MSG(!txs.empty(), "empty block in branch");
+        KTH_ASSERT_MSG(!txs.empty(), "empty block in branch");
         return std::any_of(txs.begin() + 1, txs.end(), transactions);
     };
 

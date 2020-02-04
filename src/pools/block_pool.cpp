@@ -31,17 +31,17 @@ size_t block_pool::size() const
 void block_pool::add(block_const_ptr valid_block)
 {
     // The block must be successfully validated.
-    ////BITCOIN_ASSERT(!block->validation.error);
+    ////KTH_ASSERT(!block->validation.error);
     block_entry entry{ valid_block };
 
     // Not all blocks will have validation state.
-    ////BITCOIN_ASSERT(block->validation.state);
+    ////KTH_ASSERT(block->validation.state);
     auto height = valid_block->header().validation.height;
     auto const& left = blocks_.left;
 
     // Caller ensure the entry does not exist by using get_path, but
     // insert rejects the block if there is an entry of the same hash.
-    ////BITCOIN_ASSERT(left.find(entry) == left.end());
+    ////KTH_ASSERT(left.find(entry) == left.end());
 
     // Add a back pointer from the parent for clearing the path later.
     const block_entry parent{ valid_block->header().previous_block_hash() };
@@ -105,7 +105,7 @@ void block_pool::remove(block_const_ptr_list_const_ptr accepted_blocks)
         // Copy the entry so that it can be deleted and replanted with height.
         auto const copy = it->first;
         auto const height = copy.block()->header().validation.height;
-        BITCOIN_ASSERT(it->second == 0);
+        KTH_ASSERT(it->second == 0);
 
         // Critical Section
         ///////////////////////////////////////////////////////////////////////
@@ -126,7 +126,7 @@ void block_pool::prune(const hash_list& hashes, size_t minimum_height)
     for (auto& hash: hashes)
     {
         auto const it = left.find(block_entry{ hash });
-        BITCOIN_ASSERT(it != left.end());
+        KTH_ASSERT(it != left.end());
 
         auto const height = it->first.block()->header().validation.height;
 
@@ -209,7 +209,7 @@ void block_pool::filter(get_data_ptr message) const
 bool block_pool::exists(block_const_ptr candidate_block) const
 {
     // The block must not yet be successfully validated.
-    ////BITCOIN_ASSERT(candidate_block->validation.error);
+    ////KTH_ASSERT(candidate_block->validation.error);
     auto const& left = blocks_.left;
 
     // Critical Section

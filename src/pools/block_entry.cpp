@@ -36,14 +36,14 @@ const hash_digest& block_entry::hash() const
 // Not callable if the entry is a search key.
 const hash_digest& block_entry::parent() const
 {
-    BITCOIN_ASSERT(block_);
+    KTH_ASSERT(block_);
     return block_->header().previous_block_hash();
 }
 
 // Not valid if the entry is a search key.
 const hash_list& block_entry::children() const
 {
-    ////BITCOIN_ASSERT(block_);
+    ////KTH_ASSERT(block_);
     return children_;
 }
 
