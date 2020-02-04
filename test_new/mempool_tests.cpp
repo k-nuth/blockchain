@@ -1,32 +1,18 @@
-/**
- * Copyright (c) 2018 Bitprim developers (see AUTHORS)
- *
- * This file is part of Bitprim.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+// Copyright (c) 2016-2020 Knuth Project developers.
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+ 
 
 #include "doctest.h"
 
-#include <bitprim/mining/mempool.hpp>
+#include <kth/mining/mempool.hpp>
 
-#include <bitcoin/bitcoin/chain/transaction.hpp>
-#include <bitcoin/blockchain.hpp>
+#include <kth/domain/chain/transaction.hpp>
+#include <kth/blockchain.hpp>
 
-using namespace libbitcoin;
-using namespace libbitcoin::chain;
-using namespace libbitcoin::mining;
+using namespace kth;
+using namespace kth::chain;
+using namespace kth::mining;
 
 hash_digest hash_one   {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1};
 hash_digest hash_two   {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2};
@@ -43,11 +29,11 @@ static chain_state::data get_data() {
 
 void add_state(transaction& tx) {
     tx.validation.state = std::make_shared<chain_state>(
-#ifdef BITPRIM_CURRENCY_BCH
+#ifdef KTH_CURRENCY_BCH
         chain_state{ get_data(), {}, 0, 0, 0 });
 #else
         chain_state{ get_data(), {}, 0 });
-#endif //BITPRIM_CURRENCY_BCH
+#endif //KTH_CURRENCY_BCH
 }
 
 transaction get_tx(std::string const& hex) {
@@ -70,7 +56,7 @@ transaction get_tx_from_mempool(mining::mempool const& mp, std::unordered_map<ch
             i.previous_output().validation.from_mempool = true;
             i.previous_output().validation.cache = o;
         } else {
-            // std::cout << "Not Found: " encode_base16(tx.to_data(true, BITPRIM_WITNESS_DEFAULT)) << std::endl;
+            // std::cout << "Not Found: " encode_base16(tx.to_data(true, KTH_WITNESS_DEFAULT)) << std::endl;
 
             i.previous_output().validation.from_mempool = false;
 
@@ -95,7 +81,7 @@ chain::block get_block(std::string const& hex) {
     return blk;
 }
 
-libbitcoin::chain::block get_block_from_template(mempool const& mp) {
+kth::chain::block get_block_from_template(mempool const& mp) {
     auto gbt = mp.get_block_template();
     transaction::list tx_list;
     for (auto const& elem : gbt.first) {
@@ -117,7 +103,7 @@ TEST_CASE("[mempool] add one transaction") {
     REQUIRE(mp.add(tx) == error::success);
     REQUIRE(mp.all_transactions() == 1);
     REQUIRE(mp.candidate_transactions() == 1);
-    REQUIRE(mp.candidate_bytes() == tx.to_data(true, BITPRIM_WITNESS_DEFAULT).size());
+    REQUIRE(mp.candidate_bytes() == tx.to_data(true, KTH_WITNESS_DEFAULT).size());
 
 #ifndef NDEBUG
     mp.check_invariant();
@@ -134,7 +120,7 @@ TEST_CASE("[mempool] duplicated transactions") {
     REQUIRE(mp.add(tx) == error::success);
     REQUIRE(mp.all_transactions() == 1);
     REQUIRE(mp.candidate_transactions() == 1);
-    REQUIRE(mp.candidate_bytes() == tx.to_data(true, BITPRIM_WITNESS_DEFAULT).size());
+    REQUIRE(mp.candidate_bytes() == tx.to_data(true, KTH_WITNESS_DEFAULT).size());
 
     auto res = mp.add(tx);
     REQUIRE(res != error::success);
@@ -166,13 +152,13 @@ TEST_CASE("[mempool] chained transactions") {
     REQUIRE(mp.add(tx) == error::success);
     REQUIRE(mp.all_transactions() == 1);
     REQUIRE(mp.candidate_transactions() == 1);
-    REQUIRE(mp.candidate_bytes() == tx.to_data(true, BITPRIM_WITNESS_DEFAULT).size());
+    REQUIRE(mp.candidate_bytes() == tx.to_data(true, KTH_WITNESS_DEFAULT).size());
 
     REQUIRE(mp.add(spender) == error::success);
     REQUIRE(mp.all_transactions() == 2);
     REQUIRE(mp.candidate_transactions() == 2);
-    REQUIRE(mp.candidate_bytes() == tx.to_data(true, BITPRIM_WITNESS_DEFAULT).size() 
-                                  + spender.to_data(true, BITPRIM_WITNESS_DEFAULT).size());
+    REQUIRE(mp.candidate_bytes() == tx.to_data(true, KTH_WITNESS_DEFAULT).size() 
+                                  + spender.to_data(true, KTH_WITNESS_DEFAULT).size());
 
 
 #ifndef NDEBUG
@@ -211,13 +197,13 @@ TEST_CASE("[mempool] chained transactions") {
 //     REQUIRE(mp.add(tx) == error::success);
 //     REQUIRE(mp.all_transactions() == 1);
 //     REQUIRE(mp.candidate_transactions() == 1);
-//     REQUIRE(mp.candidate_bytes() == tx.to_data(true, BITPRIM_WITNESS_DEFAULT).size());
+//     REQUIRE(mp.candidate_bytes() == tx.to_data(true, KTH_WITNESS_DEFAULT).size());
 
 //     REQUIRE(mp.add(spender) == error::success);
 //     REQUIRE(mp.all_transactions() == 2);
 //     REQUIRE(mp.candidate_transactions() == 2);
-//     REQUIRE(mp.candidate_bytes() == tx.to_data(true, BITPRIM_WITNESS_DEFAULT).size() 
-//                                   + spender.to_data(true, BITPRIM_WITNESS_DEFAULT).size());
+//     REQUIRE(mp.candidate_bytes() == tx.to_data(true, KTH_WITNESS_DEFAULT).size() 
+//                                   + spender.to_data(true, KTH_WITNESS_DEFAULT).size());
 
 
 //     // auto internal_utxo_set_ = mp.internal_utxo_set_;
@@ -228,8 +214,8 @@ TEST_CASE("[mempool] chained transactions") {
 //     REQUIRE(mp.add(spender_fake) == error::double_spend_mempool);
 //     REQUIRE(mp.all_transactions() == 2);
 //     REQUIRE(mp.candidate_transactions() == 2);
-//     REQUIRE(mp.candidate_bytes() == tx.to_data(true, BITPRIM_WITNESS_DEFAULT).size() 
-//                                   + spender.to_data(true, BITPRIM_WITNESS_DEFAULT).size());
+//     REQUIRE(mp.candidate_bytes() == tx.to_data(true, KTH_WITNESS_DEFAULT).size() 
+//                                   + spender.to_data(true, KTH_WITNESS_DEFAULT).size());
 
 //     // REQUIRE(internal_utxo_set_ == mp.internal_utxo_set_);
 //     // // REQUIRE(all_transactions_ == mp.all_transactions_);
@@ -2557,7 +2543,7 @@ TEST_CASE("[mempool] GetBlockTemplate CTOR/LTOR") {
     
     auto block = get_block_from_template(mp);
 
-#if defined(BITPRIM_CURRENCY_BCH)
+#if defined(KTH_CURRENCY_BCH)
     REQUIRE(block.is_canonical_ordered());
 #else
     REQUIRE( ! block.is_forward_reference());
@@ -2856,7 +2842,7 @@ TEST_CASE("[mempool] GetBlockTemplate CTOR/LTOR 2 - testnet case 2") {
 
     auto block_prev = get_block_from_template(mp);
 
-#if defined(BITPRIM_CURRENCY_BCH)
+#if defined(KTH_CURRENCY_BCH)
     REQUIRE(block_prev.is_canonical_ordered());
 #else
     REQUIRE( ! block_prev.is_forward_reference());
@@ -2989,7 +2975,7 @@ TEST_CASE("[mempool] GetBlockTemplate CTOR/LTOR 2 - testnet case 2") {
     
     auto block_post = get_block_from_template(mp);
 
-#if defined(BITPRIM_CURRENCY_BCH)
+#if defined(KTH_CURRENCY_BCH)
     REQUIRE(block_post.is_canonical_ordered());
 #else
     REQUIRE( ! block_post.is_forward_reference());
@@ -3071,7 +3057,7 @@ TEST_CASE("[mempool] GetBlockTemplate CTOR/LTOR 3 - Dependencies graph") {
 
     auto block = get_block_from_template(mp);
    
-#if defined(BITPRIM_CURRENCY_BCH)
+#if defined(KTH_CURRENCY_BCH)
     REQUIRE(block.is_canonical_ordered());
 #else
     REQUIRE( ! block.is_forward_reference());

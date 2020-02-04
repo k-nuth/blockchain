@@ -1,33 +1,19 @@
-/**
- * Copyright (c) 2011-2017 libbitcoin developers (see AUTHORS)
- *
- * This file is part of libbitcoin.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-#include <bitcoin/blockchain/populate/populate_transaction.hpp>
+// Copyright (c) 2016-2020 Knuth Project developers.
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+#include <kth/blockchain/populate/populate_transaction.hpp>
 
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <functional>
-#include <bitcoin/bitcoin.hpp>
-#include <bitcoin/blockchain/define.hpp>
-#include <bitcoin/blockchain/interface/fast_chain.hpp>
-#include <bitcoin/blockchain/pools/branch.hpp>
+#include <kth/domain.hpp>
+#include <kth/blockchain/define.hpp>
+#include <kth/blockchain/interface/fast_chain.hpp>
+#include <kth/blockchain/pools/branch.hpp>
 
-namespace libbitcoin {
+namespace kth {
 namespace blockchain {
 
 using namespace bc::chain;
@@ -37,7 +23,7 @@ using namespace std::placeholders;
 
 // Database access is limited to calling populate_base.
 
-#if defined(BITPRIM_WITH_MEMPOOL)
+#if defined(KTH_WITH_MEMPOOL)
 populate_transaction::populate_transaction(dispatcher& dispatch, fast_chain const& chain, mining::mempool const& mp)
     : populate_base(dispatch, chain)
     , mempool_(mp)
@@ -99,7 +85,7 @@ void populate_transaction::populate_inputs(transaction_const_ptr tx, size_t chai
         auto const& prevout = input.previous_output();
         populate_prevout(chain_height, prevout, false);
 
-#if defined(BITPRIM_DB_NEW) && defined(BITPRIM_WITH_MEMPOOL)
+#if defined(KTH_DB_NEW) && defined(KTH_WITH_MEMPOOL)
         if ( ! prevout.validation.cache.is_valid()) {
             // asm("int $3");  //TODO(fernando): remover
 
@@ -117,4 +103,4 @@ void populate_transaction::populate_inputs(transaction_const_ptr tx, size_t chai
 }
 
 } // namespace blockchain
-} // namespace libbitcoin
+} // namespace kth

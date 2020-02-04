@@ -1,31 +1,17 @@
-/**
- * Copyright (c) 2011-2017 libbitcoin developers (see AUTHORS)
- *
- * This file is part of libbitcoin.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-#include <bitcoin/blockchain/pools/transaction_entry.hpp>
+// Copyright (c) 2016-2020 Knuth Project developers.
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+#include <kth/blockchain/pools/transaction_entry.hpp>
 
 #include <cstddef>
 #include <cstdint>
 #include <algorithm>
 #include <iostream>
-#include <bitcoin/bitcoin.hpp>
-#include <bitcoin/blockchain/define.hpp>
+#include <kth/domain.hpp>
+#include <kth/blockchain/define.hpp>
 
-namespace libbitcoin {
+namespace kth {
 namespace blockchain {
 
 // Space optimization since valid sigops and size are never close to 32 bits.
@@ -129,7 +115,7 @@ void transaction_entry::add_child(ptr child)
 // This is guarded against missing entries.
 void transaction_entry::remove_child(ptr child)
 {
-    const auto it = find(children_.begin(), children_.end(), child);
+    auto const it = find(children_.begin(), children_.end(), child);
 
     // TODO: this is a placeholder for subtree purge.
     // TODO: manage removal of bidirectional link add/remove.
@@ -146,4 +132,4 @@ std::ostream& operator<<(std::ostream& out, const transaction_entry& of)
 }
 
 } // namespace blockchain
-} // namespace libbitcoin
+} // namespace kth

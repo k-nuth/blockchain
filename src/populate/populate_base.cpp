@@ -1,29 +1,15 @@
-/**
- * Copyright (c) 2011-2017 libbitcoin developers (see AUTHORS)
- *
- * This file is part of libbitcoin.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-#include <bitcoin/blockchain/populate/populate_base.hpp>
+// Copyright (c) 2016-2020 Knuth Project developers.
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+#include <kth/blockchain/populate/populate_base.hpp>
 
 #include <algorithm>
 #include <cstddef>
-#include <bitcoin/bitcoin.hpp>
-#include <bitcoin/blockchain/interface/fast_chain.hpp>
+#include <kth/domain.hpp>
+#include <kth/blockchain/interface/fast_chain.hpp>
 
-namespace libbitcoin {
+namespace kth {
 namespace blockchain {
 
 using namespace bc::chain;
@@ -44,22 +30,22 @@ populate_base::populate_base(dispatcher& dispatch, const fast_chain& chain)
 // This is the only necessary file system read in block/tx validation.
 void populate_base::populate_duplicate(size_t branch_height, const chain::transaction& tx, bool require_confirmed) const {
 
-#if defined(BITPRIM_DB_LEGACY)    
+#if defined(KTH_DB_LEGACY)    
     tx.validation.duplicate = fast_chain_.get_is_unspent_transaction(tx.hash(), branch_height, require_confirmed);
 #else
-    //Bitprim: We are not validating tx duplication    
+    //Knuth: We are not validating tx duplication    
     tx.validation.duplicate = false;
-#endif // BITPRIM_DB_LEGACY
+#endif // KTH_DB_LEGACY
 }
 
 void populate_base::populate_pooled(const chain::transaction& tx, uint32_t forks) const {
     size_t height;
     size_t position;
 
-#if defined(BITPRIM_DB_LEGACY) || defined(BITPRIM_DB_NEW_FULL)
+#if defined(KTH_DB_LEGACY) || defined(KTH_DB_NEW_FULL)
     if (fast_chain_.get_transaction_position(height, position, tx.hash(), false) 
         
-#if defined(BITPRIM_DB_LEGACY)        
+#if defined(KTH_DB_LEGACY)        
         && (position == transaction_database::unconfirmed)) {
 #else 
         && (position == position_max)) {
@@ -69,7 +55,7 @@ void populate_base::populate_pooled(const chain::transaction& tx, uint32_t forks
         tx.validation.current = (height == forks);
         return;
     }
-#endif // BITPRIM_DB_LEGACY  || BITPRIM_DB_NEW_FULL
+#endif // KTH_DB_LEGACY  || KTH_DB_NEW_FULL
 
     tx.validation.pooled = false;
     tx.validation.current = false;
@@ -92,7 +78,7 @@ void populate_base::populate_prevout(size_t branch_height, output_point const& o
         return;
     }
 
-#if defined(BITPRIM_DB_NEW)
+#if defined(KTH_DB_NEW)
     //TODO(fernando): check the value of the parameters: branch_height and require_confirmed
     if ( ! fast_chain_.get_utxo(prevout.cache, prevout.height, prevout.median_time_past, prevout.coinbase, outpoint, branch_height)) {
         return;
@@ -100,7 +86,7 @@ void populate_base::populate_prevout(size_t branch_height, output_point const& o
     
 
 
-#elif defined(BITPRIM_DB_LEGACY)
+#elif defined(KTH_DB_LEGACY)
     // Get the prevout/cache (and spender height) and its metadata.
     // The output (prevout.cache) is populated only if the return is true.
     if ( ! fast_chain_.get_output(prevout.cache, prevout.height,
@@ -123,7 +109,7 @@ void populate_base::populate_prevout(size_t branch_height, output_point const& o
     // BUGBUG: Spends are not marked as spent by unconfirmed transactions.
     // So tx pool transactions currently have no double spend limitation.
     // The output is spent only if by a spend at or below the branch height.
-    const auto spend_height = prevout.cache.validation.spender_height;
+    auto const spend_height = prevout.cache.validation.spender_height;
 
     // The previous output has already been spent (double spend).
     if ((spend_height <= branch_height) && (spend_height != output::validation::not_spent)) {
@@ -134,4 +120,4 @@ void populate_base::populate_prevout(size_t branch_height, output_point const& o
 }
 
 } // namespace blockchain
-} // namespace libbitcoin
+} // namespace kth

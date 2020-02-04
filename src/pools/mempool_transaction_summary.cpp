@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2011-2018 libitcoin developers (see AUTHORS)
  *
- * This file is part of libbitcoin.
+ * This file is part of the Knuth Project.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -16,9 +16,9 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <bitcoin/blockchain/pools/mempool_transaction_summary.hpp>
+#include <kth/blockchain/pools/mempool_transaction_summary.hpp>
 
-namespace libbitcoin {
+namespace kth {
 namespace blockchain {
 
 mempool_transaction_summary::mempool_transaction_summary(std::string const& address, std::string const& hash, std::string const& previous_output_hash,
@@ -63,4 +63,4 @@ uint64_t mempool_transaction_summary::timestamp() const {
 }
 
 } // namespace blockchain
-} // namespace libbitcoin
+} // namespace kth

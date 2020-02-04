@@ -1,31 +1,17 @@
-/**
- * Copyright (c) 2011-2017 libbitcoin developers (see AUTHORS)
- *
- * This file is part of libbitcoin.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-#include <bitcoin/blockchain/validate/validate_input.hpp>
+// Copyright (c) 2016-2020 Knuth Project developers.
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+#include <kth/blockchain/validate/validate_input.hpp>
 
 #include <cstdint>
-#include <bitcoin/bitcoin.hpp>
+#include <kth/domain.hpp>
 
 #ifdef WITH_CONSENSUS
-#include <bitcoin/consensus.hpp>
+#include <kth/consensus.hpp>
 #endif
 
-namespace libbitcoin {
+namespace kth {
 namespace blockchain {
 
 using namespace bc::chain;
@@ -39,19 +25,23 @@ using namespace bc::consensus;
 uint32_t validate_input::convert_flags(uint32_t native_forks) {
     uint32_t flags = verify_flags_none;
 
-    if (script::is_enabled(native_forks, rule_fork::bip16_rule))
+    if (script::is_enabled(native_forks, rule_fork::bip16_rule)) {
         flags |= verify_flags_p2sh;
+    }
 
-    if (script::is_enabled(native_forks, rule_fork::bip65_rule))
+    if (script::is_enabled(native_forks, rule_fork::bip65_rule)) {
         flags |= verify_flags_checklocktimeverify;
+    }
 
-    if (script::is_enabled(native_forks, rule_fork::bip66_rule))
+    if (script::is_enabled(native_forks, rule_fork::bip66_rule)) {
         flags |= verify_flags_dersig;
+    }
 
-    if (script::is_enabled(native_forks, rule_fork::bip112_rule))
+    if (script::is_enabled(native_forks, rule_fork::bip112_rule)) {
         flags |= verify_flags_checksequenceverify;
+    }
 
-#ifdef BITPRIM_CURRENCY_BCH
+#ifdef KTH_CURRENCY_BCH
     // BCH UAHF (FORKID on txns)
     if (script::is_enabled(native_forks, rule_fork::cash_verify_flags_script_enable_sighash_forkid)) {
         flags |= verify_flags_script_enable_sighash_forkid;
@@ -60,7 +50,6 @@ uint32_t validate_input::convert_flags(uint32_t native_forks) {
     // Obligatory flags used on the 2017-Nov-13 BCH hard fork
     if (script::is_enabled(native_forks, rule_fork::cash_low_s_rule)) {
         flags |= verify_flags_low_s;
-        flags |= verify_flags_nulldummy;
     }
 
     // // Obligatory flags used on the 2018-May-15 BCH hard fork
@@ -74,18 +63,32 @@ uint32_t validate_input::convert_flags(uint32_t native_forks) {
     }
 
     if (script::is_enabled(native_forks, rule_fork::cash_checkdatasig)) {
-        flags |= verify_flags_script_enable_checkdatasig;
+        flags |= verify_flags_script_enable_checkdatasig_sigops;
     }
 
     if (script::is_enabled(native_forks, rule_fork::cash_schnorr)) {
-        flags |= verify_flags_script_enable_schnorr;
+        flags |= verify_flags_script_script_enable_schnorr_multisig;
     }
 
     if (script::is_enabled(native_forks, rule_fork::cash_segwit_recovery)) {
-        flags |= verify_flags_script_enable_segwit_recovery;
+        flags |= verify_flags_script_disallow_segwit_recovery;
     }
 
-#else //BITPRIM_CURRENCY_BCH
+
+    //TODO(fernando): check what to do with these flags... taken from Consensus code
+
+//     if ((flags & verify_flags_script_verify_compressed_pubkeytype) != 0)
+//         script_flags |= SCRIPT_VERIFY_COMPRESSED_PUBKEYTYPE;
+
+//     if ((flags & verify_flags_script_verify_input_sigchecks) != 0)
+//         script_flags |= SCRIPT_VERIFY_INPUT_SIGCHECKS;
+
+//     if ((flags & verify_flags_script_report_sigchecks) != 0)
+//         script_flags |= SCRIPT_REPORT_SIGCHECKS;
+
+
+
+#else
     if (script::is_enabled(native_forks, rule_fork::bip141_rule)) {
         flags |= verify_flags_witness;
     }
@@ -93,13 +96,18 @@ uint32_t validate_input::convert_flags(uint32_t native_forks) {
     if (script::is_enabled(native_forks, rule_fork::bip147_rule)) {
         flags |= verify_flags_nulldummy;
     }
+
+
+    //TODO(fernando): check what to do with these flags... taken from Consensus code
+    // if ((flags & verify_flags_const_scriptcode) != 0)
+    //     script_flags |= SCRIPT_VERIFY_CONST_SCRIPTCODE;
+
 #endif
     return flags;
 }
 
 // TODO: map to corresponding bc::error codes.
-code validate_input::convert_result(verify_result_type result)
-{
+code validate_input::convert_result(verify_result_type result) {
     switch (result)
     {
         // Logical true result.
@@ -138,7 +146,7 @@ code validate_input::convert_result(verify_result_type result)
         // Softfork safeness (should not see).
         case verify_result_type::verify_result_discourage_upgradable_nops:
             return error::operation_failed;
-#ifndef BITPRIM_CURRENCY_BCH
+#ifndef KTH_CURRENCY_BCH
         case verify_result_type::verify_result_discourage_upgradable_witness_program:
             return error::operation_failed;
 
@@ -151,7 +159,11 @@ code validate_input::convert_result(verify_result_type result)
         case verify_result_type::verify_result_minimaldata:
         case verify_result_type::verify_result_sig_pushonly:
         case verify_result_type::verify_result_sig_high_s:
+
+#if ! defined(KTH_CURRENCY_BCH)
         case verify_result_type::verify_result_sig_nulldummy:
+#endif
+
         case verify_result_type::verify_result_pubkeytype:
         case verify_result_type::verify_result_cleanstack:
             return error::operation_failed_21;
@@ -166,7 +178,7 @@ code validate_input::convert_result(verify_result_type result)
         case verify_result_type::verify_result_unknown_error:
             return error::invalid_script;
 
-#ifndef BITPRIM_CURRENCY_BCH
+#ifndef KTH_CURRENCY_BCH
         // Segregated witness.
         case verify_result_type::verify_result_witness_program_wrong_length:
         case verify_result_type::verify_result_witness_program_empty_witness:
@@ -193,35 +205,35 @@ code validate_input::convert_result(verify_result_type result)
 code validate_input::verify_script(const transaction& tx, uint32_t input_index,
     uint32_t branches) {
 
-#ifdef BITPRIM_CURRENCY_BCH
+#ifdef KTH_CURRENCY_BCH
     bool witness = false;
 #else
     bool witness = true;
 #endif
 
     BITCOIN_ASSERT(input_index < tx.inputs().size());
-    const auto& prevout = tx.inputs()[input_index].previous_output().validation;
-    const auto script_data = prevout.cache.script().to_data(false);
-    const auto prevout_value = prevout.cache.value();
+    auto const& prevout = tx.inputs()[input_index].previous_output().validation;
+    auto const script_data = prevout.cache.script().to_data(false);
+    auto const prevout_value = prevout.cache.value();
 
-    // const auto amount = bitcoin_cash ? prevout.cache.value() : 0;
-    const auto amount = prevout.cache.value();
-    // const auto prevout_value = prevout.cache.value();
+    // auto const amount = bitcoin_cash ? prevout.cache.value() : 0;
+    auto const amount = prevout.cache.value();
+    // auto const prevout_value = prevout.cache.value();
 
     // Wire serialization is cached in support of large numbers of inputs.
 
-    //TODO(fernando): implement BITPRIM_CACHED_RPC_DATA (See bitprim-domain) for the last parameter (unconfirmed = false).
-    // const auto tx_data = tx.to_data(true, witness, false);
-    const auto tx_data = tx.to_data(true, witness);
+    //TODO(fernando): implement KTH_CACHED_RPC_DATA (See domain) for the last parameter (unconfirmed = false).
+    // auto const tx_data = tx.to_data(true, witness, false);
+    auto const tx_data = tx.to_data(true, witness);
 
-#ifdef BITPRIM_CURRENCY_BCH
+#ifdef KTH_CURRENCY_BCH
     auto res = consensus::verify_script(tx_data.data(),
         tx_data.size(), script_data.data(), script_data.size(), input_index,
         convert_flags(branches), amount);
 
     return convert_result(res);
 
-#else // BITPRIM_CURRENCY_BCH
+#else // KTH_CURRENCY_BCH
 
     auto res = consensus::verify_script(tx_data.data(),
         tx_data.size(), script_data.data(), script_data.size(), amount,
@@ -229,7 +241,7 @@ code validate_input::verify_script(const transaction& tx, uint32_t input_index,
 
     return convert_result(res);
 
-#endif // BITPRIM_CURRENCY_BCH
+#endif // KTH_CURRENCY_BCH
 }
 
 #else //WITH_CONSENSUS
@@ -248,4 +260,4 @@ code validate_input::verify_script(transaction const& tx, uint32_t input_index, 
 #endif //WITH_CONSENSUS
 
 } // namespace blockchain
-} // namespace libbitcoin
+} // namespace kth

@@ -1,25 +1,11 @@
-/**
- * Copyright (c) 2011-2017 libbitcoin developers (see AUTHORS)
- *
- * This file is part of libbitcoin.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (c) 2016-2020 Knuth Project developers.
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 #include <boost/test/unit_test.hpp>
 
 #include <memory>
-#include <bitcoin/blockchain.hpp>
+#include <kth/blockchain.hpp>
 
 using namespace bc;
 using namespace bc::message;
@@ -28,7 +14,7 @@ using namespace bc::blockchain;
 BOOST_AUTO_TEST_SUITE(branch_tests)
 
 #define DECLARE_BLOCK(name, number) \
-    const auto name##number = std::make_shared<block>(); \
+    auto const name##number = std::make_shared<block>(); \
     name##number->header().set_bits(number);
 
 // Access to protected members.
@@ -60,7 +46,7 @@ BOOST_AUTO_TEST_CASE(branch__hash__one_block__only_previous_block_hash)
     DECLARE_BLOCK(block, 0);
     DECLARE_BLOCK(block, 1);
 
-    const auto expected = block0->hash();
+    auto const expected = block0->hash();
     block1->header().set_previous_block_hash(expected);
 
     branch instance;
@@ -76,7 +62,7 @@ BOOST_AUTO_TEST_CASE(branch__hash__two_blocks__first_previous_block_hash)
     DECLARE_BLOCK(block, 1);
 
     // Link the blocks.
-    const auto expected = top42->hash();
+    auto const expected = top42->hash();
     block0->header().set_previous_block_hash(expected);
     block1->header().set_previous_block_hash(block0->hash());
 

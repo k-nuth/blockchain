@@ -1,27 +1,13 @@
-/**
- * Copyright (c) 2011-2017 libbitcoin developers (see AUTHORS)
- *
- * This file is part of libbitcoin.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (c) 2016-2020 Knuth Project developers.
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
 #include <boost/test/unit_test.hpp>
 
 #include <future>
 #include <memory>
 #include <string>
-#include <bitcoin/blockchain.hpp>
+#include <kth/blockchain.hpp>
 
 using namespace bc;
 using namespace bc::blockchain;
@@ -78,7 +64,7 @@ static const uint64_t genesis_mainnet_work = 0x0000000100010001;
 
 static void print_headers(const std::string& test)
 {
-    const auto header = "=========== " + test + " ==========";
+    auto const header = "=========== " + test + " ==========";
     LOG_INFO(TEST_SET_NAME) << header;
 }
 
@@ -91,12 +77,12 @@ bool create_database(database::settings& out_database)
 
     // Table optimization parameters, reduced for speed and more collision.
     out_database.file_growth_rate = 42;
-#ifdef BITPRIM_DB_LEGACY
+#ifdef KTH_DB_LEGACY
     out_database.block_table_buckets = 42;
     out_database.transaction_table_buckets = 42;
-#endif // BITPRIM_DB_LEGACY
+#endif // KTH_DB_LEGACY
 
-#ifdef BITPRIM_DB_NEW
+#ifdef KTH_DB_NEW
     out_database.db_max_size = 16106127360;
 #endif
 
@@ -120,7 +106,7 @@ chain::block read_block(const std::string hex)
 
 BOOST_AUTO_TEST_SUITE(utxo_tests)
 
-#ifdef BITPRIM_DB_NEW
+#ifdef KTH_DB_NEW
 
 BOOST_AUTO_TEST_CASE(utxo__get_utxo__not_found__false)
 {
@@ -139,8 +125,8 @@ BOOST_AUTO_TEST_CASE(utxo__get_utxo__found__expected)
 {
     START_BLOCKCHAIN(instance, false);
 
-    const auto block1 = NEW_BLOCK(1);
-    const auto block2 = NEW_BLOCK(2);
+    auto const block1 = NEW_BLOCK(1);
+    auto const block2 = NEW_BLOCK(2);
     BOOST_REQUIRE(instance.insert(block1, 1));
     BOOST_REQUIRE(instance.insert(block2, 2));
 
@@ -149,8 +135,8 @@ BOOST_AUTO_TEST_CASE(utxo__get_utxo__found__expected)
     uint32_t median_time_past;
     bool coinbase;
     const chain::output_point outpoint{ block2->transactions()[0].hash(), 0 };
-    const auto expected_value = initial_block_subsidy_satoshi();
-    const auto expected_script = block2->transactions()[0].outputs()[0].script().to_string(0);
+    auto const expected_value = initial_block_subsidy_satoshi();
+    auto const expected_script = block2->transactions()[0].outputs()[0].script().to_string(0);
     BOOST_REQUIRE(instance.get_utxo(output, height, median_time_past, coinbase, outpoint, 12));
     BOOST_REQUIRE(coinbase);
     BOOST_REQUIRE_EQUAL(height, 2u);
@@ -162,8 +148,8 @@ BOOST_AUTO_TEST_CASE(utxo__get_utxo__above_fork__false)
 {
     START_BLOCKCHAIN(instance, false);
 
-    const auto block1 = NEW_BLOCK(1);
-    const auto block2 = NEW_BLOCK(2);
+    auto const block1 = NEW_BLOCK(1);
+    auto const block2 = NEW_BLOCK(2);
     BOOST_REQUIRE(instance.insert(block1, 1));
     BOOST_REQUIRE(instance.insert(block2, 2));
 
@@ -175,6 +161,6 @@ BOOST_AUTO_TEST_CASE(utxo__get_utxo__above_fork__false)
     BOOST_REQUIRE( ! instance.get_utxo(output, height, median_time_past, coinbase, outpoint, 1));
 }
 
-#endif // BITPRIM_DB_NEW
+#endif // KTH_DB_NEW
 
 BOOST_AUTO_TEST_SUITE_END()

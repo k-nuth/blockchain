@@ -1,32 +1,18 @@
-/**
- * Copyright (c) 2011-2017 libbitcoin developers (see AUTHORS)
- *
- * This file is part of libbitcoin.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-#include <bitcoin/blockchain/settings.hpp>
+// Copyright (c) 2016-2020 Knuth Project developers.
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+#include <kth/blockchain/settings.hpp>
 
 #include <cstdint>
 
 //TODO(fernando): Avoid this dependency
-#if defined(BITPRIM_WITH_MEMPOOL)
-#include <bitprim/mining/mempool.hpp>
+#if defined(KTH_WITH_MEMPOOL)
+#include <kth/mining/mempool.hpp>
 #endif
 
 
-namespace libbitcoin {
+namespace kth {
 namespace blockchain {
 
 settings::settings()
@@ -50,7 +36,7 @@ settings::settings()
     , bip112(true)
     , bip113(true)
 
-#ifdef BITPRIM_CURRENCY_BCH
+#ifdef KTH_CURRENCY_BCH
     // , uahf_height(478559)
     // , daa_height(504031)
     // , monolith_activation_time(bch_monolith_activation_time)                        //1526400000
@@ -61,13 +47,13 @@ settings::settings()
     , bip141(false)
     , bip143(false)
     , bip147(false)
-#else //BITPRIM_CURRENCY_BCH
+#else //KTH_CURRENCY_BCH
     , bip141(true)
     , bip143(true)
     , bip147(true)
 #endif
 
-#if defined(BITPRIM_WITH_MEMPOOL)
+#if defined(KTH_WITH_MEMPOOL)
     , mempool_max_template_size(mining::mempool::max_template_size_default)
     , mempool_size_multiplier(mining::mempool::mempool_size_multiplier_default)
 #endif
@@ -100,10 +86,10 @@ settings::settings(config::settings context)
             checkpoints.emplace_back("0000000000000001ae8c72a0b0c301f67e3afca10e819efa9041e458e9bd7e40", 279000);
             checkpoints.emplace_back("00000000000000004d9b4ef50f0f9d686fd69db2e03af35a100370c64632a983", 295000);
 
-#ifdef BITPRIM_CURRENCY_BCH
+#ifdef KTH_CURRENCY_BCH
             // uahf_height = 478559;
             // daa_height  = 504031;
-#endif //BITPRIM_CURRENCY_BCH
+#endif //KTH_CURRENCY_BCH
 
             break;
         }
@@ -119,20 +105,20 @@ settings::settings(config::settings context)
             checkpoints.emplace_back("000000000001a7c0aaa2630fbb2c0e476aafffc60f82177375b2aaa22209f606", 500000);
             checkpoints.emplace_back("000000000000624f06c69d3a9fe8d25e0a9030569128d63ad1b704bbb3059a16", 600000);
 
-#ifdef BITPRIM_CURRENCY_BCH
+#ifdef KTH_CURRENCY_BCH
             // uahf_height = 1155876;
             // daa_height  = 1188697;
-#endif //BITPRIM_CURRENCY_BCH
+#endif //KTH_CURRENCY_BCH
 
             break;
         }
         case config::settings::regtest: {
             easy_blocks = true;
 
-#ifdef BITPRIM_CURRENCY_BCH
+#ifdef KTH_CURRENCY_BCH
             // uahf_height = 0;
             // daa_height  = 0;
-#endif //BITPRIM_CURRENCY_BCH
+#endif //KTH_CURRENCY_BCH
 
             retarget = false;
 
@@ -161,7 +147,7 @@ uint32_t settings::enabled_forks() const {
     forks |= (bip112 ? rule_fork::bip112_rule : 0);
     forks |= (bip113 ? rule_fork::bip113_rule : 0);
 
-#ifdef BITPRIM_CURRENCY_BCH
+#ifdef KTH_CURRENCY_BCH
     forks |= rule_fork::cash_low_s_rule;
     // forks |= rule_fork::cash_monolith_opcodes;
     forks |= rule_fork::cash_verify_flags_script_enable_sighash_forkid;
@@ -178,4 +164,4 @@ uint32_t settings::enabled_forks() const {
 }
 
 } // namespace blockchain
-} // namespace libbitcoin
+} // namespace kth

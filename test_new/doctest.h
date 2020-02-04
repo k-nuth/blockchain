@@ -3335,7 +3335,7 @@ namespace detail
     // case insensitive strcmp
     int stricmp(char const* a, char const* b) {
         for(;; a++, b++) {
-            const int d = tolower(*a) - tolower(*b);
+            int const d = tolower(*a) - tolower(*b);
             if(d != 0 || !*a)
                 return d;
         }
@@ -3846,7 +3846,7 @@ namespace detail
     bool TestCase::operator<(const TestCase& other) const {
         if(m_line != other.m_line)
             return m_line < other.m_line;
-        const int file_cmp = std::strcmp(m_file, other.m_file);
+        int const file_cmp = std::strcmp(m_file, other.m_file);
         if(file_cmp != 0)
             return file_cmp < 0;
         return m_template_id < other.m_template_id;
@@ -4137,9 +4137,9 @@ namespace detail
 #if DOCTEST_MSVC
         // this is needed because MSVC gives different case for drive letters
         // for __FILE__ when evaluated in a header and a source file
-        const int res = stricmp(lhs->m_file, rhs->m_file);
+        int const res = stricmp(lhs->m_file, rhs->m_file);
 #else  // MSVC
-        const int res = std::strcmp(lhs->m_file, rhs->m_file);
+        int const res = std::strcmp(lhs->m_file, rhs->m_file);
 #endif // MSVC
         if(res != 0)
             return res;
@@ -4151,7 +4151,7 @@ namespace detail
         const TestCase* lhs = *static_cast<TestCase* const*>(a);
         const TestCase* rhs = *static_cast<TestCase* const*>(b);
 
-        const int res = std::strcmp(lhs->m_test_suite, rhs->m_test_suite);
+        int const res = std::strcmp(lhs->m_test_suite, rhs->m_test_suite);
         if(res != 0)
             return res;
         return fileOrderComparator(a, b);
@@ -4162,7 +4162,7 @@ namespace detail
         const TestCase* lhs = *static_cast<TestCase* const*>(a);
         const TestCase* rhs = *static_cast<TestCase* const*>(b);
 
-        const int res_name = std::strcmp(lhs->m_name, rhs->m_name);
+        int const res_name = std::strcmp(lhs->m_name, rhs->m_name);
         if(res_name != 0)
             return res_name;
         return suiteOrderComparator(a, b);
@@ -5251,7 +5251,7 @@ namespace detail
             DOCTEST_SNPRINTF(buff, DOCTEST_COUNTOF(buff), " | ");
             DOCTEST_PRINTF_COLORED(buff, Color::None);
             if(p->no_skipped_summary == false) {
-                const int numSkipped = static_cast<unsigned>(getRegisteredTests().size()) -
+                int const numSkipped = static_cast<unsigned>(getRegisteredTests().size()) -
                                        p->numTestsPassingFilters;
                 DOCTEST_SNPRINTF(buff, DOCTEST_COUNTOF(buff), "%6d skipped", numSkipped);
                 DOCTEST_PRINTF_COLORED(buff, numSkipped == 0 ? Color::None : Color::Yellow);

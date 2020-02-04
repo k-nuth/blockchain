@@ -1,44 +1,21 @@
-/**
- * Copyright (c) 2018 Bitprim developers (see AUTHORS)
- *
- * This file is part of Bitprim.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */ 
+// Copyright (c) 2016-2020 Knuth Project developers.
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+ 
 
 #include "doctest.h"
 
-#include <bitcoin/bitcoin/chain/transaction.hpp>
+#include <kth/domain/chain/transaction.hpp>
+#include <kth/domain/formats/base_16.hpp>
+#include <kth/domain/utility/container_source.hpp>
+#include <kth/domain/utility/data.hpp>
+#include <kth/domain/utility/istream_reader.hpp>
 
-#ifdef BITPRIM_USE_DOMAIN
-#include <bitcoin/infrastructure/formats/base_16.hpp>
-#include <bitcoin/infrastructure/utility/container_source.hpp>
-#include <bitcoin/infrastructure/utility/data.hpp>
-#include <bitcoin/infrastructure/utility/istream_reader.hpp>
-#else
-#include <bitcoin/bitcoin/formats/base_16.hpp>
-#include <bitcoin/bitcoin/utility/container_source.hpp>
-#include <bitcoin/bitcoin/utility/data.hpp>
-#include <bitcoin/bitcoin/utility/istream_reader.hpp>
-#endif // BITPRIM_USE_DOMAIN
+#include <kth/keoken/interpreter.hpp>
+#include <kth/keoken/memory_state.hpp>
+#include <kth/keoken/transaction_extractor.hpp>
 
-
-#include <bitprim/keoken/interpreter.hpp>
-#include <bitprim/keoken/memory_state.hpp>
-#include <bitprim/keoken/transaction_extractor.hpp>
-
-using namespace bitprim::keoken;
+using namespace knuth::keoken;
 using bc::hash_digest;
 using bc::hash_literal;
 using bc::wallet::payment_address;
