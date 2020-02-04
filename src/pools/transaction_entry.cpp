@@ -8,7 +8,7 @@
 #include <cstdint>
 #include <algorithm>
 #include <iostream>
-#include <kth/bitcoin.hpp>
+#include <kth/domain.hpp>
 #include <kth/blockchain/define.hpp>
 
 namespace kth {

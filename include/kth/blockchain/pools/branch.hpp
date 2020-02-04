@@ -9,7 +9,7 @@
 #include <cstdint>
 #include <memory>
 #include <vector>
-#include <kth/bitcoin.hpp>
+#include <kth/domain.hpp>
 #include <kth/blockchain/define.hpp>
 
 namespace kth {

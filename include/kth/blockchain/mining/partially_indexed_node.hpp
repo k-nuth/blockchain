@@ -10,7 +10,7 @@
 
 #include <kth/mining/common.hpp>
 
-#include <kth/bitcoin.hpp>
+#include <kth/domain.hpp>
 
 namespace kth {
 namespace mining {

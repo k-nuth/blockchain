@@ -6,7 +6,7 @@
 
 #include <algorithm>
 #include <cstddef>
-#include <kth/bitcoin.hpp>
+#include <kth/domain.hpp>
 #include <kth/blockchain/interface/fast_chain.hpp>
 
 namespace kth {

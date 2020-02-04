@@ -11,7 +11,7 @@
 #include <memory>
 #include <vector>
 #include <boost/functional/hash_fwd.hpp>
-#include <kth/bitcoin.hpp>
+#include <kth/domain.hpp>
 #include <kth/blockchain/define.hpp>
 
 namespace kth {

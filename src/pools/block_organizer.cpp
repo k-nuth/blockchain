@@ -9,7 +9,7 @@
 #include <future>
 #include <memory>
 #include <utility>
-#include <kth/bitcoin.hpp>
+#include <kth/domain.hpp>
 #include <kth/blockchain/interface/fast_chain.hpp>
 #include <kth/blockchain/pools/block_pool.hpp>
 #include <kth/blockchain/pools/branch.hpp>

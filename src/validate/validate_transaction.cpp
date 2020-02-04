@@ -11,8 +11,8 @@
 #include <functional>
 #include <memory>
 
-#include <kth/bitcoin.hpp>
-#include <kth/bitcoin/multi_crypto_support.hpp>
+#include <kth/domain.hpp>
+#include <kth/domain/multi_crypto_support.hpp>
 #include <kth/blockchain/interface/fast_chain.hpp>
 #include <kth/blockchain/pools/branch.hpp>
 #include <kth/blockchain/settings.hpp>

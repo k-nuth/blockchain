@@ -13,7 +13,7 @@
 #include <string>
 #include <utility>
 #include <unordered_set>
-#include <kth/bitcoin.hpp>
+#include <kth/domain.hpp>
 #include <kth/database.hpp>
 
 
@@ -23,7 +23,7 @@
 #include <kth/bitcoin/math/sip_hash.hpp>
 #endif // KTH_USE_DOMAIN
 
-#include <kth/bitcoin/multi_crypto_support.hpp>
+#include <kth/domain/multi_crypto_support.hpp>
 #include <kth/blockchain/settings.hpp>
 #include <kth/blockchain/populate/populate_chain_state.hpp>
 #include <boost/thread/latch.hpp>

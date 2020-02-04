@@ -5,7 +5,7 @@
 #ifndef KTH_BLOCKCHAIN_KEOKEN_DEFINE_HPP_
 #define KTH_BLOCKCHAIN_KEOKEN_DEFINE_HPP_
 
-#include <kth/bitcoin.hpp>
+#include <kth/domain.hpp>
 
 // Now we use the generic helper definitions to
 // define BBK_API and BBK_INTERNAL.

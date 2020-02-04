@@ -11,7 +11,7 @@
 #include <kth/mining/common.hpp>
 #include <kth/mining/partially_indexed_node.hpp>
 
-#include <kth/bitcoin.hpp>
+#include <kth/domain.hpp>
 
 
 namespace kth {

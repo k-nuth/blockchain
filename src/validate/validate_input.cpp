@@ -5,7 +5,7 @@
 #include <kth/blockchain/validate/validate_input.hpp>
 
 #include <cstdint>
-#include <kth/bitcoin.hpp>
+#include <kth/domain.hpp>
 
 #ifdef WITH_CONSENSUS
 #include <kth/consensus.hpp>
@@ -25,17 +25,21 @@ using namespace bc::consensus;
 uint32_t validate_input::convert_flags(uint32_t native_forks) {
     uint32_t flags = verify_flags_none;
 
-    if (script::is_enabled(native_forks, rule_fork::bip16_rule))
+    if (script::is_enabled(native_forks, rule_fork::bip16_rule)) {
         flags |= verify_flags_p2sh;
+    }
 
-    if (script::is_enabled(native_forks, rule_fork::bip65_rule))
+    if (script::is_enabled(native_forks, rule_fork::bip65_rule)) {
         flags |= verify_flags_checklocktimeverify;
+    }
 
-    if (script::is_enabled(native_forks, rule_fork::bip66_rule))
+    if (script::is_enabled(native_forks, rule_fork::bip66_rule)) {
         flags |= verify_flags_dersig;
+    }
 
-    if (script::is_enabled(native_forks, rule_fork::bip112_rule))
+    if (script::is_enabled(native_forks, rule_fork::bip112_rule)) {
         flags |= verify_flags_checksequenceverify;
+    }
 
 #ifdef KTH_CURRENCY_BCH
     // BCH UAHF (FORKID on txns)
@@ -46,7 +50,6 @@ uint32_t validate_input::convert_flags(uint32_t native_forks) {
     // Obligatory flags used on the 2017-Nov-13 BCH hard fork
     if (script::is_enabled(native_forks, rule_fork::cash_low_s_rule)) {
         flags |= verify_flags_low_s;
-        flags |= verify_flags_nulldummy;
     }
 
     // // Obligatory flags used on the 2018-May-15 BCH hard fork
@@ -60,18 +63,18 @@ uint32_t validate_input::convert_flags(uint32_t native_forks) {
     }
 
     if (script::is_enabled(native_forks, rule_fork::cash_checkdatasig)) {
-        flags |= verify_flags_script_enable_checkdatasig;
+        flags |= verify_flags_script_enable_checkdatasig_sigops;
     }
 
     if (script::is_enabled(native_forks, rule_fork::cash_schnorr)) {
-        flags |= verify_flags_script_enable_schnorr;
+        flags |= verify_flags_script_script_enable_schnorr_multisig;
     }
 
     if (script::is_enabled(native_forks, rule_fork::cash_segwit_recovery)) {
-        flags |= verify_flags_script_enable_segwit_recovery;
+        flags |= verify_flags_script_disallow_segwit_recovery;
     }
 
-#else //KTH_CURRENCY_BCH
+#else
     if (script::is_enabled(native_forks, rule_fork::bip141_rule)) {
         flags |= verify_flags_witness;
     }
@@ -84,8 +87,7 @@ uint32_t validate_input::convert_flags(uint32_t native_forks) {
 }
 
 // TODO: map to corresponding bc::error codes.
-code validate_input::convert_result(verify_result_type result)
-{
+code validate_input::convert_result(verify_result_type result) {
     switch (result)
     {
         // Logical true result.
@@ -137,7 +139,11 @@ code validate_input::convert_result(verify_result_type result)
         case verify_result_type::verify_result_minimaldata:
         case verify_result_type::verify_result_sig_pushonly:
         case verify_result_type::verify_result_sig_high_s:
+
+#if ! defined(KTH_CURRENCY_BCH)
         case verify_result_type::verify_result_sig_nulldummy:
+#endif
+
         case verify_result_type::verify_result_pubkeytype:
         case verify_result_type::verify_result_cleanstack:
             return error::operation_failed_21;

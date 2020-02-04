@@ -19,7 +19,7 @@
 #include <kth/mining/node_v1.hpp>
 #include <kth/mining/prioritizer.hpp>
 
-#include <kth/bitcoin.hpp>
+#include <kth/domain.hpp>
 
 
 template <typename F> 

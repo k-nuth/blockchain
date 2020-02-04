@@ -6,7 +6,7 @@
 #define KTH_BLOCKCHAIN_VALIDATE_INPUT_HPP
 
 #include <cstdint>
-#include <kth/bitcoin.hpp>
+#include <kth/domain.hpp>
 #include <kth/blockchain/define.hpp>
 
 #ifdef WITH_CONSENSUS

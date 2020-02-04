@@ -6,7 +6,7 @@
 
 #include <cstddef>
 #include <memory>
-#include <kth/bitcoin.hpp>
+#include <kth/domain.hpp>
 #include <kth/blockchain/settings.hpp>
 
 namespace kth {

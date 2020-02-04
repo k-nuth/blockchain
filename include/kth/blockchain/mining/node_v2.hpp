@@ -5,7 +5,7 @@
 #ifndef KTH_BLOCKCHAIN_MINING_NODE_V2_HPP_
 #define KTH_BLOCKCHAIN_MINING_NODE_V2_HPP_
 
-#include <kth/bitcoin.hpp>
+#include <kth/domain.hpp>
 
 #include <kth/mining/common.hpp>
 #include <kth/mining/transaction_element.hpp>

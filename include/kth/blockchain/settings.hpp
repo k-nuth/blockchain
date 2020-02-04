@@ -7,7 +7,7 @@
 
 #include <cstdint>
 #include <boost/filesystem.hpp>
-#include <kth/bitcoin.hpp>
+#include <kth/domain.hpp>
 
 #ifdef KTH_USE_DOMAIN
 #include <kth/infrastructure/config/endpoint.hpp>

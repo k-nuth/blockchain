@@ -19,7 +19,7 @@
 
 #include <kth/mining/partially_indexed.hpp>
 
-#include <kth/bitcoin.hpp>
+#include <kth/domain.hpp>
 
 
 template <typename F> 
