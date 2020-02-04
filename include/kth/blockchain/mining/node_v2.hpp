@@ -5,10 +5,10 @@
 #ifndef KTH_BLOCKCHAIN_MINING_NODE_V2_HPP_
 #define KTH_BLOCKCHAIN_MINING_NODE_V2_HPP_
 
-#include <bitcoin/bitcoin.hpp>
+#include <kth/bitcoin.hpp>
 
-#include <knuth/mining/common.hpp>
-#include <knuth/mining/transaction_element.hpp>
+#include <kth/mining/common.hpp>
+#include <kth/mining/transaction_element.hpp>
 
 namespace kth {
 namespace mining {

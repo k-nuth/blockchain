@@ -8,7 +8,7 @@
 #include <unordered_set>
 #include <vector>
 
-#include <bitcoin/bitcoin/constants.hpp>
+#include <kth/bitcoin/constants.hpp>
 
 // #ifndef KTH_MINING_DONT_INCLUDE_CTOR
 // #define KTH_MINING_CTOR_ENABLED

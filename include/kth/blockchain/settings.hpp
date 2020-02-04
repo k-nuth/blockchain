@@ -7,15 +7,15 @@
 
 #include <cstdint>
 #include <boost/filesystem.hpp>
-#include <bitcoin/bitcoin.hpp>
+#include <kth/bitcoin.hpp>
 
 #ifdef KTH_USE_DOMAIN
-#include <bitcoin/infrastructure/config/endpoint.hpp>
+#include <kth/infrastructure/config/endpoint.hpp>
 #else
-#include <bitcoin/bitcoin/config/endpoint.hpp>
+#include <kth/bitcoin/config/endpoint.hpp>
 #endif // KTH_USE_DOMAIN
 
-#include <bitcoin/blockchain/define.hpp>
+#include <kth/blockchain/define.hpp>
 
 namespace kth { namespace blockchain {
 

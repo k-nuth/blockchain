@@ -6,7 +6,7 @@
 #define KTH_BLOCKCHAIN_MINING_MEMPOOL_HPP_
 
 
-#include <knuth/mining/mempool_v1.hpp>
-// #include <knuth/mining/mempool_v2.hpp>
+#include <kth/mining/mempool_v1.hpp>
+// #include <kth/mining/mempool_v2.hpp>
 
 #endif  //KTH_BLOCKCHAIN_MINING_MEMPOOL_HPP_

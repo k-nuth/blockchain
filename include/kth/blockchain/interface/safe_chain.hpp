@@ -10,9 +10,9 @@
 #include <functional>
 #include <memory>
 #include <vector>
-#include <bitcoin/bitcoin.hpp>
-#include <bitcoin/blockchain/define.hpp>
-#include <bitcoin/blockchain/pools/mempool_transaction_summary.hpp>
+#include <kth/bitcoin.hpp>
+#include <kth/blockchain/define.hpp>
+#include <kth/blockchain/pools/mempool_transaction_summary.hpp>
 
 namespace kth {
 namespace blockchain {

@@ -2,13 +2,13 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <bitcoin/blockchain/pools/block_pool.hpp>
+#include <kth/blockchain/pools/block_pool.hpp>
 
 #include <algorithm>
 #include <cstddef>
 #include <utility>
-#include <bitcoin/blockchain/define.hpp>
-#include <bitcoin/blockchain/pools/branch.hpp>
+#include <kth/blockchain/define.hpp>
+#include <kth/blockchain/pools/branch.hpp>
 
 // Atomicity is not required for these operations as each validation call is
 // sequenced. Locking is performed only to guard concurrent filtering.

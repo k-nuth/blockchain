@@ -5,10 +5,10 @@
 #ifndef KTH_BLOCKCHAIN_KEOKEN_STATE_DTO_HPP_
 #define KTH_BLOCKCHAIN_KEOKEN_STATE_DTO_HPP_
 
-#include <bitcoin/bitcoin/wallet/payment_address.hpp>
+#include <kth/bitcoin/wallet/payment_address.hpp>
 
-#include <knuth/keoken/entities/asset.hpp>
-#include <knuth/keoken/primitives.hpp>
+#include <kth/keoken/entities/asset.hpp>
+#include <kth/keoken/primitives.hpp>
 
 namespace kth {
 namespace keoken {

@@ -5,8 +5,8 @@
 
 #include "doctest.h"
 
-#include <knuth/keoken/memory_state.hpp>
-#include <knuth/keoken/state_delegated.hpp>
+#include <kth/keoken/memory_state.hpp>
+#include <kth/keoken/state_delegated.hpp>
 
 using namespace knuth::keoken;
 using kth::hash_digest;

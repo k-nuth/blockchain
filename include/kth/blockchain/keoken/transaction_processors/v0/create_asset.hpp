@@ -6,8 +6,8 @@
 #ifndef KTH_BLOCKCHAIN_KEOKEN_TRANSACTION_PROCESSORS_V0_CREATE_ASSET_HPP_
 #define KTH_BLOCKCHAIN_KEOKEN_TRANSACTION_PROCESSORS_V0_CREATE_ASSET_HPP_
 
-#include <knuth/keoken/error.hpp>
-#include <knuth/keoken/transaction_processors/commons.hpp>
+#include <kth/keoken/error.hpp>
+#include <kth/keoken/transaction_processors/commons.hpp>
 
 namespace kth {
 namespace keoken {

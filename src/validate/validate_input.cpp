@@ -2,13 +2,13 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <bitcoin/blockchain/validate/validate_input.hpp>
+#include <kth/blockchain/validate/validate_input.hpp>
 
 #include <cstdint>
-#include <bitcoin/bitcoin.hpp>
+#include <kth/bitcoin.hpp>
 
 #ifdef WITH_CONSENSUS
-#include <bitcoin/consensus.hpp>
+#include <kth/consensus.hpp>
 #endif
 
 namespace kth {

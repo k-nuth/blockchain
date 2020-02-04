@@ -8,10 +8,10 @@
 #include <list>
 #include <vector>
 
-#include <knuth/mining/common.hpp>
-#include <knuth/mining/partially_indexed_node.hpp>
+#include <kth/mining/common.hpp>
+#include <kth/mining/partially_indexed_node.hpp>
 
-#include <bitcoin/bitcoin.hpp>
+#include <kth/bitcoin.hpp>
 
 
 namespace kth {

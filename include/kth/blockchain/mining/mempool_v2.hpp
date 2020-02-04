@@ -13,13 +13,13 @@
 #include <unordered_set>
 #include <vector>
 
-#include <knuth/mining/common.hpp>
-#include <knuth/mining/node_v2.hpp>
-#include <knuth/mining/prioritizer.hpp>
+#include <kth/mining/common.hpp>
+#include <kth/mining/node_v2.hpp>
+#include <kth/mining/prioritizer.hpp>
 
-#include <knuth/mining/partially_indexed.hpp>
+#include <kth/mining/partially_indexed.hpp>
 
-#include <bitcoin/bitcoin.hpp>
+#include <kth/bitcoin.hpp>
 
 
 template <typename F> 

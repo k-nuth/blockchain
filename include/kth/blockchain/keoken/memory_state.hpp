@@ -8,15 +8,15 @@
 #include <unordered_map>
 #include <vector>
 
-#include <bitcoin/bitcoin/wallet/payment_address.hpp>
+#include <kth/bitcoin/wallet/payment_address.hpp>
 
-#include <knuth/keoken/asset_entry.hpp>
-#include <knuth/keoken/balance.hpp>
-#include <knuth/keoken/entities/asset.hpp>
-#include <knuth/keoken/message/create_asset.hpp>
-#include <knuth/keoken/message/send_tokens.hpp>
-#include <knuth/keoken/primitives.hpp>
-#include <knuth/keoken/state_dto.hpp>
+#include <kth/keoken/asset_entry.hpp>
+#include <kth/keoken/balance.hpp>
+#include <kth/keoken/entities/asset.hpp>
+#include <kth/keoken/message/create_asset.hpp>
+#include <kth/keoken/message/send_tokens.hpp>
+#include <kth/keoken/primitives.hpp>
+#include <kth/keoken/state_dto.hpp>
 
 namespace kth {
 namespace keoken {

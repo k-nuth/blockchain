@@ -355,11 +355,11 @@ set(kth_blockchain_sources_just_legacy
   src/settings.cpp
   src/version.cpp
 
-  src/bitprim/interface/block_chain.cpp
+  src/interface/block_chain_old_db.cpp
 )
 
 set(kth_blockchain_sources_just_kth
-  src/bitprim/interface/block_chain.cpp
+  src/interface/block_chain_old_db.cpp
 )
 
 # message(STATUS "TODO(fernando) WITH_KEOKEN: ${WITH_KEOKEN}")
@@ -367,7 +367,7 @@ set(kth_blockchain_sources_just_kth
 if (WITH_KEOKEN)
   set(kth_blockchain_sources_just_kth 
     ${kth_blockchain_sources_just_kth}         
-    src/bitprim/keoken/memory_state.cpp
+    src/keoken/memory_state.cpp
   )
 endif()
 
@@ -637,41 +637,38 @@ install(TARGETS kth-blockchain EXPORT kth-blockchain
 )
 
 set(_kth_headers
-  # include_bitcoin_HEADERS =
-  bitcoin/blockchain.hpp
-  # include_bitcoin_blockchain_HEADERS =
-  bitcoin/blockchain/define.hpp
-  bitcoin/blockchain/settings.hpp
-  bitcoin/blockchain/version.hpp
-  # include_bitcoin_blockchain_interface_HEADERS =
-  bitcoin/blockchain/interface/block_chain.hpp
+  # include_kth_HEADERS =
+ kth/blockchain.hpp
+  # include_kth_blockchain_HEADERS =
+ kth/blockchain/define.hpp
+ kth/blockchain/settings.hpp
+ kth/blockchain/version.hpp
+  # include_kth_blockchain_interface_HEADERS =
+ kth/blockchain/interface/block_chain.hpp
   #bitcoin/blockchain/interface/block_fetcher.hpp
-  bitcoin/blockchain/interface/fast_chain.hpp
-  bitcoin/blockchain/interface/safe_chain.hpp
-  # include_bitcoin_blockchain_pools_HEADERS =
-  bitcoin/blockchain/pools/block_entry.hpp
-  bitcoin/blockchain/pools/block_organizer.hpp
-  bitcoin/blockchain/pools/block_pool.hpp
-  bitcoin/blockchain/pools/branch.hpp
-  bitcoin/blockchain/pools/transaction_entry.hpp
-  bitcoin/blockchain/pools/transaction_organizer.hpp
-  bitcoin/blockchain/pools/transaction_pool.hpp
+ kth/blockchain/interface/fast_chain.hpp
+ kth/blockchain/interface/safe_chain.hpp
+  # include_kth_blockchain_pools_HEADERS =
+ kth/blockchain/pools/block_entry.hpp
+ kth/blockchain/pools/block_organizer.hpp
+ kth/blockchain/pools/block_pool.hpp
+ kth/blockchain/pools/branch.hpp
+ kth/blockchain/pools/transaction_entry.hpp
+ kth/blockchain/pools/transaction_organizer.hpp
+ kth/blockchain/pools/transaction_pool.hpp
   
   #Rama
-  bitcoin/blockchain/pools/mempool_transaction_summary.hpp 
+ kth/blockchain/pools/mempool_transaction_summary.hpp 
 
-  # include_bitcoin_blockchain_populate_HEADERS =
-  bitcoin/blockchain/populate/populate_base.hpp
-  bitcoin/blockchain/populate/populate_block.hpp
-  bitcoin/blockchain/populate/populate_chain_state.hpp
-  bitcoin/blockchain/populate/populate_transaction.hpp
-  # include_bitcoin_blockchain_validation_HEADERS =
-  bitcoin/blockchain/validate/validate_block.hpp
-  bitcoin/blockchain/validate/validate_input.hpp
-  bitcoin/blockchain/validate/validate_transaction.hpp
-
-  
-
+  # include_kth_blockchain_populate_HEADERS =
+ kth/blockchain/populate/populate_base.hpp
+ kth/blockchain/populate/populate_block.hpp
+ kth/blockchain/populate/populate_chain_state.hpp
+ kth/blockchain/populate/populate_transaction.hpp
+  # include_kth_blockchain_validation_HEADERS =
+ kth/blockchain/validate/validate_block.hpp
+ kth/blockchain/validate/validate_input.hpp
+ kth/blockchain/validate/validate_transaction.hpp
 )
   
 foreach (_header ${_kth_headers})

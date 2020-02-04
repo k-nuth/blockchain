@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <bitcoin/blockchain/validate/validate_block.hpp>
+#include <kth/blockchain/validate/validate_block.hpp>
 
 #include <algorithm>
 #include <cstddef>
@@ -10,12 +10,12 @@
 #include <functional>
 #include <memory>
 
-#include <bitcoin/bitcoin.hpp>
-#include <bitcoin/bitcoin/multi_crypto_support.hpp>
-#include <bitcoin/blockchain/interface/fast_chain.hpp>
-#include <bitcoin/blockchain/pools/branch.hpp>
-#include <bitcoin/blockchain/settings.hpp>
-#include <bitcoin/blockchain/validate/validate_input.hpp>
+#include <kth/bitcoin.hpp>
+#include <kth/bitcoin/multi_crypto_support.hpp>
+#include <kth/blockchain/interface/fast_chain.hpp>
+#include <kth/blockchain/pools/branch.hpp>
+#include <kth/blockchain/settings.hpp>
+#include <kth/blockchain/validate/validate_input.hpp>
 
 namespace kth {
 namespace blockchain {

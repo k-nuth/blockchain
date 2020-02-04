@@ -5,24 +5,24 @@
 
 #include "doctest.h"
 
-#include <bitcoin/bitcoin/chain/transaction.hpp>
+#include <kth/bitcoin/chain/transaction.hpp>
 
 #ifdef KTH_USE_DOMAIN
-#include <bitcoin/infrastructure/formats/base_16.hpp>
-#include <bitcoin/infrastructure/utility/container_source.hpp>
-#include <bitcoin/infrastructure/utility/data.hpp>
-#include <bitcoin/infrastructure/utility/istream_reader.hpp>
+#include <kth/infrastructure/formats/base_16.hpp>
+#include <kth/infrastructure/utility/container_source.hpp>
+#include <kth/infrastructure/utility/data.hpp>
+#include <kth/infrastructure/utility/istream_reader.hpp>
 #else
-#include <bitcoin/bitcoin/formats/base_16.hpp>
-#include <bitcoin/bitcoin/utility/container_source.hpp>
-#include <bitcoin/bitcoin/utility/data.hpp>
-#include <bitcoin/bitcoin/utility/istream_reader.hpp>
+#include <kth/bitcoin/formats/base_16.hpp>
+#include <kth/bitcoin/utility/container_source.hpp>
+#include <kth/bitcoin/utility/data.hpp>
+#include <kth/bitcoin/utility/istream_reader.hpp>
 #endif // KTH_USE_DOMAIN
 
 
-#include <knuth/keoken/interpreter.hpp>
-#include <knuth/keoken/memory_state.hpp>
-#include <knuth/keoken/transaction_extractor.hpp>
+#include <kth/keoken/interpreter.hpp>
+#include <kth/keoken/memory_state.hpp>
+#include <kth/keoken/transaction_extractor.hpp>
 
 using namespace knuth::keoken;
 using bc::hash_digest;

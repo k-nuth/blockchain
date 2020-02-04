@@ -5,7 +5,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include <utility>
-#include <bitcoin/blockchain.hpp>
+#include <kth/blockchain.hpp>
 
 using namespace bc;
 using namespace bc::blockchain;

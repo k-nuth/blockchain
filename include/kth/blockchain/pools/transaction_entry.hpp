@@ -11,8 +11,8 @@
 #include <memory>
 #include <vector>
 #include <boost/functional/hash_fwd.hpp>
-#include <bitcoin/bitcoin.hpp>
-#include <bitcoin/blockchain/define.hpp>
+#include <kth/bitcoin.hpp>
+#include <kth/blockchain/define.hpp>
 
 namespace kth {
 namespace blockchain {

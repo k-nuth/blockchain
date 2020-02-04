@@ -10,16 +10,16 @@
 #include <cstdint>
 #include <future>
 #include <memory>
-#include <bitcoin/bitcoin.hpp>
-#include <bitcoin/blockchain/define.hpp>
-#include <bitcoin/blockchain/interface/fast_chain.hpp>
-#include <bitcoin/blockchain/interface/safe_chain.hpp>
-#include <bitcoin/blockchain/pools/transaction_pool.hpp>
-#include <bitcoin/blockchain/settings.hpp>
-#include <bitcoin/blockchain/validate/validate_transaction.hpp>
+#include <kth/bitcoin.hpp>
+#include <kth/blockchain/define.hpp>
+#include <kth/blockchain/interface/fast_chain.hpp>
+#include <kth/blockchain/interface/safe_chain.hpp>
+#include <kth/blockchain/pools/transaction_pool.hpp>
+#include <kth/blockchain/settings.hpp>
+#include <kth/blockchain/validate/validate_transaction.hpp>
 
 #if defined(KTH_WITH_MEMPOOL)
-#include <knuth/mining/mempool.hpp>
+#include <kth/mining/mempool.hpp>
 
 #endif
 

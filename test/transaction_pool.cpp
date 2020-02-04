@@ -3,8 +3,8 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <boost/test/unit_test.hpp>
-// #include <bitcoin/consensus.hpp>
-#include <bitcoin/blockchain.hpp>
+// #include <kth/consensus.hpp>
+#include <kth/blockchain.hpp>
 
 using namespace bc;
 using namespace bc::blockchain;

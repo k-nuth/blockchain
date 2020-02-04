@@ -6,12 +6,12 @@
 #ifndef KTH_BLOCKCHAIN_KEOKEN_DISPATCHER_HPP_
 #define KTH_BLOCKCHAIN_KEOKEN_DISPATCHER_HPP_
 
-#include <knuth/keoken/detail/dispatcher_utils.hpp>
-#include <knuth/keoken/error.hpp>
-#include <knuth/keoken/message/create_asset.hpp>
-#include <knuth/keoken/message/send_tokens.hpp>
-#include <knuth/keoken/transaction_extractor.hpp>
-#include <knuth/keoken/transaction_processors/v0/transactions.hpp>
+#include <kth/keoken/detail/dispatcher_utils.hpp>
+#include <kth/keoken/error.hpp>
+#include <kth/keoken/message/create_asset.hpp>
+#include <kth/keoken/message/send_tokens.hpp>
+#include <kth/keoken/transaction_extractor.hpp>
+#include <kth/keoken/transaction_processors/v0/transactions.hpp>
 
 // #define Tuple typename
 

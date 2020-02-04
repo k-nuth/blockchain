@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 
-#include <knuth/keoken/memory_state.hpp>
+#include <kth/keoken/memory_state.hpp>
 
 #include <algorithm>
 #include <numeric>

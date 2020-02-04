@@ -6,9 +6,9 @@
 #define KTH_BLOCKCHAIN_FAST_CHAIN_HPP
 
 #include <cstddef>
-#include <bitcoin/database.hpp>
-#include <bitcoin/blockchain/define.hpp>
-#include <bitcoin/blockchain/pools/branch.hpp>
+#include <kth/database.hpp>
+#include <kth/blockchain/define.hpp>
+#include <kth/blockchain/pools/branch.hpp>
 
 namespace kth {
 namespace blockchain {

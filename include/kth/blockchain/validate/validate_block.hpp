@@ -9,15 +9,15 @@
 #include <cstddef>
 #include <cstdint>
 #include <memory>
-#include <bitcoin/bitcoin.hpp>
-#include <bitcoin/blockchain/define.hpp>
-#include <bitcoin/blockchain/interface/fast_chain.hpp>
-#include <bitcoin/blockchain/pools/branch.hpp>
-#include <bitcoin/blockchain/populate/populate_block.hpp>
-#include <bitcoin/blockchain/settings.hpp>
+#include <kth/bitcoin.hpp>
+#include <kth/blockchain/define.hpp>
+#include <kth/blockchain/interface/fast_chain.hpp>
+#include <kth/blockchain/pools/branch.hpp>
+#include <kth/blockchain/populate/populate_block.hpp>
+#include <kth/blockchain/settings.hpp>
 
 #if defined(KTH_WITH_MEMPOOL)
-#include <knuth/mining/mempool.hpp>
+#include <kth/mining/mempool.hpp>
 #endif
 
 namespace kth {

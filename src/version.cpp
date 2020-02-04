@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 
-#include <bitcoin/blockchain/version.hpp>
+#include <kth/blockchain/version.hpp>
 
 namespace kth { namespace blockchain {
 

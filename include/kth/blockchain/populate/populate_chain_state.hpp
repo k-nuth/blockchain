@@ -7,11 +7,11 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <bitcoin/bitcoin.hpp>
-#include <bitcoin/blockchain/define.hpp>
-#include <bitcoin/blockchain/interface/fast_chain.hpp>
-#include <bitcoin/blockchain/pools/branch.hpp>
-#include <bitcoin/blockchain/settings.hpp>
+#include <kth/bitcoin.hpp>
+#include <kth/blockchain/define.hpp>
+#include <kth/blockchain/interface/fast_chain.hpp>
+#include <kth/blockchain/pools/branch.hpp>
+#include <kth/blockchain/settings.hpp>
 
 namespace kth { namespace blockchain {
 

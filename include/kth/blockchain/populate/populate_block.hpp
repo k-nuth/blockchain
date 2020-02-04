@@ -6,14 +6,14 @@
 #define KTH_BLOCKCHAIN_POPULATE_BLOCK_HPP
 
 #include <cstddef>
-#include <bitcoin/bitcoin.hpp>
-#include <bitcoin/blockchain/define.hpp>
-#include <bitcoin/blockchain/interface/fast_chain.hpp>
-#include <bitcoin/blockchain/pools/branch.hpp>
-#include <bitcoin/blockchain/populate/populate_base.hpp>
+#include <kth/bitcoin.hpp>
+#include <kth/blockchain/define.hpp>
+#include <kth/blockchain/interface/fast_chain.hpp>
+#include <kth/blockchain/pools/branch.hpp>
+#include <kth/blockchain/populate/populate_base.hpp>
 
 #if defined(KTH_WITH_MEMPOOL)
-#include <knuth/mining/mempool.hpp>
+#include <kth/mining/mempool.hpp>
 #endif
 
 

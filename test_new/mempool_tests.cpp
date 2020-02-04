@@ -5,10 +5,10 @@
 
 #include "doctest.h"
 
-#include <knuth/mining/mempool.hpp>
+#include <kth/mining/mempool.hpp>
 
-#include <bitcoin/bitcoin/chain/transaction.hpp>
-#include <bitcoin/blockchain.hpp>
+#include <kth/bitcoin/chain/transaction.hpp>
+#include <kth/blockchain.hpp>
 
 using namespace kth;
 using namespace kth::chain;

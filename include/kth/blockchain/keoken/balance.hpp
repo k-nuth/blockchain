@@ -7,8 +7,8 @@
 
 #include <tuple>
 
-#include <knuth/keoken/entities/asset.hpp>
-#include <knuth/keoken/primitives.hpp>
+#include <kth/keoken/entities/asset.hpp>
+#include <kth/keoken/primitives.hpp>
 
 namespace kth {
 namespace keoken {

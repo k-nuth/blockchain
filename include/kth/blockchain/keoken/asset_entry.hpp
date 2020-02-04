@@ -5,8 +5,8 @@
 #ifndef KTH_BLOCKCHAIN_KEOKEN_ASSET_ENTRY_HPP_
 #define KTH_BLOCKCHAIN_KEOKEN_ASSET_ENTRY_HPP_
 
-#include <knuth/keoken/entities/asset.hpp>
-#include <knuth/keoken/primitives.hpp>
+#include <kth/keoken/entities/asset.hpp>
+#include <kth/keoken/primitives.hpp>
 
 namespace kth {
 namespace keoken {

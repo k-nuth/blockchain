@@ -2,19 +2,19 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <bitcoin/blockchain/pools/block_organizer.hpp>
+#include <kth/blockchain/pools/block_organizer.hpp>
 
 #include <cstddef>
 #include <functional>
 #include <future>
 #include <memory>
 #include <utility>
-#include <bitcoin/bitcoin.hpp>
-#include <bitcoin/blockchain/interface/fast_chain.hpp>
-#include <bitcoin/blockchain/pools/block_pool.hpp>
-#include <bitcoin/blockchain/pools/branch.hpp>
-#include <bitcoin/blockchain/settings.hpp>
-#include <bitcoin/blockchain/validate/validate_block.hpp>
+#include <kth/bitcoin.hpp>
+#include <kth/blockchain/interface/fast_chain.hpp>
+#include <kth/blockchain/pools/block_pool.hpp>
+#include <kth/blockchain/pools/branch.hpp>
+#include <kth/blockchain/settings.hpp>
+#include <kth/blockchain/validate/validate_block.hpp>
 
 namespace kth {
 namespace blockchain {

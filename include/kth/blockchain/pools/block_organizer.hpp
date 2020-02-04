@@ -9,14 +9,14 @@
 #include <cstddef>
 #include <future>
 #include <memory>
-#include <bitcoin/bitcoin.hpp>
-#include <bitcoin/blockchain/define.hpp>
-#include <bitcoin/blockchain/interface/fast_chain.hpp>
-#include <bitcoin/blockchain/interface/safe_chain.hpp>
-#include <bitcoin/blockchain/pools/block_pool.hpp>
-#include <bitcoin/blockchain/pools/branch.hpp>
-#include <bitcoin/blockchain/settings.hpp>
-#include <bitcoin/blockchain/validate/validate_block.hpp>
+#include <kth/bitcoin.hpp>
+#include <kth/blockchain/define.hpp>
+#include <kth/blockchain/interface/fast_chain.hpp>
+#include <kth/blockchain/interface/safe_chain.hpp>
+#include <kth/blockchain/pools/block_pool.hpp>
+#include <kth/blockchain/pools/branch.hpp>
+#include <kth/blockchain/settings.hpp>
+#include <kth/blockchain/validate/validate_block.hpp>
 
 namespace kth {
 namespace blockchain {

@@ -5,7 +5,7 @@
 
 #include "doctest.h"
 
-#include <knuth/keoken/memory_state.hpp>
+#include <kth/keoken/memory_state.hpp>
 
 using namespace knuth::keoken;
 using kth::hash_digest;

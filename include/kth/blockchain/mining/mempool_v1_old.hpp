@@ -15,11 +15,11 @@
 
 // #include <boost/bimap.hpp>
 
-#include <knuth/mining/common.hpp>
-#include <knuth/mining/node_v1.hpp>
-#include <knuth/mining/prioritizer.hpp>
+#include <kth/mining/common.hpp>
+#include <kth/mining/node_v1.hpp>
+#include <kth/mining/prioritizer.hpp>
 
-#include <bitcoin/bitcoin.hpp>
+#include <kth/bitcoin.hpp>
 
 
 template <typename F> 

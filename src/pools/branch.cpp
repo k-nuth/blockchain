@@ -2,15 +2,15 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <bitcoin/blockchain/pools/branch.hpp>
+#include <kth/blockchain/pools/branch.hpp>
 
 #include <algorithm>
 #include <cstddef>
 #include <memory>
 #include <numeric>
 #include <utility>
-#include <bitcoin/bitcoin.hpp>
-#include <bitcoin/blockchain/define.hpp>
+#include <kth/bitcoin.hpp>
+#include <kth/blockchain/define.hpp>
 
 namespace kth {
 namespace blockchain {

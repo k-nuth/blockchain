@@ -8,9 +8,9 @@
 // #include <unordered_map>
 #include <vector>
 
-#include <bitcoin/bitcoin/wallet/payment_address.hpp>
+#include <kth/bitcoin/wallet/payment_address.hpp>
 
-#include <knuth/keoken/state_dto.hpp>
+#include <kth/keoken/state_dto.hpp>
 
 namespace kth {
 namespace keoken {

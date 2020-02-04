@@ -2,12 +2,12 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <bitcoin/blockchain/populate/populate_base.hpp>
+#include <kth/blockchain/populate/populate_base.hpp>
 
 #include <algorithm>
 #include <cstddef>
-#include <bitcoin/bitcoin.hpp>
-#include <bitcoin/blockchain/interface/fast_chain.hpp>
+#include <kth/bitcoin.hpp>
+#include <kth/blockchain/interface/fast_chain.hpp>
 
 namespace kth {
 namespace blockchain {

@@ -2,13 +2,13 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <bitcoin/blockchain/settings.hpp>
+#include <kth/blockchain/settings.hpp>
 
 #include <cstdint>
 
 //TODO(fernando): Avoid this dependency
 #if defined(KTH_WITH_MEMPOOL)
-#include <knuth/mining/mempool.hpp>
+#include <kth/mining/mempool.hpp>
 #endif
 
 

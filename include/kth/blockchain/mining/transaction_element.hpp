@@ -8,7 +8,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include <bitcoin/bitcoin.hpp>
+#include <kth/bitcoin.hpp>
 
 namespace kth {
 namespace mining {

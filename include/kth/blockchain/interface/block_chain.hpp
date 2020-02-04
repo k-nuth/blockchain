@@ -11,22 +11,22 @@
 #include <ctime>
 #include <functional>
 #include <vector>
-#include <bitcoin/database.hpp>
-#include <bitcoin/blockchain/define.hpp>
-#include <bitcoin/blockchain/interface/fast_chain.hpp>
-#include <bitcoin/blockchain/interface/safe_chain.hpp>
-#include <bitcoin/blockchain/pools/block_organizer.hpp>
-#include <bitcoin/blockchain/pools/transaction_organizer.hpp>
-#include <bitcoin/blockchain/populate/populate_chain_state.hpp>
-#include <bitcoin/blockchain/settings.hpp>
+#include <kth/database.hpp>
+#include <kth/blockchain/define.hpp>
+#include <kth/blockchain/interface/fast_chain.hpp>
+#include <kth/blockchain/interface/safe_chain.hpp>
+#include <kth/blockchain/pools/block_organizer.hpp>
+#include <kth/blockchain/pools/transaction_organizer.hpp>
+#include <kth/blockchain/populate/populate_chain_state.hpp>
+#include <kth/blockchain/settings.hpp>
 
 #if defined(KTH_WITH_MEMPOOL)
-#include <knuth/mining/mempool.hpp>
+#include <kth/mining/mempool.hpp>
 #endif
 
 
 #if WITH_BLOCKCHAIN_REQUESTER
-#include <bitcoin/protocol/requester.hpp>
+#include <kth/protocol/requester.hpp>
 #endif
 
 namespace kth {

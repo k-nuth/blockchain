@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <bitcoin/blockchain/interface/block_chain.hpp>
+#include <kth/blockchain/interface/block_chain.hpp>
 
 #include <algorithm>
 #include <cstddef>
@@ -13,19 +13,19 @@
 #include <string>
 #include <utility>
 #include <unordered_set>
-#include <bitcoin/bitcoin.hpp>
-#include <bitcoin/database.hpp>
+#include <kth/bitcoin.hpp>
+#include <kth/database.hpp>
 
 
 #ifdef KTH_USE_DOMAIN
-#include <bitcoin/infrastructure/math/sip_hash.hpp>
+#include <kth/infrastructure/math/sip_hash.hpp>
 #else
-#include <bitcoin/bitcoin/math/sip_hash.hpp>
+#include <kth/bitcoin/math/sip_hash.hpp>
 #endif // KTH_USE_DOMAIN
 
-#include <bitcoin/bitcoin/multi_crypto_support.hpp>
-#include <bitcoin/blockchain/settings.hpp>
-#include <bitcoin/blockchain/populate/populate_chain_state.hpp>
+#include <kth/bitcoin/multi_crypto_support.hpp>
+#include <kth/blockchain/settings.hpp>
+#include <kth/blockchain/populate/populate_chain_state.hpp>
 #include <boost/thread/latch.hpp>
 
 

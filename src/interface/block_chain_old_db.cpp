@@ -2,10 +2,10 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <bitcoin/blockchain/interface/block_chain.hpp>
+#include <kth/blockchain/interface/block_chain.hpp>
 
 #ifdef KTH_WITH_KEOKEN
-#include <knuth/keoken/transaction_extractor.hpp>
+#include <kth/keoken/transaction_extractor.hpp>
 #endif
 
 namespace kth {

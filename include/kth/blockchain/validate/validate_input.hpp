@@ -6,11 +6,11 @@
 #define KTH_BLOCKCHAIN_VALIDATE_INPUT_HPP
 
 #include <cstdint>
-#include <bitcoin/bitcoin.hpp>
-#include <bitcoin/blockchain/define.hpp>
+#include <kth/bitcoin.hpp>
+#include <kth/blockchain/define.hpp>
 
 #ifdef WITH_CONSENSUS
-#include <bitcoin/consensus.hpp>
+#include <kth/consensus.hpp>
 #endif
 
 namespace kth {

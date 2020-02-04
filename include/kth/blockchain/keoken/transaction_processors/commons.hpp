@@ -6,7 +6,7 @@
 #ifndef KTH_BLOCKCHAIN_KEOKEN_TRANSACTION_PROCESSORS_COMMON_HPP_
 #define KTH_BLOCKCHAIN_KEOKEN_TRANSACTION_PROCESSORS_COMMON_HPP_
 
-#include <bitcoin/bitcoin/wallet/payment_address.hpp>
+#include <kth/bitcoin/wallet/payment_address.hpp>
 
 
 namespace kth {
