@@ -248,7 +248,7 @@ code validate_input::verify_script(const transaction& tx, uint32_t input_index,
 
 code validate_input::verify_script(transaction const& tx, uint32_t input_index, uint32_t forks) {
 
-#error Not supported, build using -o with_consensus=True
+#error Not supported, build using -o consensus=True
 
     // if (bitcoin_cash) {
     //     return error::operation_failed_22;

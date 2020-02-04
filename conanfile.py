@@ -19,7 +19,7 @@ class KnuthBlockchainConan(KnuthConanFile):
 
     options = {"shared": [True, False],
                "fPIC": [True, False],
-               "with_consensus": [True, False],
+               "consensus": [True, False],
                "tests": [True, False],
                "tools": [True, False],
                "currency": ['BCH', 'BTC', 'LTC'],
@@ -32,6 +32,7 @@ class KnuthBlockchainConan(KnuthConanFile):
             #    "mining": [True, False],
                "mempool": [True, False],
                "db": ['legacy', 'legacy_full', 'pruned', 'default', 'full'],
+
                "cxxflags": "ANY",
                "cflags": "ANY",
                "glibcxx_supports_cxx11_abi": "ANY",
@@ -42,7 +43,7 @@ class KnuthBlockchainConan(KnuthConanFile):
     default_options = {
         "shared": False,
         "fPIC": True,
-        "with_consensus": True,
+        "consensus": True,
         "tests": False,
         "tools": False,
         "currency": "BCH",
@@ -75,7 +76,7 @@ class KnuthBlockchainConan(KnuthConanFile):
         self.requires("boost/1.72.0@kth/stable")
         self.requires("database/0.X@%s/%s" % (self.user, self.channel))
 
-        if self.options.with_consensus:
+        if self.options.consensus:
             self.requires.add("consensus/0.X@%s/%s" % (self.user, self.channel))
 
     def config_options(self):
@@ -112,7 +113,7 @@ class KnuthBlockchainConan(KnuthConanFile):
 
     def build(self):
         cmake = self.cmake_basis()
-        cmake.definitions["WITH_CONSENSUS"] = option_on_off(self.options.with_consensus)
+        cmake.definitions["WITH_CONSENSUS"] = option_on_off(self.options.consensus)
         cmake.definitions["WITH_KEOKEN"] = option_on_off(self.is_keoken)
         # cmake.definitions["WITH_MINING"] = option_on_off(self.options.mining)
         cmake.definitions["WITH_MEMPOOL"] = option_on_off(self.options.mempool)
