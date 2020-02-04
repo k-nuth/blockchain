@@ -74,6 +74,20 @@ uint32_t validate_input::convert_flags(uint32_t native_forks) {
         flags |= verify_flags_script_disallow_segwit_recovery;
     }
 
+
+    //TODO(fernando): check what to do with these flags... taken from Consensus code
+
+//     if ((flags & verify_flags_script_verify_compressed_pubkeytype) != 0)
+//         script_flags |= SCRIPT_VERIFY_COMPRESSED_PUBKEYTYPE;
+
+//     if ((flags & verify_flags_script_verify_input_sigchecks) != 0)
+//         script_flags |= SCRIPT_VERIFY_INPUT_SIGCHECKS;
+
+//     if ((flags & verify_flags_script_report_sigchecks) != 0)
+//         script_flags |= SCRIPT_REPORT_SIGCHECKS;
+
+
+
 #else
     if (script::is_enabled(native_forks, rule_fork::bip141_rule)) {
         flags |= verify_flags_witness;
@@ -82,6 +96,12 @@ uint32_t validate_input::convert_flags(uint32_t native_forks) {
     if (script::is_enabled(native_forks, rule_fork::bip147_rule)) {
         flags |= verify_flags_nulldummy;
     }
+
+
+    //TODO(fernando): check what to do with these flags... taken from Consensus code
+    // if ((flags & verify_flags_const_scriptcode) != 0)
+    //     script_flags |= SCRIPT_VERIFY_CONST_SCRIPTCODE;
+
 #endif
     return flags;
 }

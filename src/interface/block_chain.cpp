@@ -13,19 +13,16 @@
 #include <string>
 #include <utility>
 #include <unordered_set>
+
 #include <kth/domain.hpp>
+#include <kth/domain/math/sip_hash.hpp>
+#include <kth/domain/multi_crypto_support.hpp>
+
 #include <kth/database.hpp>
 
-
-#ifdef KTH_USE_DOMAIN
-#include <kth/infrastructure/math/sip_hash.hpp>
-#else
-#include <kth/bitcoin/math/sip_hash.hpp>
-#endif // KTH_USE_DOMAIN
-
-#include <kth/domain/multi_crypto_support.hpp>
 #include <kth/blockchain/settings.hpp>
 #include <kth/blockchain/populate/populate_chain_state.hpp>
+
 #include <boost/thread/latch.hpp>
 
 

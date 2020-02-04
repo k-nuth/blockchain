@@ -7,7 +7,7 @@
 
 #include <kth/mining/mempool.hpp>
 
-#include <kth/bitcoin/chain/transaction.hpp>
+#include <kth/domain/chain/transaction.hpp>
 #include <kth/blockchain.hpp>
 
 using namespace kth;

@@ -645,7 +645,7 @@ set(_kth_headers
  kth/blockchain/version.hpp
   # include_kth_blockchain_interface_HEADERS =
  kth/blockchain/interface/block_chain.hpp
-  #bitcoin/blockchain/interface/block_fetcher.hpp
+  #kth/blockchain/interface/block_fetcher.hpp
  kth/blockchain/interface/fast_chain.hpp
  kth/blockchain/interface/safe_chain.hpp
   # include_kth_blockchain_pools_HEADERS =

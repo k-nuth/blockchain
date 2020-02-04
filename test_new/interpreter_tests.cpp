@@ -5,20 +5,11 @@
 
 #include "doctest.h"
 
-#include <kth/bitcoin/chain/transaction.hpp>
-
-#ifdef KTH_USE_DOMAIN
-#include <kth/infrastructure/formats/base_16.hpp>
-#include <kth/infrastructure/utility/container_source.hpp>
-#include <kth/infrastructure/utility/data.hpp>
-#include <kth/infrastructure/utility/istream_reader.hpp>
-#else
-#include <kth/bitcoin/formats/base_16.hpp>
-#include <kth/bitcoin/utility/container_source.hpp>
-#include <kth/bitcoin/utility/data.hpp>
-#include <kth/bitcoin/utility/istream_reader.hpp>
-#endif // KTH_USE_DOMAIN
-
+#include <kth/domain/chain/transaction.hpp>
+#include <kth/domain/formats/base_16.hpp>
+#include <kth/domain/utility/container_source.hpp>
+#include <kth/domain/utility/data.hpp>
+#include <kth/domain/utility/istream_reader.hpp>
 
 #include <kth/keoken/interpreter.hpp>
 #include <kth/keoken/memory_state.hpp>

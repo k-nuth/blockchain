@@ -8,7 +8,7 @@
 // #include <unordered_map>
 #include <vector>
 
-#include <kth/bitcoin/wallet/payment_address.hpp>
+#include <kth/domain/wallet/payment_address.hpp>
 
 #include <kth/keoken/state_dto.hpp>
 
