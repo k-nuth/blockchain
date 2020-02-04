@@ -211,7 +211,7 @@ code validate_input::verify_script(const transaction& tx, uint32_t input_index,
     bool witness = true;
 #endif
 
-    BITCOIN_ASSERT(input_index < tx.inputs().size());
+    KTH_ASSERT(input_index < tx.inputs().size());
     auto const& prevout = tx.inputs()[input_index].previous_output().validation;
     auto const script_data = prevout.cache.script().to_data(false);
     auto const prevout_value = prevout.cache.value();

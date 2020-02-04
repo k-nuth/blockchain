@@ -211,7 +211,7 @@ chain_state::ptr populate_chain_state::populate() const {
 
 chain_state::ptr populate_chain_state::populate(chain_state::ptr pool, branch::const_ptr branch) const {
     auto const block = branch->top();
-    BITCOIN_ASSERT(block);
+    KTH_ASSERT(block);
 
     // If this is not a reorganization we can just promote the pool state.
     if (branch->size() == 1 && branch->top_height() == pool->height())
@@ -242,7 +242,7 @@ chain_state::ptr populate_chain_state::populate(chain_state::ptr top) const {
 
     // Invalidity is not possible unless next height is zero.
     // This can only happen when the chain size overflows size_t.
-    BITCOIN_ASSERT(state->is_valid());
+    KTH_ASSERT(state->is_valid());
 
     return state;
 }

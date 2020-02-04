@@ -37,10 +37,10 @@ populate_block::populate_block(dispatcher& dispatch, fast_chain const& chain, bo
 
 void populate_block::populate(branch::const_ptr branch, result_handler&& handler) const {
     auto const block = branch->top();
-    BITCOIN_ASSERT(block);
+    KTH_ASSERT(block);
 
     auto const state = block->validation.state;
-    BITCOIN_ASSERT(state);
+    KTH_ASSERT(state);
 
     // Return if this blocks is under a checkpoint, block state not requried.
     if (state->is_under_checkpoint()) {
@@ -61,7 +61,7 @@ void populate_block::populate(branch::const_ptr branch, result_handler&& handler
 
     auto const buckets = std::min(dispatch_.size(), non_coinbase_inputs);
     auto const join_handler = synchronize(std::move(handler), buckets, NAME);
-    BITCOIN_ASSERT(buckets != 0);
+    KTH_ASSERT(buckets != 0);
     // LOG_INFO(LOG_BLOCKCHAIN) << "populate_block::populate - buckets:  " << buckets;
 
     // auto local_utxo = create_local_utxo_set(*block);
@@ -84,10 +84,10 @@ void populate_block::populate(branch::const_ptr branch, result_handler&& handler
 void populate_block::populate_coinbase(branch::const_ptr branch, block_const_ptr block) const {
     auto const& txs = block->transactions();
     auto const state = block->validation.state;
-    BITCOIN_ASSERT(!txs.empty());
+    KTH_ASSERT(!txs.empty());
 
     auto const& coinbase = txs.front();
-    BITCOIN_ASSERT(coinbase.is_coinbase());
+    KTH_ASSERT(coinbase.is_coinbase());
 
     // A coinbase tx guarantees exactly one input.
     auto const& input = coinbase.inputs().front();
@@ -180,7 +180,7 @@ void populate_block::populate_transactions(branch::const_ptr branch, size_t buck
     // TODO(fernando): check how to replace it with UTXO
     // asm("int $3");  //TODO(fernando): remover
 
-    BITCOIN_ASSERT(bucket < buckets);
+    KTH_ASSERT(bucket < buckets);
     auto const block = branch->top();
     auto const branch_height = branch->height();
     auto const& txs = block->transactions();

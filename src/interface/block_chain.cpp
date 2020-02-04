@@ -674,7 +674,7 @@ void block_chain::fetch_block(size_t height, bool witness,
         return;
     }
 
-    BITCOIN_ASSERT(block_result.height() == height);
+    KTH_ASSERT(block_result.height() == height);
     auto const tx_hashes = block_result.transaction_hashes();
     auto const& tx_store = database_.transactions();
     transaction::list txs;
@@ -691,8 +691,8 @@ void block_chain::fetch_block(size_t height, bool witness,
             return;
         }
 
-        BITCOIN_ASSERT(tx_result.height() == height);
-        BITCOIN_ASSERT(tx_result.position() == position++);
+        KTH_ASSERT(tx_result.height() == height);
+        KTH_ASSERT(tx_result.position() == position++);
         txs.push_back(tx_result.transaction(witness));
     }
 
@@ -747,8 +747,8 @@ void block_chain::fetch_block(hash_digest const& hash, bool witness,
             return;
         }
 
-        BITCOIN_ASSERT(tx_result.height() == height);
-        BITCOIN_ASSERT(tx_result.position() == position++);
+        KTH_ASSERT(tx_result.height() == height);
+        KTH_ASSERT(tx_result.position() == position++);
         txs.push_back(tx_result.transaction(witness));
     }
 

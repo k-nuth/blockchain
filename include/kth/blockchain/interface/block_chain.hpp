@@ -261,7 +261,7 @@ public:
                 handler(error::operation_failed_16, 0, chain::transaction{});
                 return;
             }
-            BITCOIN_ASSERT(tx_result.height() == height);
+            KTH_ASSERT(tx_result.height() == height);
             handler(error::success, height, tx_result.transaction(witness));
             ++f;
         }
@@ -286,7 +286,7 @@ public:
                 handler(error::operation_failed_16, 0, chain::transaction{});
                 return;
             }
-            BITCOIN_ASSERT(tx_result.height() == height);
+            KTH_ASSERT(tx_result.height() == height);
             handler(error::success, height, tx_result.transaction(witness));
             ++f;
         }
@@ -304,7 +304,7 @@ public:
                 handler(error::operation_failed_16, 0, chain::transaction{});
                 return;
             }
-            //BITCOIN_ASSERT(tx.height() == height);
+            //KTH_ASSERT(tx.height() == height);
             handler(error::success, height, tx);
             ++f;
         }

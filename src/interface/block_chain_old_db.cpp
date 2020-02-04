@@ -31,7 +31,7 @@ void block_chain::for_each_transaction(size_t from, size_t to, bool witness, for
             handler(error::not_found, 0, chain::transaction{});
             return;
         }
-        BITCOIN_ASSERT(block_result.height() == from);
+        KTH_ASSERT(block_result.height() == from);
         auto const tx_hashes = block_result.transaction_hashes();
 
         for_each_tx_hash(block_result.transaction_hashes().begin(), 
@@ -61,7 +61,7 @@ void block_chain::for_each_transaction_non_coinbase(size_t from, size_t to, bool
             handler(error::not_found, 0, chain::transaction{});
             return;
         }
-        BITCOIN_ASSERT(block_result.height() == from);
+        KTH_ASSERT(block_result.height() == from);
         auto const tx_hashes = block_result.transaction_hashes();
 
         for_each_tx_hash(std::next(block_result.transaction_hashes().begin()), 
@@ -94,7 +94,7 @@ void block_chain::for_each_transaction(size_t from, size_t to, bool witness, for
             return;
         }
 
-        //BITCOIN_ASSERT(block_result.height() == from);
+        //KTH_ASSERT(block_result.height() == from);
         //auto const tx_hashes = block_result.transaction_hashes();
 
         for_each_tx_valid(block_result.transactions().begin(), 
@@ -123,7 +123,7 @@ void block_chain::for_each_transaction_non_coinbase(size_t from, size_t to, bool
             handler(error::not_found, 0, chain::transaction{});
             return;
         }
-        //BITCOIN_ASSERT(block_result.height() == from);
+        //KTH_ASSERT(block_result.height() == from);
         auto const tx_hashes = block_result.transactions();
 
         for_each_tx_valid(std::next(tx_hashes.begin()), 
@@ -224,8 +224,8 @@ void block_chain::fetch_block_keoken(const hash_digest& hash, bool witness,
             return;
         }
 
-        BITCOIN_ASSERT(tx_result.height() == height);
-        BITCOIN_ASSERT(tx_result.position() == position++);
+        KTH_ASSERT(tx_result.height() == height);
+        KTH_ASSERT(tx_result.position() == position++);
         const kth::chain::transaction& tx_ptr = tx_result.transaction(witness);
         auto keoken_data = knuth::keoken::first_keoken_output(tx_ptr);
         if (!keoken_data.empty()) {
@@ -311,8 +311,8 @@ void block_chain::fetch_block_keoken(const hash_digest& hash, bool witness,
             return;
         }
 
-        //BITCOIN_ASSERT(tx_result.height() == height);
-        //BITCOIN_ASSERT(tx_result.position() == position++);
+        //KTH_ASSERT(tx_result.height() == height);
+        //KTH_ASSERT(tx_result.position() == position++);
         const kth::chain::transaction& tx_ptr = tx_result;
         auto keoken_data = knuth::keoken::first_keoken_output(tx_ptr);
         if (!keoken_data.empty()) {

@@ -592,9 +592,9 @@ private:
         //     std::cout << std::endl;
         // }
 
-        // BITCOIN_ASSERT(node.second.children_fees() == fee);
-        // BITCOIN_ASSERT(node.second.children_size() == size);
-        // BITCOIN_ASSERT(node.second.children_sigops() == sigops);
+        // KTH_ASSERT(node.second.children_fees() == fee);
+        // KTH_ASSERT(node.second.children_size() == size);
+        // KTH_ASSERT(node.second.children_sigops() == sigops);
 
         return node.second.children_fees() == fee
             && node.second.children_size() == size
