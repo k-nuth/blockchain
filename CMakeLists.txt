@@ -164,14 +164,21 @@ if (JUST_KTH_SOURCES)
 endif()
 
 
+
 set(KTH_PROJECT_VERSION "-" CACHE STRING "Specify the Knuth Project Version.")
 # message(${KTH_PROJECT_VERSION})
+message( STATUS "Knuth: Compiling version ${KTH_PROJECT_VERSION}")
 
-
-set(MICROARCHITECTURE "x86_64" CACHE STRING "Specify the Cryptocurrency (x86_64|...).")
-message(STATUS "Knuth: Compiling for ${MICROARCHITECTURE}")
+set(MICROARCHITECTURE "x86_64" CACHE STRING "Specify the Microarchitecture (x86_64|...).")
+message( STATUS "Knuth: Compiling for ${MICROARCHITECTURE}")
 # add_definitions(-DKTH_MICROARCHITECTURE=${MICROARCHITECTURE})
 # add_definitions(-DKTH_MICROARCHITECTURE_STR="${MICROARCHITECTURE}")
+
+set(MARCH_ID "" CACHE STRING "Specify the Microarchitecture ID (x86_64|...).")
+message( STATUS "Knuth: Compiling for Microarchitecture ID ${MARCH_ID}")
+
+message( STATUS "Knuth: CONAN_CXX_FLAGS ${CONAN_CXX_FLAGS}")
+message( STATUS "Knuth: CONAN_C_FLAGS ${CONAN_C_FLAGS}")
 
 
 set(CURRENCY "BCH" CACHE STRING "Specify the Cryptocurrency (BCH|BTC|LTC).")
@@ -219,13 +226,15 @@ if (NO_CONAN_AT_ALL)
 
   if (MSVC)
     find_package(
-      Boost 1.56.0 REQUIRED
-      COMPONENTS atomic chrono date_time filesystem iostreams locale log log_setup program_options regex system thread unit_test_framework
+      Boost 1.66.0 REQUIRED
+      COMPONENTS atomic chrono date_time filesystem iostreams locale log log_setup program_options system thread unit_test_framework
+      # regex
     )
   else()
     find_package(
-      Boost 1.56.0 REQUIRED
-      COMPONENTS chrono date_time filesystem iostreams locale log program_options regex system thread unit_test_framework
+      Boost 1.66.0 REQUIRED
+      COMPONENTS chrono date_time filesystem iostreams locale log program_options system thread unit_test_framework
+      # regex
     )
   endif()
 endif()

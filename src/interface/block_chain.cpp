@@ -14,14 +14,12 @@
 #include <utility>
 #include <unordered_set>
 
-#include <kth/domain.hpp>
-#include <kth/domain/math/sip_hash.hpp>
-#include <kth/domain/multi_crypto_support.hpp>
-
-#include <kth/database.hpp>
-
 #include <kth/blockchain/settings.hpp>
 #include <kth/blockchain/populate/populate_chain_state.hpp>
+#include <kth/domain.hpp>
+#include <kth/domain/multi_crypto_support.hpp>
+#include <kth/database.hpp>
+#include <kth/infrastructure/math/sip_hash.hpp>
 
 #include <boost/thread/latch.hpp>
 

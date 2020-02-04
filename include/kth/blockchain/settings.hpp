@@ -9,7 +9,7 @@
 #include <boost/filesystem.hpp>
 
 #include <kth/domain.hpp>
-#include <kth/domain/config/endpoint.hpp>
+#include <kth/infrastructure/config/endpoint.hpp>
 
 #include <kth/blockchain/define.hpp>
 
