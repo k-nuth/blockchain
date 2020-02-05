@@ -77,17 +77,11 @@ public:
     // //2019-May-15 hard fork, defaults to 1573819200: Nov 15, 2019 12:00:00 UTC protocol upgrade
     // uint64_t graviton_activation_time = bch_graviton_activation_time;
 
-    // //2020-May-15 hard fork, defaults to 1589544000: ??? 15 May 2020 12:00:00 UTC protocol upgrade
-    // uint64_t phonon_activation_time = to_underlying(bch_phonon_activation_time);
-    
-    // //2020-Nov-15 hard fork, defaults to 9999999999: ??? 15, 2020 12:00:00 UTC protocol upgrade
-    // uint64_t unnamed_activation_time = to_underlying(bch_unnamed_activation_time);
-
     //2020-May-15 hard fork, defaults to 1589544000: ??? 15 May 2020 12:00:00 UTC protocol upgrade
-    phonon_t phonon_activation_time = bch_phonon_activation_time;
+    uint64_t phonon_activation_time = to_underlying(bch_phonon_activation_time);
     
     //2020-Nov-15 hard fork, defaults to 9999999999: ??? 15, 2020 12:00:00 UTC protocol upgrade
-    unnamed_t unnamed_activation_time = bch_unnamed_activation_time;
+    uint64_t unnamed_activation_time = to_underlying(bch_unnamed_activation_time);
 
 #else
     // Just for Segwit coins

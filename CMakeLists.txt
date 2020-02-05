@@ -442,22 +442,6 @@ endif()
 
 _group_sources(kth-blockchain "${CMAKE_CURRENT_LIST_DIR}")
 
-# # src/kth-blockchain-replier => ${bindir}
-# #------------------------------------------------------------------------------
-# add_executable(kth-blockchain-replier
-#   replier/src/blockchain.cpp
-#   replier/src/configuration.cpp
-#   replier/src/main.cpp
-#   replier/src/parser.cpp)
-# if (NOT MSVC)
-#   target_compile_definitions(kth-blockchain-replier PUBLIC -DSYSCONFDIR=\"${SYSCONFDIR}\")
-# endif()
-# target_link_libraries(kth-blockchain-replier kth-network kth-protocol kth-blockchain)
-# target_include_directories(kth-blockchain-replier PRIVATE
-#   ${CMAKE_CURRENT_SOURCE_DIR}/replier/include)
-
-# _group_sources(kth-blockchain-replier "${CMAKE_CURRENT_LIST_DIR}/replier")
-
 # Tests
 #==============================================================================
 
