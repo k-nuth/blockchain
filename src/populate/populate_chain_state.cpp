@@ -199,12 +199,19 @@ chain_state::ptr populate_chain_state::populate() const {
         return {};
     }
 
-    return std::make_shared<chain_state>(std::move(data), checkpoints_, configured_forks_
+    return std::make_shared<chain_state>(
+        std::move(data), 
+        checkpoints_, 
+        configured_forks_
 #ifdef KTH_CURRENCY_BCH
-            // , settings_.monolith_activation_time
-            // , settings_.magnetic_anomaly_activation_time
-            , settings_.great_wall_activation_time
-            , settings_.graviton_activation_time
+        // , settings_.monolith_activation_time
+        // , settings_.magnetic_anomaly_activation_time
+        // , settings_.great_wall_activation_time
+        // , settings_.graviton_activation_time
+        // , phonon_t{settings_.phonon_activation_time}
+        // , unnamed_t{settings_.unnamed_activation_time}
+        , settings_.phonon_activation_time
+        , settings_.unnamed_activation_time
 #endif //KTH_CURRENCY_BCH
     );
 }
@@ -230,8 +237,10 @@ chain_state::ptr populate_chain_state::populate(chain_state::ptr pool, branch::c
 #ifdef KTH_CURRENCY_BCH
             // , settings_.monolith_activation_time
             // , settings_.magnetic_anomaly_activation_time
-            , settings_.great_wall_activation_time
-            , settings_.graviton_activation_time
+            // , settings_.great_wall_activation_time
+            // , settings_.graviton_activation_time
+            , settings_.phonon_activation_time
+            , settings_.unnamed_activation_time
 #endif //KTH_CURRENCY_BCH
     );
 }

@@ -14,9 +14,7 @@
 namespace kth {
 namespace blockchain {
 
-settings::settings(config::settings context)
-    : settings()
-{
+settings::settings(config::settings context) {
     switch (context) {
         case config::settings::mainnet: {
             checkpoints.reserve(22);

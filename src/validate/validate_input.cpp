@@ -65,7 +65,7 @@ uint32_t validate_input::convert_flags(uint32_t native_forks) {
     }
 
     // We make sure this node will have replay protection during the next hard fork.
-    if (script::is_enabled(native_forks, rule_fork::cash_replay_protection)) {
+    if (script::is_enabled(native_forks, rule_fork::bch_replay_protection)) {
         flags |= verify_flags_enable_replay_protection;
     }
 
