@@ -47,13 +47,16 @@ class KnuthBlockchainConan(KnuthConanFile):
         "tests": False,
         "tools": False,
         "currency": "BCH",
+        
         "microarchitecture": "_DUMMY_",
         "fix_march": False,
         "march_id": "_DUMMY_",
+        
         "verbose": False,
         "keoken": False,
         "mempool": False,
         "db": "default",
+
         "cxxflags": "_DUMMY_",
         "cflags": "_DUMMY_",
         "glibcxx_supports_cxx11_abi": "_DUMMY_",

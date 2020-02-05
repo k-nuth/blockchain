@@ -14,11 +14,7 @@ get_target_property(
   _compile_definitions
   kth-blockchain INTERFACE_COMPILE_DEFINITIONS)
 
-if ("WITH_REMOTE_DATABASE" IN_LIST _compile_definitions)
-	find_package(kth-database-requester 0 REQUIRED)
-else()
-	find_package(kth-database 0 REQUIRED)
-endif()
+find_package(kth-database 0 REQUIRED)
 
 if ("WITH_CONSENSUS" IN_LIST _compile_definitions)
   find_package(kth-consensus 0 REQUIRED)

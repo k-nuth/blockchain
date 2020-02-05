@@ -24,11 +24,6 @@
 #include <kth/mining/mempool.hpp>
 #endif
 
-
-#if WITH_BLOCKCHAIN_REQUESTER
-#include <kth/protocol/requester.hpp>
-#endif
-
 namespace kth {
 namespace blockchain {
 
@@ -429,13 +424,6 @@ protected:
     bool stopped() const;
 
 private:
-#if WITH_BLOCKCHAIN_REQUESTER
-    const settings& settings_;
-    mutable protocol::requester requester_;
-
-    std::string reorganize_subscription;
-    std::string reorganize_transaction;
-#else
     typedef database::data_base::handle handle;
 
     // Locking helpers.
@@ -486,10 +474,6 @@ private:
 
     transaction_organizer transaction_organizer_;
     block_organizer block_organizer_;
-
-
-
-#endif // WITH_BLOCKCHAIN_REQUESTER
 };
 
 } // namespace blockchain

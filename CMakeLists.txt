@@ -196,14 +196,6 @@ endif()
 message(STATUS "Knuth: Cryptocurrency: ${CURRENCY}")
 
 
-# Implement --with-remote-database and declare WITH_REMOTE_DATABASE.
-#------------------------------------------------------------------------------
-option(WITH_REMOTE_DATABASE "Compile with remote kth-database (aka. kth-database-requester)." OFF)
-
-
-
-
-
 # Conan infrastructure.
 #==============================================================================
 if(EXISTS ${CMAKE_SOURCE_DIR}/ci_utils/cmake/knuthbuildinfo.cmake)
@@ -240,16 +232,10 @@ if (NO_CONAN_AT_ALL)
 endif()
 
 if (NOT USE_CONAN)
-  # Require kth-database (or kth-database-requester) of at least version 0 and output ${kth_database_CPPFLAGS/LIBS/PKG}.
+  # Require kth-database of at least version 0 and output ${kth_database_CPPFLAGS/LIBS/PKG}.
   #------------------------------------------------------------------------------
-  if (WITH_REMOTE_DATABASE)
-    if (NOT TARGET kth-database-requester)
-      find_package(kth-database-requester 0 REQUIRED)
-    endif()
-    else()
-    if (NOT TARGET kth-database)
-      find_package(kth-database 0 REQUIRED)
-    endif()
+  if (NOT TARGET kth-database)
+    find_package(kth-database 0 REQUIRED)
   endif()
 
   # Require kth-consensus of at least version 0 and output ${kth_consensus_CPPFLAGS/LIBS/PKG}.
@@ -413,19 +399,9 @@ if (WITH_CONSENSUS)
   target_compile_definitions(kth-blockchain PUBLIC -DBCK_STATIC) #TODO(fernando): por que esta afuera?
 endif(WITH_CONSENSUS)
 
-if (WITH_REMOTE_DATABASE)
-  if (NOT USE_CONAN)
-    target_link_libraries(kth-blockchain kth-database-requester)
-  endif(NOT USE_CONAN)
-
-  target_compile_definitions(kth-blockchain PUBLIC -DWITH_REMOTE_DATABASE)
-else()
-  if (NOT USE_CONAN)
-    target_link_libraries(kth-blockchain PUBLIC kth-database)
-  endif(NOT USE_CONAN)
-endif()
-
-
+if (NOT USE_CONAN)
+  target_link_libraries(kth-blockchain PUBLIC kth-database)
+endif(NOT USE_CONAN)
 
 
 # #TODO(fernando): See what to do with this option. Move to Conan?
@@ -481,39 +457,6 @@ _group_sources(kth-blockchain "${CMAKE_CURRENT_LIST_DIR}")
 #   ${CMAKE_CURRENT_SOURCE_DIR}/replier/include)
 
 # _group_sources(kth-blockchain-replier "${CMAKE_CURRENT_LIST_DIR}/replier")
-
-# # src/kth-blockchain-requester.la => ${libdir}
-# #------------------------------------------------------------------------------
-# add_library(kth-blockchain-requester ${MODE}
-#   requester/src/block_chain.cpp
-#   src/interface/block_fetcher.cpp
-#   src/pools/orphan_pool.cpp
-#   src/pools/orphan_pool_manager.cpp
-#   src/pools/transaction_pool.cpp
-#   src/pools/transaction_pool_index.cpp
-#   src/settings.cpp
-#   src/validation/fork.cpp
-#   src/validation/populate_block.cpp
-#   src/validation/validate_block.cpp
-#   src/validation/validate_input.cpp)
-# target_include_directories(kth-blockchain-requester PUBLIC
-#   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-#   $<INSTALL_INTERFACE:include>)
-# 
-# target_compile_definitions(kth-blockchain-requester PUBLIC -DBCB_STATIC)
-# target_include_directories(kth-blockchain-requester PRIVATE
-#   ${CMAKE_CURRENT_SOURCE_DIR}/src/clone)
-
-# target_compile_definitions(kth-blockchain-requester PUBLIC
-#   -DWITH_BLOCKCHAIN_REQUESTER)
-# add_dependencies(kth-blockchain-requester kth-blockchain-replier)
-# 
-# target_link_libraries(kth-blockchain-requester kth-database kth-protocol)
-# if (WITH_CONSENSUS)
-#   target_link_libraries(kth-blockchain-requester kth-consensus-requester)
-# endif()
-
-# _group_sources(kth-blockchain-requester "${CMAKE_CURRENT_LIST_DIR}/requester")
 
 # Tests
 #==============================================================================
@@ -599,30 +542,6 @@ if (WITH_TESTS_NEW)
 endif()
 
 
-# # local: test/kth_blockchain_requester_test
-# #------------------------------------------------------------------------------
-# if (WITH_TESTS)
-#   add_executable(kth_blockchain_requester_test
-#     test/main.cpp
-#     test/transaction_pool.cpp
-#     test/validate_block.cpp)
-#   target_compile_definitions(kth_blockchain_requester_test PRIVATE
-#     -DWITH_BLOCKCHAIN_REPLIER="$<TARGET_FILE:kth-blockchain-replier>")
-#   target_include_directories(kth_blockchain_requester_test PRIVATE
-#     ${CMAKE_CURRENT_SOURCE_DIR}/requester/test)
-#   target_link_libraries(kth_blockchain_requester_test PUBLIC kth-blockchain-requester)
-#   if (WITH_CONSENSUS)
-#     target_compile_definitions(kth_blockchain_requester_test PRIVATE
-#       -DWITH_CONSENSUS_REPLIER="$<TARGET_FILE:kth-consensus-replier>")
-#   endif()
-
-#   _add_tests(kth_blockchain_requester_test "blockchain-requester"
-#     transaction_pool_tests)
-#     # validate_block_tests) # no test cases
-
-#   _group_sources(kth_blockchain_requester_test "${CMAKE_CURRENT_LIST_DIR}/test")
-# endif()
-
 # Tools
 #==============================================================================
 # local: tools/initchain/initchain
@@ -636,8 +555,6 @@ endif()
 
 # Install
 #==============================================================================
-# install(TARGETS kth-blockchain kth-blockchain-requester kth-blockchain-replier
-
 install(TARGETS kth-blockchain EXPORT kth-blockchain
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib

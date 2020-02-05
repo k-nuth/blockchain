@@ -9,42 +9,7 @@
 using namespace bc;
 using namespace bc::blockchain;
 
-#ifdef WITH_BLOCKCHAIN_REPLIER
-#include <process.hpp>
-
-struct fixture
-{
-#ifdef WITH_CONSENSUS_REPLIER
-    ::process consensus;
-#endif
-    ::process replier;
-
-    fixture()
-#ifdef WITH_CONSENSUS_REPLIER
-      : consensus(::process::exec(WITH_CONSENSUS_REPLIER)),
-        replier(::process::exec(WITH_BLOCKCHAIN_REPLIER))
-#else
-      : replier(::process::exec(WITH_BLOCKCHAIN_REPLIER))
-#endif
-    {
-#ifdef WITH_CONSENSUS_REPLIER
-        kth::consensus::requester.connect({ "tcp://localhost:5501" });
-#endif
-    }
-
-    ~fixture()
-    {
-        replier.terminate();
-        replier.join();
-
-        kth::consensus::requester.disconnect();
-        consensus.terminate();
-        consensus.join();
-    }
-};
-#else
 struct fixture {};
-#endif
 
 BOOST_FIXTURE_TEST_SUITE(transaction_pool_tests, ::fixture)
 
