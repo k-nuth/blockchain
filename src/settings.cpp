@@ -11,59 +11,10 @@
 #include <kth/mining/mempool.hpp>
 #endif
 
-
 namespace kth {
 namespace blockchain {
 
-settings::settings()
-    : cores(0)
-    , priority(true)
-    , byte_fee_satoshis(0.1)
-    , sigop_fee_satoshis(100)
-    , minimum_output_satoshis(500)
-    , notify_limit_hours(24)
-    , reorganization_limit(256)
-    , allow_collisions(true)
-    , easy_blocks(false)
-    , retarget(true)
-    , bip16(true)
-    , bip30(true)
-    , bip34(true)
-    , bip66(true)
-    , bip65(true)
-    , bip90(true)
-    , bip68(true)
-    , bip112(true)
-    , bip113(true)
-
-#ifdef KTH_CURRENCY_BCH
-    // , uahf_height(478559)
-    // , daa_height(504031)
-    // , monolith_activation_time(bch_monolith_activation_time)                        //1526400000
-    // , magnetic_anomaly_activation_time(bch_magnetic_anomaly_activation_time)        //1542300000
-    , great_wall_activation_time(bch_great_wall_activation_time)                       //1542300000
-    , graviton_activation_time(bch_graviton_activation_time)                           //1542300000
-    
-    , bip141(false)
-    , bip143(false)
-    , bip147(false)
-#else //KTH_CURRENCY_BCH
-    , bip141(true)
-    , bip143(true)
-    , bip147(true)
-#endif
-
-#if defined(KTH_WITH_MEMPOOL)
-    , mempool_max_template_size(mining::mempool::max_template_size_default)
-    , mempool_size_multiplier(mining::mempool::mempool_size_multiplier_default)
-#endif
-{}
-
-// Use push_back due to initializer_list bug:
-// stackoverflow.com/a/20168627/1172329
-settings::settings(config::settings context)
-    : settings()
-{
+settings::settings(config::settings context) {
     switch (context) {
         case config::settings::mainnet: {
             checkpoints.reserve(22);
@@ -85,12 +36,6 @@ settings::settings(config::settings context)
             checkpoints.emplace_back("000000000000003887df1f29024b06fc2200b55f8af8f35453d7be294df2d214", 250000);
             checkpoints.emplace_back("0000000000000001ae8c72a0b0c301f67e3afca10e819efa9041e458e9bd7e40", 279000);
             checkpoints.emplace_back("00000000000000004d9b4ef50f0f9d686fd69db2e03af35a100370c64632a983", 295000);
-
-#ifdef KTH_CURRENCY_BCH
-            // uahf_height = 478559;
-            // daa_height  = 504031;
-#endif //KTH_CURRENCY_BCH
-
             break;
         }
         case config::settings::testnet: {
@@ -104,24 +49,11 @@ settings::settings(config::settings context)
             checkpoints.emplace_back("000000000598cbbb1e79057b79eef828c495d4fc31050e6b179c57d07d00367c", 400000);
             checkpoints.emplace_back("000000000001a7c0aaa2630fbb2c0e476aafffc60f82177375b2aaa22209f606", 500000);
             checkpoints.emplace_back("000000000000624f06c69d3a9fe8d25e0a9030569128d63ad1b704bbb3059a16", 600000);
-
-#ifdef KTH_CURRENCY_BCH
-            // uahf_height = 1155876;
-            // daa_height  = 1188697;
-#endif //KTH_CURRENCY_BCH
-
             break;
         }
         case config::settings::regtest: {
             easy_blocks = true;
-
-#ifdef KTH_CURRENCY_BCH
-            // uahf_height = 0;
-            // daa_height  = 0;
-#endif //KTH_CURRENCY_BCH
-
             retarget = false;
-
             checkpoints.emplace_back("06226e46111a0b59caaf126043eb5bbf28c34f3a5e332a1fc7b2b73cf188910f", 0);
             break;
         }
@@ -136,25 +68,26 @@ uint32_t settings::enabled_forks() const {
 
     uint32_t forks = rule_fork::no_rules;
     forks |= (easy_blocks ? rule_fork::easy_blocks : 0);
-    forks |= (retarget ? rule_fork::retarget : 0);
-    forks |= (bip16 ? rule_fork::bip16_rule : 0);
-    forks |= (bip30 ? rule_fork::bip30_rule : 0);
-    forks |= (bip34 ? rule_fork::bip34_rule : 0);
-    forks |= (bip66 ? rule_fork::bip66_rule : 0);
-    forks |= (bip65 ? rule_fork::bip65_rule : 0);
-    forks |= (bip90 ? rule_fork::bip90_rule : 0);
-    forks |= (bip68 ? rule_fork::bip68_rule : 0);
-    forks |= (bip112 ? rule_fork::bip112_rule : 0);
-    forks |= (bip113 ? rule_fork::bip113_rule : 0);
+    forks |= (retarget    ? rule_fork::retarget    : 0);
+    forks |= (bip16       ? rule_fork::bip16_rule  : 0);
+    forks |= (bip30       ? rule_fork::bip30_rule  : 0);
+    forks |= (bip34       ? rule_fork::bip34_rule  : 0);
+    forks |= (bip66       ? rule_fork::bip66_rule  : 0);
+    forks |= (bip65       ? rule_fork::bip65_rule  : 0);
+    forks |= (bip90       ? rule_fork::bip90_rule  : 0);
+    forks |= (bip68       ? rule_fork::bip68_rule  : 0);
+    forks |= (bip112      ? rule_fork::bip112_rule : 0);
+    forks |= (bip113      ? rule_fork::bip113_rule : 0);
 
 #ifdef KTH_CURRENCY_BCH
-    forks |= rule_fork::cash_low_s_rule;
-    // forks |= rule_fork::cash_monolith_opcodes;
-    forks |= rule_fork::cash_verify_flags_script_enable_sighash_forkid;
-    forks |= rule_fork::cash_replay_protection;
-    forks |= rule_fork::cash_checkdatasig;
-    forks |= rule_fork::cash_schnorr;
-    forks |= rule_fork::cash_segwit_recovery;
+    forks |= (bch_uahf             ? rule_fork::bch_uahf : 0);
+    forks |= (bch_daa              ? rule_fork::bch_daa : 0);
+    forks |= (bch_monolith         ? rule_fork::bch_monolith : 0);
+    forks |= (bch_magnetic_anomaly ? rule_fork::bch_magnetic_anomaly : 0);
+    forks |= (bch_great_wall       ? rule_fork::bch_great_wall : 0);
+    forks |= (bch_graviton         ? rule_fork::bch_graviton : 0);
+    // forks |= (bch_phonon           ? rule_fork::bch_phonon : 0);
+    // forks |= (bch_unnamed           ? rule_fork::bch_unnamed : 0);
 #else
     forks |= (bip141 ? rule_fork::bip141_rule : 0);
     forks |= (bip143 ? rule_fork::bip143_rule : 0);
