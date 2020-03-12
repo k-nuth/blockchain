@@ -17,8 +17,7 @@
 #include <kth/blockchain/settings.hpp>
 #include <kth/blockchain/validate/validate_transaction.hpp>
 
-namespace kth {
-namespace blockchain {
+namespace kth::blockchain {
 
 using namespace std::placeholders;
 
@@ -195,7 +194,7 @@ void transaction_organizer::organize(transaction_const_ptr tx, result_handler ha
 }
 
 // private
-void transaction_organizer::signal_completion(const code& ec)
+void transaction_organizer::signal_completion(code const& ec)
 {
     // This must be protected so that it is properly cleared.
     // Signal completion, which results in original handler invoke with code.
@@ -206,7 +205,7 @@ void transaction_organizer::signal_completion(const code& ec)
 //-----------------------------------------------------------------------------
 
 // private
-void transaction_organizer::handle_check(const code& ec,
+void transaction_organizer::handle_check(code const& ec,
     transaction_const_ptr tx, result_handler handler)
 {
     if (stopped())
@@ -230,7 +229,7 @@ void transaction_organizer::handle_check(const code& ec,
 }
 
 // private
-void transaction_organizer::handle_accept(const code& ec,
+void transaction_organizer::handle_accept(code const& ec,
     transaction_const_ptr tx, result_handler handler)
 {
     if (stopped())
@@ -266,29 +265,22 @@ void transaction_organizer::handle_accept(const code& ec,
 }
 
 // private
-void transaction_organizer::handle_connect(const code& ec,
-    transaction_const_ptr tx, result_handler handler)
-{
-    if (stopped())
-    {
+void transaction_organizer::handle_connect(code const& ec, transaction_const_ptr tx, result_handler handler) {
+    if (stopped()) {
         handler(error::service_stopped);
         return;
     }
 
-    if (ec)
-    {
+    if (ec) {
         handler(ec);
         return;
     }
 
     // TODO: create a simulated validation path that does not block others.
-    if (tx->validation.simulate)
-    {
+    if (tx->validation.simulate) {
         handler(error::success);
         return;
     }
-
-    auto const pushed_handler = std::bind(&transaction_organizer::handle_pushed, this, _1, tx, handler);
 
 #if defined(KTH_WITH_MEMPOOL)
     auto res = mempool_.add(*tx);
@@ -299,17 +291,18 @@ void transaction_organizer::handle_connect(const code& ec,
     // LOG_INFO(LOG_BLOCKCHAIN) << "Transaction " << encode_hash(tx->hash()) << " added to mempool.";
 #endif
 
+#if ! defined(KTH_DB_READONLY)
+    auto const pushed_handler = std::bind(&transaction_organizer::handle_pushed, this, _1, tx, handler);
     //#########################################################################
     fast_chain_.push(tx, dispatch_, pushed_handler);
     //#########################################################################
+#endif
 }
 
+#if ! defined(KTH_DB_READONLY)
 // private
-void transaction_organizer::handle_pushed(const code& ec,
-    transaction_const_ptr tx, result_handler handler)
-{
-    if (ec)
-    {
+void transaction_organizer::handle_pushed(code const& ec, transaction_const_ptr tx, result_handler handler) {
+    if (ec) {
         LOG_FATAL(LOG_BLOCKCHAIN)
             << "Failure writing transaction to store, is now corrupted: "
             << ec.message();
@@ -322,47 +315,40 @@ void transaction_organizer::handle_pushed(const code& ec,
 
     handler(error::success);
 }
+#endif // ! defined(KTH_DB_READONLY)
 
 // Subscription.
 //-----------------------------------------------------------------------------
 
 // private
-void transaction_organizer::notify(transaction_const_ptr tx)
-{
+void transaction_organizer::notify(transaction_const_ptr tx) {
     // This invokes handlers within the criticial section (deadlock risk).
     subscriber_->invoke(error::success, tx);
 }
 
-void transaction_organizer::subscribe(transaction_handler&& handler)
-{
+void transaction_organizer::subscribe(transaction_handler&& handler) {
     subscriber_->subscribe(std::move(handler), error::service_stopped, {});
 }
 
-void transaction_organizer::unsubscribe()
-{
+void transaction_organizer::unsubscribe() {
     subscriber_->relay(error::success, {});
 }
 
 // Queries.
 //-----------------------------------------------------------------------------
 
-void transaction_organizer::fetch_template(
-    merkle_block_fetch_handler handler) const
-{
+void transaction_organizer::fetch_template(merkle_block_fetch_handler handler) const {
     transaction_pool_.fetch_template(handler);
 }
 
-void transaction_organizer::fetch_mempool(size_t maximum,
-    inventory_fetch_handler handler) const
-{
+void transaction_organizer::fetch_mempool(size_t maximum, inventory_fetch_handler handler) const {
     transaction_pool_.fetch_mempool(maximum, handler);
 }
 
 // Utility.
 //-----------------------------------------------------------------------------
 
-uint64_t transaction_organizer::price(transaction_const_ptr tx) const
-{
+uint64_t transaction_organizer::price(transaction_const_ptr tx) const {
     auto const byte_fee = settings_.byte_fee_satoshis;
     auto const sigop_fee = settings_.sigop_fee_satoshis;
 
@@ -379,5 +365,4 @@ uint64_t transaction_organizer::price(transaction_const_ptr tx) const
     return std::max(uint64_t(1), static_cast<uint64_t>(byte + sigop));
 }
 
-} // namespace blockchain
-} // namespace kth
+} // namespace kth::blockchain

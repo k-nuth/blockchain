@@ -56,12 +56,16 @@ private:
     bool set_branch_height(branch::ptr branch);
 
     // Verify sub-sequence.
-    void handle_check(const code& ec, block_const_ptr block, result_handler handler);
-    void handle_accept(const code& ec, branch::ptr branch, result_handler handler);
-    void handle_connect(const code& ec, branch::ptr branch, result_handler handler);
+    void handle_check(code const& ec, block_const_ptr block, result_handler handler);
+    void handle_accept(code const& ec, branch::ptr branch, result_handler handler);
+    void handle_connect(code const& ec, branch::ptr branch, result_handler handler);
     void organized(branch::ptr branch, result_handler handler);
-    void handle_reorganized(const code& ec, branch::const_ptr branch, block_const_ptr_list_ptr outgoing, result_handler handler);
-    void signal_completion(const code& ec);
+
+#if ! defined(KTH_DB_READONLY)
+    void handle_reorganized(code const& ec, branch::const_ptr branch, block_const_ptr_list_ptr outgoing, result_handler handler);
+#endif
+
+    void signal_completion(code const& ec);
 
 #if defined(KTH_WITH_MEMPOOL)
     void populate_prevout_1(branch::const_ptr branch, chain::output_point const& outpoint, bool require_confirmed) const;

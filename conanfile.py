@@ -32,6 +32,7 @@ class KnuthBlockchainConan(KnuthConanFile):
             #    "mining": [True, False],
                "mempool": [True, False],
                "db": ['legacy', 'legacy_full', 'pruned', 'default', 'full'],
+               "db_readonly": [True, False],
 
                "cxxflags": "ANY",
                "cflags": "ANY",
@@ -56,6 +57,7 @@ class KnuthBlockchainConan(KnuthConanFile):
         "keoken": False,
         "mempool": False,
         "db": "default",
+        "db_readonly": False,
 
         "cxxflags": "_DUMMY_",
         "cflags": "_DUMMY_",
@@ -105,6 +107,9 @@ class KnuthBlockchainConan(KnuthConanFile):
                 self.options.db = "full"
 
 
+        self.options["*"].db_readonly = self.options.db_readonly
+        self.output.info("Compiling with read-only DB: %s" % (self.options.db_readonly,))
+
         # self.options["*"].mining = self.options.mining
         # self.options["*"].mempool = self.options.mempool  
         # self.output.info("Compiling with mining optimizations: %s" % (self.options.mining,))
@@ -120,7 +125,7 @@ class KnuthBlockchainConan(KnuthConanFile):
         cmake.definitions["WITH_KEOKEN"] = option_on_off(self.is_keoken)
         # cmake.definitions["WITH_MINING"] = option_on_off(self.options.mining)
         cmake.definitions["WITH_MEMPOOL"] = option_on_off(self.options.mempool)
-        cmake.definitions["USE_DOMAIN"] = option_on_off(True)
+        cmake.definitions["DB_READONLY_MODE"] = option_on_off(self.options.db_readonly)
 
         cmake.configure(source_dir=self.source_folder)
         if not self.options.cmake_export_compile_commands:

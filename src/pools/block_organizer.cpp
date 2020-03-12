@@ -115,7 +115,7 @@ void block_organizer::organize(block_const_ptr block, result_handler handler) {
 }
 
 // private
-void block_organizer::signal_completion(const code& ec) {
+void block_organizer::signal_completion(code const& ec) {
     // This must be protected so that it is properly cleared.
     // Signal completion, which results in original handler invoke with code.
     resume_.set_value(ec);
@@ -125,7 +125,7 @@ void block_organizer::signal_completion(const code& ec) {
 //-----------------------------------------------------------------------------
 
 // private
-void block_organizer::handle_check(const code& ec, block_const_ptr block, result_handler handler) {
+void block_organizer::handle_check(code const& ec, block_const_ptr block, result_handler handler) {
     
     if (stopped()) {
         handler(error::service_stopped);
@@ -165,7 +165,7 @@ void block_organizer::handle_check(const code& ec, block_const_ptr block, result
 }
 
 // private
-void block_organizer::handle_accept(const code& ec, branch::ptr branch, result_handler handler) {
+void block_organizer::handle_accept(code const& ec, branch::ptr branch, result_handler handler) {
     if (stopped()) {
         handler(error::service_stopped);
         return;
@@ -384,7 +384,7 @@ void block_organizer::organize_mempool(branch::const_ptr branch, block_const_ptr
 #endif // defined(KTH_WITH_MEMPOOL)
 
 // private
-void block_organizer::handle_connect(const code& ec, branch::ptr branch, result_handler handler) {
+void block_organizer::handle_connect(code const& ec, branch::ptr branch, result_handler handler) {
     
     if (stopped()) {
         handler(error::service_stopped);
@@ -440,9 +440,10 @@ void block_organizer::handle_connect(const code& ec, branch::ptr branch, result_
         return;
     }
 
+
+#if ! defined(KTH_DB_READONLY)
     // Get the outgoing blocks to forward to reorg handler.
     auto const out_blocks = std::make_shared<block_const_ptr_list>();
-
     auto const reorganized_handler = std::bind(&block_organizer::handle_reorganized, this, _1, branch, out_blocks, handler);
 
     // Replace! Switch!
@@ -450,11 +451,13 @@ void block_organizer::handle_connect(const code& ec, branch::ptr branch, result_
     // Incoming blocks must have median_time_past set.
     fast_chain_.reorganize(branch->fork_point(), branch->blocks(), out_blocks, dispatch_, reorganized_handler);
     //#########################################################################
+#endif // ! defined(KTH_DB_READONLY)
 }
 
+#if ! defined(KTH_DB_READONLY)
 // private
 // Outgoing blocks must have median_time_past set.
-void block_organizer::handle_reorganized(const code& ec, branch::const_ptr branch, block_const_ptr_list_ptr outgoing, result_handler handler) {
+void block_organizer::handle_reorganized(code const& ec, branch::const_ptr branch, block_const_ptr_list_ptr outgoing, result_handler handler) {
     if (ec) {
         LOG_FATAL(LOG_BLOCKCHAIN) << "Failure writing block to store, is now corrupted: " << ec.message();
         handler(ec);
@@ -473,11 +476,15 @@ void block_organizer::handle_reorganized(const code& ec, branch::const_ptr branc
     // v3 reorg block order is reverse of v2, branch.back() is the new top.
     notify(branch->height(), branch->blocks(), outgoing);
 
+#if ! defined(KTH_DB_READONLY)
     fast_chain_.prune_reorg_async();
+#endif
+
     //fast_chain_.set_database_flags();
 
     handler(error::success);
 }
+#endif // ! defined(KTH_DB_READONLY)
 
 // Subscription.
 //-----------------------------------------------------------------------------

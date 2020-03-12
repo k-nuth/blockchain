@@ -113,7 +113,7 @@ void validate_block::check_block(block_const_ptr block, size_t bucket,
     handler(error::success);
 }
 
-void validate_block::handle_checked(const code& ec, block_const_ptr block,
+void validate_block::handle_checked(code const& ec, block_const_ptr block,
     result_handler handler) const
 {
     if (ec)
@@ -154,7 +154,7 @@ void validate_block::accept(branch::const_ptr branch,
             this, _1, block, handler));
 }
 
-void validate_block::handle_populated(const code& ec, block_const_ptr block,
+void validate_block::handle_populated(code const& ec, block_const_ptr block,
     result_handler handler) const
 {
     if (stopped())
@@ -253,7 +253,7 @@ void validate_block::accept_transactions(block_const_ptr block, size_t bucket,
     handler(ec);
 }
 
-void validate_block::handle_accepted(const code& ec, block_const_ptr block,
+void validate_block::handle_accepted(code const& ec, block_const_ptr block,
     atomic_counter_ptr sigops, bool bip141, result_handler handler) const
 {
     if (ec)
@@ -386,7 +386,7 @@ float validate_block::hit_rate() const
     return queries_ == 0 ? 0.0f : (hits_ * 1.0f / queries_);
 }
 
-void validate_block::handle_connected(const code& ec, block_const_ptr block,
+void validate_block::handle_connected(code const& ec, block_const_ptr block,
     result_handler handler) const
 {
     block->validation.cache_efficiency = hit_rate();
@@ -396,7 +396,7 @@ void validate_block::handle_connected(const code& ec, block_const_ptr block,
 // Utility.
 //-----------------------------------------------------------------------------
 
-void validate_block::dump(const code& ec, const transaction& tx, uint32_t input_index, uint32_t forks, size_t height) {
+void validate_block::dump(code const& ec, const transaction& tx, uint32_t input_index, uint32_t forks, size_t height) {
     auto const& prevout = tx.inputs()[input_index].previous_output();
     auto const script = prevout.validation.cache.script().to_data(false);
     auto const hash = encode_hash(prevout.hash());

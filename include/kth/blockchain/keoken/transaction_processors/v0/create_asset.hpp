@@ -9,21 +9,13 @@
 #include <kth/keoken/error.hpp>
 #include <kth/keoken/transaction_processors/commons.hpp>
 
-namespace kth {
-namespace keoken {
-namespace transaction_processors {
-namespace v0 {
+namespace kth::keoken::transaction_processors::v0 {
 
 struct create_asset {
     static constexpr message_type_t message_type = message_type_t::create_asset;
 
-#ifdef KTH_USE_DOMAIN
     template <typename State, typename Fastchain, Reader R, KTH_IS_READER(R)>
     error::error_code_t operator()(State& state, Fastchain const& fast_chain, size_t block_height, bc::chain::transaction const& tx, R& source) const {
-#else
-    template <typename State, typename Fastchain>
-    error::error_code_t operator()(State& state, Fastchain const& fast_chain, size_t block_height, bc::chain::transaction const& tx, bc::reader& source) const {
-#endif // KTH_USE_DOMAIN
         auto msg = message::create_asset::factory_from_data(source);
         if ( ! source) return error::invalid_create_asset_message;
 
@@ -41,9 +33,6 @@ struct create_asset {
     }
 };
 
-} // namespace v0
-} // namespace transaction_processors
-} // namespace keoken
-} // namespace kth
+} // namespace namespace kth::keoken::transaction_processors::v0
 
 #endif //KTH_BLOCKCHAIN_KEOKEN_TRANSACTION_PROCESSORS_V0_CREATE_ASSET_HPP_

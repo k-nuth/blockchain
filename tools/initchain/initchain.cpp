@@ -35,7 +35,7 @@ int main(int argc, char** argv)
         boost::filesystem::remove_all(prefix);
 
     error_code code;
-    if (!create_directories(prefix, code))
+    if ( ! create_directories(prefix, code))
     {
         if (code.value() == 0)
             std::cerr << format(BS_INITCHAIN_DIR_EXISTS) % prefix;

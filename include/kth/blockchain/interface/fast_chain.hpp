@@ -10,23 +10,19 @@
 #include <kth/blockchain/define.hpp>
 #include <kth/blockchain/pools/branch.hpp>
 
-namespace kth {
-namespace blockchain {
+namespace kth::blockchain {
 
 /// A low level interface for encapsulation of the blockchain database.
 /// Caller must ensure the database is not otherwise in use during these calls.
 /// Implementations are NOT expected to be thread safe with the exception
 /// that the import method may itself be called concurrently.
-class BCB_API fast_chain
-{
+class BCB_API fast_chain {
 public:
     // This avoids conflict with the result_handler in safe_chain.
-    typedef handle0 complete_handler;
+    using complete_handler = handle0;
 
     // Readers.
     // ------------------------------------------------------------------------
-
-
 
 #ifdef KTH_DB_LEGACY
     /// Get the set of block gaps in the chain.
@@ -39,14 +35,12 @@ public:
 
 #endif // KTH_DB_LEGACY
 
-
 #if defined(KTH_DB_LEGACY) || defined(KTH_DB_NEW_FULL) 
     /// Get position data for a transaction.
     virtual bool get_transaction_position(size_t& out_height, size_t& out_position, const hash_digest& hash, bool require_confirmed) const = 0;
 
     /// Get the output that is referenced by the outpoint.
     virtual bool get_output(chain::output& out_output, size_t& out_height, uint32_t& out_median_time_past, bool& out_coinbase, const chain::output_point& outpoint, size_t branch_height, bool require_confirmed) const = 0;
-    
 #endif
 
     /// Get a determination of whether the block hash exists in the store.
@@ -86,7 +80,9 @@ public:
 
 #endif// KTH_DB_NEW
 
+#if ! defined(KTH_DB_READONLY)
     virtual void prune_reorg_async() = 0;
+#endif
 
     //virtual void set_database_flags() = 0;
 
@@ -97,6 +93,7 @@ public:
     // Writers.
     // ------------------------------------------------------------------------
 
+#if ! defined(KTH_DB_READONLY)
 #ifdef KTH_DB_LEGACY
     /// Create flush lock if flush_writes is true, and set sequential lock.
     virtual bool begin_insert() const = 0;
@@ -118,6 +115,8 @@ public:
         block_const_ptr_list_ptr outgoing_blocks, dispatcher& dispatch,
         complete_handler handler) = 0;
 
+#endif //! defined(KTH_DB_READONLY)
+
     // Properties
     // ------------------------------------------------------------------------
 
@@ -128,10 +127,8 @@ public:
     virtual chain::chain_state::ptr chain_state(branch::const_ptr branch) const = 0;
 
     virtual bool is_stale_fast() const = 0;
-
 };
 
-} // namespace blockchain
-} // namespace kth
+} // namespace kth::blockchain
 
 #endif

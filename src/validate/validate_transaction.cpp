@@ -95,7 +95,7 @@ void validate_transaction::accept(transaction_const_ptr tx,
             this, _1, tx, handler));
 }
 
-void validate_transaction::handle_populated(const code& ec,
+void validate_transaction::handle_populated(code const& ec,
     transaction_const_ptr tx, result_handler handler) const
 {
     if (stopped())

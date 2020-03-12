@@ -101,8 +101,12 @@ uint32_t get_clock_now() {
 }
 
 #ifdef KTH_DB_LEGACY
+
+#if ! defined(KTH_DB_READONLY)
 inline
 void block_chain::prune_reorg_async() {}
+#endif // ! defined(KTH_DB_READONLY)
+
 /*
 inline 
 void block_chain::set_database_flags() {}
@@ -321,6 +325,7 @@ bool block_chain::get_transaction_position(size_t& out_height, size_t& out_posit
 
 #ifdef KTH_DB_NEW
 
+#if ! defined(KTH_DB_READONLY)
 void block_chain::prune_reorg_async() {
     if ( ! is_stale()) {
         dispatch_.concurrent([this](){
@@ -328,11 +333,12 @@ void block_chain::prune_reorg_async() {
         });
     }
 }
-/*
-void block_chain::set_database_flags() {
-    bool stale = is_stale();
-    database_.set_database_flags(stale);
-}*/
+#endif // ! defined(KTH_DB_READONLY)
+
+// void block_chain::set_database_flags() {
+//     bool stale = is_stale();
+//     database_.set_database_flags(stale);
+// }
 
 // bool block_chain::get_gaps(block_database::heights& out_gaps) const {
 //     database_.blocks().gaps(out_gaps);
@@ -457,6 +463,7 @@ std::pair<bool, database::internal_database::utxo_pool_t> block_chain::get_utxo_
 
 // Writers
 // ----------------------------------------------------------------------------
+#if ! defined(KTH_DB_READONLY)
 
 #ifdef KTH_DB_LEGACY
 bool block_chain::begin_insert() const {
@@ -481,6 +488,8 @@ void block_chain::push(transaction_const_ptr tx, dispatcher&, result_handler han
     handler(database_.push(*tx, chain_state()->enabled_forks()));
 }
 
+#endif // ! defined(KTH_DB_READONLY)
+
 #ifdef KTH_DB_TRANSACTION_UNCONFIRMED
 void block_chain::fetch_unconfirmed_transaction(hash_digest const& hash, transaction_unconfirmed_fetch_handler handler) const
 {
@@ -503,37 +512,28 @@ void block_chain::fetch_unconfirmed_transaction(hash_digest const& hash, transac
 }
 #endif // KTH_DB_TRANSACTION_UNCONFIRMED
 
+#if ! defined(KTH_DB_READONLY)
 void block_chain::reorganize(const checkpoint& fork_point,
     block_const_ptr_list_const_ptr incoming_blocks,
     block_const_ptr_list_ptr outgoing_blocks, dispatcher& dispatch,
-    result_handler handler)
-{
-    if (incoming_blocks->empty())
-    {
+    result_handler handler) {
+    if (incoming_blocks->empty()) {
         handler(error::operation_failed_13);
         return;
     }
 
     // The top (back) block is used to update the chain state.
-    auto const complete =
-        std::bind(&block_chain::handle_reorganize,
-            this, _1, incoming_blocks->back(), handler);
-
-    database_.reorganize(fork_point, incoming_blocks, outgoing_blocks,
-        dispatch, complete);
+    auto const complete = std::bind(&block_chain::handle_reorganize, this, _1, incoming_blocks->back(), handler);
+    database_.reorganize(fork_point, incoming_blocks, outgoing_blocks, dispatch, complete);
 }
 
-void block_chain::handle_reorganize(const code& ec, block_const_ptr top,
-    result_handler handler)
-{
-    if (ec)
-    {
+void block_chain::handle_reorganize(code const& ec, block_const_ptr top, result_handler handler) {
+    if (ec) {
         handler(ec);
         return;
     }
 
-    if (!top->validation.state)
-    {
+    if ( ! top->validation.state) {
         handler(error::operation_failed_14);
         return;
     }
@@ -544,12 +544,13 @@ void block_chain::handle_reorganize(const code& ec, block_const_ptr top,
     handler(error::success);
 }
 
+#endif // ! defined(KTH_DB_READONLY)
+
 // Properties.
 // ----------------------------------------------------------------------------
 
 // For tx validator, call only from inside validate critical section.
-chain::chain_state::ptr block_chain::chain_state() const
-{
+chain::chain_state::ptr block_chain::chain_state() const {
     // Critical Section
     ///////////////////////////////////////////////////////////////////////////
     shared_lock lock(pool_state_mutex_);
@@ -560,9 +561,7 @@ chain::chain_state::ptr block_chain::chain_state() const
 }
 
 // For block validator, call only from inside validate critical section.
-chain::chain_state::ptr block_chain::chain_state(
-    branch::const_ptr branch) const
-{
+chain::chain_state::ptr block_chain::chain_state(branch::const_ptr branch) const {
     // Promote from cache if branch is same height as pool (most typical).
     // Generate from branch/store if the promotion is not successful.
     // If the organize is successful pool state will be updated accordingly.
@@ -904,7 +903,7 @@ void block_chain::fetch_compact_block(hash_digest const& hash, compact_block_fet
         return;
     }
     
-    fetch_block(hash, witness,[&handler](const code& ec, block_const_ptr message, size_t height) {
+    fetch_block(hash, witness,[&handler](code const& ec, block_const_ptr message, size_t height) {
         if (ec == error::success) {
             auto blk_ptr = std::make_shared<compact_block>(compact_block::factory_from_block(*message));
             handler(error::success, blk_ptr, height);
@@ -1158,7 +1157,7 @@ void block_chain::fetch_compact_block(hash_digest const& hash, compact_block_fet
         return;
     }
     
-    fetch_block(hash, witness,[&handler](const code& ec, block_const_ptr message, size_t height) {
+    fetch_block(hash, witness,[&handler](code const& ec, block_const_ptr message, size_t height) {
         if (ec == error::success) {
             auto blk_ptr = std::make_shared<compact_block>(compact_block::factory_from_block(*message));
             handler(error::success, blk_ptr, height);

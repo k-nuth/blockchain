@@ -24,13 +24,10 @@
 #include <kth/mining/mempool.hpp>
 #endif
 
-namespace kth {
-namespace blockchain {
-
+namespace kth::blockchain {
 
 /// The fast_chain interface portion of this class is not thread safe.
-class BCB_API block_chain
-  : public safe_chain, public fast_chain, noncopyable
+class BCB_API block_chain : public safe_chain, public fast_chain, noncopyable
 {
 public:
     /// Relay transactions is network setting that is passed through to block
@@ -108,8 +105,9 @@ public:
     /// Get height of latest block.
     bool get_last_height(size_t& out_height) const override;
 
-
+#if ! defined(KTH_DB_READONLY)
     void prune_reorg_async() override;
+#endif
 
     //void set_database_flags() override;
 
@@ -125,6 +123,8 @@ public:
     // ------------------------------------------------------------------------
     // Thread safe, insert does not set sequential lock.
 
+#if ! defined(KTH_DB_READONLY)
+
 #ifdef KTH_DB_LEGACY
     /// Create flush lock if flush_writes is true, and set sequential lock.
     bool begin_insert() const override;
@@ -138,14 +138,15 @@ public:
     bool insert(block_const_ptr block, size_t height) override;
 
     /// Push an unconfirmed transaction to the tx table and index outputs.
-    void push(transaction_const_ptr tx, dispatcher& dispatch,
-        result_handler handler) override;
+    void push(transaction_const_ptr tx, dispatcher& dispatch, result_handler handler) override;
 
     /// Swap incoming and outgoing blocks, height is validated.
     void reorganize(const config::checkpoint& fork_point,
         block_const_ptr_list_const_ptr incoming_blocks,
         block_const_ptr_list_ptr outgoing_blocks, dispatcher& dispatch,
         result_handler handler) override;
+
+#endif // ! defined(KTH_DB_READONLY)
 
     // Properties
     // ------------------------------------------------------------------------
@@ -177,7 +178,6 @@ public:
 
     // Node Queries.
     // ------------------------------------------------------------------------
-
 
     /// fetch a block by height.
     void fetch_block(size_t height, bool witness, block_fetch_handler handler) const override;
@@ -400,7 +400,7 @@ public:
     bool is_stale_fast() const override;
 
     /// Get a reference to the blockchain configuration settings.
-    const settings& chain_settings() const;
+    settings const& chain_settings() const;
 
 
 #ifdef KTH_WITH_KEOKEN    
@@ -439,12 +439,9 @@ private:
     //-------------------------------------------------------------------------
 
     code set_chain_state(chain::chain_state::ptr previous);
-    void handle_transaction(const code& ec, transaction_const_ptr tx,
-        result_handler handler) const;
-    void handle_block(const code& ec, block_const_ptr block,
-        result_handler handler) const;
-    void handle_reorganize(const code& ec, block_const_ptr top,
-        result_handler handler);
+    void handle_transaction(code const& ec, transaction_const_ptr tx, result_handler handler) const;
+    void handle_block(code const& ec, block_const_ptr block, result_handler handler) const;
+    void handle_reorganize(code const& ec, block_const_ptr top, result_handler handler);
 
     // These are thread safe.
     std::atomic<bool> stopped_;
@@ -476,7 +473,6 @@ private:
     block_organizer block_organizer_;
 };
 
-} // namespace blockchain
-} // namespace kth
+} // namespace kth::blockchain
 
 #endif // KTH_BLOCKCHAIN_BLOCK_CHAIN_HPP
