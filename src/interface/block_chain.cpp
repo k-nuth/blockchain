@@ -587,12 +587,12 @@ code block_chain::set_chain_state(chain::chain_state::ptr previous)
 // Startup and shutdown.
 // ----------------------------------------------------------------------------
 
-bool block_chain::start()
-{
+bool block_chain::start() {
     stopped_ = false;
 
-    if (!database_.open())
+    if ( ! database_.open()) {
         return false;
+    }
 
     //switch to fast mode if the database is stale
     //set_database_flags();
@@ -600,12 +600,12 @@ bool block_chain::start()
     // Initialize chain state after database start but before organizers.
     pool_state_ = chain_state_populator_.populate();
 
-    return pool_state_ && transaction_organizer_.start() &&
-        block_organizer_.start();
+    return pool_state_ && 
+           transaction_organizer_.start() &&
+           block_organizer_.start();
 }
 
-bool block_chain::stop()
-{
+bool block_chain::stop() {
     stopped_ = true;
 
     // Critical Section
@@ -625,15 +625,13 @@ bool block_chain::stop()
 
 // Close is idempotent and thread safe.
 // Optional as the blockchain will close on destruct.
-bool block_chain::close()
-{
+bool block_chain::close() {
     auto const result = stop();
     priority_pool_.join();
     return result && database_.close();
 }
 
-block_chain::~block_chain()
-{
+block_chain::~block_chain() {
     close();
 }
 
@@ -643,14 +641,11 @@ block_chain::~block_chain()
 // this eliminates the need to copy the cached items.
 
 #ifdef KTH_DB_LEGACY
-void block_chain::fetch_block(size_t height, bool witness,
-    block_fetch_handler handler) const
-{
+void block_chain::fetch_block(size_t height, bool witness, block_fetch_handler handler) const {
 #ifdef KTH_CURRENCY_BCH
     witness = false;
 #endif
-    if (stopped())
-    {
+    if (stopped()) {
         handler(error::service_stopped, nullptr, 0);
         return;
     }
@@ -659,16 +654,14 @@ void block_chain::fetch_block(size_t height, bool witness,
 
     // Try the cached block first.
     if (cached && cached->validation.state &&
-        cached->validation.state->height() == height)
-    {
+        cached->validation.state->height() == height) {
         handler(error::success, cached, height);
         return;
     }
 
     auto const block_result = database_.blocks().get(height);
 
-    if (!block_result)
-    {
+    if ( ! block_result) {
         handler(error::not_found, nullptr, 0);
         return;
     }
@@ -680,12 +673,10 @@ void block_chain::fetch_block(size_t height, bool witness,
     txs.reserve(tx_hashes.size());
     DEBUG_ONLY(size_t position = 0;)
 
-    for (auto const& hash: tx_hashes)
-    {
+    for (auto const& hash: tx_hashes) {
         auto const tx_result = tx_store.get(hash, max_size_t, true);
 
-        if (!tx_result)
-        {
+        if ( ! tx_result) {
             handler(error::operation_failed_16, nullptr, 0);
             return;
         }
@@ -695,19 +686,15 @@ void block_chain::fetch_block(size_t height, bool witness,
         txs.push_back(tx_result.transaction(witness));
     }
 
-    auto message = std::make_shared<const block>(block_result.header(),
-        std::move(txs));
+    auto message = std::make_shared<const block>(block_result.header(), std::move(txs));
     handler(error::success, message, height);
 }
 
-void block_chain::fetch_block(hash_digest const& hash, bool witness,
-    block_fetch_handler handler) const
-{
+void block_chain::fetch_block(hash_digest const& hash, bool witness, block_fetch_handler handler) const {
 #ifdef KTH_CURRENCY_BCH
     witness = false;
 #endif
-    if (stopped())
-    {
+    if (stopped()) {
         handler(error::service_stopped, nullptr, 0);
         return;
     }
@@ -715,16 +702,14 @@ void block_chain::fetch_block(hash_digest const& hash, bool witness,
     auto const cached = last_block_.load();
 
     // Try the cached block first.
-    if (cached && cached->validation.state && cached->hash() == hash)
-    {
+    if (cached && cached->validation.state && cached->hash() == hash) {
         handler(error::success, cached, cached->validation.state->height());
         return;
     }
 
     auto const block_result = database_.blocks().get(hash);
 
-    if (!block_result)
-    {
+    if ( ! block_result) {
         handler(error::not_found, nullptr, 0);
         return;
     }
@@ -736,12 +721,10 @@ void block_chain::fetch_block(hash_digest const& hash, bool witness,
     txs.reserve(tx_hashes.size());
     DEBUG_ONLY(size_t position = 0;)
 
-    for (auto const& hash: tx_hashes)
-    {
+    for (auto const& hash: tx_hashes) {
         auto const tx_result = tx_store.get(hash, max_size_t, true);
 
-        if (!tx_result)
-        {
+        if ( ! tx_result) {
             handler(error::operation_failed_17, nullptr, 0);
             return;
         }
@@ -751,24 +734,19 @@ void block_chain::fetch_block(hash_digest const& hash, bool witness,
         txs.push_back(tx_result.transaction(witness));
     }
 
-    auto const message = std::make_shared<const block>(block_result.header(),
-        std::move(txs));
+    auto const message = std::make_shared<const block>(block_result.header(), std::move(txs));
     handler(error::success, message, height);
 }
 
-void block_chain::fetch_block_header_txs_size(hash_digest const& hash,
-    block_header_txs_size_fetch_handler handler) const
-{
-    if (stopped())
-    {
+void block_chain::fetch_block_header_txs_size(hash_digest const& hash, block_header_txs_size_fetch_handler handler) const {
+    if (stopped()) {
         handler(error::service_stopped, nullptr, 0, std::make_shared<hash_list>(hash_list()),0);
         return;
     }
 
     auto const block_result = database_.blocks().get(hash);
 
-    if (!block_result)
-    {
+    if ( ! block_result) {
         handler(error::not_found, nullptr, 0, std::make_shared<hash_list>(hash_list()),0);
         return;
     }
@@ -780,40 +758,32 @@ void block_chain::fetch_block_header_txs_size(hash_digest const& hash,
     handler(error::success, message, height, tx_hashes, block_result.serialized_size());
 }
 
-void block_chain::fetch_block_hash_timestamp(size_t height, block_hash_time_fetch_handler handler) const
-{
-    if (stopped())
-    {
+void block_chain::fetch_block_hash_timestamp(size_t height, block_hash_time_fetch_handler handler) const {
+    if (stopped()) {
         handler(error::service_stopped, null_hash, 0, 0);
         return;
     }
 
     auto const block_result = database_.blocks().get(height);
 
-    if (!block_result)
-    {
+    if ( ! block_result) {
         handler(error::not_found, null_hash, 0, 0);
         return;
     }
 
     handler(error::success, block_result.hash(), block_result.timestamp(), height);
-
 }
 
 
-void block_chain::fetch_block_header(size_t height,
-    block_header_fetch_handler handler) const
-{
-    if (stopped())
-    {
+void block_chain::fetch_block_header(size_t height, block_header_fetch_handler handler) const {
+    if (stopped()) {
         handler(error::service_stopped, nullptr, 0);
         return;
     }
 
     auto const result = database_.blocks().get(height);
 
-    if (!result)
-    {
+    if ( ! result) {
         handler(error::not_found, nullptr, 0);
         return;
     }
@@ -822,9 +792,7 @@ void block_chain::fetch_block_header(size_t height,
     handler(error::success, message, result.height());
 }
 
-void block_chain::fetch_block_header(hash_digest const& hash,
-    block_header_fetch_handler handler) const
-{
+void block_chain::fetch_block_header(hash_digest const& hash, block_header_fetch_handler handler) const {
     if (stopped())
     {
         handler(error::service_stopped, nullptr, 0);
