@@ -39,10 +39,10 @@ public:
     virtual void fetch_keoken_history(const short_hash& address_hash, size_t limit,
         size_t from_height, keoken_history_fetch_handler handler) const = 0;
 
-    virtual void fetch_block_keoken(const hash_digest& hash, bool witness,
+    virtual void fetch_block_keoken(hash_digest const& hash, bool witness,
       block_keoken_fetch_handler handler) const = 0;
 
-    virtual void convert_to_keo_transaction(const hash_digest& hash,
+    virtual void convert_to_keo_transaction(hash_digest const& hash,
       std::shared_ptr<std::vector<transaction_const_ptr>> keoken_txs) const = 0;
 #endif
     typedef handle1<std::vector<hash_digest>> confirmed_transactions_fetch_handler;
@@ -54,7 +54,7 @@ public:
     typedef std::function<void(const code&, header_const_ptr, size_t,  const std::shared_ptr<hash_list>, uint64_t)>
         block_header_txs_size_fetch_handler;
 
-    typedef std::function<void(const code&, const hash_digest&, uint32_t, size_t)>
+    typedef std::function<void(const code&, hash_digest const&, uint32_t, size_t)>
         block_hash_time_fetch_handler;
 
     typedef std::function<void(const code&, merkle_block_ptr, size_t)>
@@ -100,28 +100,28 @@ public:
 
     virtual void fetch_block(size_t height, bool witness, block_fetch_handler handler) const = 0;
 
-    virtual void fetch_block(const hash_digest& hash, bool witness, block_fetch_handler handler) const = 0;
+    virtual void fetch_block(hash_digest const& hash, bool witness, block_fetch_handler handler) const = 0;
 
-    virtual void fetch_locator_block_hashes(get_blocks_const_ptr locator, const hash_digest& threshold, size_t limit, inventory_fetch_handler handler) const = 0;
+    virtual void fetch_locator_block_hashes(get_blocks_const_ptr locator, hash_digest const& threshold, size_t limit, inventory_fetch_handler handler) const = 0;
 
 #if defined(KTH_DB_LEGACY) || defined(KTH_DB_NEW_BLOCKS) || defined(KTH_DB_NEW_FULL)
     virtual void fetch_merkle_block(size_t height, merkle_block_fetch_handler handler) const = 0;
 
-    virtual void fetch_merkle_block(const hash_digest& hash, merkle_block_fetch_handler handler) const = 0;
+    virtual void fetch_merkle_block(hash_digest const& hash, merkle_block_fetch_handler handler) const = 0;
 
     virtual void fetch_compact_block(size_t height, compact_block_fetch_handler handler) const = 0;
 
-    virtual void fetch_compact_block(const hash_digest& hash, compact_block_fetch_handler handler) const = 0;
+    virtual void fetch_compact_block(hash_digest const& hash, compact_block_fetch_handler handler) const = 0;
 
-    virtual void fetch_block_header_txs_size(const hash_digest& hash, block_header_txs_size_fetch_handler handler) const = 0;
+    virtual void fetch_block_header_txs_size(hash_digest const& hash, block_header_txs_size_fetch_handler handler) const = 0;
 #endif // KTH_DB_LEGACY || KTH_DB_NEW_BLOCKS || KTH_DB_NEW_FULL
 
 
 #if defined(KTH_DB_LEGACY) || defined(KTH_DB_NEW_FULL)
     
-    virtual void fetch_transaction(const hash_digest& hash, bool require_confirmed, bool witness, transaction_fetch_handler handler) const = 0;
+    virtual void fetch_transaction(hash_digest const& hash, bool require_confirmed, bool witness, transaction_fetch_handler handler) const = 0;
 
-    virtual void fetch_transaction_position(const hash_digest& hash, bool require_confirmed, transaction_index_fetch_handler handler) const = 0;
+    virtual void fetch_transaction_position(hash_digest const& hash, bool require_confirmed, transaction_index_fetch_handler handler) const = 0;
 
     virtual void for_each_transaction(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const = 0;
 
@@ -130,7 +130,7 @@ public:
 #endif 
 
 
-    virtual void fetch_locator_block_headers(get_headers_const_ptr locator, const hash_digest& threshold, size_t limit, locator_block_headers_fetch_handler handler) const = 0;
+    virtual void fetch_locator_block_headers(get_headers_const_ptr locator, hash_digest const& threshold, size_t limit, locator_block_headers_fetch_handler handler) const = 0;
 
     virtual void fetch_block_locator(const chain::block::indexes& heights, block_locator_fetch_handler handler) const = 0;
 
@@ -138,11 +138,11 @@ public:
 
     virtual void fetch_block_header(size_t height, block_header_fetch_handler handler) const = 0;
 
-    virtual void fetch_block_header(const hash_digest& hash, block_header_fetch_handler handler) const = 0;
+    virtual void fetch_block_header(hash_digest const& hash, block_header_fetch_handler handler) const = 0;
 
     virtual bool get_block_hash(hash_digest& out_hash, size_t height) const = 0;
 
-    virtual void fetch_block_height(const hash_digest& hash, block_height_fetch_handler handler) const = 0;
+    virtual void fetch_block_height(hash_digest const& hash, block_height_fetch_handler handler) const = 0;
 
     virtual void fetch_block_hash_timestamp(size_t height, block_hash_time_fetch_handler handler) const = 0;
 
@@ -174,7 +174,7 @@ public:
     
     virtual std::vector<chain::transaction> get_mempool_transactions_from_wallets(std::vector<wallet::payment_address> const& payment_addresses, bool use_testnet_rules, bool witness) const = 0;
 
-    virtual void fetch_unconfirmed_transaction(const hash_digest& hash, transaction_unconfirmed_fetch_handler handler) const = 0;
+    virtual void fetch_unconfirmed_transaction(hash_digest const& hash, transaction_unconfirmed_fetch_handler handler) const = 0;
 
     virtual mempool_mini_hash_map get_mempool_mini_hash_map(message::compact_block const& block) const = 0;
     virtual void fill_tx_list_from_mempool(message::compact_block const& block, size_t& mempool_count, std::vector<chain::transaction>& txn_available, std::unordered_map<uint64_t, uint16_t> const& shorttxids) const = 0;

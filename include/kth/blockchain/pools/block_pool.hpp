@@ -14,15 +14,13 @@
 #include <kth/blockchain/pools/block_entry.hpp>
 #include <kth/blockchain/pools/branch.hpp>
 
-namespace kth {
-namespace blockchain {
+namespace kth::blockchain {
 
 /// This class is thread safe against concurrent filtering only.
 /// There is no search within blocks of the block pool (just hashes).
 /// The branch object contains chain query for new (leaf) block validation.
 /// All pool blocks are valid, lacking only sufficient work for reorganzation.
-class BCB_API block_pool
-{
+class BCB_API block_pool {
 public:
     block_pool(size_t maximum_depth);
 
@@ -51,24 +49,23 @@ public:
 protected:
     // A bidirectional map is used for efficient block and position retrieval.
     // This produces the effect of a circular buffer hash table of blocks.
-    typedef boost::bimaps::bimap<
+    using block_entries = boost::bimaps::bimap<
         boost::bimaps::unordered_set_of<block_entry>,
-        boost::bimaps::multiset_of<size_t>> block_entries;
+        boost::bimaps::multiset_of<size_t>>;
 
-    void prune(const hash_list& hashes, size_t minimum_height);
+    void prune(hash_list const& hashes, size_t minimum_height);
     bool exists(block_const_ptr candidate_block) const;
     block_const_ptr parent(block_const_ptr block) const;
     ////void log_content() const;
 
     // This is thread safe.
-    const size_t maximum_depth_;
+    size_t const maximum_depth_;
 
     // This is guarded against filtering concurrent to writing.
     block_entries blocks_;
     mutable upgrade_mutex mutex_;
 };
 
-} // namespace blockchain
-} // namespace kth
+} // namespace kth::blockchain
 
 #endif

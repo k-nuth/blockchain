@@ -6,6 +6,7 @@
 #define KTH_BLOCKCHAIN_POPULATE_BLOCK_HPP
 
 #include <cstddef>
+
 #include <kth/domain.hpp>
 #include <kth/blockchain/define.hpp>
 #include <kth/blockchain/interface/fast_chain.hpp>
@@ -16,12 +17,10 @@
 #include <kth/mining/mempool.hpp>
 #endif
 
-
-namespace kth {
-namespace blockchain {
+namespace kth::blockchain {
 
 /// This class is NOT thread safe.
-class BCB_API populate_block  : public populate_base {
+class BCB_API populate_block : public populate_base {
 public:
 #if defined(KTH_DB_NEW)
     using utxo_pool_t = database::internal_database::utxo_pool_t;
@@ -67,7 +66,6 @@ private:
 
 };
 
-} // namespace blockchain
-} // namespace kth
+} // namespace kth::blockchain
 
 #endif

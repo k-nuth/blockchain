@@ -72,7 +72,7 @@ void block_pool::add(block_const_ptr_list_const_ptr valid_blocks)
 void block_pool::remove(block_const_ptr_list_const_ptr accepted_blocks)
 {
     hash_list child_hashes;
-    auto saver = [&](const hash_digest& hash){ child_hashes.push_back(hash); };
+    auto saver = [&](hash_digest const& hash){ child_hashes.push_back(hash); };
     auto& left = blocks_.left;
 
     for (auto block: *accepted_blocks)
@@ -117,10 +117,10 @@ void block_pool::remove(block_const_ptr_list_const_ptr accepted_blocks)
 }
 
 // protected
-void block_pool::prune(const hash_list& hashes, size_t minimum_height)
+void block_pool::prune(hash_list const& hashes, size_t minimum_height)
 {
     hash_list child_hashes;
-    auto saver = [&](const hash_digest& hash){ child_hashes.push_back(hash); };
+    auto saver = [&](hash_digest const& hash){ child_hashes.push_back(hash); };
     auto& left = blocks_.left;
 
     for (auto& hash: hashes)

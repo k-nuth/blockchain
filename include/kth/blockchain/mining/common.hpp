@@ -20,9 +20,7 @@
 #define KTH_WITNESS_DEFAULT true
 #endif
 
-namespace kth {
-namespace mining {
-
+namespace kth::mining {
 
 #if defined(KTH_CURRENCY_BCH)
 constexpr size_t min_transaction_size_for_capacity = min_transaction_size;
@@ -30,8 +28,6 @@ constexpr size_t min_transaction_size_for_capacity = min_transaction_size;
  //TODO(fernando): check if it is possible to be a TX size less than this...
 constexpr size_t min_transaction_size_for_capacity = 61;
 #endif  //KTH_CURRENCY_BCH
-
-
 
 //TODO(fernando): put in a common file
 using index_t = size_t;
@@ -41,7 +37,6 @@ using indexes_t = std::vector<index_t>;
 
 constexpr index_t null_index = max_size_t;
 
-}  // namespace mining
-}  // namespace kth
+}  // namespace kth::mining
 
 #endif  //KTH_BLOCKCHAIN_MINING_COMMON_HPP_

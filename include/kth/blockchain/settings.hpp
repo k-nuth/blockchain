@@ -10,12 +10,11 @@
 #include <boost/filesystem.hpp>
 
 #include <kth/domain.hpp>
-
 #include <kth/infrastructure/config/endpoint.hpp>
 
 #include <kth/blockchain/define.hpp>
 
-namespace kth { namespace blockchain {
+namespace kth::blockchain {
 
 /// Common blockchain configuration settings, properties not thread safe.
 class BCB_API settings {
@@ -97,6 +96,6 @@ public:
 
 };
 
-}} // namespace kth::blockchain
+} // namespace kth::blockchain
 
 #endif

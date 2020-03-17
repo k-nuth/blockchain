@@ -49,7 +49,7 @@ public:
 };
 
 block_const_ptr make_block(uint32_t id, size_t height,
-    const hash_digest& parent)
+    hash_digest const& parent)
 {
     auto const block = std::make_shared<const message::block>(message::block
     {

@@ -7,28 +7,24 @@
 
 #include <cstddef>
 #include <cstdint>
+
 #include <kth/domain.hpp>
 #include <kth/blockchain/define.hpp>
 #include <kth/blockchain/interface/fast_chain.hpp>
 #include <kth/blockchain/settings.hpp>
 
-namespace kth {
-namespace blockchain {
+namespace kth::blockchain {
 
 /// This class is NOT thread safe.
-class BCB_API populate_base
-{
+class BCB_API populate_base {
 protected:
-    typedef handle0 result_handler;
+    using result_handler = handle0;
 
-    populate_base(dispatcher& dispatch, const fast_chain& chain);
+    populate_base(dispatcher& dispatch, fast_chain const& chain);
 
-    void populate_duplicate(size_t maximum_height,
-        const chain::transaction& tx, bool require_confirmed) const;
-
-    void populate_pooled(const chain::transaction& tx, uint32_t forks) const;
-
-    void populate_prevout(size_t maximum_height, const chain::output_point& outpoint, bool require_confirmed) const;
+    void populate_duplicate(size_t maximum_height, const chain::transaction& tx, bool require_confirmed) const;
+    void populate_pooled(chain::transaction const& tx, uint32_t forks) const;
+    void populate_prevout(size_t maximum_height, chain::output_point const& outpoint, bool require_confirmed) const;
 
     // This is thread safe.
     dispatcher& dispatch_;
@@ -37,7 +33,6 @@ protected:
     const fast_chain& fast_chain_;
 };
 
-} // namespace blockchain
-} // namespace kth
+} // namespace kth::blockchain
 
 #endif

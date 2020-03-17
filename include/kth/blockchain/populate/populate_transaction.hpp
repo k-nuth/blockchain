@@ -15,13 +15,10 @@
 #include <kth/mining/mempool.hpp>
 #endif
 
-namespace kth {
-namespace blockchain {
+namespace kth::blockchain {
 
 /// This class is NOT thread safe.
-class BCB_API populate_transaction
-    : public populate_base
-{
+class BCB_API populate_transaction : public populate_base {
 public:
 
 #if defined(KTH_WITH_MEMPOOL)
@@ -42,7 +39,6 @@ private:
 #endif
 };
 
-} // namespace blockchain
-} // namespace kth
+} // namespace kth::blockchain
 
 #endif

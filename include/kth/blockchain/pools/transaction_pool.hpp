@@ -12,15 +12,13 @@
 #include <kth/blockchain/interface/safe_chain.hpp>
 #include <kth/blockchain/settings.hpp>
 
-namespace kth {
-namespace blockchain {
+namespace kth::blockchain {
 
 /// TODO: this class is not implemented or utilized.
-class BCB_API transaction_pool
-{
+class BCB_API transaction_pool {
 public:
-    typedef safe_chain::inventory_fetch_handler inventory_fetch_handler;
-    typedef safe_chain::merkle_block_fetch_handler merkle_block_fetch_handler;
+    using inventory_fetch_handler = safe_chain::inventory_fetch_handler;
+    using merkle_block_fetch_handler = safe_chain::merkle_block_fetch_handler;
 
     transaction_pool(const settings& settings);
 
@@ -32,7 +30,6 @@ public:
 ////    const uint64_t minimum_fee_;
 };
 
-} // namespace blockchain
-} // namespace kth
+} // namespace kth::blockchain
 
 #endif

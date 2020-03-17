@@ -18,14 +18,12 @@
 #include <kth/mining/mempool.hpp>
 #endif
 
-namespace kth {
-namespace blockchain {
+namespace kth::blockchain {
 
 /// This class is NOT thread safe.
-class BCB_API validate_transaction
-{
+class BCB_API validate_transaction {
 public:
-    typedef handle0 result_handler;
+    using result_handler = handle0;
 
 #if defined(KTH_WITH_MEMPOOL)
     validate_transaction(dispatcher& dispatch, const fast_chain& chain, const settings& settings, mining::mempool const& mp);
@@ -41,28 +39,25 @@ public:
     void connect(transaction_const_ptr tx, result_handler handler) const;
 
 protected:
-    inline bool stopped() const
-    {
+    inline 
+    bool stopped() const {
         return stopped_;
     }
 
 private:
-    void handle_populated(code const& ec, transaction_const_ptr tx,
-        result_handler handler) const;
-    void connect_inputs(transaction_const_ptr tx, size_t bucket,
-        size_t buckets, result_handler handler) const;
+    void handle_populated(code const& ec, transaction_const_ptr tx, result_handler handler) const;
+    void connect_inputs(transaction_const_ptr tx, size_t bucket, size_t buckets, result_handler handler) const;
 
     // These are thread safe.
     std::atomic<bool> stopped_;
-    const bool retarget_;
-    const fast_chain& fast_chain_;
+    bool const retarget_;
+    fast_chain const& fast_chain_;
     dispatcher& dispatch_;
 
     // Caller must not invoke accept/connect concurrently.
     populate_transaction transaction_populator_;
 };
 
-} // namespace blockchain
-} // namespace kth
+} // namespace kth::blockchain
 
 #endif

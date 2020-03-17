@@ -33,7 +33,7 @@ transaction_entry::transaction_entry(transaction_const_ptr tx)
 }
 
 // Create a search key.
-transaction_entry::transaction_entry(const hash_digest& hash)
+transaction_entry::transaction_entry(hash_digest const& hash)
  : size_(0),
    sigops_(0),
    fees_(0),
@@ -73,7 +73,7 @@ size_t transaction_entry::size() const
 }
 
 // Not valid if the entry is a search key.
-const hash_digest& transaction_entry::hash() const
+hash_digest const& transaction_entry::hash() const
 {
     return hash_;
 }

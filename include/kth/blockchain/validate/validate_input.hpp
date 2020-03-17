@@ -13,12 +13,10 @@
 #include <kth/consensus.hpp>
 #endif
 
-namespace kth {
-namespace blockchain {
+namespace kth::blockchain {
 
 /// This class is static.
-class BCB_API validate_input
-{
+class BCB_API validate_input {
 public:
 
 #ifdef WITH_CONSENSUS
@@ -33,7 +31,6 @@ public:
     code verify_script(chain::transaction const& tx, uint32_t input_index, uint32_t forks);
 };
 
-} // namespace blockchain
-} // namespace kth
+} // namespace kth::blockchain
 
 #endif

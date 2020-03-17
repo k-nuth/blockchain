@@ -184,7 +184,7 @@ void block_chain::fetch_keoken_history(const short_hash& address_hash, size_t li
 }
 
 
-void block_chain::fetch_block_keoken(const hash_digest& hash, bool witness,
+void block_chain::fetch_block_keoken(hash_digest const& hash, bool witness,
     block_keoken_fetch_handler handler) const
 {
 #ifdef KTH_CURRENCY_BCH
@@ -273,7 +273,7 @@ void block_chain::fetch_keoken_history(const short_hash& address_hash, size_t li
 }
 
 
-void block_chain::fetch_block_keoken(const hash_digest& hash, bool witness,
+void block_chain::fetch_block_keoken(hash_digest const& hash, bool witness,
     block_keoken_fetch_handler handler) const
 {
 #ifdef KTH_CURRENCY_BCH

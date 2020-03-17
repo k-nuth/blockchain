@@ -18,18 +18,16 @@
 #include <kth/blockchain/settings.hpp>
 #include <kth/blockchain/validate/validate_block.hpp>
 
-namespace kth {
-namespace blockchain {
+namespace kth::blockchain {
 
 /// This class is thread safe.
 /// Organises blocks via the block pool to the blockchain.
-class BCB_API block_organizer
-{
+class BCB_API block_organizer {
 public:
-    typedef handle0 result_handler;
-    typedef std::shared_ptr<block_organizer> ptr;
-    typedef safe_chain::reorganize_handler reorganize_handler;
-    typedef resubscriber<code, size_t, block_const_ptr_list_const_ptr, block_const_ptr_list_const_ptr> reorganize_subscriber;
+    using result_handler = handle0;
+    using ptr = std::shared_ptr<block_organizer>;
+    using reorganize_handler = safe_chain::reorganize_handler;
+    using reorganize_subscriber = resubscriber<code, size_t, block_const_ptr_list_const_ptr, block_const_ptr_list_const_ptr>;
 
     /// Construct an instance.
 #if defined(KTH_WITH_MEMPOOL)
@@ -100,7 +98,6 @@ private:
 #endif
 };
 
-} // namespace blockchain
-} // namespace kth
+} // namespace kth::blockchain
 
 #endif

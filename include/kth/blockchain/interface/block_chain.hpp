@@ -57,7 +57,7 @@ public:
 
      //TODO(fernando): check if can we do it just with the UTXO
     /// Determine if an unspent transaction exists with the given hash.
-    bool get_is_unspent_transaction(const hash_digest& hash, size_t branch_height, bool require_confirmed) const override;
+    bool get_is_unspent_transaction(hash_digest const& hash, size_t branch_height, bool require_confirmed) const override;
 
 #endif// KTH_DB_LEGACY
 
@@ -67,7 +67,7 @@ public:
     bool get_output(chain::output& out_output, size_t& out_height, uint32_t& out_median_time_past, bool& out_coinbase, const chain::output_point& outpoint, size_t branch_height, bool require_confirmed) const override;
 
     /// Get position data for a transaction.
-    bool get_transaction_position(size_t& out_height, size_t& out_position, const hash_digest& hash, bool require_confirmed) const override;
+    bool get_transaction_position(size_t& out_height, size_t& out_position, hash_digest const& hash, bool require_confirmed) const override;
 #endif
 
 #ifdef KTH_DB_NEW
@@ -79,10 +79,10 @@ public:
 #endif// KTH_DB_NEW
 
     /// Get a determination of whether the block hash exists in the store.
-    bool get_block_exists(const hash_digest& block_hash) const override;
+    bool get_block_exists(hash_digest const& block_hash) const override;
 
     /// Get a determination of whether the block hash exists in the store.
-    bool get_block_exists_safe(const hash_digest& block_hash) const override;
+    bool get_block_exists_safe(hash_digest const& block_hash) const override;
 
     /// Get the work of the branch starting at the given height.
     bool get_branch_work(uint256_t& out_work, const uint256_t& maximum, size_t height) const override;
@@ -91,7 +91,7 @@ public:
     bool get_header(chain::header& out_header, size_t height) const override;
 
     /// Get the height of the block with the given hash.
-    bool get_height(size_t& out_height, const hash_digest& block_hash) const override;
+    bool get_height(size_t& out_height, hash_digest const& block_hash) const override;
 
     /// Get the bits of the block with the given height.
     bool get_bits(uint32_t& out_bits, size_t height) const override;
@@ -117,7 +117,7 @@ public:
 
     /////// Get the transaction of the given hash and its block height.
     ////transaction_ptr get_transaction(size_t& out_block_height,
-    ////    const hash_digest& hash, bool require_confirmed) const;
+    ////    hash_digest const& hash, bool require_confirmed) const;
 
     // Writers.
     // ------------------------------------------------------------------------
@@ -183,25 +183,25 @@ public:
     void fetch_block(size_t height, bool witness, block_fetch_handler handler) const override;
 
     /// fetch a block by hash.
-    void fetch_block(const hash_digest& hash, bool witness, block_fetch_handler handler) const override;
+    void fetch_block(hash_digest const& hash, bool witness, block_fetch_handler handler) const override;
 
     /// fetch the set of block hashes indicated by the block locator.
-    void fetch_locator_block_hashes(get_blocks_const_ptr locator, const hash_digest& threshold, size_t limit, inventory_fetch_handler handler) const override;
+    void fetch_locator_block_hashes(get_blocks_const_ptr locator, hash_digest const& threshold, size_t limit, inventory_fetch_handler handler) const override;
 
 #if defined(KTH_DB_LEGACY) || defined(KTH_DB_NEW_BLOCKS) || defined(KTH_DB_NEW_FULL) 
-    void fetch_block_header_txs_size(const hash_digest& hash, block_header_txs_size_fetch_handler handler) const override;
+    void fetch_block_header_txs_size(hash_digest const& hash, block_header_txs_size_fetch_handler handler) const override;
 
     /// fetch hashes of transactions for a block, by block height.
     void fetch_merkle_block(size_t height, merkle_block_fetch_handler handler) const override;
 
     /// fetch hashes of transactions for a block, by block hash.
-    void fetch_merkle_block(const hash_digest& hash, merkle_block_fetch_handler handler) const override;
+    void fetch_merkle_block(hash_digest const& hash, merkle_block_fetch_handler handler) const override;
 
     /// fetch compact block by block height.
     void fetch_compact_block(size_t height, compact_block_fetch_handler handler) const override;
 
     /// fetch compact block by block hash.
-    void fetch_compact_block(const hash_digest& hash, compact_block_fetch_handler handler) const override;
+    void fetch_compact_block(hash_digest const& hash, compact_block_fetch_handler handler) const override;
     
 #endif // KTH_DB_LEGACY || KTH_DB_NEW_BLOCKS || KTH_DB_NEW_FULL
 
@@ -212,14 +212,14 @@ public:
     void for_each_transaction_non_coinbase(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const;
     
     /// fetch transaction by hash.
-    void fetch_transaction(const hash_digest& hash, bool require_confirmed, bool witness, transaction_fetch_handler handler) const override;
+    void fetch_transaction(hash_digest const& hash, bool require_confirmed, bool witness, transaction_fetch_handler handler) const override;
 
     /// fetch position and height within block of transaction by hash.
-    void fetch_transaction_position(const hash_digest& hash, bool require_confirmed, transaction_index_fetch_handler handler) const override;
+    void fetch_transaction_position(hash_digest const& hash, bool require_confirmed, transaction_index_fetch_handler handler) const override;
 #endif
 
     /// fetch the set of block headers indicated by the block locator.
-    void fetch_locator_block_headers(get_headers_const_ptr locator, const hash_digest& threshold, size_t limit, locator_block_headers_fetch_handler handler) const override;
+    void fetch_locator_block_headers(get_headers_const_ptr locator, hash_digest const& threshold, size_t limit, locator_block_headers_fetch_handler handler) const override;
 
     /// fetch a block locator relative to the current top and threshold.
     void fetch_block_locator(const chain::block::indexes& heights, block_locator_fetch_handler handler) const override;
@@ -231,10 +231,10 @@ public:
     void fetch_block_header(size_t height, block_header_fetch_handler handler) const override;
 
     /// fetch block header by hash.
-    void fetch_block_header(const hash_digest& hash, block_header_fetch_handler handler) const override;
+    void fetch_block_header(hash_digest const& hash, block_header_fetch_handler handler) const override;
 
     /// fetch height of block by hash.
-    void fetch_block_height(const hash_digest& hash, block_height_fetch_handler handler) const override;
+    void fetch_block_height(hash_digest const& hash, block_height_fetch_handler handler) const override;
     
     void fetch_block_hash_timestamp(size_t height, block_hash_time_fetch_handler handler) const override;
 
@@ -346,7 +346,7 @@ public:
     std::vector<chain::transaction> get_mempool_transactions_from_wallets(std::vector<wallet::payment_address> const& payment_addresses, bool use_testnet_rules, bool witness) const override;
 
     /// fetch unconfirmed transaction by hash.
-    void fetch_unconfirmed_transaction(const hash_digest& hash, transaction_unconfirmed_fetch_handler handler) const;
+    void fetch_unconfirmed_transaction(hash_digest const& hash, transaction_unconfirmed_fetch_handler handler) const;
     
     mempool_mini_hash_map get_mempool_mini_hash_map(message::compact_block const& block) const override;
     void fill_tx_list_from_mempool(message::compact_block const& block, size_t& mempool_count, std::vector<chain::transaction>& txn_available, std::unordered_map<uint64_t, uint16_t> const& shorttxids) const override;
@@ -407,10 +407,10 @@ public:
     virtual void fetch_keoken_history(const short_hash& address_hash, size_t limit,
         size_t from_height, keoken_history_fetch_handler handler) const override;
 
-    virtual void fetch_block_keoken(const hash_digest& hash, bool witness,
+    virtual void fetch_block_keoken(hash_digest const& hash, bool witness,
         block_keoken_fetch_handler handler) const override;
 
-    virtual void convert_to_keo_transaction(const hash_digest& hash,
+    virtual void convert_to_keo_transaction(hash_digest const& hash,
       std::shared_ptr<std::vector<transaction_const_ptr>> keoken_txs) const override;
 #endif
 

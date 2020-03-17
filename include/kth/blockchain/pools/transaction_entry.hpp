@@ -14,15 +14,13 @@
 #include <kth/domain.hpp>
 #include <kth/blockchain/define.hpp>
 
-namespace kth {
-namespace blockchain {
+namespace kth::blockchain {
 
 /// This class is not thread safe.
-class BCB_API transaction_entry
-{
+class BCB_API transaction_entry {
 public:
-    typedef std::shared_ptr<transaction_entry> ptr;
-    typedef std::vector<ptr> list;
+    using ptr = std::shared_ptr<transaction_entry>;
+    using list = std::vector<ptr>;
 
     /// Construct an entry for the pool.
     /// Never store an invalid transaction in the pool except for the cases of:
@@ -30,7 +28,7 @@ public:
     transaction_entry(transaction_const_ptr tx);
 
     /// Use this construction only as a search key.
-    transaction_entry(const hash_digest& hash);
+    transaction_entry(hash_digest const& hash);
 
     /// An anchor tx binds a subgraph to the chain and is not itself mempool.
     bool is_anchor() const;
@@ -50,7 +48,7 @@ public:
     size_t size() const;
 
     /// The hash table entry identity.
-    const hash_digest& hash() const;
+    hash_digest const& hash() const;
 
     /// Used for DAG traversal.
     void mark(bool value);
@@ -75,8 +73,8 @@ public:
     void remove_child(ptr child);
 
     /// Serializer for debugging (temporary).
-    friend std::ostream& operator<<(std::ostream& out,
-        const transaction_entry& of);
+    friend 
+    std::ostream& operator<<(std::ostream& out, const transaction_entry& of);
 
 private:
     // These are non-const to allow for default copy construction.
@@ -94,7 +92,6 @@ private:
     list children_;
 };
 
-} // namespace blockchain
-} // namespace kth
+} // namespace kth::blockchain
 
 #endif

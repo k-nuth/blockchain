@@ -7,18 +7,19 @@
 
 #include <cstddef>
 #include <cstdint>
+
 #include <kth/domain.hpp>
 #include <kth/blockchain/define.hpp>
 #include <kth/blockchain/interface/fast_chain.hpp>
 #include <kth/blockchain/pools/branch.hpp>
 #include <kth/blockchain/settings.hpp>
 
-namespace kth { namespace blockchain {
+namespace kth::blockchain {
 
 /// This class is NOT thread safe.
 class BCB_API populate_chain_state {
 public:
-    populate_chain_state(const fast_chain& chain, const settings& settings);
+    populate_chain_state(fast_chain const& chain, settings const& settings);
 
     /// Populate chain state for the tx pool (start).
     chain::chain_state::ptr populate() const;
@@ -30,17 +31,17 @@ public:
     chain::chain_state::ptr populate(chain::chain_state::ptr top) const;
 
 private:
-    typedef branch::const_ptr branch_ptr;
-    typedef chain::chain_state::map map;
-    typedef chain::chain_state::data data;
+    using branch_ptr = branch::const_ptr;
+    using map = chain::chain_state::map;
+    using data = chain::chain_state::data;
 
     bool populate_all(data& data, branch_ptr branch) const;
-    bool populate_bits(data& data, const map& map, branch_ptr branch) const;
-    bool populate_versions(data& data, const map& map, branch_ptr branch) const;
-    bool populate_timestamps(data& data, const map& map, branch_ptr branch) const;
-    bool populate_collision(data& data, const map& map, branch_ptr branch) const;
-    bool populate_bip9_bit0(data& data, const map& map, branch_ptr branch) const;
-    bool populate_bip9_bit1(data& data, const map& map, branch_ptr branch) const;
+    bool populate_bits(data& data, map const& map, branch_ptr branch) const;
+    bool populate_versions(data& data, map const& map, branch_ptr branch) const;
+    bool populate_timestamps(data& data, map const& map, branch_ptr branch) const;
+    bool populate_collision(data& data, map const& map, branch_ptr branch) const;
+    bool populate_bip9_bit0(data& data, map const& map, branch_ptr branch) const;
+    bool populate_bip9_bit1(data& data, map const& map, branch_ptr branch) const;
 
     bool get_bits(uint32_t& out_bits, size_t height, branch_ptr branch) const;
     bool get_version(uint32_t& out_version, size_t height, branch_ptr branch) const;
@@ -48,19 +49,19 @@ private:
     bool get_block_hash(hash_digest& out_hash, size_t height, branch_ptr branch) const;
 
 #ifdef KTH_CURRENCY_BCH
-    const settings& settings_;
+    settings const& settings_;
 #endif //KTH_CURRENCY_BCH
 
     // These are thread safe.
-    const uint32_t configured_forks_;
-    const config::checkpoint::list checkpoints_;
+    uint32_t const configured_forks_;
+    config::checkpoint::list const checkpoints_;
 
     // Populate is guarded against concurrent callers but because it uses the fast
     // chain it must not be invoked during chain writes.
-    const fast_chain& fast_chain_;
+    fast_chain const& fast_chain_;
     mutable shared_mutex mutex_;
 };
 
-}} // namespace kth::blockchain
+} // namespace kth::blockchain
 
 #endif

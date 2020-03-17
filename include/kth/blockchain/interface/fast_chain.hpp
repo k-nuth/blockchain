@@ -31,20 +31,20 @@ public:
     
     //Knuth: we don't store spent information
     /// Determine if an unspent transaction exists with the given hash.
-    virtual bool get_is_unspent_transaction(const hash_digest& hash, size_t branch_height, bool require_confirmed) const = 0;
+    virtual bool get_is_unspent_transaction(hash_digest const& hash, size_t branch_height, bool require_confirmed) const = 0;
 
 #endif // KTH_DB_LEGACY
 
 #if defined(KTH_DB_LEGACY) || defined(KTH_DB_NEW_FULL) 
     /// Get position data for a transaction.
-    virtual bool get_transaction_position(size_t& out_height, size_t& out_position, const hash_digest& hash, bool require_confirmed) const = 0;
+    virtual bool get_transaction_position(size_t& out_height, size_t& out_position, hash_digest const& hash, bool require_confirmed) const = 0;
 
     /// Get the output that is referenced by the outpoint.
     virtual bool get_output(chain::output& out_output, size_t& out_height, uint32_t& out_median_time_past, bool& out_coinbase, const chain::output_point& outpoint, size_t branch_height, bool require_confirmed) const = 0;
 #endif
 
     /// Get a determination of whether the block hash exists in the store.
-    virtual bool get_block_exists(const hash_digest& block_hash) const = 0;
+    virtual bool get_block_exists(hash_digest const& block_hash) const = 0;
 
     /// Get the hash of the block if it exists.
     virtual bool get_block_hash(hash_digest& out_hash, size_t height) const = 0;
@@ -56,7 +56,7 @@ public:
     virtual bool get_header(chain::header& out_header, size_t height) const = 0;
 
     /// Get the height of the block with the given hash.
-    virtual bool get_height(size_t& out_height, const hash_digest& block_hash) const = 0;
+    virtual bool get_height(size_t& out_height, hash_digest const& block_hash) const = 0;
 
     /// Get the bits of the block with the given height.
     virtual bool get_bits(uint32_t& out_bits, size_t height) const = 0;
@@ -88,7 +88,7 @@ public:
 
     /////// Get the transaction of the given hash and its block height.
     ////virtual transaction_ptr get_transaction(size_t& out_block_height,
-    ////    const hash_digest& hash, bool require_confirmed) const = 0;
+    ////    hash_digest const& hash, bool require_confirmed) const = 0;
 
     // Writers.
     // ------------------------------------------------------------------------

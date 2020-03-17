@@ -12,8 +12,7 @@
 #include <kth/domain.hpp>
 #include <kth/blockchain/define.hpp>
 
-namespace kth {
-namespace blockchain {
+namespace kth::blockchain {
 
 using local_utxo_t = std::unordered_map<chain::point, chain::output const*>;
 using local_utxo_set_t = std::vector<local_utxo_t>;
@@ -21,11 +20,11 @@ using local_utxo_set_t = std::vector<local_utxo_t>;
 /// This class is not thread safe.
 class BCB_API branch {
 public:
-    typedef std::shared_ptr<branch> ptr;
-    typedef std::shared_ptr<const branch> const_ptr;
+    using ptr = std::shared_ptr<branch>;
+    using const_ptr = std::shared_ptr<const branch>;
 
     /// Establish a branch with the given parent height.
-    branch(size_t height=0);
+    branch(size_t height = 0);
 
     /// Set the height of the parent of this branch (fork point).
     void set_height(size_t height);
@@ -97,7 +96,6 @@ private:
 local_utxo_t create_local_utxo_set(chain::block const& block);
 local_utxo_set_t create_branch_utxo_set(branch::const_ptr const& branch);
 
-} // namespace blockchain
-} // namespace kth
+} // namespace kth::blockchain
 
 #endif

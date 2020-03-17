@@ -23,20 +23,18 @@
 
 #endif
 
-namespace kth {
-namespace blockchain {
+namespace kth::blockchain {
 
 /// This class is thread safe.
 /// Organises transactions via the transaction pool to the blockchain.
-class BCB_API transaction_organizer
-{
+class BCB_API transaction_organizer {
 public:
-    typedef handle0 result_handler;
-    typedef std::shared_ptr<transaction_organizer> ptr;
-    typedef safe_chain::transaction_handler transaction_handler;
-    typedef safe_chain::inventory_fetch_handler inventory_fetch_handler;
-    typedef safe_chain::merkle_block_fetch_handler merkle_block_fetch_handler;
-    typedef resubscriber<code, transaction_const_ptr> transaction_subscriber;
+    using result_handler = handle0;
+    using ptr = std::shared_ptr<transaction_organizer>;
+    using transaction_handler = safe_chain::transaction_handler;
+    using inventory_fetch_handler = safe_chain::inventory_fetch_handler;
+    using merkle_block_fetch_handler = safe_chain::merkle_block_fetch_handler;
+    using transaction_subscriber = resubscriber<code, transaction_const_ptr>;
 
     /// Construct an instance.
 
@@ -68,7 +66,6 @@ private:
     void handle_accept(code const& ec, transaction_const_ptr tx, result_handler handler);
     void handle_connect(code const& ec, transaction_const_ptr tx, result_handler handler);
 
-
 #if ! defined(KTH_DB_READONLY)
     void handle_pushed(code const& ec, transaction_const_ptr tx, result_handler handler);
 #endif
@@ -89,7 +86,7 @@ private:
     prioritized_mutex& mutex_;
     std::atomic<bool> stopped_;
     std::promise<code> resume_;
-    const settings& settings_;
+    settings const& settings_;
     dispatcher& dispatch_;
     transaction_pool transaction_pool_;
     validate_transaction validator_;
@@ -100,7 +97,6 @@ private:
 #endif
 };
 
-} // namespace blockchain
-} // namespace kth
+} // namespace kth::blockchain
 
 #endif

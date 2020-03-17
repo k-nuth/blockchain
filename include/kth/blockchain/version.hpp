@@ -11,8 +11,10 @@
 #define KTH_BLOCKCHAIN_VERSION "0.0.0"
 #endif
 
-namespace kth { namespace blockchain {
+namespace kth::blockchain {
+
 char const* version();
-}} // namespace kth::blockchain
+
+} // namespace kth::blockchain
 
 #endif //KTH_BLOCKCHAIN_VERSION_HPP_

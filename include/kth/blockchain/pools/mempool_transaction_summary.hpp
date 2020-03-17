@@ -7,12 +7,10 @@
 
 #include <string>
 
-namespace kth {
-namespace blockchain {
+namespace kth::blockchain {
 
 /// This class is not thread safe.
-class mempool_transaction_summary
-{
+class mempool_transaction_summary {
 public:
     mempool_transaction_summary(std::string const& address, std::string const& hash, std::string const& previous_output_hash,
                                 std::string const& previous_output_index, std::string const& satoshis, uint64_t index,
@@ -41,21 +39,14 @@ public:
 
 private:
     std::string address_;
-
     std::string hash_;
-
     std::string previous_output_hash_;
-
     std::string previous_output_index_;
-
     std::string satoshis_;
-
     uint64_t index_;
-
     uint64_t timestamp_;
 };
 
-} // namespace blockchain
-} // namespace kth
+} // namespace kth::blockchain
 
 #endif //KTH_BLOCKCHAIN_FORK_HPP

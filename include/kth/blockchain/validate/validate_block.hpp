@@ -20,21 +20,18 @@
 #include <kth/mining/mempool.hpp>
 #endif
 
-namespace kth {
-namespace blockchain {
+namespace kth::blockchain {
 
 /// This class is NOT thread safe.
-class BCB_API validate_block
-{
+class BCB_API validate_block {
 public:
-    typedef handle0 result_handler;
+    using result_handler = handle0;
 
 #if defined(KTH_WITH_MEMPOOL)
     validate_block(dispatcher& dispatch, const fast_chain& chain, const settings& settings, bool relay_transactions, mining::mempool const& mp);
 #else
     validate_block(dispatcher& dispatch, const fast_chain& chain, const settings& settings, bool relay_transactions);
-#endif    
-
+#endif
 
     void start();
     void stop();
@@ -44,38 +41,31 @@ public:
     void connect(branch::const_ptr branch, result_handler handler) const;
 
 protected:
-    inline bool stopped() const
-    {
+    inline 
+    bool stopped() const {
         return stopped_;
     }
 
     float hit_rate() const;
 
 private:
-    typedef std::atomic<size_t> atomic_counter;
-    typedef std::shared_ptr<atomic_counter> atomic_counter_ptr;
+    using atomic_counter = std::atomic<size_t>;
+    using atomic_counter_ptr = std::shared_ptr<atomic_counter>;
 
-    static void dump(code const& ec, const chain::transaction& tx, uint32_t input_index, uint32_t forks, size_t height);
+    static 
+    void dump(code const& ec, const chain::transaction& tx, uint32_t input_index, uint32_t forks, size_t height);
 
-    void check_block(block_const_ptr block, size_t bucket, size_t buckets,
-        result_handler handler) const;
-    void handle_checked(code const& ec, block_const_ptr block,
-        result_handler handler) const;
-    void handle_populated(code const& ec, block_const_ptr block,
-        result_handler handler) const;
-    void accept_transactions(block_const_ptr block, size_t bucket,
-        size_t buckets, atomic_counter_ptr sigops, bool bip16, bool bip141,
-        result_handler handler) const;
-    void handle_accepted(code const& ec, block_const_ptr block,
-        atomic_counter_ptr sigops, bool bip141, result_handler handler) const;
-    void connect_inputs(block_const_ptr block, size_t bucket,
-        size_t buckets, result_handler handler) const;
-    void handle_connected(code const& ec, block_const_ptr block,
-        result_handler handler) const;
+    void check_block(block_const_ptr block, size_t bucket, size_t buckets, result_handler handler) const;
+    void handle_checked(code const& ec, block_const_ptr block, result_handler handler) const;
+    void handle_populated(code const& ec, block_const_ptr block, result_handler handler) const;
+    void accept_transactions(block_const_ptr block, size_t bucket, size_t buckets, atomic_counter_ptr sigops, bool bip16, bool bip141, result_handler handler) const;
+    void handle_accepted(code const& ec, block_const_ptr block, atomic_counter_ptr sigops, bool bip141, result_handler handler) const;
+    void connect_inputs(block_const_ptr block, size_t bucket, size_t buckets, result_handler handler) const;
+    void handle_connected(code const& ec, block_const_ptr block, result_handler handler) const;
 
     // These are thread safe.
     std::atomic<bool> stopped_;
-    const fast_chain& fast_chain_;
+    fast_chain const& fast_chain_;
     dispatcher& priority_dispatch_;
     mutable atomic_counter hits_;
     mutable atomic_counter queries_;
@@ -84,7 +74,6 @@ private:
     populate_block block_populator_;
 };
 
-} // namespace blockchain
-} // namespace kth
+} // namespace kth::blockchain
 
 #endif

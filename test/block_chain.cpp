@@ -59,7 +59,7 @@ using namespace boost::filesystem;
 
 static const uint64_t genesis_mainnet_work = 0x0000000100010001;
 
-static void print_headers(const std::string& test)
+static void print_headers(std::string const& test)
 {
     auto const header = "=========== " + test + " ==========";
     LOG_INFO(TEST_SET_NAME) << header;
@@ -732,7 +732,7 @@ BOOST_AUTO_TEST_CASE(block_chain__fetch_merkle_block2__not_exists__error_not_fou
 // fetch_locator_block_headers
 
 static int fetch_locator_block_headers(block_chain& instance,
-    get_headers_const_ptr locator, const hash_digest& threshold, size_t limit)
+    get_headers_const_ptr locator, hash_digest const& threshold, size_t limit)
 {
     std::promise<code> promise;
     auto const handler = [=, &promise](code ec, headers_ptr result_headers)

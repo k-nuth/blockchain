@@ -24,13 +24,13 @@
 #include <boost/thread/latch.hpp>
 
 
-namespace kth { namespace blockchain {
+namespace kth::blockchain {
 
 using spent_value_type = std::pair<hash_digest, uint32_t>;
 //using spent_container = std::vector<spent_value_type>;
 using spent_container = std::unordered_set<spent_value_type>;
 
-}}
+} // namespace kth::blockchain
 
 namespace std {
 
@@ -65,9 +65,7 @@ using namespace std::placeholders;
 
 static auto const hour_seconds = 3600u;
 
-block_chain::block_chain(threadpool& pool,
-    const blockchain::settings& chain_settings,
-    const database::settings& database_settings,  bool relay_transactions)
+block_chain::block_chain(threadpool& pool, const blockchain::settings& chain_settings, const database::settings& database_settings,  bool relay_transactions)
     : stopped_(true)
     , settings_(chain_settings)
     , notify_limit_seconds_(chain_settings.notify_limit_hours * hour_seconds)
@@ -2615,5 +2613,4 @@ std::pair<std::vector<kth::mining::transaction_element>, uint64_t> block_chain::
 }
 #endif
 
-} // namespace blockchain
-} // namespace kth
+}} // namespace kth::blockchain

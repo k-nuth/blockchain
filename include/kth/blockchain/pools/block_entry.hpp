@@ -7,16 +7,15 @@
 
 #include <iostream>
 ////#include <memory>
+
 #include <boost/functional/hash_fwd.hpp>
 #include <kth/domain.hpp>
 #include <kth/blockchain/define.hpp>
 
-namespace kth {
-namespace blockchain {
+namespace kth::blockchain {
 
 /// This class is not thread safe.
-class BCB_API block_entry
-{
+class BCB_API block_entry {
 public:
     ////typedef std::shared_ptr<transaction_entry> ptr;
     ////typedef std::vector<ptr> list;
@@ -26,25 +25,26 @@ public:
     block_entry(block_const_ptr block);
 
     /// Use this construction only as a search key.
-    block_entry(const hash_digest& hash);
+    block_entry(hash_digest const& hash);
 
     /// The block that the entry contains.
     block_const_ptr block() const;
 
     /// The hash table entry identity.
-    const hash_digest& hash() const;
+    hash_digest const& hash() const;
 
     /// The hash table entry's parent (preceding block) hash.
-    const hash_digest& parent() const;
+    hash_digest const& parent() const;
 
     /// The hash table entry's child (succeeding block) hashes.
-    const hash_list& children() const;
+    hash_list const& children() const;
 
     /// Add block to the list of children of this block.
     void add_child(block_const_ptr child) const;
 
     /// Serializer for debugging (temporary).
-    friend std::ostream& operator<<(std::ostream& out, const block_entry& of);
+    friend 
+    std::ostream& operator<<(std::ostream& out, const block_entry& of);
 
     /// Operators.
     bool operator==(const block_entry& other) const;
@@ -60,21 +60,17 @@ private:
     mutable hash_list children_;
 };
 
-} // namespace blockchain
-} // namespace kth
+} // namespace kth::blockchain
 
 // Standard (boost) hash.
 //-----------------------------------------------------------------------------
 
-namespace boost
-{
+namespace boost {
 
 // Extend boost namespace with our block_const_ptr hash function.
 template <>
-struct hash<bc::blockchain::block_entry>
-{
-    size_t operator()(const bc::blockchain::block_entry& entry) const
-    {
+struct hash<bc::blockchain::block_entry> {
+    size_t operator()(bc::blockchain::block_entry const& entry) const {
         return boost::hash<bc::hash_digest>()(entry.hash());
     }
 };
