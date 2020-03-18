@@ -17,8 +17,7 @@
 #include <kth/blockchain/settings.hpp>
 #include <kth/blockchain/validate/validate_input.hpp>
 
-namespace kth {
-namespace blockchain {
+namespace kth::blockchain {
 
 using namespace bc::chain;
 using namespace bc::machine;
@@ -172,11 +171,11 @@ void validate_block::handle_populated(code const& ec, block_const_ptr block,
     auto const height = block->validation.state->height();
 
     // if (encode_hash(block->hash()) == "000000000000000000812c14e92e484f1beb97456799d8d07e7afe46930ac0d6") {
-    //     LOG_INFO(LOG_BLOCKCHAIN) << "This is the block I want to measure";
+    //     LOG_INFO(LOG_BLOCKCHAIN, "This is the block I want to measure");
     // }
 
     // if (encode_hash(block->hash()) == "000000000000000001007e32c6337e2fdd79e8cd0a3307c5c852c71028c7ceb8") {
-    //     LOG_INFO(LOG_BLOCKCHAIN) << "This is the block I want to measure";
+    //     LOG_INFO(LOG_BLOCKCHAIN, "This is the block I want to measure");
     // }
 
     // Run contextual block non-tx checks (sets start time).
@@ -242,10 +241,10 @@ void validate_block::accept_transactions(block_const_ptr block, size_t bucket,
     for (auto tx = bucket; tx < count && !ec; tx = ceiling_add(tx, buckets)) {
         auto const& transaction = txs[tx];
         if ( ! transaction.validation.validated) {
-            // LOG_INFO(LOG_BLOCKCHAIN) << "Transaction " << encode_hash(transaction.hash()) << " has to be validated.";
+            // LOG_INFO(LOG_BLOCKCHAIN, "Transaction ", encode_hash(transaction.hash()), " has to be validated.");
             ec = transaction.accept(state, false);
         } else {
-            // LOG_INFO(LOG_BLOCKCHAIN) << "Transaction " << encode_hash(transaction.hash()) << " validation could be skiped.";
+            // LOG_INFO(LOG_BLOCKCHAIN, "Transaction ", encode_hash(transaction.hash()), " validation could be skiped.");
         }
         *sigops += transaction.signature_operations(bip16, bip141);
     }
@@ -402,15 +401,14 @@ void validate_block::dump(code const& ec, const transaction& tx, uint32_t input_
     auto const hash = encode_hash(prevout.hash());
     auto const tx_hash = encode_hash(tx.hash());
 
-    LOG_DEBUG(LOG_BLOCKCHAIN)
-        << "Verify failed [" << height << "] : " << ec.message() << std::endl
-        << " forks        : " << forks << std::endl
-        << " outpoint     : " << hash << ":" << prevout.index() << std::endl
-        << " script       : " << encode_base16(script) << std::endl
-        << " value        : " << prevout.validation.cache.value() << std::endl
-        << " inpoint      : " << tx_hash << ":" << input_index << std::endl
-        << " transaction  : " << encode_base16(tx.to_data(true, true));
+    LOG_DEBUG(LOG_BLOCKCHAIN
+        , "Verify failed [" << height << "] : " << ec.message() << std::endl
+        , " forks        : " << forks << std::endl
+        , " outpoint     : " << hash << ":" << prevout.index() << std::endl
+        , " script       : " << encode_base16(script) << std::endl
+        , " value        : " << prevout.validation.cache.value() << std::endl
+        , " inpoint      : " << tx_hash << ":" << input_index << std::endl
+        , " transaction  : " << encode_base16(tx.to_data(true, true)));
 }
 
-} // namespace blockchain
-} // namespace kth
+} // namespace kth::blockchain

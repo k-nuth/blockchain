@@ -38,6 +38,7 @@ class KnuthBlockchainConan(KnuthConanFile):
                "cflags": "ANY",
                "glibcxx_supports_cxx11_abi": "ANY",
                "cmake_export_compile_commands": [True, False],
+               "binlog": [True, False],
     }
     # "with_remote_database": [True, False],
 
@@ -62,7 +63,8 @@ class KnuthBlockchainConan(KnuthConanFile):
         "cxxflags": "_DUMMY_",
         "cflags": "_DUMMY_",
         "glibcxx_supports_cxx11_abi": "_DUMMY_",
-        "cmake_export_compile_commands": False
+        "cmake_export_compile_commands": False,
+        "binlog": False,
     }
         # "mining=False", \
     # "with_remote_database=False"
@@ -126,6 +128,7 @@ class KnuthBlockchainConan(KnuthConanFile):
         # cmake.definitions["WITH_MINING"] = option_on_off(self.options.mining)
         cmake.definitions["WITH_MEMPOOL"] = option_on_off(self.options.mempool)
         cmake.definitions["DB_READONLY_MODE"] = option_on_off(self.options.db_readonly)
+        cmake.definitions["BINLOG"] = option_on_off(self.options.binlog)
 
         cmake.configure(source_dir=self.source_folder)
         if not self.options.cmake_export_compile_commands:

@@ -254,13 +254,13 @@ branch::ptr block_pool::get_path(block_const_ptr block) const
 ////// private
 ////void block_pool::log_content() const
 ////{
-////    LOG_INFO(LOG_BLOCKCHAIN) << "pool: ";
+////    LOG_INFO(LOG_BLOCKCHAIN, "pool: ");
 ////
 ////    // Dump in hash order with height suffix (roots have height).
 ////    for (auto const& entry: blocks_.left)
 ////    {
-////        LOG_INFO(LOG_BLOCKCHAIN)
-////            << entry.first << " " << entry.second;
+////        LOG_INFO(LOG_BLOCKCHAIN
+////            << entry.first << " " << entry.second);
 ////    }
 ////}
 

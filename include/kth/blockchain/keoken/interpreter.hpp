@@ -49,7 +49,7 @@ public:
 
 private:
 
-    template <Reader R, KTH_IS_READER(R)>
+    template <typename R, KTH_IS_READER(R)>
     error::error_code_t version_dispatcher(size_t block_height, bc::chain::transaction const& tx, R& source) {
         auto version = source.read_2_bytes_big_endian();
         if ( ! source) return error::invalid_version_number;
@@ -61,7 +61,7 @@ private:
         return error::not_recognized_version_number;
     }
 
-    template <Reader R, KTH_IS_READER(R)>
+    template <typename R, KTH_IS_READER(R)>
     error::error_code_t version_0_type_dispatcher(size_t block_height, bc::chain::transaction const& tx, R& source) {
         using namespace transaction_processors::v0;
 

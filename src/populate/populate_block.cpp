@@ -62,7 +62,7 @@ void populate_block::populate(branch::const_ptr branch, result_handler&& handler
     auto const buckets = std::min(dispatch_.size(), non_coinbase_inputs);
     auto const join_handler = synchronize(std::move(handler), buckets, NAME);
     KTH_ASSERT(buckets != 0);
-    // LOG_INFO(LOG_BLOCKCHAIN) << "populate_block::populate - buckets:  " << buckets;
+    // LOG_INFO(LOG_BLOCKCHAIN, "populate_block::populate - buckets:  ", buckets);
 
     // auto local_utxo = create_local_utxo_set(*block);
     auto branch_utxo = create_branch_utxo_set(branch);

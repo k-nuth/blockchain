@@ -2,7 +2,6 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-
 cmake_minimum_required(VERSION 3.8)
 
 # kth-blockchain
@@ -156,12 +155,18 @@ if (DB_READONLY_MODE)
   add_definitions(-DKTH_DB_READONLY)
 endif()
 
-
 # Implement --JUST_KTH_SOURCES for linting.
 #------------------------------------------------------------------------------
 option(JUST_KTH_SOURCES "Just Knuth source code to be linted." OFF)
 if (JUST_KTH_SOURCES)
   message(STATUS "Knuth: Just Knuth source code to be linted: enabled")
+endif()
+
+# Implement --binlog.
+#------------------------------------------------------------------------------
+option(BINLOG "Uses BinLog logging library." OFF)
+if (BINLOG)
+  add_definitions(-DKTH_USE_BINLOG)
 endif()
 
 
