@@ -169,6 +169,13 @@ if (BINLOG)
   add_definitions(-DKTH_USE_BINLOG)
 endif()
 
+# Implement --use_libmdbx.
+#------------------------------------------------------------------------------
+option(USE_LIBMDBX "Uses libmdbx DB library." OFF)
+if (USE_LIBMDBX)
+  add_definitions(-DKTH_USE_LIBMDBX)
+endif()
+
 
 
 set(KTH_PROJECT_VERSION "-" CACHE STRING "Specify the Knuth Project Version.")
