@@ -11,8 +11,7 @@
 #include <kth/mining/mempool.hpp>
 #endif
 
-namespace kth {
-namespace blockchain {
+namespace kth::blockchain {
 
 settings::settings(config::settings context) {
     switch (context) {
@@ -79,14 +78,15 @@ uint32_t settings::enabled_forks() const {
     forks |= (bip112      ? rule_fork::bip112_rule : 0);
     forks |= (bip113      ? rule_fork::bip113_rule : 0);
 
-#ifdef KTH_CURRENCY_BCH
+#if defined(KTH_CURRENCY_BCH)
     forks |= (bch_uahf             ? rule_fork::bch_uahf : 0);
     forks |= (bch_daa              ? rule_fork::bch_daa : 0);
     forks |= (bch_monolith         ? rule_fork::bch_monolith : 0);
     forks |= (bch_magnetic_anomaly ? rule_fork::bch_magnetic_anomaly : 0);
     forks |= (bch_great_wall       ? rule_fork::bch_great_wall : 0);
     forks |= (bch_graviton         ? rule_fork::bch_graviton : 0);
-    // forks |= (bch_phonon           ? rule_fork::bch_phonon : 0);
+    forks |= (bch_phonon           ? rule_fork::bch_phonon : 0);
+    // forks |= (bch_axion           ? rule_fork::bch_axion : 0);
     // forks |= (bch_unnamed           ? rule_fork::bch_unnamed : 0);
 #else
     forks |= (bip141 ? rule_fork::bip141_rule : 0);
@@ -96,5 +96,4 @@ uint32_t settings::enabled_forks() const {
     return forks;
 }
 
-} // namespace blockchain
-} // namespace kth
+} // namespace kth::blockchain

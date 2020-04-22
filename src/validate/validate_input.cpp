@@ -64,6 +64,17 @@ uint32_t validate_input::convert_flags(uint32_t native_forks) {
         flags |= verify_flags_minimaldata;
     }
 
+    // if (IsPhononEnabled(params, pindex)) {
+    //     flags |= SCRIPT_ENABLE_OP_REVERSEBYTES;
+    //     flags |= SCRIPT_REPORT_SIGCHECKS;
+    //     flags |= SCRIPT_ZERO_SIGOPS;
+    // }
+    if (script::is_enabled(native_forks, rule_fork::bch_phonon)) {
+        flags |= verify_flags_enable_op_reversebytes;
+        flags |= verify_flags_report_sigchecks;
+        flags |= verify_flags_zero_sigops;
+    }
+
     // We make sure this node will have replay protection during the next hard fork.
     if (script::is_enabled(native_forks, rule_fork::bch_replay_protection)) {
         flags |= verify_flags_enable_replay_protection;
