@@ -7,6 +7,7 @@
 // #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
 
+#define FMT_HEADER_ONLY
 #include <fmt/core.h>
 
 #include <kth/blockchain.hpp>
