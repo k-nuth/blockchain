@@ -51,13 +51,11 @@ validate_block::validate_block(dispatcher& dispatch, const fast_chain& chain, co
 // Start/stop sequences.
 //-----------------------------------------------------------------------------
 
-void validate_block::start()
-{
+void validate_block::start() {
     stopped_ = false;
 }
 
-void validate_block::stop()
-{
+void validate_block::stop() {
     stopped_ = true;
 }
 
@@ -65,11 +63,9 @@ void validate_block::stop()
 //-----------------------------------------------------------------------------
 // These checks are context free.
 
-void validate_block::check(block_const_ptr block, result_handler handler) const
-{
+void validate_block::check(block_const_ptr block, result_handler handler) const {
     // The block hasn't been checked yet.
-    if (block->transactions().empty())
-    {
+    if (block->transactions().empty()) {
         handler(error::success);
         return;
     }
@@ -86,19 +82,15 @@ void validate_block::check(block_const_ptr block, result_handler handler) const
     auto const buckets = std::min(threads, count);
     KTH_ASSERT(buckets != 0);
 
-    auto const join_handler = synchronize(std::move(complete_handler), buckets,
-        NAME "_check");
+    auto const join_handler = synchronize(std::move(complete_handler), buckets, NAME "_check");
 
-    for (size_t bucket = 0; bucket < buckets; ++bucket)
-        priority_dispatch_.concurrent(&validate_block::check_block,
-            this, block, bucket, buckets, join_handler);
+    for (size_t bucket = 0; bucket < buckets; ++bucket) {
+        priority_dispatch_.concurrent(&validate_block::check_block, this, block, bucket, buckets, join_handler);
+    }
 }
 
-void validate_block::check_block(block_const_ptr block, size_t bucket,
-    size_t buckets, result_handler handler) const
-{
-    if (stopped())
-    {
+void validate_block::check_block(block_const_ptr block, size_t bucket, size_t buckets, result_handler handler) const {
+    if (stopped()) {
         handler(error::service_stopped);
         return;
     }
@@ -106,17 +98,15 @@ void validate_block::check_block(block_const_ptr block, size_t bucket,
     auto const& txs = block->transactions();
 
     // Generate each tx hash (stored in tx cache).
-    for (auto tx = bucket; tx < txs.size(); tx = ceiling_add(tx, buckets))
+    for (auto tx = bucket; tx < txs.size(); tx = ceiling_add(tx, buckets)) {
         txs[tx].hash();
+    }
 
     handler(error::success);
 }
 
-void validate_block::handle_checked(code const& ec, block_const_ptr block,
-    result_handler handler) const
-{
-    if (ec)
-    {
+void validate_block::handle_checked(code const& ec, block_const_ptr block, result_handler handler) const {
+    if (ec) {
         handler(ec);
         return;
     }
@@ -129,9 +119,7 @@ void validate_block::handle_checked(code const& ec, block_const_ptr block,
 //-----------------------------------------------------------------------------
 // These checks require chain state, and block state if not under checkpoint.
 
-void validate_block::accept(branch::const_ptr branch,
-    result_handler handler) const
-{
+void validate_block::accept(branch::const_ptr branch, result_handler handler) const {
     auto const block = branch->top();
     KTH_ASSERT(block);
 
@@ -141,29 +129,22 @@ void validate_block::accept(branch::const_ptr branch,
     // Populate chain state for the next block.
     block->validation.state = fast_chain_.chain_state(branch);
 
-    if (!block->validation.state)
-    {
+    if (!block->validation.state) {
         handler(error::operation_failed_19);
         return;
     }
 
     // Populate block state for the top block (others are valid).
-    block_populator_.populate(branch,
-        std::bind(&validate_block::handle_populated,
-            this, _1, block, handler));
+    block_populator_.populate(branch, std::bind(&validate_block::handle_populated, this, _1, block, handler));
 }
 
-void validate_block::handle_populated(code const& ec, block_const_ptr block,
-    result_handler handler) const
-{
-    if (stopped())
-    {
+void validate_block::handle_populated(code const& ec, block_const_ptr block, result_handler handler) const {
+    if (stopped()) {
         handler(error::service_stopped);
         return;
     }
 
-    if (ec)
-    {
+    if (ec) {
         handler(ec);
         return;
     }
@@ -181,8 +162,7 @@ void validate_block::handle_populated(code const& ec, block_const_ptr block,
     // Run contextual block non-tx checks (sets start time).
     auto const error_code = block->accept(false);
 
-    if (error_code)
-    {
+    if (error_code) {
         handler(error_code);
         return;
     }
@@ -196,12 +176,9 @@ void validate_block::handle_populated(code const& ec, block_const_ptr block,
     auto const bip141 = state->is_enabled(rule_fork::bip141_rule);
 #endif
 
-    result_handler complete_handler =
-        std::bind(&validate_block::handle_accepted,
-            this, _1, block, sigops, bip141, handler);
+    result_handler complete_handler = std::bind(&validate_block::handle_accepted, this, _1, block, sigops, bip141, handler);
 
-    if (state->is_under_checkpoint())
-    {
+    if (state->is_under_checkpoint()) {
         complete_handler(error::success);
         return;
     }
@@ -211,23 +188,18 @@ void validate_block::handle_populated(code const& ec, block_const_ptr block,
     auto const buckets = std::min(priority_dispatch_.size(), count);
     KTH_ASSERT(buckets != 0);
 
-    auto const join_handler = synchronize(std::move(complete_handler), buckets,
-        NAME "_accept");
+    auto const join_handler = synchronize(std::move(complete_handler), buckets, NAME "_accept");
 
-    for (size_t bucket = 0; bucket < buckets; ++bucket)
-        priority_dispatch_.concurrent(&validate_block::accept_transactions,
-            this, block, bucket, buckets, sigops, bip16, bip141, join_handler);
+    for (size_t bucket = 0; bucket < buckets; ++bucket) {
+        priority_dispatch_.concurrent(&validate_block::accept_transactions, this, block, bucket, buckets, sigops, bip16, bip141, join_handler);
+    }
 }
 
-void validate_block::accept_transactions(block_const_ptr block, size_t bucket,
-    size_t buckets, atomic_counter_ptr sigops, bool bip16, bool bip141,
-    result_handler handler) const
-{
+void validate_block::accept_transactions(block_const_ptr block, size_t bucket, size_t buckets, atomic_counter_ptr sigops, bool bip16, bool bip141, result_handler handler) const {
 #ifdef KTH_CURRENCY_BCH
     bip141 = false;
 #endif
-    if (stopped())
-    {
+    if (stopped()) {
         handler(error::service_stopped);
         return;
     }
@@ -252,11 +224,8 @@ void validate_block::accept_transactions(block_const_ptr block, size_t bucket,
     handler(ec);
 }
 
-void validate_block::handle_accepted(code const& ec, block_const_ptr block,
-    atomic_counter_ptr sigops, bool bip141, result_handler handler) const
-{
-    if (ec)
-    {
+void validate_block::handle_accepted(code const& ec, block_const_ptr block, atomic_counter_ptr sigops, bool bip141, result_handler handler) const {
+    if (ec) {
         handler(ec);
         return;
     }
@@ -275,9 +244,7 @@ void validate_block::handle_accepted(code const& ec, block_const_ptr block,
 //-----------------------------------------------------------------------------
 // These checks require chain state, block state and perform script validation.
 
-void validate_block::connect(branch::const_ptr branch,
-    result_handler handler) const
-{
+void validate_block::connect(branch::const_ptr branch, result_handler handler) const {
     auto const block = branch->top();
     KTH_ASSERT(block && block->validation.state);
 
@@ -301,25 +268,20 @@ void validate_block::connect(branch::const_ptr branch,
     hits_ = 0;
     queries_ = 0;
 
-    result_handler complete_handler =
-        std::bind(&validate_block::handle_connected,
-            this, _1, block, handler);
+    result_handler complete_handler = std::bind(&validate_block::handle_connected, this, _1, block, handler);
 
     auto const threads = priority_dispatch_.size();
     auto const buckets = std::min(threads, non_coinbase_inputs);
     KTH_ASSERT(buckets != 0);
 
-    auto const join_handler = synchronize(std::move(complete_handler), buckets,
-        NAME "_validate");
+    auto const join_handler = synchronize(std::move(complete_handler), buckets, NAME "_validate");
 
-    for (size_t bucket = 0; bucket < buckets; ++bucket)
-        priority_dispatch_.concurrent(&validate_block::connect_inputs,
-            this, block, bucket, buckets, join_handler);
+    for (size_t bucket = 0; bucket < buckets; ++bucket) {
+        priority_dispatch_.concurrent(&validate_block::connect_inputs, this, block, bucket, buckets, join_handler);
+    }
 }
 
-void validate_block::connect_inputs(block_const_ptr block, size_t bucket,
-    size_t buckets, result_handler handler) const
-{
+void validate_block::connect_inputs(block_const_ptr block, size_t bucket, size_t buckets, result_handler handler) const {
     KTH_ASSERT(bucket < buckets);
     code ec(error::success);
     auto const forks = block->validation.state->enabled_forks();
@@ -379,15 +341,12 @@ void validate_block::connect_inputs(block_const_ptr block, size_t bucket,
 }
 
 // The tx pool cache hit rate.
-float validate_block::hit_rate() const
-{
+float validate_block::hit_rate() const {
     // These values could overflow or divide by zero, but that's okay.
     return queries_ == 0 ? 0.0f : (hits_ * 1.0f / queries_);
 }
 
-void validate_block::handle_connected(code const& ec, block_const_ptr block,
-    result_handler handler) const
-{
+void validate_block::handle_connected(code const& ec, block_const_ptr block, result_handler handler) const {
     block->validation.cache_efficiency = hit_rate();
     handler(ec);
 }
@@ -401,14 +360,25 @@ void validate_block::dump(code const& ec, const transaction& tx, uint32_t input_
     auto const hash = encode_hash(prevout.hash());
     auto const tx_hash = encode_hash(tx.hash());
 
+    // LOG_DEBUG(LOG_BLOCKCHAIN
+    //     , "Verify failed [" << height << "] : " << ec.message() << std::endl
+    //     , " forks        : " << forks << std::endl
+    //     , " outpoint     : " << hash << ":" << prevout.index() << std::endl
+    //     , " script       : " << encode_base16(script) << std::endl
+    //     , " value        : " << prevout.validation.cache.value() << std::endl
+    //     , " inpoint      : " << tx_hash << ":" << input_index << std::endl
+    //     , " transaction  : " << encode_base16(tx.to_data(true, true)));
+
     LOG_DEBUG(LOG_BLOCKCHAIN
-        , "Verify failed [" << height << "] : " << ec.message() << std::endl
-        , " forks        : " << forks << std::endl
-        , " outpoint     : " << hash << ":" << prevout.index() << std::endl
-        , " script       : " << encode_base16(script) << std::endl
-        , " value        : " << prevout.validation.cache.value() << std::endl
-        , " inpoint      : " << tx_hash << ":" << input_index << std::endl
-        , " transaction  : " << encode_base16(tx.to_data(true, true)));
+        , "Verify failed [{}] : {}\n"
+        " forks        : {}\n"
+        " outpoint     : {}:{}\n"
+        " script       : {}\n"
+        " value        : {}\n"
+        " inpoint      : {}:{}\n"
+        " transaction  : {}", height, ec.message(), forks, hash, prevout.index(), encode_base16(script)
+        , prevout.validation.cache.value(), tx_hash, input_index, encode_base16(tx.to_data(true, true)));
+
 }
 
 } // namespace kth::blockchain
