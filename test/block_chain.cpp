@@ -12,7 +12,7 @@
 using namespace bc;
 using namespace bc::blockchain;
 using namespace boost::system;
-using namespace boost::filesystem;
+using namespace std::filesystem;
 
 #define MAINNET_BLOCK1 \
 "010000006fe28c0ab6f1b372c1a6a246ae63f74f931e8365e15a089c68d6190000000000982" \

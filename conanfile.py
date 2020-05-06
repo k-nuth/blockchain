@@ -82,7 +82,6 @@ class KnuthBlockchainConan(KnuthConanFile):
         return self.options.currency == "BCH" and self.options.get_safe("keoken")
 
     def requirements(self):
-        self.requires("boost/1.73.0@kth/stable")
         self.requires("database/0.X@%s/%s" % (self.user, self.channel))
 
         if self.options.consensus:
