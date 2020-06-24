@@ -11,6 +11,9 @@
 #include <ctime>
 #include <functional>
 #include <vector>
+
+#include <kth/infrastructure.hpp>
+
 #include <kth/database.hpp>
 #include <kth/blockchain/define.hpp>
 #include <kth/blockchain/interface/fast_chain.hpp>
