@@ -40,7 +40,7 @@ public:
     virtual bool get_transaction_position(size_t& out_height, size_t& out_position, hash_digest const& hash, bool require_confirmed) const = 0;
 
     /// Get the output that is referenced by the outpoint.
-    virtual bool get_output(chain::output& out_output, size_t& out_height, uint32_t& out_median_time_past, bool& out_coinbase, const chain::output_point& outpoint, size_t branch_height, bool require_confirmed) const = 0;
+    virtual bool get_output(domain::chain::output& out_output, size_t& out_height, uint32_t& out_median_time_past, bool& out_coinbase, const domain::chain::output_point& outpoint, size_t branch_height, bool require_confirmed) const = 0;
 #endif
 
     /// Get a determination of whether the block hash exists in the store.
