@@ -16,7 +16,7 @@ namespace kth {
 namespace keoken {
 
 struct state_delegated {
-    using payment_address = bc::wallet::payment_address;
+    using payment_address = kd::wallet::payment_address;
     using get_assets_by_address_list = std::vector<get_assets_by_address_data>;
     using get_assets_list = std::vector<get_assets_data>;
     using get_all_asset_addresses_list = std::vector<get_all_asset_addresses_data>;
