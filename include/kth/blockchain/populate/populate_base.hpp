@@ -22,9 +22,9 @@ protected:
 
     populate_base(dispatcher& dispatch, fast_chain const& chain);
 
-    void populate_duplicate(size_t maximum_height, const chain::transaction& tx, bool require_confirmed) const;
-    void populate_pooled(chain::transaction const& tx, uint32_t forks) const;
-    void populate_prevout(size_t maximum_height, chain::output_point const& outpoint, bool require_confirmed) const;
+    void populate_duplicate(size_t maximum_height, const domain::chain::transaction& tx, bool require_confirmed) const;
+    void populate_pooled(domain::chain::transaction const& tx, uint32_t forks) const;
+    void populate_prevout(size_t maximum_height, domain::chain::output_point const& outpoint, bool require_confirmed) const;
 
     // This is thread safe.
     dispatcher& dispatch_;
