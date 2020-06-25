@@ -33,9 +33,9 @@ public:
     interpreter(interpreter const&) = delete;
     interpreter& operator=(interpreter const&) = delete;
 
-    error::error_code_t process(size_t block_height, bc::chain::transaction const& tx) {
-        using bc::istream_reader;
-        using bc::data_source;
+    error::error_code_t process(size_t block_height, kd::domain::chain::transaction const& tx) {
+        using kd::istream_reader;
+        using kd::data_source;
 
         auto data = first_keoken_output(tx);
         if ( ! data.empty()) {
