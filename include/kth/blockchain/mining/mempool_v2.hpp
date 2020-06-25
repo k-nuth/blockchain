@@ -31,7 +31,7 @@ namespace kth {
 namespace mining {
 
 inline
-node make_node(chain::transaction const& tx) {
+node make_node(domain::chain::transaction const& tx) {
     return node(
                 transaction_element(tx.hash()
 #if ! defined(KTH_CURRENCY_BCH)
