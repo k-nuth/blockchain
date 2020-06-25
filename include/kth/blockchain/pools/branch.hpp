@@ -9,12 +9,14 @@
 #include <cstdint>
 #include <memory>
 #include <vector>
+
 #include <kth/domain.hpp>
+
 #include <kth/blockchain/define.hpp>
 
 namespace kth::blockchain {
 
-using local_utxo_t = std::unordered_map<chain::point, chain::output const*>;
+using local_utxo_t = std::unordered_map<domain::chain::point, domain::chain::output const*>;
 using local_utxo_set_t = std::vector<local_utxo_t>;
 
 /// This class is not thread safe.
