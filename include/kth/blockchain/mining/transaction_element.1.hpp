@@ -16,7 +16,7 @@ namespace mining {
 class transaction_element {
 public:
 
-    transaction_element(chain::transaction const& tx)
+    transaction_element(domain::chain::transaction const& tx)
         : transaction_(tx)
         , txid_(transaction_.hash())
 #if ! defined(KTH_CURRENCY_BCH)
