@@ -24,7 +24,7 @@ public:
                         uint64_t fee,
                         size_t sigops,
                         uint32_t output_count
-                        // std::vector<chain::point> const& previous_outputs
+                        // std::vector<domain::chain::point> const& previous_outputs
                         )
         : txid_(txid)
 #if ! defined(KTH_CURRENCY_BCH)
