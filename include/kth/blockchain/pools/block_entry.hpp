@@ -6,10 +6,11 @@
 #define KTH_BLOCKCHAIN_BLOCK_ENTRY_HPP
 
 #include <iostream>
-////#include <memory>
 
 #include <boost/functional/hash_fwd.hpp>
+
 #include <kth/domain.hpp>
+
 #include <kth/blockchain/define.hpp>
 
 namespace kth::blockchain {
