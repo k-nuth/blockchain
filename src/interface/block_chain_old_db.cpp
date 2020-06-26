@@ -8,11 +8,10 @@
 #include <kth/keoken/transaction_extractor.hpp>
 #endif
 
-namespace kth {
-namespace blockchain {
+namespace kth::blockchain {
 
 #ifdef KTH_DB_LEGACY
-void block_chain::for_each_transaction(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const {
+void blockchain::for_each_transaction(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const {
 #ifdef KTH_CURRENCY_BCH
     witness = false;    //TODO(fernando): see what to do with those things!
 #endif
