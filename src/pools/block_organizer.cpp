@@ -16,11 +16,10 @@
 #include <kth/blockchain/settings.hpp>
 #include <kth/blockchain/validate/validate_block.hpp>
 
-namespace kth {
-namespace blockchain {
+namespace kth::blockchain {
 
-using namespace bc::chain;
-using namespace bc::config;
+using namespace kd::chain;
+using namespace kd::config;
 using namespace std::placeholders;
 
 #define NAME "block_organizer"
