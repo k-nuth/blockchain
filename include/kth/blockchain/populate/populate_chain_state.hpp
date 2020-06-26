@@ -22,18 +22,18 @@ public:
     populate_chain_state(fast_chain const& chain, settings const& settings);
 
     /// Populate chain state for the tx pool (start).
-    chain::chain_state::ptr populate() const;
+    domain::chain::chain_state::ptr populate() const;
 
     /// Populate chain state for the top block in the branch (try).
-    chain::chain_state::ptr populate(chain::chain_state::ptr pool, branch::const_ptr branch) const;
+    domain::chain::chain_state::ptr populate(domain::chain::chain_state::ptr pool, branch::const_ptr branch) const;
 
     /// Populate pool state from the top block (organized).
-    chain::chain_state::ptr populate(chain::chain_state::ptr top) const;
+    domain::chain::chain_state::ptr populate(domain::chain::chain_state::ptr top) const;
 
 private:
     using branch_ptr = branch::const_ptr;
-    using map = chain::chain_state::map;
-    using data = chain::chain_state::data;
+    using map = domain::chain::chain_state::map;
+    using data = domain::chain::chain_state::data;
 
     bool populate_all(data& data, branch_ptr branch) const;
     bool populate_bits(data& data, map const& map, branch_ptr branch) const;
