@@ -12,13 +12,12 @@
 #include <kth/domain.hpp>
 #include <kth/blockchain/define.hpp>
 
-namespace kth {
-namespace blockchain {
+namespace kth::blockchain {
 
-using namespace bc::chain;
-using namespace bc::config;
+using namespace kd::chain;
+using namespace kd::config;
 
-local_utxo_t create_local_utxo_set(chain::block const& block) {
+local_utxo_t create_local_utxo_set(domain::chain::block const& block) {
     //TODO(fernando): confirm if there is a validation to check that the coinbase tx is not spend, before this.
     //                we avoid to insert the coinbase in the local utxo set
 
