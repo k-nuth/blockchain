@@ -20,8 +20,8 @@ namespace kth::blockchain {
 /// Common blockchain configuration settings, properties not thread safe.
 class BCB_API settings {
 public:
-    // settings();
-    settings(config::settings context);
+    settings() = default;
+    settings(infrastructure::config::settings context);
 
     /// Fork flags combiner.
     uint32_t enabled_forks() const;
