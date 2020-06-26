@@ -9,8 +9,7 @@
 #include <kth/domain.hpp>
 #include <kth/blockchain/settings.hpp>
 
-namespace kth {
-namespace blockchain {
+namespace kth::blockchain {
 
 // Duplicate tx hashes are disallowed in a block and therefore same in pool.
 // A transaction hash that exists unspent in the chain is still not acceptable
