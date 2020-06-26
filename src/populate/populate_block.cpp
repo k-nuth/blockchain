@@ -11,11 +11,10 @@
 #include <kth/blockchain/interface/fast_chain.hpp>
 #include <kth/blockchain/pools/branch.hpp>
 
-namespace kth {
-namespace blockchain {
+namespace kth::blockchain {
 
-using namespace bc::chain;
-using namespace bc::machine;
+using namespace kd::chain;
+using namespace kd::machine;
 
 #define NAME "populate_block"
 
