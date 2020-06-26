@@ -56,9 +56,9 @@ mempool* mempool::candidate_index_t::parent_ = nullptr;
 
 namespace blockchain {
 
-using namespace bc::config;
-using namespace bc::message;
-using namespace bc::database;
+using namespace kd::config;
+using namespace kd::message;
+using namespace kth::database;
 using namespace std::placeholders;
 
 #define NAME "block_chain"
