@@ -81,7 +81,7 @@ bool transaction_organizer::stop()
 // Validate Transaction sequence.
 //-----------------------------------------------------------------------------
 
-// This is called from block_chain::transaction_validate.
+// This is called from blockchain::transaction_validate.
 void transaction_organizer::transaction_validate(transaction_const_ptr tx, result_handler handler) const {
     auto const check_handler = std::bind(&transaction_organizer::validate_handle_check, this, _1, tx, handler);
     // Checks that are independent of chain state.
