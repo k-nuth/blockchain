@@ -9,11 +9,10 @@
 #include <kth/domain.hpp>
 #include <kth/blockchain/interface/fast_chain.hpp>
 
-namespace kth {
-namespace blockchain {
+namespace kth::blockchain {
 
-using namespace bc::chain;
-using namespace bc::database;
+using namespace kd::chain;
+using namespace kth::database;
 
 #define NAME "populate_base"
 
