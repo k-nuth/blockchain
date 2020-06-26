@@ -7,16 +7,17 @@
 #include <cstddef>
 #include <cstdint>
 #include <memory>
+
 #include <kth/domain.hpp>
+
 #include <kth/blockchain/define.hpp>
 #include <kth/blockchain/interface/fast_chain.hpp>
 #include <kth/blockchain/pools/branch.hpp>
 #include <kth/blockchain/settings.hpp>
 
-namespace kth {
-namespace blockchain {
+namespace kth::blockchain {
 
-using namespace bc::chain;
+using namespace kd::chain;
 
 // This value should never be read, but may be useful in debugging.
 static constexpr uint32_t unspecified = max_uint32;
