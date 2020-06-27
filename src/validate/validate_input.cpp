@@ -11,67 +11,66 @@
 #include <kth/consensus.hpp>
 #endif
 
-namespace kth {
-namespace blockchain {
+namespace kth::blockchain {
 
-using namespace bc::chain;
-using namespace bc::machine;
+using namespace kd::chain;
+using namespace kd::machine;
 
 #ifdef WITH_CONSENSUS
 
-using namespace bc::consensus;
+using namespace kth::consensus;
 
 //TODO(legacy): map bc policy flags.
 uint32_t validate_input::convert_flags(uint32_t native_forks) {
     uint32_t flags = verify_flags_none;
 
-    if (script::is_enabled(native_forks, rule_fork::bip16_rule)) {
+    if (script::is_enabled(native_forks, domain::machine::rule_fork::bip16_rule)) {
         flags |= verify_flags_p2sh;
     }
 
-    if (script::is_enabled(native_forks, rule_fork::bip65_rule)) {
+    if (script::is_enabled(native_forks, domain::machine::rule_fork::bip65_rule)) {
         flags |= verify_flags_checklocktimeverify;
     }
 
-    if (script::is_enabled(native_forks, rule_fork::bip66_rule)) {
+    if (script::is_enabled(native_forks, domain::machine::rule_fork::bip66_rule)) {
         flags |= verify_flags_dersig;
     }
 
-    if (script::is_enabled(native_forks, rule_fork::bip112_rule)) {
+    if (script::is_enabled(native_forks, domain::machine::rule_fork::bip112_rule)) {
         flags |= verify_flags_checksequenceverify;
     }
 
 #ifdef KTH_CURRENCY_BCH
 
-    if (script::is_enabled(native_forks, rule_fork::bch_uahf)) {
+    if (script::is_enabled(native_forks, domain::machine::rule_fork::bch_uahf)) {
         flags |= verify_flags_strictenc;
         flags |= verify_flags_enable_sighash_forkid;
     }
 
-    if (script::is_enabled(native_forks, rule_fork::bch_daa)) {
+    if (script::is_enabled(native_forks, domain::machine::rule_fork::bch_daa_cw144)) {
         flags |= verify_flags_low_s;
         flags |= verify_flags_null_fail;
     }
 
-    if (script::is_enabled(native_forks, rule_fork::bch_magnetic_anomaly)) {
+    if (script::is_enabled(native_forks, domain::machine::rule_fork::bch_magnetic_anomaly)) {
         flags |= verify_flags_enable_checkdatasig_sigops;
         flags |= verify_flags_sigpushonly;
         flags |= verify_flags_cleanstack;
     }
 
-    if (script::is_enabled(native_forks, rule_fork::bch_graviton)) {
+    if (script::is_enabled(native_forks, domain::machine::rule_fork::bch_graviton)) {
         flags |= verify_flags_enable_schnorr_multisig;
         flags |= verify_flags_minimaldata;
     }
 
-    if (script::is_enabled(native_forks, rule_fork::bch_phonon)) {
+    if (script::is_enabled(native_forks, domain::machine::rule_fork::bch_phonon)) {
         flags |= verify_flags_enable_op_reversebytes;
         flags |= verify_flags_report_sigchecks;
         flags |= verify_flags_zero_sigops;
     }
 
     // We make sure this node will have replay protection during the next hard fork.
-    if (script::is_enabled(native_forks, rule_fork::bch_replay_protection)) {
+    if (script::is_enabled(native_forks, domain::machine::rule_fork::bch_replay_protection)) {
         flags |= verify_flags_enable_replay_protection;
     }
 
