@@ -13,9 +13,9 @@
 
 namespace kth::blockchain {
 
-settings::settings(config::settings context) {
+settings::settings(infrastructure::config::settings context) {
     switch (context) {
-        case config::settings::mainnet: {
+        case infrastructure::config::settings::mainnet: {
             checkpoints.reserve(22);
             checkpoints.emplace_back("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f", 0);
             checkpoints.emplace_back("0000000069e244f73d78e8fd29ba2fd2ed618bd6fa2ee92559f542fdb26e7c1d", 11111);
