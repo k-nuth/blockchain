@@ -7,8 +7,8 @@
 #include <memory>
 #include <kth/blockchain.hpp>
 
-using namespace bc;
-using namespace bc::blockchain;
+using namespace kth;
+using namespace kth::blockchain;
 
 BOOST_AUTO_TEST_SUITE(block_entry_tests)
 
