@@ -19,8 +19,8 @@
 
 namespace kth::blockchain {
 
-using namespace bc::chain;
-using namespace bc::machine;
+using namespace kd::chain;
+using namespace kd::machine;
 using namespace std::placeholders;
 
 #define NAME "validate_block"
