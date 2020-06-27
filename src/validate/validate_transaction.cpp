@@ -18,11 +18,10 @@
 #include <kth/blockchain/settings.hpp>
 #include <kth/blockchain/validate/validate_input.hpp>
 
-namespace kth {
-namespace blockchain {
+namespace kth::blockchain {
 
-using namespace bc::chain;
-using namespace bc::machine;
+using namespace kd::chain;
+using namespace kd::machine;
 using namespace std::placeholders;
 
 #define NAME "validate_transaction"
