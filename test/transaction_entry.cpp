@@ -6,19 +6,21 @@
 
 #include <cstdint>
 #include <memory>
+
 #include <kth/blockchain.hpp>
 
-using namespace bc;
-using namespace bc::chain;
-using namespace bc::blockchain;
-using namespace bc::machine;
+using namespace kth;
+using namespace kd::chain;
+using namespace kth::blockchain;
+using namespace kd::machine;
 
 BOOST_AUTO_TEST_SUITE(transaction_entry_tests)
 
-static auto const default_tx_hash = hash_literal("f702453dd03b0f055e5437d76128141803984fb10acb85fc3b2184fae2f3fa78");
+static 
+auto const default_tx_hash = hash_literal("f702453dd03b0f055e5437d76128141803984fb10acb85fc3b2184fae2f3fa78");
 
-static chain_state::data data()
-{
+static 
+chain_state::data data() {
     chain_state::data value;
     value.height = 1;
     value.bits = { 0, { 0 } };
