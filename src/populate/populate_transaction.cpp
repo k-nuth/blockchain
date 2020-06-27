@@ -13,10 +13,9 @@
 #include <kth/blockchain/interface/fast_chain.hpp>
 #include <kth/blockchain/pools/branch.hpp>
 
-namespace kth {
-namespace blockchain {
+namespace kth::blockchain {
 
-using namespace bc::chain;
+using namespace kd::chain;
 using namespace std::placeholders;
 
 #define NAME "populate_transaction"
