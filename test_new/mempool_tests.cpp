@@ -44,7 +44,7 @@ transaction get_tx(std::string const& hex) {
     return tx;
 }
 
-transaction get_tx_from_mempool(mining::mempool const& mp, std::unordered_map<chain::point, chain::output> const& internal_utxo, std::string const& hex) {
+transaction get_tx_from_mempool(mining::mempool const& mp, std::unordered_map<domain::chain::point, domain::chain::output> const& internal_utxo, std::string const& hex) {
     data_chunk data;
     decode_base16(data, hex);
     auto tx = transaction::factory_from_data(data);
