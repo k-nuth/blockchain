@@ -9,8 +9,8 @@
 #include <string>
 #include <kth/blockchain.hpp>
 
-using namespace bc;
-using namespace bc::blockchain;
+using namespace kth;
+using namespace kth::blockchain;
 using namespace boost::system;
 using namespace std::filesystem;
 
