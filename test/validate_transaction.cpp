@@ -5,10 +5,10 @@
 #include <boost/test/unit_test.hpp>
 #include <kth/blockchain.hpp>
 
-using namespace bc;
-using namespace bc::chain;
-using namespace bc::blockchain;
-using namespace bc::machine;
+using namespace kth;
+using namespace kd::chain;
+using namespace kth::blockchain;
+using namespace kd::machine;
 
 BOOST_AUTO_TEST_SUITE(validate_transaction_tests)
 
