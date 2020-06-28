@@ -53,7 +53,7 @@ public:
     virtual bool get_branch_work(uint256_t& out_work, const uint256_t& maximum, size_t from_height) const = 0;
 
     /// Get the header of the block at the given height.
-    virtual bool get_header(chain::header& out_header, size_t height) const = 0;
+    virtual bool get_header(domain::chain::header& out_header, size_t height) const = 0;
 
     /// Get the height of the block with the given hash.
     virtual bool get_height(size_t& out_height, hash_digest const& block_hash) const = 0;
