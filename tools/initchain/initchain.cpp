@@ -21,10 +21,10 @@
 #define BS_INITCHAIN_DIR_EXISTS "Failed because the directory {} already exists.\n"
 #define BS_INITCHAIN_FAIL "Failed to initialize blockchain files.\n"
 
-using namespace bc;
-using namespace bc::blockchain;
-using namespace bc::chain;
-using namespace bc::database;
+using namespace kth;
+using namespace kth::blockchain;
+using namespace kd::chain;
+using namespace kth::database;
 using namespace std::filesystem;
 using namespace boost::system;
 // using boost::format;
