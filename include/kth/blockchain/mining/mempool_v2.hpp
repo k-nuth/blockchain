@@ -137,9 +137,9 @@ void sort_ltor(bool sorted, partially_indexed_mempool_t::main_container_t& all, 
 
 class mempool {
 public:
-    using internal_utxo_set_t = std::unordered_map<chain::point, chain::output>;
-    using previous_outputs_t = std::unordered_map<chain::point, index_t>;
-    using hash_index_t = std::unordered_map<hash_digest, std::pair<index_t, chain::transaction>>;
+    using internal_utxo_set_t = std::unordered_map<domain::chain::point, domain::chain::output>;
+    using previous_outputs_t = std::unordered_map<domain::chain::point, index_t>;
+    using hash_index_t = std::unordered_map<hash_digest, std::pair<index_t, domain::chain::transaction>>;
     using triple_t = std::tuple<uint64_t, size_t, size_t>;
     using to_insert_t = std::tuple<indexes_t, uint64_t, size_t, size_t>;
 
