@@ -55,7 +55,7 @@ protected:
     void populate_transactions(branch::const_ptr branch, size_t bucket, size_t buckets, local_utxo_set_t const& branch_utxo, result_handler handler) const;
 #endif
 
-    void populate_prevout(branch_ptr branch, chain::output_point const& outpoint, local_utxo_set_t const& branch_utxo) const;
+    void populate_prevout(branch_ptr branch, domain::chain::output_point const& outpoint, local_utxo_set_t const& branch_utxo) const;
 
 private:
     bool const relay_transactions_;
