@@ -27,7 +27,7 @@ public:
         , sigops_(transaction_.signature_operations())
     {}
 
-    transaction_element(chain::transaction&& tx)
+    transaction_element(domain::chain::transaction&& tx)
         : transaction_(std::move(tx))
         , txid_(transaction_.hash())
 #if ! defined(KTH_CURRENCY_BCH)
