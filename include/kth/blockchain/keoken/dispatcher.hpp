@@ -40,7 +40,7 @@ struct dispatcher {
 
     template <typename State, typename Fastchain, Reader R, KTH_IS_READER(R)>
     constexpr 
-    error::error_code_t operator()(message_type_t mt, State& state, Fastchain const& fast_chain, size_t block_height, bc::chain::transaction const& tx, R& source) const {
+    error::error_code_t operator()(message_type_t mt, State& state, Fastchain const& fast_chain, size_t block_height, kd::domain::chain::transaction const& tx, R& source) const {
         static_assert(detail::no_repeated_types<T>{}(), "repeated transaction types in transaction list");
         using idxs_t = knuth::make_index_sequence<std::tuple_size<T>::value>;
         return call_impl(mt, state, fast_chain, block_height, tx, source, idxs_t{});
