@@ -54,7 +54,7 @@ private:
 
     // These are thread safe.
     uint32_t const configured_forks_;
-    config::checkpoint::list const checkpoints_;
+    infrastructure::config::checkpoint::list const checkpoints_;
 
     // Populate is guarded against concurrent callers but because it uses the fast
     // chain it must not be invoked during chain writes.
