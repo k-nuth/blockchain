@@ -70,9 +70,9 @@ namespace boost {
 
 // Extend boost namespace with our block_const_ptr hash function.
 template <>
-struct hash<bc::blockchain::block_entry> {
-    size_t operator()(bc::blockchain::block_entry const& entry) const {
-        return boost::hash<bc::hash_digest>()(entry.hash());
+struct hash<kth::blockchain::block_entry> {
+    size_t operator()(kth::blockchain::block_entry const& entry) const {
+        return boost::hash<kth::hash_digest>()(entry.hash());
     }
 };
 
