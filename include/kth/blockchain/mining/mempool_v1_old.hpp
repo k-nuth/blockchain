@@ -110,13 +110,13 @@ public:
     // using to_insert_t = std::tuple<indexes_t, uint64_t, size_t, size_t, indexes_t, uint64_t, size_t, size_t>;
     using accum_t = std::tuple<uint64_t, size_t, size_t>;
     using all_transactions_t = std::vector<node>;
-    using internal_utxo_set_t = std::unordered_map<chain::point, chain::output>;
+    using internal_utxo_set_t = std::unordered_map<domain::chain::point, domain::chain::output>;
     
-    // using previous_outputs_t = boost::bimap<chain::point, index_t>;
-    using previous_outputs_t = std::unordered_map<chain::point, index_t>;
+    // using previous_outputs_t = boost::bimap<domain::chain::point, index_t>;
+    using previous_outputs_t = std::unordered_map<domain::chain::point, index_t>;
 
     // using hash_index_t = std::unordered_map<hash_digest, index_t>;
-    using hash_index_t = std::unordered_map<hash_digest, std::pair<index_t, chain::transaction>>;
+    using hash_index_t = std::unordered_map<hash_digest, std::pair<index_t, domain::chain::transaction>>;
 
     // using mutex_t = boost::shared_mutex;
     // using shared_lock_t = boost::shared_lock<mutex_t>;
