@@ -50,7 +50,7 @@ public:
 private:
 
     template <typename R, KTH_IS_READER(R)>
-    error::error_code_t version_dispatcher(size_t block_height, bc::chain::transaction const& tx, R& source) {
+    error::error_code_t version_dispatcher(size_t block_height, kd::domain::chain::transaction const& tx, R& source) {
         auto version = source.read_2_bytes_big_endian();
         if ( ! source) return error::invalid_version_number;
 
