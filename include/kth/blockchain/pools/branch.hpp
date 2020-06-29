@@ -41,14 +41,14 @@ public:
     size_t top_height() const;
 
     /////// Populate unspent duplicate state in the context of the branch.
-    ////void populate_duplicate(const chain::transaction& tx) const;
+    ////void populate_duplicate(const domain::chain::transaction& tx) const;
 
     /// Populate prevout validation spend state in the context of the branch.
-    void populate_spent(const chain::output_point& outpoint) const;
+    void populate_spent(const domain::chain::output_point& outpoint) const;
 
     /// Populate prevout validation output state in the context of the branch.
-    void populate_prevout(chain::output_point const& outpoint) const;
-    void populate_prevout(chain::output_point const& outpoint, std::vector<std::unordered_map<chain::point, chain::output const*>> const& branch_utxo) const;
+    void populate_prevout(domain::chain::output_point const& outpoint) const;
+    void populate_prevout(domain::chain::output_point const& outpoint, std::vector<std::unordered_map<domain::chain::point, domain::chain::output const*>> const& branch_utxo) const;
 
     /// The member block pointer list.
     block_const_ptr_list_const_ptr blocks() const;
