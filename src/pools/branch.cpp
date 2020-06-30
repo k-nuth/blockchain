@@ -103,7 +103,7 @@ hash_digest branch::hash() const {
     return empty() ? null_hash : blocks_->front()->header().previous_block_hash();
 }
 
-config::checkpoint branch::fork_point() const {
+infrastructure::config::checkpoint branch::fork_point() const {
     return {hash(), height()};
 }
 
