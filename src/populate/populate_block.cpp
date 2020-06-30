@@ -99,7 +99,7 @@ void populate_block::populate_coinbase(branch::const_ptr branch, block_const_ptr
     prevout.confirmed = true;
 
     // A coinbase does not spend a previous output so these are unused/default.
-    prevout.cache = chain::output{};
+    prevout.cache = domain::chain::output{};
     prevout.coinbase = false;
     prevout.height = 0;
     prevout.median_time_past = 0;
