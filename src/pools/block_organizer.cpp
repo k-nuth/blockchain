@@ -80,7 +80,7 @@ bool block_organizer::stop() {
 // Organize sequence.
 //-----------------------------------------------------------------------------
 
-// This is called from block_chain::organize.
+// This is called from blockchain::organize.
 void block_organizer::organize(block_const_ptr block, result_handler handler) {
     // Critical Section
     ///////////////////////////////////////////////////////////////////////////
