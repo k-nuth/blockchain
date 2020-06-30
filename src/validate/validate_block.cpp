@@ -173,7 +173,7 @@ void validate_block::handle_populated(code const& ec, block_const_ptr block, res
 #ifdef KTH_CURRENCY_BCH
     const bool bip141 = false;
 #else
-    auto const bip141 = state->is_enabled(rule_fork::bip141_rule);
+    auto const bip141 = state->is_enabled(domain::machine::rule_fork::bip141_rule);
 #endif
 
     result_handler complete_handler = std::bind(&validate_block::handle_accepted, this, _1, block, sigops, bip141, handler);
