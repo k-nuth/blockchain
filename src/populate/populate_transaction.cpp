@@ -101,5 +101,4 @@ void populate_transaction::populate_inputs(transaction_const_ptr tx, size_t chai
     handler(error::success);
 }
 
-} // namespace blockchain
-} // namespace kth
+} // namespace kth::blockchain
