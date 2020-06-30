@@ -263,5 +263,4 @@ branch::ptr block_pool::get_path(block_const_ptr block) const
 ////    }
 ////}
 
-} // namespace blockchain
-} // namespace kth
+} // namespace kth::blockchain
