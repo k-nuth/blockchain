@@ -61,5 +61,4 @@ uint64_t mempool_transaction_summary::timestamp() const {
     return timestamp_;
 }
 
-} // namespace blockchain
-} // namespace kth
+} // namespace kth::blockchain
