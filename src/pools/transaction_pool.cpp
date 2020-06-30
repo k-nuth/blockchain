@@ -27,7 +27,7 @@ transaction_pool::transaction_pool(const settings& settings)
 void transaction_pool::fetch_template(merkle_block_fetch_handler handler) const
 {
     const size_t height = max_size_t;
-    auto const block = std::make_shared<message::merkle_block>();
+    auto const block = std::make_shared<domain::message::merkle_block>();
     handler(error::success, block, height);
 }
 
