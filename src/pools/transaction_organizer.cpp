@@ -154,7 +154,7 @@ void transaction_organizer::validate_handle_connect(code const& ec, transaction_
 // Organize sequence.
 //-----------------------------------------------------------------------------
 
-// This is called from block_chain::organize.
+// This is called from blockchain::organize.
 void transaction_organizer::organize(transaction_const_ptr tx, result_handler handler) {
     // Critical Section
     ///////////////////////////////////////////////////////////////////////////
