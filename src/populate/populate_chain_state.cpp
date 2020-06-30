@@ -33,7 +33,7 @@ populate_chain_state::populate_chain_state(const fast_chain& chain, const settin
 #endif //KTH_CURRENCY_BCH
 
       configured_forks_(settings.enabled_forks())
-    , checkpoints_(config::checkpoint::sort(settings.checkpoints))
+    , checkpoints_(infrastructure::config::checkpoint::sort(settings.checkpoints))
     , fast_chain_(chain)
 {}
 
