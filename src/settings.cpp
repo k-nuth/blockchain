@@ -37,7 +37,7 @@ settings::settings(infrastructure::config::settings context) {
             checkpoints.emplace_back("00000000000000004d9b4ef50f0f9d686fd69db2e03af35a100370c64632a983", 295000);
             break;
         }
-        case config::settings::testnet: {
+        case infrastructure::config::settings::testnet: {
             easy_blocks = true;
 
             checkpoints.reserve(7);
