@@ -152,13 +152,13 @@ bool block_chain::get_branch_work(uint256_t& out_work,
         if (!result)
             return false;
 
-        out_work += chain::header::proof(result.bits());
+        out_work += domain::chain::header::proof(result.bits());
     }
 
     return true;
 }
 
-bool block_chain::get_header(chain::header& out_header, size_t height) const
+bool block_chain::get_header(domain::chain::header& out_header, size_t height) const
 {
     auto result = database_.blocks().get(height);
     if (!result)
