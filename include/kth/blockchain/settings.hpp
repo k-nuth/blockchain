@@ -34,7 +34,7 @@ public:
     uint64_t minimum_output_satoshis = 500;
     uint32_t notify_limit_hours = 24;
     uint32_t reorganization_limit = 256;
-    config::checkpoint::list checkpoints;
+    infrastructure::config::checkpoint::list checkpoints;
     bool allow_collisions = true;
     bool easy_blocks = false;
     bool retarget = true;
