@@ -62,7 +62,7 @@ private:
     }
 
     template <typename R, KTH_IS_READER(R)>
-    error::error_code_t version_0_type_dispatcher(size_t block_height, bc::chain::transaction const& tx, R& source) {
+    error::error_code_t version_0_type_dispatcher(size_t block_height, kd::domain::chain::transaction const& tx, R& source) {
         using namespace transaction_processors::v0;
 
         auto type = source.read_2_bytes_big_endian();
