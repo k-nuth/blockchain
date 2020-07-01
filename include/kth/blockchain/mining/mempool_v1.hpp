@@ -377,7 +377,7 @@ public:
 
 
 
-    error::error_code_t add(chain::transaction const& tx) {
+    error::error_code_t add(domain::chain::transaction const& tx) {
         //precondition: tx.validation.state != nullptr
         //              tx is fully validated: check() && accept() && connect()
         //              ! tx.is_coinbase()
