@@ -32,13 +32,14 @@ BOOST_AUTO_TEST_CASE(validate_block__native__block_438513_tx__valid) {
     BOOST_REQUIRE(decode_base16(decoded_script, encoded_script));
 
     transaction tx;
-    BOOST_REQUIRE(tx.from_data(decoded_tx));
+    BOOST_REQUIRE(kd::entity_from_data(tx, decoded_tx));
 
     auto const& input = tx.inputs()[index];
     auto& prevout = input.previous_output().validation.cache;
 
     prevout.set_value(0);
-    prevout.set_script(script::factory_from_data(decoded_script, false));
+    prevout.set_script(kd::create<script>(decoded_script, false));
+    
     BOOST_REQUIRE(prevout.script().is_valid());
 
     auto const result = validate_input::verify_script(tx, index, forks);
