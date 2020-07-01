@@ -55,18 +55,17 @@ using namespace std::filesystem;
     BOOST_REQUIRE(name.start())
 
 #define NEW_BLOCK(height) \
-    std::make_shared<const message::block>(read_block(MAINNET_BLOCK##height))
+    std::make_shared<const domain::message::block>(read_block(MAINNET_BLOCK##height))
 
 static const uint64_t genesis_mainnet_work = 0x0000000100010001;
 
-static void print_headers(std::string const& test)
-{
+static 
+void print_headers(std::string const& test) {
     auto const header = "=========== " + test + " ==========";
-    LOG_INFO(TEST_SET_NAME) << header;
+    LOG_INFO(TEST_SET_NAME, header);
 }
 
-bool create_database(database::settings& out_database)
-{
+bool create_database(database::settings& out_database) {
     print_headers(out_database.directory.string());
 
     // Blockchain doesn't care about other indexes.
