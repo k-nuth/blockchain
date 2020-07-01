@@ -163,34 +163,34 @@ uint32_t validate_input::convert_flags(uint32_t native_forks) {
 
 
 //     // BCH UAHF (FORKID on txns)
-//     if (script::is_enabled(native_forks, rule_fork::cash_verify_flags_script_enable_sighash_forkid)) {
+//     if (script::is_enabled(native_forks, domain::machine::rule_fork::cash_verify_flags_script_enable_sighash_forkid)) {
 //         flags |= verify_flags_script_enable_sighash_forkid;
 //     }
 
 //     // Obligatory flags used on the 2017-Nov-13 BCH hard fork
-//     if (script::is_enabled(native_forks, rule_fork::cash_low_s_rule)) {
+//     if (script::is_enabled(native_forks, domain::machine::rule_fork::cash_low_s_rule)) {
 //         flags |= verify_flags_low_s;
 //     }
 
 //     // // Obligatory flags used on the 2018-May-15 BCH hard fork
-//     // if (script::is_enabled(native_forks, rule_fork::cash_monolith_opcodes)) {
+//     // if (script::is_enabled(native_forks, domain::machine::rule_fork::cash_monolith_opcodes)) {
 //     //     flags |= verify_flags_script_enable_monolith_opcodes;
 //     // }
 
 //     // We make sure this node will have replay protection during the next hard fork.
-//     if (script::is_enabled(native_forks, rule_fork::cash_replay_protection)) {
+//     if (script::is_enabled(native_forks, domain::machine::rule_fork::cash_replay_protection)) {
 //         flags |= verify_flags_script_enable_replay_protection;
 //     }
 
-//     if (script::is_enabled(native_forks, rule_fork::cash_checkdatasig)) {
+//     if (script::is_enabled(native_forks, domain::machine::rule_fork::cash_checkdatasig)) {
 //         flags |= verify_flags_script_enable_checkdatasig_sigops;
 //     }
 
-//     if (script::is_enabled(native_forks, rule_fork::cash_schnorr)) {
+//     if (script::is_enabled(native_forks, domain::machine::rule_fork::cash_schnorr)) {
 //         flags |= verify_flags_script_script_enable_schnorr_multisig;
 //     }
 
-//     if (script::is_enabled(native_forks, rule_fork::cash_segwit_recovery)) {
+//     if (script::is_enabled(native_forks, domain::machine::rule_fork::cash_segwit_recovery)) {
 //         flags |= verify_flags_script_disallow_segwit_recovery;
 //     }
 
