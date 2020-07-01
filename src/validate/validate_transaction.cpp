@@ -171,5 +171,4 @@ void validate_transaction::connect_inputs(transaction_const_ptr tx, size_t bucke
     handler(ec);
 }
 
-} // namespace blockchain
-} // namespace kth
+} // namespace kth::blockchain
