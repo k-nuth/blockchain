@@ -40,14 +40,14 @@ public:
 
 class fast_chain_dummy_return_true {
 public:
-    fast_chain_dummy_return_true(bc::chain::transaction& tx)
+    fast_chain_dummy_return_true(kd::domain::chain::transaction& tx)
         :tx_(tx) 
     {}
 
     /// Get the output that is referenced by the outpoint.
-    bool get_output(bc::chain::output& out_output, size_t& out_height,
+    bool get_output(kd::domain::chain::output& out_output, size_t& out_height,
         uint32_t& out_median_time_past, bool& out_coinbase, 
-        const bc::chain::output_point& outpoint, size_t branch_height,
+        const kd::domain::chain::output_point& outpoint, size_t branch_height,
         bool require_confirmed) const { 
             
         out_output = tx_.outputs()[0];
