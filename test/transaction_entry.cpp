@@ -29,21 +29,21 @@ chain_state::data data() {
     return value;
 }
 
-static transaction_const_ptr make_tx()
-{
-    auto const tx = std::make_shared<const message::transaction>();
+static 
+transaction_const_ptr make_tx() {
+    auto const tx = std::make_shared<const domain::message::transaction>();
     tx->validation.state = std::make_shared<chain_state>(
 #ifdef KTH_CURRENCY_BCH
-        chain_state{ data(), {}, 0, 0, 0 });
+        chain_state {data(), 0, {}, kth::phonon_t(0), kth::axion_t(0)});
 #else
-        chain_state{ data(), {}, 0 });
+        chain_state {data(), 0, {}});
 #endif //KTH_CURRENCY_BCH
         
     return tx;
 }
 
-static transaction_entry::ptr make_instance()
-{
+static 
+transaction_entry::ptr make_instance() {
     return std::make_shared<transaction_entry>(transaction_entry(make_tx()));
 }
 
