@@ -142,7 +142,7 @@ public:
     //-------------------------------------------------------------------------
 
 #if defined(KTH_DB_SPENDS) || defined(KTH_DB_NEW_FULL)
-    virtual void fetch_spend(const chain::output_point& outpoint, spend_fetch_handler handler) const = 0;
+    virtual void fetch_spend(const domain::chain::output_point& outpoint, spend_fetch_handler handler) const = 0;
 #endif 
 
 #if defined(KTH_DB_HISTORY) || defined(KTH_DB_NEW_FULL)
