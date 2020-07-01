@@ -73,15 +73,15 @@ transaction get_tx_from_mempool(mining::mempool const& mp, std::unordered_map<do
     return tx;
 }
 
-chain::block get_block(std::string const& hex) {
+domain::chain::block get_block(std::string const& hex) {
     data_chunk data;
     decode_base16(data, hex);
-    auto blk = chain::block::factory_from_data(data);
+    auto blk = domain::chain::block::factory_from_data(data);
     // add_state(tx);
     return blk;
 }
 
-kth::chain::block get_block_from_template(mempool const& mp) {
+kth::domain::chain::block get_block_from_template(mempool const& mp) {
     auto gbt = mp.get_block_template();
     transaction::list tx_list;
     for (auto const& elem : gbt.first) {
