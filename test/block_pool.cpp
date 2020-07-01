@@ -51,9 +51,9 @@ public:
 block_const_ptr make_block(uint32_t id, size_t height,
     hash_digest const& parent)
 {
-    auto const block = std::make_shared<const message::block>(message::block
+    auto const block = std::make_shared<const domain::message::block>(domain::message::block
     {
-        chain::header{ id, parent, null_hash, 0, 0, 0 }, {}
+        domain::chain::header{ id, parent, null_hash, 0, 0, 0 }, {}
     });
 
     block->header().validation.height = height;
