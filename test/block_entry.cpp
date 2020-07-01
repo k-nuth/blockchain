@@ -19,7 +19,7 @@ static auto const default_block_hash = hash_literal("14508459b221041eab257d2baaa
 
 BOOST_AUTO_TEST_CASE(block_entry__construct1__default_block__expected)
 {
-    auto const block = std::make_shared<const message::block>();
+    auto const block = std::make_shared<const domain::message::block>();
     block_entry instance(block);
     BOOST_REQUIRE(instance.block() == block);
     BOOST_REQUIRE(instance.hash() == default_block_hash);
