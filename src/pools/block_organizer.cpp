@@ -215,7 +215,7 @@ bool block_organizer::is_branch_double_spend(branch::ptr const& branch) const {
 #if defined(KTH_WITH_MEMPOOL)
 
 //TODO(fernando): similar function in populate_block class
-void block_organizer::populate_prevout_1(branch::const_ptr branch, chain::output_point const& outpoint, bool require_confirmed) const {
+void block_organizer::populate_prevout_1(branch::const_ptr branch, domain::chain::output_point const& outpoint, bool require_confirmed) const {
     // The previous output will be cached on the input's outpoint.
     auto& prevout = outpoint.validation;
 
