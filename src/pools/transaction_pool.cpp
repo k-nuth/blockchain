@@ -35,9 +35,8 @@ void transaction_pool::fetch_template(merkle_block_fetch_handler handler) const
 void transaction_pool::fetch_mempool(size_t maximum,
     inventory_fetch_handler handler) const
 {
-    auto const empty = std::make_shared<message::inventory>();
+    auto const empty = std::make_shared<domain::message::inventory>();
     handler(error::success, empty);
 }
 
-} // namespace blockchain
-} // namespace kth
+} // namespace kth::blockchain
