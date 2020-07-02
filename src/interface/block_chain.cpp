@@ -213,8 +213,8 @@ bool block_chain::get_last_height(size_t& out_height) const
 
 
 
-bool block_chain::get_output_is_confirmed(chain::output& out_output, size_t& out_height,
-                             bool& out_coinbase, bool& out_is_confirmed, const chain::output_point& outpoint,
+bool block_chain::get_output_is_confirmed(domain::chain::output& out_output, size_t& out_height,
+                             bool& out_coinbase, bool& out_is_confirmed, const domain::chain::output_point& outpoint,
                              size_t branch_height, bool require_confirmed) const
 {
     // This includes a cached value for spender height (or not_spent).
