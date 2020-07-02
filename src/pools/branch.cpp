@@ -152,7 +152,7 @@ uint256_t branch::work() const {
 // Otherwise it could reject a spent duplicate. Given that collisions must be
 // rejected at least prior to the BIP34 checkpoint this is technically a
 // consensus break which would only apply to a reorg at height less than BIP34.
-////void branch::populate_duplicate(const chain::transaction& tx) const
+////void branch::populate_duplicate(const domain::chain::transaction& tx) const
 ////{
 ////    auto const outer = [&tx](size_t total, block_const_ptr block)
 ////    {
