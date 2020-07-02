@@ -69,7 +69,7 @@ public:
     size_t height() const;
 
     /// A checkpoint of the fork point, identical to { hash(), height() }.
-    config::checkpoint fork_point() const;
+    infrastructure::config::checkpoint fork_point() const;
 
     /// The bits of the block at the given height in the branch.
     bool get_bits(uint32_t& out_bits, size_t height) const;
