@@ -51,13 +51,13 @@ public:
 #ifdef KTH_CURRENCY_BCH
 
     bool bch_uahf = true;
-    bool bch_daa = true;
+    bool bch_daa_cw144 = true;
     bool bch_monolith = true;
     bool bch_magnetic_anomaly = true;
     bool bch_great_wall = true;
     bool bch_graviton = true;
-    // bool bch_phonon = false;      // 2020-May
-    // bool bch_axion = false;       // 2020-Nov
+    bool bch_phonon = false;      // 2020-May
+    bool bch_axion = false;       // 2020-Nov
     // bool bch_unnamed = false;     // 2021-May
     
     ////2017-Aug-01 hard fork, defaults to 478559 (Mainnet)
