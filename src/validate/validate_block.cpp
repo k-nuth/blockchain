@@ -184,7 +184,7 @@ void validate_block::handle_populated(code const& ec, block_const_ptr block, res
     }
 
     auto const count = block->transactions().size();
-    auto const bip16 = state->is_enabled(rule_fork::bip16_rule);
+    auto const bip16 = state->is_enabled(domain::machine::rule_fork::bip16_rule);
     auto const buckets = std::min(priority_dispatch_.size(), count);
     KTH_ASSERT(buckets != 0);
 
