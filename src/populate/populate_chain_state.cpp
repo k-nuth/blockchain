@@ -201,9 +201,9 @@ chain_state::ptr populate_chain_state::populate() const {
     }
 
     return std::make_shared<chain_state>(
-        std::move(data), 
-        checkpoints_, 
-        configured_forks_
+        std::move(data)
+        , configured_forks_
+        , checkpoints_
 #ifdef KTH_CURRENCY_BCH
         // , settings_.monolith_activation_time
         // , settings_.magnetic_anomaly_activation_time
