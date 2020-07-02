@@ -37,7 +37,7 @@ void populate_base::populate_duplicate(size_t branch_height, const domain::chain
 #endif // KTH_DB_LEGACY
 }
 
-void populate_base::populate_pooled(const chain::transaction& tx, uint32_t forks) const {
+void populate_base::populate_pooled(const domain::chain::transaction& tx, uint32_t forks) const {
     size_t height;
     size_t position;
 
