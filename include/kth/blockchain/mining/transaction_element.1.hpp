@@ -38,7 +38,7 @@ public:
         , sigops_(transaction_.signature_operations())
     {}
 
-    chain::transaction const& transaction() const {
+    domain::chain::transaction const& transaction() const {
         return transaction_;
     }
 
