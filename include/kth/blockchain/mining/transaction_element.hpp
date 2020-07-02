@@ -89,7 +89,7 @@ public:
         return output_count_;
     }
 
-    // std::vector<chain::point> const& previous_outputs() const {
+    // std::vector<domain::chain::point> const& previous_outputs() const {
     //     return previous_outputs_;
     // }
 private:
