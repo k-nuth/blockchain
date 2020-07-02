@@ -50,7 +50,7 @@ settings::settings(infrastructure::config::settings context) {
             checkpoints.emplace_back("000000000000624f06c69d3a9fe8d25e0a9030569128d63ad1b704bbb3059a16", 600000);
             break;
         }
-        case config::settings::regtest: {
+        case infrastructure::config::settings::regtest: {
             easy_blocks = true;
             retarget = false;
             checkpoints.emplace_back("06226e46111a0b59caaf126043eb5bbf28c34f3a5e332a1fc7b2b73cf188910f", 0);
