@@ -87,43 +87,39 @@ bool create_database(database::settings& out_database) {
     out_database.transaction_unconfirmed_table_buckets = 42;
 #endif // KTH_DB_TRANSACTION_UNCONFIRMED
 
-    error_code ec;
+    std::error_code ec;
     remove_all(out_database.directory, ec);
     database::data_base database(out_database);
-    return create_directories(out_database.directory, ec) 
-            && database.create(chain::block::genesis_mainnet());
+    return create_directories(out_database.directory, ec) && database.create(domain::chain::block::genesis_mainnet());
 }
 
-chain::block read_block(const std::string hex)
-{
+domain::chain::block read_block(const std::string hex) {
     data_chunk data;
     BOOST_REQUIRE(decode_base16(data, hex));
-    chain::block result;
-    BOOST_REQUIRE(result.from_data(data));
+    domain::chain::block result;
+    BOOST_REQUIRE(kd::entity_from_data(result, data));
     return result;
 }
 
 BOOST_AUTO_TEST_SUITE(fast_chain_tests)
 
 #ifdef KTH_DB_LEGACY
-BOOST_AUTO_TEST_CASE(block_chain__insert__flushed__expected)
-{
+BOOST_AUTO_TEST_CASE(block_chain__insert__flushed__expected) {
     START_BLOCKCHAIN(instance, true);
 
     auto const block1 = NEW_BLOCK(1);
     BOOST_REQUIRE(instance.insert(block1, 1));
     BOOST_REQUIRE(instance.get_block_exists(block1->hash()));
-    BOOST_REQUIRE(instance.get_block_exists(chain::block::genesis_mainnet().hash()));
+    BOOST_REQUIRE(instance.get_block_exists(domain::chain::block::genesis_mainnet().hash()));
 }
 
-BOOST_AUTO_TEST_CASE(block_chain__insert__unflushed__expected_block)
-{
+BOOST_AUTO_TEST_CASE(block_chain__insert__unflushed__expected_block) {
     START_BLOCKCHAIN(instance, false);
 
     auto const block1 = NEW_BLOCK(1);
     BOOST_REQUIRE(instance.insert(block1, 1));
     BOOST_REQUIRE(instance.get_block_exists(block1->hash()));
-    BOOST_REQUIRE(instance.get_block_exists(chain::block::genesis_mainnet().hash()));
+    BOOST_REQUIRE(instance.get_block_exists(domain::chain::block::genesis_mainnet().hash()));
 }
 
 BOOST_AUTO_TEST_CASE(block_chain__get_gaps__none__none)
