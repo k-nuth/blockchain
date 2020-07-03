@@ -37,7 +37,7 @@ BOOST_AUTO_TEST_CASE(block_entry__construct2__default_block_hash__round_trips)
 
 BOOST_AUTO_TEST_CASE(block_entry__parent__hash42__expected)
 {
-    auto const block = std::make_shared<message::block>();
+    auto const block = std::make_shared<domain::message::block>();
     block->header().set_previous_block_hash(hash42);
     block_entry instance(block);
     BOOST_REQUIRE(instance.parent() == hash42);
