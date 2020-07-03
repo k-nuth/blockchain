@@ -66,7 +66,7 @@ public:
 #if defined(KTH_DB_LEGACY) || defined(KTH_DB_NEW_FULL) 
    
     /// Get the output that is referenced by the outpoint.
-    bool get_output(chain::output& out_output, size_t& out_height, uint32_t& out_median_time_past, bool& out_coinbase, const chain::output_point& outpoint, size_t branch_height, bool require_confirmed) const override;
+    bool get_output(domain::chain::output& out_output, size_t& out_height, uint32_t& out_median_time_past, bool& out_coinbase, const domain::chain::output_point& outpoint, size_t branch_height, bool require_confirmed) const override;
 
     /// Get position data for a transaction.
     bool get_transaction_position(size_t& out_height, size_t& out_position, hash_digest const& hash, bool require_confirmed) const override;
