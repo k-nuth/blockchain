@@ -58,7 +58,7 @@ public:
         return true;
     }
 private:
-    bc::chain::transaction& tx_;
+    kd::domain::chain::transaction& tx_;
 };
 
 
