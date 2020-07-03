@@ -85,19 +85,17 @@ bool create_database(database::settings& out_database) {
     out_database.db_max_size = 16106127360;
 #endif
 
-    error_code ec;
+    std::error_code ec;
     remove_all(out_database.directory, ec);
     database::data_base database(out_database);
-    return create_directories(out_database.directory, ec) 
-            && database.create(chain::block::genesis_mainnet());
+    return create_directories(out_database.directory, ec) && database.create(domain::chain::block::genesis_mainnet());
 }
 
-chain::block read_block(const std::string hex)
-{
+domain::chain::block read_block(const std::string hex) {
     data_chunk data;
     BOOST_REQUIRE(decode_base16(data, hex));
-    chain::block result;
-    BOOST_REQUIRE(result.from_data(data));
+    domain::chain::block result;
+    BOOST_REQUIRE(kd::entity_from_data(result, data));
     return result;
 }
 
