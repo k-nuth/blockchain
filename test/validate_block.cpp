@@ -47,6 +47,7 @@ BOOST_AUTO_TEST_CASE(validate_block__native__block_438513_tx__valid) {
     BOOST_REQUIRE_EQUAL(result.value(), error::success);
 
 }
+
 #ifdef KTH_CURRENCY_BCH
 BOOST_AUTO_TEST_CASE(validate_block__native__block_520679_tx__valid)
 {
