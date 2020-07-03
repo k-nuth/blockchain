@@ -209,11 +209,11 @@ uint32_t validate_input::convert_flags(uint32_t native_forks) {
 
 
 #else
-    if (script::is_enabled(native_forks, rule_fork::bip141_rule)) {
+    if (script::is_enabled(native_forks, domain::machine::rule_fork::bip141_rule)) {
         flags |= verify_flags_witness;
     }
 
-    if (script::is_enabled(native_forks, rule_fork::bip147_rule)) {
+    if (script::is_enabled(native_forks, domain::machine::rule_fork::bip147_rule)) {
         flags |= verify_flags_nulldummy;
     }
 
