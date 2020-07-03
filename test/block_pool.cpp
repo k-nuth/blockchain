@@ -106,7 +106,7 @@ BOOST_AUTO_TEST_CASE(block_pool__add1__one__single)
 BOOST_AUTO_TEST_CASE(block_pool__add1__twice__single)
 {
     block_pool instance(0);
-    auto const block = std::make_shared<const message::block>();
+    auto const block = std::make_shared<const domain::message::block>();
 
     instance.add(block);
     instance.add(block);
