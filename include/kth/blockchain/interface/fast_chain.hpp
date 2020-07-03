@@ -110,7 +110,7 @@ public:
         complete_handler handler) = 0;
 
     /// Swap incoming and outgoing blocks, height is validated.
-    virtual void reorganize(const config::checkpoint& fork_point,
+    virtual void reorganize(const infrastructure::config::checkpoint& fork_point,
         block_const_ptr_list_const_ptr incoming_blocks,
         block_const_ptr_list_ptr outgoing_blocks, dispatcher& dispatch,
         complete_handler handler) = 0;
