@@ -534,7 +534,7 @@ public:
         auto unique = scope_guard([&](void*){ processing_block_ = false; });
 
         std::set<index_t, std::greater<>> to_remove;
-        std::vector<chain::point> outs;
+        std::vector<domain::chain::point> outs;
         if (non_coinbase_input_count > 0) {
             outs.reserve(non_coinbase_input_count);   //TODO(fernando): unnecesary extra space
         }
