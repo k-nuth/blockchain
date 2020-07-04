@@ -69,7 +69,7 @@ void populate_base::populate_prevout(size_t branch_height, output_point const& o
 
     prevout.spent = false;
     prevout.confirmed = false;
-    prevout.cache = chain::output{};
+    prevout.cache = domain::chain::output{};
     prevout.from_mempool = false;
 
     // If the input is a coinbase there is no prevout to populate.
