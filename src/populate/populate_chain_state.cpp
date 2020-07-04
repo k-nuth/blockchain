@@ -220,19 +220,20 @@ chain_state::ptr populate_chain_state::populate(chain_state::ptr pool, branch::c
     KTH_ASSERT(block);
 
     // If this is not a reorganization we can just promote the pool state.
-    if (branch->size() == 1 && branch->top_height() == pool->height())
-        return std::make_shared<chain_state>(*pool, *block);
+    if (branch->size() == 1 && branch->top_height() == pool->height()) {
+        return chain_state::from_pool_ptr(*pool, *block);
+    }
 
     chain_state::data data;
     data.hash = block->hash();
     data.height = branch->top_height();
 
     // Caller must test result.
-    if (!populate_all(data, branch)) {
+    if ( ! populate_all(data, branch)) {
         return{};
     }
 
-    return std::make_shared<chain_state>(std::move(data), checkpoints_, configured_forks_
+    return std::make_shared<chain_state>(std::move(data), configured_forks_, checkpoints_
 #ifdef KTH_CURRENCY_BCH
             // , settings_.monolith_activation_time
             // , settings_.magnetic_anomaly_activation_time
