@@ -95,7 +95,7 @@ private:
     block_const_ptr_list_ptr blocks_;
 };
 
-local_utxo_t create_local_utxo_set(chain::block const& block);
+local_utxo_t create_local_utxo_set(domain::chain::block const& block);
 local_utxo_set_t create_branch_utxo_set(branch::const_ptr const& branch);
 
 } // namespace kth::blockchain
