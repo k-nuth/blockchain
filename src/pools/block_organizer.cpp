@@ -223,7 +223,7 @@ void block_organizer::populate_prevout_1(branch::const_ptr branch, domain::chain
 
     prevout.spent = false;
     prevout.confirmed = false;
-    prevout.cache = chain::output{};
+    prevout.cache = domain::chain::output{};
     prevout.from_mempool = false;
 
     // If the input is a coinbase there is no prevout to populate.
