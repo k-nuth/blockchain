@@ -73,7 +73,7 @@ public:
     }
 
 private:
-    chain::transaction transaction_;
+    domain::chain::transaction transaction_;
     hash_digest txid_;
 
 #if ! defined(KTH_CURRENCY_BCH)
