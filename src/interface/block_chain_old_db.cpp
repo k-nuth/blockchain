@@ -50,14 +50,14 @@ void blockchain::for_each_transaction_non_coinbase(size_t from, size_t to, bool 
     while (from <= to) {
 
         if (stopped()) {
-            handler(error::service_stopped, 0, chain::transaction{});
+            handler(error::service_stopped, 0, domain::chain::transaction{});
             return;
         }
     
         auto const block_result = database_.blocks().get(from);
 
         if ( ! block_result) {
-            handler(error::not_found, 0, chain::transaction{});
+            handler(error::not_found, 0, domain::chain::transaction{});
             return;
         }
         KTH_ASSERT(block_result.height() == from);
