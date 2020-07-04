@@ -103,7 +103,7 @@ private:
     uint64_t fee_;
     size_t sigops_;
     uint32_t output_count_;
-    // std::vector<chain::point> previous_outputs_;
+    // std::vector<domain::chain::point> previous_outputs_;
 };
 
 }  // namespace mining
