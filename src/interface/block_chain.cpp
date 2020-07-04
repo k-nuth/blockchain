@@ -234,9 +234,9 @@ bool block_chain::get_is_unspent_transaction(hash_digest const& hash, size_t bra
 
 #if defined(KTH_DB_LEGACY) || defined(KTH_DB_NEW_FULL) 
 
-bool block_chain::get_output(chain::output& out_output, size_t& out_height,
+bool block_chain::get_output(domain::chain::output& out_output, size_t& out_height,
     uint32_t& out_median_time_past, bool& out_coinbase,
-    const chain::output_point& outpoint, size_t branch_height,
+    const domain::chain::output_point& outpoint, size_t branch_height,
     bool require_confirmed) const
 {
 
