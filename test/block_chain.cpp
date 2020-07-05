@@ -147,16 +147,14 @@ BOOST_AUTO_TEST_CASE(block_chain__get_gaps__one__one)
     BOOST_REQUIRE_EQUAL(heights[0], 1u);
 }
 
-BOOST_AUTO_TEST_CASE(block_chain__get_block_hash__not_found__false)
-{
+BOOST_AUTO_TEST_CASE(block_chain__get_block_hash__not_found__false) {
     START_BLOCKCHAIN(instance, false);
 
     hash_digest hash;
     BOOST_REQUIRE(!instance.get_block_hash(hash, 1));
 }
 
-BOOST_AUTO_TEST_CASE(block_chain__get_block_hash__found__true)
-{
+BOOST_AUTO_TEST_CASE(block_chain__get_block_hash__found__true) {
     START_BLOCKCHAIN(instance, false);
 
     auto const block1 = NEW_BLOCK(1);
