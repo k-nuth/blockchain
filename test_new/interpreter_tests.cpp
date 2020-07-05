@@ -83,7 +83,7 @@ TEST_CASE("[interpreter_tx_without_output] ") {
         "0000001976a9141ee32412020a324b93b1a1acfdfff6ab9ca8fac288ac000000"
         "00"));
 
-    bc::chain::transaction tx;
+    kd::domain::chain::transaction tx;
     tx.from_data(raw_tx);
 
     REQUIRE(interpreter.process(1550,tx) == error::not_keoken_tx);
