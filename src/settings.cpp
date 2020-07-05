@@ -58,12 +58,12 @@ settings::settings(infrastructure::config::settings context) {
         }
 
         default:
-        case config::settings::none: {}
+        case infrastructure::config::settings::none: {}
     }
 }
 
 uint32_t settings::enabled_forks() const {
-    using namespace machine;
+    using namespace domain::machine;
 
     uint32_t forks = rule_fork::no_rules;
     forks |= (easy_blocks ? rule_fork::easy_blocks : 0);
