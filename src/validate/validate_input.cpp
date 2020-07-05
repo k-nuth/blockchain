@@ -227,7 +227,7 @@ uint32_t validate_input::convert_flags(uint32_t native_forks) {
     return flags;
 }
 
-// TODO: map to corresponding bc::error codes.
+// TODO: map to corresponding kd::error codes.
 code validate_input::convert_result(verify_result_type result) {
     switch (result)
     {
