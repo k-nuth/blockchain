@@ -399,7 +399,7 @@ BOOST_AUTO_TEST_CASE(block_pool__prune__partial_branch_expired__partial_branch_d
 BOOST_AUTO_TEST_CASE(block_pool__filter__empty__empty)
 {
     block_pool_fixture instance(0);
-    auto const message = std::make_shared<message::get_data>();
+    auto const message = std::make_shared<domain::message::get_data>();
     instance.filter(message);
     BOOST_REQUIRE(message->inventories().empty());
 }
