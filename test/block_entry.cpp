@@ -56,7 +56,7 @@ BOOST_AUTO_TEST_CASE(block_entry__children__default__empty)
 BOOST_AUTO_TEST_CASE(block_entry__add_child__one__single)
 {
     block_entry instance(null_hash);
-    auto const child = std::make_shared<const message::block>();
+    auto const child = std::make_shared<const domain::message::block>();
     instance.add_child(child);
     BOOST_REQUIRE_EQUAL(instance.children().size(), 1u);
     BOOST_REQUIRE(instance.children()[0] == child->hash());
