@@ -121,10 +121,10 @@ public:
     // ------------------------------------------------------------------------
 
     /// Get a reference to the chain state relative to the next block.
-    virtual chain::chain_state::ptr chain_state() const = 0;
+    virtual domain::chain::chain_state::ptr chain_state() const = 0;
 
     /// Get a reference to the chain state relative to the next block.
-    virtual chain::chain_state::ptr chain_state(branch::const_ptr branch) const = 0;
+    virtual domain::chain::chain_state::ptr chain_state(branch::const_ptr branch) const = 0;
 
     virtual bool is_stale_fast() const = 0;
 };
