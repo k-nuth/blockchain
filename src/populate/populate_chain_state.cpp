@@ -256,5 +256,4 @@ chain_state::ptr populate_chain_state::populate(chain_state::ptr top) const {
     return state;
 }
 
-} // namespace blockchain
-} // namespace kth
+} // namespace kth::blockchain
