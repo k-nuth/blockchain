@@ -267,7 +267,7 @@ void block_organizer::populate_prevout_1(branch::const_ptr branch, domain::chain
     if ((spend_height <= branch_height) && (spend_height != output::validation::not_spent)) {
         prevout.spent = true;
         prevout.confirmed = true;
-        prevout.cache = chain::output{};
+        prevout.cache = domain::chain::output{};
     }
 }
 
