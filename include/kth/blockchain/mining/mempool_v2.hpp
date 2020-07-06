@@ -430,7 +430,7 @@ public:
         });
     }
 
-    bool is_candidate(chain::transaction const& tx) const {
+    bool is_candidate(domain::chain::transaction const& tx) const {
         // shared_lock_t lock(mutex_);
         return prioritizer_.low_job([&tx, this]{
             auto it = hash_index_.find(tx.hash());
