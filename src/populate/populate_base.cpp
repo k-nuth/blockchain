@@ -114,9 +114,8 @@ void populate_base::populate_prevout(size_t branch_height, output_point const& o
     if ((spend_height <= branch_height) && (spend_height != output::validation::not_spent)) {
         prevout.spent = true;
         prevout.confirmed = true;
-        prevout.cache = chain::output{};
+        prevout.cache = domain::chain::output{};
     }
 }
 
-} // namespace blockchain
-} // namespace kth
+} // namespace kth::blockchain
