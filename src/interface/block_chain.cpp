@@ -370,13 +370,13 @@ bool block_chain::get_branch_work(uint256_t& out_work, uint256_t const& maximum,
     for (uint32_t height = from_height; height <= top && out_work < maximum; ++height) {
         auto const result = database_.internal_db().get_header(height);
         if ( ! result.is_valid()) return false;
-        out_work += chain::header::proof(result.bits());
+        out_work += domain::chain::header::proof(result.bits());
     }
 
     return true;
 }
 
-bool block_chain::get_header(chain::header& out_header, size_t height) const {
+bool block_chain::get_header(domain::chain::header& out_header, size_t height) const {
     out_header = database_.internal_db().get_header(height);
     return out_header.is_valid();
 }
