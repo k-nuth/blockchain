@@ -187,7 +187,7 @@ void populate_block::populate_transactions(branch::const_ptr branch, size_t buck
 
     auto const state = block->validation.state;
     auto const forks = state->enabled_forks();
-    auto const collide = state->is_enabled(rule_fork::allow_collisions);
+    auto const collide = state->is_enabled(domain::machine::rule_fork::allow_collisions);
 
     // Must skip coinbase here as it is already accounted for.
     auto const first = bucket == 0 ? buckets : bucket;
