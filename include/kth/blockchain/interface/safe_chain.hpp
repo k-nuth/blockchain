@@ -212,7 +212,6 @@ public:
 
 };
 
-} // namespace blockchain
-} // namespace kth
+} // namespace kth::blockchain
 
 #endif
