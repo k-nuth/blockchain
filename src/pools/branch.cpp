@@ -254,7 +254,7 @@ void branch::populate_prevout(output_point const& outpoint, std::vector<std::uno
     auto& prevout = outpoint.validation;
 
     // In case this input is a coinbase or the prevout is spent.
-    prevout.cache = chain::output{};
+    prevout.cache = domain::chain::output{};
     prevout.coinbase = false;
     prevout.height = 0;
     prevout.median_time_past = 0;
