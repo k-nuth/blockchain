@@ -127,11 +127,11 @@ BOOST_AUTO_TEST_CASE(utxo__get_utxo__found__expected)
     BOOST_REQUIRE(instance.insert(block1, 1));
     BOOST_REQUIRE(instance.insert(block2, 2));
 
-    chain::output output;
+    domain::chain::output output;
     size_t height;
     uint32_t median_time_past;
     bool coinbase;
-    const chain::output_point outpoint{ block2->transactions()[0].hash(), 0 };
+    const domain::chain::output_point outpoint{ block2->transactions()[0].hash(), 0 };
     auto const expected_value = initial_block_subsidy_satoshi();
     auto const expected_script = block2->transactions()[0].outputs()[0].script().to_string(0);
     BOOST_REQUIRE(instance.get_utxo(output, height, median_time_past, coinbase, outpoint, 12));
