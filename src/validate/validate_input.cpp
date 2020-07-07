@@ -380,5 +380,4 @@ code validate_input::verify_script(transaction const& tx, uint32_t input_index, 
 
 #endif //WITH_CONSENSUS
 
-} // namespace blockchain
-} // namespace kth
+} // namespace kth::blockchain
