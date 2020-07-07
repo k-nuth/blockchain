@@ -66,10 +66,10 @@ BOOST_AUTO_TEST_CASE(block_entry__add_child__two__expected_order)
 {
     block_entry instance(null_hash);
 
-    auto const child1 = std::make_shared<const message::block>();
+    auto const child1 = std::make_shared<const domain::message::block>();
     instance.add_child(child1);
 
-    auto const child2 = std::make_shared<message::block>();
+    auto const child2 = std::make_shared<domain::message::block>();
     child2->header().set_previous_block_hash(hash42);
     instance.add_child(child2);
 
