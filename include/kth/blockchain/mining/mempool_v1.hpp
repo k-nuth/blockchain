@@ -752,7 +752,7 @@ public:
         });
     }
 
-    index_t candidate_rank(chain::transaction const& tx) const {
+    index_t candidate_rank(domain::chain::transaction const& tx) const {
         // shared_lock_t lock(mutex_);
         return prioritizer_.low_job([&tx, this]{
             auto it = hash_index_.find(tx.hash());
