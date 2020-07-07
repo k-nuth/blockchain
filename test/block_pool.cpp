@@ -411,7 +411,7 @@ BOOST_AUTO_TEST_CASE(block_pool__filter__empty_filter__unchanged)
     auto const block2 = make_block(2, 42);
     instance.add(block1);
     instance.add(block2);
-    auto const message = std::make_shared<message::get_data>();
+    auto const message = std::make_shared<domain::message::get_data>();
     instance.filter(message);
     BOOST_REQUIRE(message->inventories().empty());
 }
