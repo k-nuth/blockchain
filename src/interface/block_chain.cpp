@@ -421,7 +421,7 @@ bool block_chain::get_last_height(size_t& out_height) const {
     return succeed(res);
 }
 
-bool block_chain::get_utxo(chain::output& out_output, size_t& out_height, uint32_t& out_median_time_past, bool& out_coinbase, chain::output_point const& outpoint, size_t branch_height) const {
+bool block_chain::get_utxo(domain::chain::output& out_output, size_t& out_height, uint32_t& out_median_time_past, bool& out_coinbase, domain::chain::output_point const& outpoint, size_t branch_height) const {
     auto entry = database_.internal_db().get_utxo(outpoint);
     if ( ! entry.is_valid()) return false;
     if (entry.height() > branch_height) return false;
