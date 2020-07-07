@@ -165,8 +165,7 @@ BOOST_AUTO_TEST_CASE(block_chain__get_block_hash__found__true) {
     BOOST_REQUIRE(hash == block1->hash());
 }
 
-BOOST_AUTO_TEST_CASE(block_chain__get_branch_work__height_above_top__true)
-{
+BOOST_AUTO_TEST_CASE(block_chain__get_branch_work__height_above_top__true) {
     START_BLOCKCHAIN(instance, false);
 
     uint256_t work;
