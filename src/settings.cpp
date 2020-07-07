@@ -80,7 +80,7 @@ uint32_t settings::enabled_forks() const {
 
 #if defined(KTH_CURRENCY_BCH)
     forks |= (bch_uahf             ? rule_fork::bch_uahf : 0);
-    forks |= (bch_daa              ? rule_fork::bch_daa : 0);
+    forks |= (bch_daa_cw144        ? rule_fork::bch_daa_cw144 : 0);
     forks |= (bch_monolith         ? rule_fork::bch_monolith : 0);
     forks |= (bch_magnetic_anomaly ? rule_fork::bch_magnetic_anomaly : 0);
     forks |= (bch_great_wall       ? rule_fork::bch_great_wall : 0);
