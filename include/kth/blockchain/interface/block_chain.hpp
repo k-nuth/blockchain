@@ -143,7 +143,7 @@ public:
     void push(transaction_const_ptr tx, dispatcher& dispatch, result_handler handler) override;
 
     /// Swap incoming and outgoing blocks, height is validated.
-    void reorganize(const config::checkpoint& fork_point,
+    void reorganize(const infrastructure::config::checkpoint& fork_point,
         block_const_ptr_list_const_ptr incoming_blocks,
         block_const_ptr_list_ptr outgoing_blocks, dispatcher& dispatch,
         result_handler handler) override;
