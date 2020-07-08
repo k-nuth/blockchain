@@ -424,19 +424,19 @@ BOOST_AUTO_TEST_CASE(block_pool__filter__matched_blocks__non_blocks_and_mismatch
     auto const block3 = make_block(3, 44);
     instance.add(block1);
     instance.add(block2);
-    const message::inventory_vector expected1{ message::inventory::type_id::error, block1->hash() };
-    const message::inventory_vector expected2{ message::inventory::type_id::transaction, block3->hash() };
-    const message::inventory_vector expected3{ message::inventory::type_id::block, block3->hash() };
-    message::get_data data
+    const domain::message::inventory_vector expected1{ domain::message::inventory::type_id::error, block1->hash() };
+    const domain::message::inventory_vector expected2{ domain::message::inventory::type_id::transaction, block3->hash() };
+    const domain::message::inventory_vector expected3{ domain::message::inventory::type_id::block, block3->hash() };
+    domain::message::get_data data
     {
         expected1,
-        { message::inventory::type_id::block, block1->hash() },
+        { domain::message::inventory::type_id::block, block1->hash() },
         expected2,
-        { message::inventory::type_id::block, block2->hash() },
-        { message::inventory::type_id::block, block2->hash() },
+        { domain::message::inventory::type_id::block, block2->hash() },
+        { domain::message::inventory::type_id::block, block2->hash() },
         expected3
     };
-    auto const message = std::make_shared<message::get_data>(std::move(data));
+    auto const message = std::make_shared<domain::message::get_data>(std::move(data));
     instance.filter(message);
     BOOST_REQUIRE_EQUAL(message->inventories().size(), 3u);
     BOOST_REQUIRE(message->inventories()[0] == expected1);
