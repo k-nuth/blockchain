@@ -82,14 +82,14 @@ void blockchain::for_each_transaction(size_t from, size_t to, bool witness, for_
     while (from <= to) {
 
         if (stopped()) {
-            handler(error::service_stopped, 0, chain::transaction{});
+            handler(error::service_stopped, 0, domain::chain::transaction{});
             return;
         }
     
         auto const block_result = database_.internal_db().get_block(from);
 
         if ( ! block_result.is_valid()) {
-            handler(error::not_found, 0, chain::transaction{});
+            handler(error::not_found, 0, domain::chain::transaction{});
             return;
         }
 
