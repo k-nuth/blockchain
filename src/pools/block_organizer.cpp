@@ -284,7 +284,7 @@ void block_organizer::populate_prevout_2(branch::const_ptr branch, output_point 
 }
 
 //TODO(fernando): similar function in populate_block class
-void block_organizer::populate_transaction_inputs(branch::const_ptr branch, chain::input::list const& inputs, local_utxo_set_t const& branch_utxo) const {
+void block_organizer::populate_transaction_inputs(branch::const_ptr branch, domain::chain::input::list const& inputs, local_utxo_set_t const& branch_utxo) const {
     // auto const branch_height = branch->height();
 
     for (auto const& input : inputs) {
