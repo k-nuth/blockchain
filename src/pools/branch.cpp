@@ -377,5 +377,4 @@ bool branch::get_block_hash(hash_digest& out_hash, size_t height) const {
     return true;
 }
 
-} // namespace blockchain
-} // namespace kth
+} // namespace kth::blockchain
