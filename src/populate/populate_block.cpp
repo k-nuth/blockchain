@@ -293,5 +293,4 @@ void populate_block::populate_prevout(branch::const_ptr branch, output_point con
     }
 }
 
-} // namespace blockchain
-} // namespace kth
+} // namespace kth::blockchain
