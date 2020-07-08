@@ -82,7 +82,7 @@ BOOST_AUTO_TEST_CASE(block_entry__add_child__two__expected_order)
 
 BOOST_AUTO_TEST_CASE(block_entry__equality__same__true)
 {
-    auto const block = std::make_shared<const message::block>();
+    auto const block = std::make_shared<const domain::message::block>();
     block_entry instance1(block);
     block_entry instance2(block->hash());
     BOOST_REQUIRE(instance1 == instance2);
