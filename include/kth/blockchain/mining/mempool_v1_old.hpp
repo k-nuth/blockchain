@@ -709,7 +709,7 @@ public:
         return {std::move(res), accum_fees};
     }
 
-    chain::output get_utxo(chain::point const& point) const {
+    domain::chain::output get_utxo(domain::chain::point const& point) const {
         // shared_lock_t lock(mutex_);
         return prioritizer_.low_job([&point, this]{
             auto it = internal_utxo_set_.find(point);
