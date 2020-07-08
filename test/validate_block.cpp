@@ -110,16 +110,15 @@ BOOST_AUTO_TEST_CASE(validate_block__2018NOV__block_520679_tx__valid)
 
     //This value after conversion its equal to the above code.
     // static const uint32_t branches = 296831u;
-    uint32_t native_forks = rule_fork::bip16_rule;
-    native_forks |= rule_fork::bip65_rule;
-    native_forks |= rule_fork::bip66_rule;
-    native_forks |= rule_fork::bip112_rule;
-    native_forks |= rule_fork::cash_verify_flags_script_enable_sighash_forkid;
-    native_forks |= rule_fork::cash_low_s_rule;
-    native_forks |= rule_fork::cash_checkdatasig;
-    native_forks |= rule_fork::cash_schnorr;
-    native_forks |= rule_fork::cash_segwit_recovery;
-
+    uint32_t native_forks = domain::machine::rule_fork::bip16_rule;
+    native_forks |= domain::machine::rule_fork::bip65_rule;
+    native_forks |= domain::machine::rule_fork::bip66_rule;
+    native_forks |= domain::machine::rule_fork::bip112_rule;
+    native_forks |= domain::machine::rule_fork::bch_uahf;
+    native_forks |= domain::machine::rule_fork::bch_daa_cw144;
+    native_forks |= domain::machine::rule_fork::bch_magnetic_anomaly;
+    native_forks |= domain::machine::rule_fork::bch_great_wall;
+    // native_forks |= domain::machine::rule_fork::cash_segwit_recovery;
 
     data_chunk decoded_tx;
     BOOST_REQUIRE(decode_base16(decoded_tx, encoded_tx));
