@@ -1739,7 +1739,7 @@ TEST_CASE("[mempool] testnet case 1") {
         , get_tx("010000000106fd6ad50034509df5399562d8d108ea448553093c721ca9aaf477b98a589e61010000006a47304402206ff11e73e3be12c23667a161ee56f5e7ddb0f861cc404438cae1cbbef40b135902201793b598f3779b5cc367ae78f46549396afa2c1afd8ed19ca580ed0aaef9b97841210374a762d0a9e678aef54ba5d7a98a0f24c252008d31e6e5087c5557009acf786dffffffff02d0070000000000001976a91432b57f34861bcbe33a701be9ac3a50288fbc0a3d88ac377a8800000000001976a91427422cd8315f1701f206c261fb46609cea1b648588ac00000000")
     };
 
-    chain::block blk{chain::header{}, txs};
+    domain::chain::block blk{domain::chain::header{}, txs};
     auto res = mp.remove(blk.transactions().begin(), blk.transactions().end());
     // std::cout << res << std::endl;
     REQUIRE(res == error::success);
