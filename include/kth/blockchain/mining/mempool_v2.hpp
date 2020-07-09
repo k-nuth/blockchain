@@ -502,7 +502,7 @@ public:
                 return it->second;
             } 
 
-            return chain::output{};
+            return domain::chain::output{};
         });
     }
 
