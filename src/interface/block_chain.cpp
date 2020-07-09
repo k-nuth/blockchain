@@ -548,7 +548,7 @@ void block_chain::handle_reorganize(code const& ec, block_const_ptr top, result_
 // ----------------------------------------------------------------------------
 
 // For tx validator, call only from inside validate critical section.
-chain::chain_state::ptr block_chain::chain_state() const {
+domain::chain::chain_state::ptr block_chain::chain_state() const {
     // Critical Section
     ///////////////////////////////////////////////////////////////////////////
     shared_lock lock(pool_state_mutex_);
