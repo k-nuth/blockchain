@@ -1771,14 +1771,14 @@ TEST_CASE("[mempool] testnet case 2") {
         , "01000000012697dd5ed15af075e6c01e01bcbed63b73ead19ce09073ef092d78c48c0cdbcd010000006a4730440220468e1269b1a182dbfe66716554286df0afa2350596f3a00872e75c4c179c8555022066ca98d428e4a4b5bb1c02680bf2f4af14e54cab910bd5aeefcb31e5ca0c266e4121026f77aac396bd82dde783509ccf188c5140a1b3e69809bbe65309fab98e97d95affffffff02d0070000000000001976a91432b57f34861bcbe33a701be9ac3a50288fbc0a3d88aceab54f00000000001976a914e048131a271885ad572722ff444e6b133e123e3088ac00000000"
     };
 
-    std::unordered_map<chain::point, chain::output> internal_utxo;
+    std::unordered_map<domain::chain::point, domain::chain::output> internal_utxo;
 
     for (auto const& oldstr : olds) {
         auto tx = get_tx(oldstr);
 
         uint32_t i = 0;
         for (auto const& out : tx.outputs()) {
-            internal_utxo.emplace(chain::point{tx.hash(), i}, out);
+            internal_utxo.emplace(domain::chain::point{tx.hash(), i}, out);
             ++i;
         }
     }
