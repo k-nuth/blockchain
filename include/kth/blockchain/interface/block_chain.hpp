@@ -154,10 +154,10 @@ public:
     // ------------------------------------------------------------------------
 
     /// Get forks chain state relative to chain top.
-    chain::chain_state::ptr chain_state() const override;
+    domain::chain::chain_state::ptr chain_state() const override;
 
     /// Get full chain state relative to the branch top.
-    chain::chain_state::ptr chain_state(branch::const_ptr branch) const override;
+    domain::chain::chain_state::ptr chain_state(branch::const_ptr branch) const override;
 
     // ========================================================================
     // SAFE CHAIN
