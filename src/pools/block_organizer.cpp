@@ -295,7 +295,7 @@ void block_organizer::populate_transaction_inputs(branch::const_ptr branch, doma
 }
 
 //TODO(fernando): similar function in populate_block class
-void block_organizer::populate_transactions(branch::const_ptr branch, chain::block const& block, local_utxo_set_t const& branch_utxo) const {
+void block_organizer::populate_transactions(branch::const_ptr branch, domain::chain::block const& block, local_utxo_set_t const& branch_utxo) const {
 
     auto const& txs = block.transactions();
 
