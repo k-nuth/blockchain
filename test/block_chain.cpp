@@ -187,8 +187,7 @@ BOOST_AUTO_TEST_CASE(block_chain__get_branch_work__maximum_zero__true) {
     BOOST_REQUIRE_EQUAL(work, 0);
 }
 
-BOOST_AUTO_TEST_CASE(block_chain__get_branch_work__maximum_one__true)
-{
+BOOST_AUTO_TEST_CASE(block_chain__get_branch_work__maximum_one__true) {
     START_BLOCKCHAIN(instance, false);
 
     auto const block1 = NEW_BLOCK(1);
