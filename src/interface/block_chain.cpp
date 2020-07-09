@@ -511,7 +511,7 @@ void block_chain::fetch_unconfirmed_transaction(hash_digest const& hash, transac
 #endif // KTH_DB_TRANSACTION_UNCONFIRMED
 
 #if ! defined(KTH_DB_READONLY)
-void block_chain::reorganize(const checkpoint& fork_point,
+void block_chain::reorganize(const infrastructure::config::checkpoint& fork_point,
     block_const_ptr_list_const_ptr incoming_blocks,
     block_const_ptr_list_ptr outgoing_blocks, dispatcher& dispatch,
     result_handler handler) {
