@@ -2188,14 +2188,14 @@ TEST_CASE("[mempool] testnet case 3") {
     };
 
 
-    std::unordered_map<chain::point, chain::output> internal_utxo;
+    std::unordered_map<domain::chain::point, domain::chain::output> internal_utxo;
 
     for (auto const& oldstr : olds) {
         auto tx = get_tx(oldstr);
 
         uint32_t i = 0;
         for (auto const& out : tx.outputs()) {
-            internal_utxo.emplace(chain::point{tx.hash(), i}, out);
+            internal_utxo.emplace(domain::chain::point{tx.hash(), i}, out);
             ++i;
         }
     }
