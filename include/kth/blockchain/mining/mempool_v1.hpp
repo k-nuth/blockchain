@@ -1288,7 +1288,7 @@ private:
 
     void remove_from_utxo(hash_digest const& txid, uint32_t output_count) {
         for (uint32_t i = 0; i < output_count; ++i) {
-            internal_utxo_set_.erase(chain::point{txid, i});
+            internal_utxo_set_.erase(domain::chain::point{txid, i});
         }
 
         //TODO(fernando): Do I have to insert the prevouts removed before??
