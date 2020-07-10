@@ -200,8 +200,7 @@ BOOST_AUTO_TEST_CASE(block_chain__get_branch_work__maximum_one__true) {
     BOOST_REQUIRE_EQUAL(work, genesis_mainnet_work);
 }
 
-BOOST_AUTO_TEST_CASE(block_chain__get_branch_work__unbounded__true)
-{
+BOOST_AUTO_TEST_CASE(block_chain__get_branch_work__unbounded__true) {
     START_BLOCKCHAIN(instance, false);
 
     auto const block1 = NEW_BLOCK(1);
