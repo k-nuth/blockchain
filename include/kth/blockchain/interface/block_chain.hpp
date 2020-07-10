@@ -255,7 +255,7 @@ public:
             auto const tx_result = tx_store.get(hash, max_size_t, true);
 
             if ( ! tx_result) {
-                handler(error::operation_failed_16, 0, chain::transaction{});
+                handler(error::operation_failed_16, 0, domain::chain::transaction{});
                 return;
             }
             KTH_ASSERT(tx_result.height() == height);
