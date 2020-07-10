@@ -135,7 +135,7 @@ void blockchain::for_each_transaction_non_coinbase(size_t from, size_t to, bool 
 
 #if defined(KTH_WITH_KEOKEN)
 
-void block_chain::convert_to_keo_transaction(const kth::hash_digest& hash, std::shared_ptr<std::vector<transaction_const_ptr>> keoken_txs) const {
+void blockchain::convert_to_keo_transaction(const kth::hash_digest& hash, std::shared_ptr<std::vector<transaction_const_ptr>> keoken_txs) const {
    fetch_transaction(hash, true, false,
               [&](const kth::code &ec,
                   kth::transaction_const_ptr tx_ptr, size_t index,
