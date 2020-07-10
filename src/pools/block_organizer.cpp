@@ -335,7 +335,7 @@ void block_organizer::organize_mempool(branch::const_ptr branch, block_const_ptr
             mempool_.remove(block->transactions().begin() + 1, block->transactions().end(), block->non_coinbase_input_count());
 
             if ( ! fast_chain_.is_stale_fast() && ! outgoing_blocks->empty()) {
-                std::for_each(block->transactions().begin() + 1, block->transactions().end(), [&txs_in, &prevouts_in](chain::transaction const& tx){
+                std::for_each(block->transactions().begin() + 1, block->transactions().end(), [&txs_in, &prevouts_in](domain::chain::transaction const& tx){
                     txs_in.insert(tx.hash());
 
                     for (auto const& input : tx.inputs()) {
