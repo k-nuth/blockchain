@@ -150,7 +150,7 @@ TEST_CASE("[interpreter_tx_send_token_insufficient_money] ") {
     interpreter1_.process(1550,tx);
 
     data_chunk raw_send_tx = to_chunk(base16_literal("01000000011e572671f2cff67190785b52e72dc221b1c3a092159b70ec14bc2f433c4dcb2f000000006b48304502210084c05aa0d2a60f69045b46179cff207fde8003ea07a90a75d934ec35d6a46a3a02205b328724e736d9400b3f13ac6e0e49462048dfc2c9a7bd1be9944aa9baa455144121036735a1fe1b39fbe39e629a6dd680bf00b13aefe40d9f3bb6f863d2c4094ddd0effffffff03204e0000000000001976a914071ed73aa65c19f86c88a29a789210fafc8d675188ac606b042a010000001976a9140ef6dfde07323619edd2440ca0a54d311df1ee8b88ac0000000000000000176a0400004b50100000000100000002000000000000006400000000"));
-    bc::chain::transaction tx_send;
+    kd::domain::chain::transaction tx_send;
     tx_send.from_data(raw_send_tx);
 
     blk_t chain2(tx_send);
