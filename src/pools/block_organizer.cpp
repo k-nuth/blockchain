@@ -321,7 +321,7 @@ local_utxo_set_t create_outgoing_utxo_set(block_const_ptr_list_ptr const& outgoi
 void block_organizer::organize_mempool(branch::const_ptr branch, block_const_ptr_list_const_ptr const& incoming_blocks, block_const_ptr_list_ptr const& outgoing_blocks) {
 
     std::unordered_set<hash_digest> txs_in;
-    std::unordered_set<chain::point> prevouts_in;
+    std::unordered_set<domain::chain::point> prevouts_in;
 
     for (auto const& block : *incoming_blocks) {
         if (block->transactions().size() > 1) {
