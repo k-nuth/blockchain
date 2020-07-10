@@ -790,7 +790,7 @@ private:
         }
     }
 
-    void find_double_spend_issues(std::set<index_t, std::greater<index_t>>& to_remove, std::vector<chain::point> const& outs) {
+    void find_double_spend_issues(std::set<index_t, std::greater<index_t>>& to_remove, std::vector<domain::chain::point> const& outs) {
 
         for (auto const& po : outs) {
             // auto it = previous_outputs_.left.find(po);
