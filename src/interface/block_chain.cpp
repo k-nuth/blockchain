@@ -559,7 +559,7 @@ domain::chain::chain_state::ptr block_chain::chain_state() const {
 }
 
 // For block validator, call only from inside validate critical section.
-chain::chain_state::ptr block_chain::chain_state(branch::const_ptr branch) const {
+domain::chain::chain_state::ptr block_chain::chain_state(branch::const_ptr branch) const {
     // Promote from cache if branch is same height as pool (most typical).
     // Generate from branch/store if the promotion is not successful.
     // If the organize is successful pool state will be updated accordingly.
