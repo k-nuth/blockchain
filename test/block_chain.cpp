@@ -216,36 +216,32 @@ BOOST_AUTO_TEST_CASE(block_chain__get_branch_work__unbounded__true) {
     BOOST_REQUIRE_EQUAL(work, 0x0000000300030003);
 }
 
-BOOST_AUTO_TEST_CASE(block_chain__get_header__not_found__false)
-{
+BOOST_AUTO_TEST_CASE(block_chain__get_header__not_found__false) {
     START_BLOCKCHAIN(instance, false);
 
-    chain::header header;
+    domain::chain::header header;
     BOOST_REQUIRE(!instance.get_header(header, 1));
 }
 
-BOOST_AUTO_TEST_CASE(block_chain__get_header__found__true)
-{
+BOOST_AUTO_TEST_CASE(block_chain__get_header__found__true) {
     START_BLOCKCHAIN(instance, false);
 
     auto const block1 = NEW_BLOCK(1);
     BOOST_REQUIRE(instance.insert(block1, 1));
 
-    chain::header header;
+    domain::chain::header header;
     BOOST_REQUIRE(instance.get_header(header, 1));
     BOOST_REQUIRE(header == block1->header());
 }
 
-BOOST_AUTO_TEST_CASE(block_chain__get_height__not_found__false)
-{
+BOOST_AUTO_TEST_CASE(block_chain__get_height__not_found__false) {
     START_BLOCKCHAIN(instance, false);
 
     size_t height;
     BOOST_REQUIRE(!instance.get_height(height, null_hash));
 }
 
-BOOST_AUTO_TEST_CASE(block_chain__get_height__found__true)
-{
+BOOST_AUTO_TEST_CASE(block_chain__get_height__found__true) {
     START_BLOCKCHAIN(instance, false);
 
     auto const block1 = NEW_BLOCK(1);
