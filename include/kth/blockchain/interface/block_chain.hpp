@@ -224,7 +224,7 @@ public:
     void fetch_locator_block_headers(get_headers_const_ptr locator, hash_digest const& threshold, size_t limit, locator_block_headers_fetch_handler handler) const override;
 
     /// fetch a block locator relative to the current top and threshold.
-    void fetch_block_locator(chain::block::indexes const& heights, block_locator_fetch_handler handler) const override;
+    void fetch_block_locator(domain::chain::block::indexes const& heights, block_locator_fetch_handler handler) const override;
 
     /// fetch height of latest block.
     void fetch_last_height(last_height_fetch_handler handler) const override;
