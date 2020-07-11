@@ -1525,7 +1525,7 @@ private:
     }
 
 
-    void relatives_management(chain::transaction const& tx, index_t node_index, node& new_node) {
+    void relatives_management(domain::chain::transaction const& tx, index_t node_index, node& new_node) {
 
         auto start = std::chrono::high_resolution_clock::now();
 
