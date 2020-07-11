@@ -355,12 +355,12 @@ void block_organizer::organize_mempool(branch::const_ptr branch, block_const_ptr
 
             if (block->transactions().size() > 1) {
                 std::for_each(block->transactions().begin() + 1, block->transactions().end(), 
-                [this, branch, &txs_in, &prevouts_in, &branch_utxo](chain::transaction const& tx) {
+                [this, branch, &txs_in, &prevouts_in, &branch_utxo](domain::chain::transaction const& tx) {
                     auto it = txs_in.find(tx.hash());
                     if (it == txs_in.end()) {
 
 
-                        auto double_spend = std::any_of(tx.inputs().begin(), tx.inputs().end(), [this, &prevouts_in](chain::input const& in) {
+                        auto double_spend = std::any_of(tx.inputs().begin(), tx.inputs().end(), [this, &prevouts_in](domain::chain::input const& in) {
                             return prevouts_in.find(in.previous_output()) != prevouts_in.end();
                         });
 
