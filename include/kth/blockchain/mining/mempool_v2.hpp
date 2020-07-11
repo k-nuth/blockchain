@@ -1096,7 +1096,7 @@ private:
 // ------------------------------------------------------------------------------------------------
 
 
-    error::error_code_t process_utxo_and_graph(chain::transaction const& tx, index_t node_index, node& new_node) {
+    error::error_code_t process_utxo_and_graph(domain::chain::transaction const& tx, index_t node_index, node& new_node) {
         //TODO: evitar tratar de borrar en el UTXO Local, si el UTXO fue encontrado en la DB
 
         auto it = hash_index_.find(tx.hash());
