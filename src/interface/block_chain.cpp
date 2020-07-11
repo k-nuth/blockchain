@@ -567,8 +567,7 @@ domain::chain::chain_state::ptr block_chain::chain_state(branch::const_ptr branc
 }
 
 // private.
-code block_chain::set_chain_state(chain::chain_state::ptr previous)
-{
+code block_chain::set_chain_state(domain::chain::chain_state::ptr previous) {
     // Critical Section
     ///////////////////////////////////////////////////////////////////////////
     unique_lock lock(pool_state_mutex_);
