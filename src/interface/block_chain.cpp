@@ -1306,7 +1306,7 @@ void block_chain::fetch_transaction_position(hash_digest const& hash, bool requi
 
 
 //TODO (Mario) : Review and move to proper location
-hash_digest generate_merkle_root(std::vector<chain::transaction> transactions) {
+hash_digest generate_merkle_root(std::vector<domain::chain::transaction> transactions) {
     if (transactions.empty())
         return null_hash;
 
