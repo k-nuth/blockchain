@@ -152,7 +152,7 @@ void blockchain::convert_to_keo_transaction(const kth::hash_digest& hash, std::s
 
 #if defined(KTH_DB_LEGACY)
 
-void block_chain::fetch_keoken_history(const short_hash& address_hash, size_t limit,
+void blockchain::fetch_keoken_history(const short_hash& address_hash, size_t limit,
     size_t from_height, keoken_history_fetch_handler handler) const
 {
     auto keoken_txs = std::make_shared<std::vector<transaction_const_ptr>>();
