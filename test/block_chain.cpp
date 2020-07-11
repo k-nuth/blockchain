@@ -252,16 +252,14 @@ BOOST_AUTO_TEST_CASE(block_chain__get_height__found__true) {
     BOOST_REQUIRE_EQUAL(height, 1u);
 }
 
-BOOST_AUTO_TEST_CASE(block_chain__get_bits__not_found__false)
-{
+BOOST_AUTO_TEST_CASE(block_chain__get_bits__not_found__false) {
     START_BLOCKCHAIN(instance, false);
 
     uint32_t bits;
     BOOST_REQUIRE(!instance.get_bits(bits, 1));
 }
 
-BOOST_AUTO_TEST_CASE(block_chain__get_bits__found__true)
-{
+BOOST_AUTO_TEST_CASE(block_chain__get_bits__found__true) {
     START_BLOCKCHAIN(instance, false);
 
     auto const block1 = NEW_BLOCK(1);
