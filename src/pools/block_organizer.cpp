@@ -525,5 +525,4 @@ bool block_organizer::set_branch_height(branch::ptr branch) {
     return true;
 }
 
-} // namespace blockchain
-} // namespace kth
+} // namespace kth::blockchain
