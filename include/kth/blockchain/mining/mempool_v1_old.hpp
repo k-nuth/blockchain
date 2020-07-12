@@ -1113,10 +1113,10 @@ private:
         return error::success;
     }
 
-    // bool check_no_duplicated_outputs(chain::transaction const& tx) {
+    // bool check_no_duplicated_outputs(domain::chain::transaction const& tx) {
     //     uint32_t index = 0;
     //     for (auto const& o : tx.outputs()) {
-    //         auto it = internal_utxo_set_.find(chain::point{tx.hash(), index});
+    //         auto it = internal_utxo_set_.find(domain::chain::point{tx.hash(), index});
     //         if (it != internal_utxo_set_.end()) {
     //             return false;
     //         }
