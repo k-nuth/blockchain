@@ -315,7 +315,7 @@ public:
 
 #if defined(KTH_DB_SPENDS) || defined(KTH_DB_NEW_FULL)
     /// fetch the inpoint (spender) of an outpoint.
-    void fetch_spend(const chain::output_point& outpoint, spend_fetch_handler handler) const override;
+    void fetch_spend(const domain::chain::output_point& outpoint, spend_fetch_handler handler) const override;
 #endif // KTH_DB_SPENDS
 
 #if defined(KTH_DB_HISTORY) || defined(KTH_DB_NEW_FULL)
