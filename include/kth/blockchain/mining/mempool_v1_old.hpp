@@ -1092,7 +1092,7 @@ private:
         return error::success;
     }
 
-    error::error_code_t check_double_spend(chain::transaction const& tx) {
+    error::error_code_t check_double_spend(domain::chain::transaction const& tx) {
         for (auto const& i : tx.inputs()) {
             if (i.previous_output().validation.from_mempool) {
                 auto it = internal_utxo_set_.find(i.previous_output());
