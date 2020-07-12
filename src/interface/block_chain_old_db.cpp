@@ -206,7 +206,7 @@ void blockchain::fetch_block_keoken(hash_digest const& hash, bool witness,
     }
 
     auto const height = block_result.height();
-    auto const message = std::make_shared<const kth::message::header>(block_result.header());
+    auto const message = std::make_shared<const kth::domain::message::header>(block_result.header());
     auto const tx_hashes = block_result.transaction_hashes();
     auto const& tx_store = database_.transactions();
     DEBUG_ONLY(size_t position = 0;)
