@@ -298,7 +298,7 @@ public:
             auto const& tx = *f;
             
             if ( ! tx.is_valid()) {
-                handler(error::operation_failed_16, 0, chain::transaction{});
+                handler(error::operation_failed_16, 0, domain::chain::transaction{});
                 return;
             }
             //KTH_ASSERT(tx.height() == height);
