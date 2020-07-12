@@ -1429,7 +1429,7 @@ std::vector<kth::blockchain::mempool_transaction_summary> block_chain::get_mempo
 }
 
 // Precondition: valid payment addresses
-std::vector<chain::transaction> block_chain::get_mempool_transactions_from_wallets(std::vector<wallet::payment_address> const& payment_addresses, bool use_testnet_rules, bool witness) const {
+std::vector<domain::chain::transaction> block_chain::get_mempool_transactions_from_wallets(std::vector<wallet::payment_address> const& payment_addresses, bool use_testnet_rules, bool witness) const {
 
 #ifdef KTH_CURRENCY_BCH
     witness = false;
