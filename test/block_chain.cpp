@@ -340,11 +340,11 @@ BOOST_AUTO_TEST_CASE(block_chain__get_output__not_found__false)
 {
     START_BLOCKCHAIN(instance, false);
 
-    chain::output output;
+    domain::chain::output output;
     size_t height;
     uint32_t median_time_past;
     bool coinbase;
-    const chain::output_point outpoint{ null_hash, 42 };
+    const domain::chain::output_point outpoint{ null_hash, 42 };
     size_t branch_height = 0;
     BOOST_REQUIRE(!instance.get_output(output, height, median_time_past, coinbase, outpoint, branch_height, true));
 }
