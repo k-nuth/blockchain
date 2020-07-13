@@ -381,11 +381,11 @@ BOOST_AUTO_TEST_CASE(block_chain__get_output__above_fork__false)
     BOOST_REQUIRE(instance.insert(block1, 1));
     BOOST_REQUIRE(instance.insert(block2, 2));
 
-    chain::output output;
+    domain::chain::output output;
     size_t height;
     uint32_t median_time_past;
     bool coinbase;
-    const chain::output_point outpoint{ block2->transactions()[0].hash(), 0 };
+    const domain::chain::output_point outpoint{ block2->transactions()[0].hash(), 0 };
     BOOST_REQUIRE(!instance.get_output(output, height, median_time_past, coinbase, outpoint, 1, true));
 }
 
