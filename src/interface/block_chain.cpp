@@ -1445,7 +1445,7 @@ std::vector<domain::chain::transaction> block_chain::get_mempool_transactions_fr
         encoding_p2sh = kth::wallet::payment_address::mainnet_p2sh;
     }
 
-    std::vector<chain::transaction> ret;
+    std::vector<domain::chain::transaction> ret;
 
     auto const result = database_.internal_db().get_all_transaction_unconfirmed();
 
