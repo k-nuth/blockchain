@@ -241,7 +241,7 @@ void blockchain::fetch_block_keoken(hash_digest const& hash, bool witness,
 
 #if defined(KTH_DB_NEW_FULL)
 
-void block_chain::fetch_keoken_history(const short_hash& address_hash, size_t limit,
+void blockchain::fetch_keoken_history(const short_hash& address_hash, size_t limit,
     size_t from_height, keoken_history_fetch_handler handler) const
 {
     auto keoken_txs = std::make_shared<std::vector<transaction_const_ptr>>();
