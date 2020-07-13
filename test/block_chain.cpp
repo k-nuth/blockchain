@@ -638,7 +638,7 @@ static int fetch_merkle_block_by_height_result(block_chain& instance,
         }
 
         auto const match = result_height == height &&
-            *result_merkle == message::merkle_block(*block);
+            *result_merkle == domain::message::merkle_block(*block);
         promise.set_value(match ? error::success : error::operation_failed_28);
     };
     instance.fetch_merkle_block(height, handler);
