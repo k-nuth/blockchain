@@ -225,10 +225,10 @@ void blockchain::fetch_block_keoken(hash_digest const& hash, bool witness,
 
         KTH_ASSERT(tx_result.height() == height);
         KTH_ASSERT(tx_result.position() == position++);
-        const kth::chain::transaction& tx_ptr = tx_result.transaction(witness);
+        const kth::domain::chain::transaction& tx_ptr = tx_result.transaction(witness);
         auto keoken_data = knuth::keoken::first_keoken_output(tx_ptr);
         if (!keoken_data.empty()) {
-            (*keoken_txs).push_back(std::make_shared<const kth::message::transaction>(tx_result.transaction(witness)));
+            (*keoken_txs).push_back(std::make_shared<const kth::domain::message::transaction>(tx_result.transaction(witness)));
         }
     }
 
