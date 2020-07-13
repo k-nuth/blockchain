@@ -1197,7 +1197,7 @@ private:
     internal_utxo_set_t internal_utxo_set_;
     hash_index_t hash_index_;
 
-    // std::unordered_map<chain::point, index_t> previous_outputs_;
+    // std::unordered_map<domain::chain::point, index_t> previous_outputs_;
     previous_outputs_t previous_outputs_;
 
     // mutable mutex_t mutex_;
