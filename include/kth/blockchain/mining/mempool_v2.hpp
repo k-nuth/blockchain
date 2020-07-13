@@ -1171,11 +1171,11 @@ private:
         return error::success;
     }
 
-    void insert_outputs_in_utxo(chain::transaction const& tx) {
+    void insert_outputs_in_utxo(domain::chain::transaction const& tx) {
         //precondition: there are no duplicates outputs between tx.outputs() and internal_utxo_set_
         uint32_t index = 0;
         for (auto const& o : tx.outputs()) {
-            internal_utxo_set_.emplace(chain::point{tx.hash(), index}, o);
+            internal_utxo_set_.emplace(domain::chain::point{tx.hash(), index}, o);
             ++index;
         }
     }
