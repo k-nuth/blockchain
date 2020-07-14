@@ -44,7 +44,6 @@ option(WITH_CONSENSUS "Link kth-consensus and use for consensus checks." ON)
 # Implement --with-tests and declare WITH_TESTS.
 #------------------------------------------------------------------------------
 option(WITH_TESTS "Compile with unit tests." ON)
-option(WITH_TESTS_NEW "Compile with unit tests." OFF)
 
 # Implement --with-tools and declare WITH_TOOLS.
 #------------------------------------------------------------------------------
