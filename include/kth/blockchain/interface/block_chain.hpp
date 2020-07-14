@@ -449,16 +449,16 @@ private:
     std::atomic<bool> stopped_;
     const settings& settings_;
     const time_t notify_limit_seconds_;
-    bc::atomic<block_const_ptr> last_block_;
+    kth::atomic<block_const_ptr> last_block_;
 
     //TODO(kth):  dissabled this tx cache because we don't want special treatment for the last txn, it affects the explorer rpc methods
-    //bc::atomic<transaction_const_ptr> last_transaction_;
+    //kth::atomic<transaction_const_ptr> last_transaction_;
     
     const populate_chain_state chain_state_populator_;
     database::data_base database_;
 
     // This is protected by mutex.
-    chain::chain_state::ptr pool_state_;
+    domain::chain::chain_state::ptr pool_state_;
     mutable shared_mutex pool_state_mutex_;
 
     // These are thread safe.
