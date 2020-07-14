@@ -1523,7 +1523,7 @@ void block_chain::fill_tx_list_from_mempool(domain::message::compact_block const
                 // FillBlock failure would be annoying.
                 if (txn_available[idit->second].is_valid()) {
                     //txn_available[idit->second].reset();
-                    txn_available[idit->second] = chain::transaction{};
+                    txn_available[idit->second] = domain::chain::transaction{};
                     --mempool_count;
                 }
             }
