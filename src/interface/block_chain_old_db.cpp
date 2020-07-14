@@ -327,5 +327,4 @@ void blockchain::fetch_block_keoken(hash_digest const& hash, bool witness,
 
 #endif //KTH_WITH_KEOKEN
 
-} // namespace blockchain
-} // namespace kth
+} // namespace kth::blockchain
