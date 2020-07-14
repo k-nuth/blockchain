@@ -1848,7 +1848,7 @@ private:
     indexes_t candidate_transactions_ctor_;   //Por CTOR, solamente para BCH...
 #endif
 
-    // std::unordered_map<chain::point, index_t> previous_outputs_;
+    // std::unordered_map<domain::chain::point, index_t> previous_outputs_;
     previous_outputs_t previous_outputs_;
 
     // mutable mutex_t mutex_;
