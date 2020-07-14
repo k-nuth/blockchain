@@ -73,7 +73,7 @@ class KnuthBlockchainConan(KnuthConanFile):
 
     generators = "cmake"
     exports = "conan_*", "ci_utils/*"
-    exports_sources = "src/*", "CMakeLists.txt", "cmake/*", "kth-blockchainConfig.cmake.in", "knuthbuildinfo.cmake", "include/*", "test/*", "test_new/*", "tools/*"
+    exports_sources = "src/*", "CMakeLists.txt", "cmake/*", "kth-blockchainConfig.cmake.in", "knuthbuildinfo.cmake", "include/*", "test/*", "tools/*"
     package_files = "build/lkth-blockchain.a"
     build_policy = "missing"
 
