@@ -746,7 +746,7 @@ BOOST_AUTO_TEST_CASE(block_chain__fetch_locator_block_headers__empty__sequential
     BOOST_REQUIRE(instance.insert(block2, 2));
     BOOST_REQUIRE(instance.insert(block3, 3));
 
-    auto const locator = std::make_shared<const message::get_headers>();
+    auto const locator = std::make_shared<const domain::message::get_headers>();
     BOOST_REQUIRE_EQUAL(fetch_locator_block_headers(instance, locator, null_hash, 0), error::success);
 }
 
