@@ -1713,7 +1713,7 @@ std::vector<domain::chain::transaction> block_chain::get_mempool_transactions_fr
         encoding_p2sh = kth::wallet::payment_address::mainnet_p2sh;
     }
 
-    std::vector<chain::transaction> ret;
+    std::vector<domain::chain::transaction> ret;
 
     database_.transactions_unconfirmed().for_each_result([&](kth::database::transaction_unconfirmed_result const &tx_res) {
         auto tx = tx_res.transaction(witness);
