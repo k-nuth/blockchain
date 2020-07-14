@@ -780,7 +780,7 @@ BOOST_AUTO_TEST_CASE(block_chain__fetch_locator_block_headers__limited__sequenti
 
     const size_t limit = 3;
     auto const threshold = null_hash;
-    auto const locator = std::make_shared<const message::get_headers>();
+    auto const locator = std::make_shared<const domain::message::get_headers>();
     BOOST_REQUIRE_EQUAL(fetch_locator_block_headers(instance, locator, null_hash, 2), error::success);
 }
 #endif // KTH_DB_LEGACY
