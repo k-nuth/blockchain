@@ -440,7 +440,7 @@ private:
     // Utilities.
     //-------------------------------------------------------------------------
 
-    code set_chain_state(chain::chain_state::ptr previous);
+    code set_chain_state(domain::chain::chain_state::ptr previous);
     void handle_transaction(code const& ec, transaction_const_ptr tx, result_handler handler) const;
     void handle_block(code const& ec, block_const_ptr block, result_handler handler) const;
     void handle_reorganize(code const& ec, block_const_ptr top, result_handler handler);
