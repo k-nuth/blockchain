@@ -1768,7 +1768,7 @@ std::vector<domain::chain::transaction> block_chain::get_mempool_transactions_fr
 */
 
 
-void block_chain::fill_tx_list_from_mempool(message::compact_block const& block, size_t& mempool_count, std::vector<chain::transaction>& txn_available, std::unordered_map<uint64_t, uint16_t> const& shorttxids) const {
+void block_chain::fill_tx_list_from_mempool(domain::message::compact_block const& block, size_t& mempool_count, std::vector<domain::chain::transaction>& txn_available, std::unordered_map<uint64_t, uint16_t> const& shorttxids) const {
     
     std::vector<bool> have_txn(txn_available.size());
     
