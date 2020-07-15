@@ -10,9 +10,9 @@ using namespace kd::chain;
 using namespace kth::blockchain;
 using namespace kd::machine;
 
-BOOST_AUTO_TEST_SUITE(validate_block_tests)
+// Start Boost Suite: validate block tests
 
-BOOST_AUTO_TEST_CASE(validate_block__native__block_438513_tx__valid) {
+TEST_CASE("validate block  native  block 438513 tx  valid", "[validate block tests]") {
     //// DEBUG [blockchain] Input validation failed (stack false)
     //// forks        : 62
     //// outpoint     : 8e51d775e0896e03149d585c0655b3001da0c55068b0885139ac6ec34cf76ba0:0
