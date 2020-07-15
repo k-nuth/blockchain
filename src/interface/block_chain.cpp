@@ -2585,7 +2585,7 @@ bool block_chain::is_stale() const {
     if ( ! top) {
         size_t last_height;
         if (get_last_height(last_height)) {
-            chain::header last_header;
+            domain::chain::header last_header;
             if (get_header(last_header, last_height)) {
                 last_timestamp = last_header.timestamp();
             }
