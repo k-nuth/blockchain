@@ -1842,7 +1842,7 @@ safe_chain::mempool_mini_hash_map block_chain::get_mempool_mini_hash_map(domain:
 
     safe_chain::mempool_mini_hash_map mempool;
    
-    database_.transactions_unconfirmed().for_each([&](chain::transaction const &tx) {
+    database_.transactions_unconfirmed().for_each([&](domain::chain::transaction const &tx) {
     
         auto sh = sip_hash_uint256(k0, k1, tx.hash(witness));
         
