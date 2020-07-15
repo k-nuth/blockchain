@@ -1824,7 +1824,7 @@ void block_chain::fill_tx_list_from_mempool(domain::message::compact_block const
     });
 }
 
-safe_chain::mempool_mini_hash_map block_chain::get_mempool_mini_hash_map(message::compact_block const& block) const {
+safe_chain::mempool_mini_hash_map block_chain::get_mempool_mini_hash_map(domain::message::compact_block const& block) const {
 #ifdef KTH_CURRENCY_BCH
      bool witness = false;
 #else
