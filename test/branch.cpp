@@ -11,7 +11,7 @@ using namespace kth;
 using namespace kd::message;
 using namespace kth::blockchain;
 
-BOOST_AUTO_TEST_SUITE(branch_tests)
+// Start Boost Suite: branch tests
 
 #define DECLARE_BLOCK(name, number) \
     auto const name##number = std::make_shared<block>(); \
