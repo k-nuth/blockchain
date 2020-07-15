@@ -10,7 +10,7 @@
 using namespace kth;
 using namespace kth::blockchain;
 
-BOOST_AUTO_TEST_SUITE(block_pool_tests)
+// Start Boost Suite: block pool tests
 
 // Access to protected members.
 class block_pool_fixture : public block_pool {
