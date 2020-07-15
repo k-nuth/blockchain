@@ -10,56 +10,56 @@
 using namespace kth;
 using namespace kth::blockchain;
 
-BOOST_AUTO_TEST_SUITE(block_entry_tests)
+// Start Boost Suite: block entry tests
 
 static auto const hash42 = hash_literal("4242424242424242424242424242424242424242424242424242424242424242");
 static auto const default_block_hash = hash_literal("14508459b221041eab257d2baaa7459775ba748246c8403609eb708f0e57e74b");
 
 // construct1/block
 
-BOOST_AUTO_TEST_CASE(block_entry__construct1__default_block__expected)
+TEST_CASE("block entry  construct1  default block  expected", "[block entry tests]")
 {
     auto const block = std::make_shared<const domain::message::block>();
     block_entry instance(block);
-    BOOST_REQUIRE(instance.block() == block);
-    BOOST_REQUIRE(instance.hash() == default_block_hash);
+    REQUIRE(instance.block() == block);
+    REQUIRE(instance.hash() == default_block_hash);
 }
 
 // construct2/hash
 
-BOOST_AUTO_TEST_CASE(block_entry__construct2__default_block_hash__round_trips) {
+TEST_CASE("block entry  construct2  default block hash  round trips", "[block entry tests]") {
     block_entry instance(default_block_hash);
-    BOOST_REQUIRE(instance.hash() == default_block_hash);
+    REQUIRE(instance.hash() == default_block_hash);
 }
 
 // parent
 
-BOOST_AUTO_TEST_CASE(block_entry__parent__hash42__expected)
+TEST_CASE("block entry  parent  hash42  expected", "[block entry tests]")
 {
     auto const block = std::make_shared<domain::message::block>();
     block->header().set_previous_block_hash(hash42);
     block_entry instance(block);
-    BOOST_REQUIRE(instance.parent() == hash42);
+    REQUIRE(instance.parent() == hash42);
 }
 
 // children
 
-BOOST_AUTO_TEST_CASE(block_entry__children__default__empty) {
+TEST_CASE("block entry  children  default  empty", "[block entry tests]") {
     block_entry instance(default_block_hash);
-    BOOST_REQUIRE(instance.children().empty());
+    REQUIRE(instance.children().empty());
 }
 
 // add_child
 
-BOOST_AUTO_TEST_CASE(block_entry__add_child__one__single) {
+TEST_CASE("block entry  add child  one  single", "[block entry tests]") {
     block_entry instance(null_hash);
     auto const child = std::make_shared<const domain::message::block>();
     instance.add_child(child);
-    BOOST_REQUIRE_EQUAL(instance.children().size(), 1u);
-    BOOST_REQUIRE(instance.children()[0] == child->hash());
+    REQUIRE(instance.children().size() == 1u);
+    REQUIRE(instance.children()[0] == child->hash());
 }
 
-BOOST_AUTO_TEST_CASE(block_entry__add_child__two__expected_order) {
+TEST_CASE("block entry  add child  two  expected order", "[block entry tests]") {
     block_entry instance(null_hash);
 
     auto const child1 = std::make_shared<const domain::message::block>();
