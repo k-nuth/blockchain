@@ -2311,7 +2311,7 @@ void block_chain::fetch_block_locator(block::indexes const& heights, block_locat
 //-----------------------------------------------------------------------------
 
 #if defined(KTH_DB_SPENDS) || defined(KTH_DB_NEW_FULL)
-void block_chain::fetch_spend(const chain::output_point& outpoint, spend_fetch_handler handler) const {
+void block_chain::fetch_spend(const domain::chain::output_point& outpoint, spend_fetch_handler handler) const {
     if (stopped())
     {
         handler(error::service_stopped, {});
