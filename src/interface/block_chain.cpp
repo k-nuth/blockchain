@@ -1783,7 +1783,7 @@ void block_chain::fill_tx_list_from_mempool(domain::message::compact_block const
     //<< " k1 " << k1);
             
 
-    database_.transactions_unconfirmed().for_each([&](chain::transaction const &tx) {
+    database_.transactions_unconfirmed().for_each([&](domain::chain::transaction const &tx) {
 #ifdef KTH_CURRENCY_BCH
         bool witness = false;
 #else
