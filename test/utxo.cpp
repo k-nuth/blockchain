@@ -42,17 +42,17 @@ using namespace std::filesystem;
     "p2p_tests"
 
 #define TEST_NAME \
-    std::string(boost::unit_test::framework::current_test_case().p_name)
+    Catch::getResultCapture().getCurrentTestName()
 
-#define START_BLOCKCHAIN(name, flush) \
-    threadpool pool; \
-    database::settings database_settings; \
-    database_settings.flush_writes = flush; \
-    database_settings.directory = TEST_NAME; \
-    BOOST_REQUIRE(utxo_tests::create_database(database_settings)); \
-    blockchain::settings blockchain_settings; \
+#define START_BLOCKCHAIN(name, flush)                               \
+    threadpool pool;                                                \
+    database::settings database_settings;                           \
+    database_settings.flush_writes = flush;                         \
+    database_settings.directory = TEST_NAME;                        \
+    REQUIRE(utxo_tests::create_database(database_settings));        \
+    blockchain::settings blockchain_settings;                       \
     block_chain name(pool, blockchain_settings, database_settings); \
-    BOOST_REQUIRE(name.start())
+    REQUIRE(name.start())
 
 #define NEW_BLOCK(height) \
     std::make_shared<const domain::message::block>(utxo_tests::read_block(MAINNET_BLOCK##height))
