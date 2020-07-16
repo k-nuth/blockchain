@@ -337,16 +337,16 @@ TEST_CASE("block chain  get output  not found  false", "[fast chain tests]") {
     bool coinbase;
     const domain::chain::output_point outpoint{ null_hash, 42 };
     size_t branch_height = 0;
-    BOOST_REQUIRE(!instance.get_output(output, height, median_time_past, coinbase, outpoint, branch_height, true));
+    REQUIRE(!instance.get_output(output, height, median_time_past, coinbase, outpoint, branch_height, true));
 }
 
-BOOST_AUTO_TEST_CASE(block_chain__get_output__found__expected) {
+TEST_CASE("block chain  get output  found  expected", "[fast chain tests]") {
     START_BLOCKCHAIN(instance, false);
 
     auto const block1 = NEW_BLOCK(1);
     auto const block2 = NEW_BLOCK(2);
-    BOOST_REQUIRE(instance.insert(block1, 1));
-    BOOST_REQUIRE(instance.insert(block2, 2));
+    REQUIRE(instance.insert(block1, 1));
+    REQUIRE(instance.insert(block2, 2));
 
     domain::chain::output output;
     size_t height;
