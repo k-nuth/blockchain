@@ -355,91 +355,91 @@ TEST_CASE("block chain  get output  found  expected", "[fast chain tests]") {
     const domain::chain::output_point outpoint{ block2->transactions()[0].hash(), 0 };
     auto const expected_value = initial_block_subsidy_satoshi();
     auto const expected_script = block2->transactions()[0].outputs()[0].script().to_string(0);
-    BOOST_REQUIRE(instance.get_output(output, height, median_time_past, coinbase, outpoint, 2, true));
-    BOOST_REQUIRE(coinbase);
-    BOOST_REQUIRE_EQUAL(height, 2u);
-    BOOST_REQUIRE_EQUAL(output.value(), expected_value);
-    BOOST_REQUIRE_EQUAL(output.script().to_string(0), expected_script);
+    REQUIRE(instance.get_output(output, height, median_time_past, coinbase, outpoint, 2, true));
+    REQUIRE(coinbase);
+    REQUIRE(height == 2u);
+    REQUIRE(output.value() == expected_value);
+    REQUIRE(output.script().to_string(0) == expected_script);
 }
 
-BOOST_AUTO_TEST_CASE(block_chain__get_output__above_fork__false) {
+TEST_CASE("block chain  get output  above fork  false", "[fast chain tests]") {
     START_BLOCKCHAIN(instance, false);
 
     auto const block1 = NEW_BLOCK(1);
     auto const block2 = NEW_BLOCK(2);
-    BOOST_REQUIRE(instance.insert(block1, 1));
-    BOOST_REQUIRE(instance.insert(block2, 2));
+    REQUIRE(instance.insert(block1, 1));
+    REQUIRE(instance.insert(block2, 2));
 
     domain::chain::output output;
     size_t height;
     uint32_t median_time_past;
     bool coinbase;
     const domain::chain::output_point outpoint{ block2->transactions()[0].hash(), 0 };
-    BOOST_REQUIRE(!instance.get_output(output, height, median_time_past, coinbase, outpoint, 1, true));
+    REQUIRE(!instance.get_output(output, height, median_time_past, coinbase, outpoint, 1, true));
 }
 
-BOOST_AUTO_TEST_CASE(block_chain__get_is_unspent_transaction__unspent_at_fork__true) {
+TEST_CASE("block chain  get is unspent transaction  unspent at fork  true", "[fast chain tests]") {
     START_BLOCKCHAIN(instance, false);
 
     auto const block1 = NEW_BLOCK(1);
     auto const block2 = NEW_BLOCK(2);
-    BOOST_REQUIRE(instance.insert(block1, 1));
-    BOOST_REQUIRE(instance.insert(block2, 2));
+    REQUIRE(instance.insert(block1, 1));
+    REQUIRE(instance.insert(block2, 2));
 
     auto const hash = block2->transactions()[0].hash();
-    BOOST_REQUIRE(instance.get_is_unspent_transaction(hash, 2, true));
+    REQUIRE(instance.get_is_unspent_transaction(hash, 2, true));
 }
 
-BOOST_AUTO_TEST_CASE(block_chain__get_is_unspent_transaction__unspent_above_fork__false) {
+TEST_CASE("block chain  get is unspent transaction  unspent above fork  false", "[fast chain tests]") {
     START_BLOCKCHAIN(instance, false);
 
     auto const block1 = NEW_BLOCK(1);
     auto const block2 = NEW_BLOCK(2);
-    BOOST_REQUIRE(instance.insert(block1, 1));
-    BOOST_REQUIRE(instance.insert(block2, 2));
+    REQUIRE(instance.insert(block1, 1));
+    REQUIRE(instance.insert(block2, 2));
 
     auto const hash = block2->transactions()[0].hash();
-    BOOST_REQUIRE(!instance.get_is_unspent_transaction(hash, 1, true));
+    REQUIRE(!instance.get_is_unspent_transaction(hash, 1, true));
 }
 
-BOOST_AUTO_TEST_CASE(block_chain__get_is_unspent_transaction__spent_below_fork__false) {
+TEST_CASE("block chain  get is unspent transaction  spent below fork  false", "[fast chain tests]") {
     // TODO: generate spent tx test vector.
 }
 #endif // KTH_DB_LEGACY
 
-////BOOST_AUTO_TEST_CASE(block_chain__get_transaction__exists__true)
+////TEST_CASE("block chain  get transaction  exists  true", "[fast chain tests]")
 ////{
 ////    START_BLOCKCHAIN(instance, false);
 ////
 ////    auto const block1 = NEW_BLOCK(1);
 ////    auto const block2 = NEW_BLOCK(2);
-////    BOOST_REQUIRE(instance.insert(block1, 1));
-////    BOOST_REQUIRE(instance.insert(block2, 2));
+////    REQUIRE(instance.insert(block1, 1));
+////    REQUIRE(instance.insert(block2, 2));
 ////
 ////    size_t height;
 ////    auto const hash = block1->transactions()[0].hash();
-////    BOOST_REQUIRE(instance.get_transaction(height, hash, false));
-////    BOOST_REQUIRE_EQUAL(height, 1u);
+////    REQUIRE(instance.get_transaction(height, hash, false));
+////    REQUIRE(height == 1u);
 ////}
 
-////BOOST_AUTO_TEST_CASE(block_chain__get_transaction__not_exists_and_gapped__false)
+////TEST_CASE("block chain  get transaction  not exists and gapped  false", "[fast chain tests]")
 ////{
 ////    START_BLOCKCHAIN(instance, false);
 ////
 ////    auto const block1 = NEW_BLOCK(1);
 ////    auto const block2 = NEW_BLOCK(2);
-////    BOOST_REQUIRE(instance.insert(block2, 2));
+////    REQUIRE(instance.insert(block2, 2));
 ////
 ////    size_t height;
 ////    auto const hash = block1->transactions()[0].hash();
-////    BOOST_REQUIRE(!instance.get_transaction(height, hash, false));
+////    REQUIRE(!instance.get_transaction(height, hash, false));
 ////}
 
-BOOST_AUTO_TEST_SUITE_END()
+// End Boost Suite
 
 //-----------------------------------------------------------------------------
 
-BOOST_AUTO_TEST_SUITE(safe_chain_tests)
+// Start Boost Suite: safe chain tests
 
 
 #ifdef KTH_DB_LEGACY
