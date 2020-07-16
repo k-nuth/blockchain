@@ -95,240 +95,240 @@ bool create_database(database::settings& out_database) {
 
 domain::chain::block read_block(const std::string hex) {
     data_chunk data;
-    BOOST_REQUIRE(decode_base16(data, hex));
+    REQUIRE(decode_base16(data, hex));
     domain::chain::block result;
-    BOOST_REQUIRE(kd::entity_from_data(result, data));
+    REQUIRE(kd::entity_from_data(result, data));
     return result;
 }
 
-BOOST_AUTO_TEST_SUITE(fast_chain_tests)
+// Start Boost Suite: fast chain tests
 
 #ifdef KTH_DB_LEGACY
-BOOST_AUTO_TEST_CASE(block_chain__insert__flushed__expected) {
+TEST_CASE("block chain  insert  flushed  expected", "[fast chain tests]") {
     START_BLOCKCHAIN(instance, true);
 
     auto const block1 = NEW_BLOCK(1);
-    BOOST_REQUIRE(instance.insert(block1, 1));
-    BOOST_REQUIRE(instance.get_block_exists(block1->hash()));
-    BOOST_REQUIRE(instance.get_block_exists(domain::chain::block::genesis_mainnet().hash()));
+    REQUIRE(instance.insert(block1, 1));
+    REQUIRE(instance.get_block_exists(block1->hash()));
+    REQUIRE(instance.get_block_exists(domain::chain::block::genesis_mainnet().hash()));
 }
 
-BOOST_AUTO_TEST_CASE(block_chain__insert__unflushed__expected_block) {
+TEST_CASE("block chain  insert  unflushed  expected block", "[fast chain tests]") {
     START_BLOCKCHAIN(instance, false);
 
     auto const block1 = NEW_BLOCK(1);
-    BOOST_REQUIRE(instance.insert(block1, 1));
-    BOOST_REQUIRE(instance.get_block_exists(block1->hash()));
-    BOOST_REQUIRE(instance.get_block_exists(domain::chain::block::genesis_mainnet().hash()));
+    REQUIRE(instance.insert(block1, 1));
+    REQUIRE(instance.get_block_exists(block1->hash()));
+    REQUIRE(instance.get_block_exists(domain::chain::block::genesis_mainnet().hash()));
 }
 
-BOOST_AUTO_TEST_CASE(block_chain__get_gaps__none__none) {
+TEST_CASE("block chain  get gaps  none  none", "[fast chain tests]") {
     START_BLOCKCHAIN(instance, false);
 
     auto const block1 = NEW_BLOCK(1);
-    BOOST_REQUIRE(instance.insert(block1, 1));
+    REQUIRE(instance.insert(block1, 1));
 
     database::block_database::heights heights;
-    BOOST_REQUIRE(instance.get_gaps(heights));
-    BOOST_REQUIRE(heights.empty());
+    REQUIRE(instance.get_gaps(heights));
+    REQUIRE(heights.empty());
 }
 
-BOOST_AUTO_TEST_CASE(block_chain__get_gaps__one__one) {
+TEST_CASE("block chain  get gaps  one  one", "[fast chain tests]") {
     START_BLOCKCHAIN(instance, false);
 
     auto const block2 = NEW_BLOCK(2);
-    BOOST_REQUIRE(instance.insert(block2, 2));
+    REQUIRE(instance.insert(block2, 2));
 
     database::block_database::heights heights;
-    BOOST_REQUIRE(instance.get_gaps(heights));
-    BOOST_REQUIRE_EQUAL(heights.size(), 1u);
-    BOOST_REQUIRE_EQUAL(heights[0], 1u);
+    REQUIRE(instance.get_gaps(heights));
+    REQUIRE(heights.size() == 1u);
+    REQUIRE(heights[0] == 1u);
 }
 
-BOOST_AUTO_TEST_CASE(block_chain__get_block_hash__not_found__false) {
+TEST_CASE("block chain  get block hash  not found  false", "[fast chain tests]") {
     START_BLOCKCHAIN(instance, false);
 
     hash_digest hash;
-    BOOST_REQUIRE(!instance.get_block_hash(hash, 1));
+    REQUIRE(!instance.get_block_hash(hash, 1));
 }
 
-BOOST_AUTO_TEST_CASE(block_chain__get_block_hash__found__true) {
+TEST_CASE("block chain  get block hash  found  true", "[fast chain tests]") {
     START_BLOCKCHAIN(instance, false);
 
     auto const block1 = NEW_BLOCK(1);
-    BOOST_REQUIRE(instance.insert(block1, 1));
+    REQUIRE(instance.insert(block1, 1));
 
     hash_digest hash;
-    BOOST_REQUIRE(instance.get_block_hash(hash, 1));
-    BOOST_REQUIRE(hash == block1->hash());
+    REQUIRE(instance.get_block_hash(hash, 1));
+    REQUIRE(hash == block1->hash());
 }
 
-BOOST_AUTO_TEST_CASE(block_chain__get_branch_work__height_above_top__true) {
+TEST_CASE("block chain  get branch work  height above top  true", "[fast chain tests]") {
     START_BLOCKCHAIN(instance, false);
 
     uint256_t work;
     uint256_t maximum(max_uint64);
 
     // This is allowed and just returns zero (standard new single block).
-    BOOST_REQUIRE(instance.get_branch_work(work, maximum, 1));
-    BOOST_REQUIRE_EQUAL(work, 0);
+    REQUIRE(instance.get_branch_work(work, maximum, 1));
+    REQUIRE(work == 0);
 }
 
-BOOST_AUTO_TEST_CASE(block_chain__get_branch_work__maximum_zero__true) {
+TEST_CASE("block chain  get branch work  maximum zero  true", "[fast chain tests]") {
     START_BLOCKCHAIN(instance, false);
 
     uint256_t work;
     uint256_t maximum(0);
 
     // This should exit early due to hitting the maximum before the genesis block.
-    BOOST_REQUIRE(instance.get_branch_work(work, maximum, 0));
-    BOOST_REQUIRE_EQUAL(work, 0);
+    REQUIRE(instance.get_branch_work(work, maximum, 0));
+    REQUIRE(work == 0);
 }
 
-BOOST_AUTO_TEST_CASE(block_chain__get_branch_work__maximum_one__true) {
+TEST_CASE("block chain  get branch work  maximum one  true", "[fast chain tests]") {
     START_BLOCKCHAIN(instance, false);
 
     auto const block1 = NEW_BLOCK(1);
-    BOOST_REQUIRE(instance.insert(block1, 1));
+    REQUIRE(instance.insert(block1, 1));
     uint256_t work;
     uint256_t maximum(genesis_mainnet_work);
 
     // This should exit early due to hitting the maximum on the genesis block.
-    BOOST_REQUIRE(instance.get_branch_work(work, maximum, 0));
-    BOOST_REQUIRE_EQUAL(work, genesis_mainnet_work);
+    REQUIRE(instance.get_branch_work(work, maximum, 0));
+    REQUIRE(work == genesis_mainnet_work);
 }
 
-BOOST_AUTO_TEST_CASE(block_chain__get_branch_work__unbounded__true) {
+TEST_CASE("block chain  get branch work  unbounded  true", "[fast chain tests]") {
     START_BLOCKCHAIN(instance, false);
 
     auto const block1 = NEW_BLOCK(1);
     auto const block2 = NEW_BLOCK(2);
-    BOOST_REQUIRE(instance.insert(block1, 1));
-    BOOST_REQUIRE(instance.insert(block2, 2));
+    REQUIRE(instance.insert(block1, 1));
+    REQUIRE(instance.insert(block2, 2));
 
     uint256_t work;
     uint256_t maximum(max_uint64);
 
     // This should not exit early.
-    BOOST_REQUIRE(instance.get_branch_work(work, maximum, 0));
-    BOOST_REQUIRE_EQUAL(work, 0x0000000300030003);
+    REQUIRE(instance.get_branch_work(work, maximum, 0));
+    REQUIRE(work == 0x0000000300030003);
 }
 
-BOOST_AUTO_TEST_CASE(block_chain__get_header__not_found__false) {
+TEST_CASE("block chain  get header  not found  false", "[fast chain tests]") {
     START_BLOCKCHAIN(instance, false);
 
     domain::chain::header header;
-    BOOST_REQUIRE(!instance.get_header(header, 1));
+    REQUIRE(!instance.get_header(header, 1));
 }
 
-BOOST_AUTO_TEST_CASE(block_chain__get_header__found__true) {
+TEST_CASE("block chain  get header  found  true", "[fast chain tests]") {
     START_BLOCKCHAIN(instance, false);
 
     auto const block1 = NEW_BLOCK(1);
-    BOOST_REQUIRE(instance.insert(block1, 1));
+    REQUIRE(instance.insert(block1, 1));
 
     domain::chain::header header;
-    BOOST_REQUIRE(instance.get_header(header, 1));
-    BOOST_REQUIRE(header == block1->header());
+    REQUIRE(instance.get_header(header, 1));
+    REQUIRE(header == block1->header());
 }
 
-BOOST_AUTO_TEST_CASE(block_chain__get_height__not_found__false) {
+TEST_CASE("block chain  get height  not found  false", "[fast chain tests]") {
     START_BLOCKCHAIN(instance, false);
 
     size_t height;
-    BOOST_REQUIRE(!instance.get_height(height, null_hash));
+    REQUIRE(!instance.get_height(height, null_hash));
 }
 
-BOOST_AUTO_TEST_CASE(block_chain__get_height__found__true) {
+TEST_CASE("block chain  get height  found  true", "[fast chain tests]") {
     START_BLOCKCHAIN(instance, false);
 
     auto const block1 = NEW_BLOCK(1);
-    BOOST_REQUIRE(instance.insert(block1, 1));
+    REQUIRE(instance.insert(block1, 1));
 
     size_t height;
-    BOOST_REQUIRE(instance.get_height(height, block1->hash()));
-    BOOST_REQUIRE_EQUAL(height, 1u);
+    REQUIRE(instance.get_height(height, block1->hash()));
+    REQUIRE(height == 1u);
 }
 
-BOOST_AUTO_TEST_CASE(block_chain__get_bits__not_found__false) {
+TEST_CASE("block chain  get bits  not found  false", "[fast chain tests]") {
     START_BLOCKCHAIN(instance, false);
 
     uint32_t bits;
-    BOOST_REQUIRE(!instance.get_bits(bits, 1));
+    REQUIRE(!instance.get_bits(bits, 1));
 }
 
-BOOST_AUTO_TEST_CASE(block_chain__get_bits__found__true) {
+TEST_CASE("block chain  get bits  found  true", "[fast chain tests]") {
     START_BLOCKCHAIN(instance, false);
 
     auto const block1 = NEW_BLOCK(1);
-    BOOST_REQUIRE(instance.insert(block1, 1));
+    REQUIRE(instance.insert(block1, 1));
 
     uint32_t bits;
-    BOOST_REQUIRE(instance.get_bits(bits, 1));
-    BOOST_REQUIRE_EQUAL(bits, block1->header().bits());
+    REQUIRE(instance.get_bits(bits, 1));
+    REQUIRE(bits == block1->header().bits());
 }
 
-BOOST_AUTO_TEST_CASE(block_chain__get_timestamp__not_found__false) {
+TEST_CASE("block chain  get timestamp  not found  false", "[fast chain tests]") {
     START_BLOCKCHAIN(instance, false);
 
     uint32_t timestamp;
-    BOOST_REQUIRE(!instance.get_timestamp(timestamp, 1));
+    REQUIRE(!instance.get_timestamp(timestamp, 1));
 }
 
-BOOST_AUTO_TEST_CASE(block_chain__get_timestamp__found__true) {
+TEST_CASE("block chain  get timestamp  found  true", "[fast chain tests]") {
     START_BLOCKCHAIN(instance, false);
 
     auto const block1 = NEW_BLOCK(1);
-    BOOST_REQUIRE(instance.insert(block1, 1));
+    REQUIRE(instance.insert(block1, 1));
 
     uint32_t timestamp;
-    BOOST_REQUIRE(instance.get_timestamp(timestamp, 1));
-    BOOST_REQUIRE_EQUAL(timestamp, block1->header().timestamp());
+    REQUIRE(instance.get_timestamp(timestamp, 1));
+    REQUIRE(timestamp == block1->header().timestamp());
 }
 
-BOOST_AUTO_TEST_CASE(block_chain__get_version__not_found__false) {
+TEST_CASE("block chain  get version  not found  false", "[fast chain tests]") {
     START_BLOCKCHAIN(instance, false);
 
     uint32_t version;
-    BOOST_REQUIRE(!instance.get_version(version, 1));
+    REQUIRE(!instance.get_version(version, 1));
 }
 
-BOOST_AUTO_TEST_CASE(block_chain__get_version__found__true) {
+TEST_CASE("block chain  get version  found  true", "[fast chain tests]") {
     START_BLOCKCHAIN(instance, false);
 
     auto const block1 = NEW_BLOCK(1);
-    BOOST_REQUIRE(instance.insert(block1, 1));
+    REQUIRE(instance.insert(block1, 1));
 
     uint32_t version;
-    BOOST_REQUIRE(instance.get_version(version, 1));
-    BOOST_REQUIRE_EQUAL(version, block1->header().version());
+    REQUIRE(instance.get_version(version, 1));
+    REQUIRE(version == block1->header().version());
 }
 
-BOOST_AUTO_TEST_CASE(block_chain__get_last_height__no_gaps__last_block) {
+TEST_CASE("block chain  get last height  no gaps  last block", "[fast chain tests]") {
     START_BLOCKCHAIN(instance, false);
 
     auto const block1 = NEW_BLOCK(1);
     auto const block2 = NEW_BLOCK(2);
-    BOOST_REQUIRE(instance.insert(block1, 1));
-    BOOST_REQUIRE(instance.insert(block2, 2));
+    REQUIRE(instance.insert(block1, 1));
+    REQUIRE(instance.insert(block2, 2));
 
     size_t height;
-    BOOST_REQUIRE(instance.get_last_height(height));
-    BOOST_REQUIRE_EQUAL(height, 2u);
+    REQUIRE(instance.get_last_height(height));
+    REQUIRE(height == 2u);
 }
 
-BOOST_AUTO_TEST_CASE(block_chain__get_last_height__gap__last_block) {
+TEST_CASE("block chain  get last height  gap  last block", "[fast chain tests]") {
     START_BLOCKCHAIN(instance, false);
 
     auto const block2 = NEW_BLOCK(2);
-    BOOST_REQUIRE(instance.insert(block2, 2));
+    REQUIRE(instance.insert(block2, 2));
 
     size_t height;
-    BOOST_REQUIRE(instance.get_last_height(height));
-    BOOST_REQUIRE_EQUAL(height, 2u);
+    REQUIRE(instance.get_last_height(height));
+    REQUIRE(height == 2u);
 }
 
-BOOST_AUTO_TEST_CASE(block_chain__get_output__not_found__false) {
+TEST_CASE("block chain  get output  not found  false", "[fast chain tests]") {
     START_BLOCKCHAIN(instance, false);
 
     domain::chain::output output;
