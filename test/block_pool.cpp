@@ -67,62 +67,62 @@ block_const_ptr make_block(uint32_t id, size_t height) {
 
 // construct
 
-BOOST_AUTO_TEST_CASE(block_pool__construct__zero_depth__sets__maximum_value) {
+TEST_CASE("block pool  construct  zero depth  sets  maximum value", "[block pool tests]") {
     block_pool_fixture instance(0);
-    BOOST_REQUIRE_EQUAL(instance.maximum_depth(), max_size_t);
+    REQUIRE(instance.maximum_depth() == max_size_t);
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__construct__nonzero_depth__round_trips) {
+TEST_CASE("block pool  construct  nonzero depth  round trips", "[block pool tests]") {
     static const size_t expected = 42;
     block_pool_fixture instance(expected);
-    BOOST_REQUIRE_EQUAL(instance.maximum_depth(), expected);
+    REQUIRE(instance.maximum_depth() == expected);
 }
 
 // add1
 
-BOOST_AUTO_TEST_CASE(block_pool__add1__one__single) {
+TEST_CASE("block pool  add1  one  single", "[block pool tests]") {
     block_pool_fixture instance(0);
     static const size_t height = 42;
     auto const block1 = make_block(1, height);
 
     instance.add(block1);
     instance.add(block1);
-    BOOST_REQUIRE_EQUAL(instance.size(), 1u);
+    REQUIRE(instance.size() == 1u);
 
     auto const entry = instance.blocks().right.find(height);
-    BOOST_REQUIRE(entry != instance.blocks().right.end());
-    BOOST_REQUIRE(entry->second.block() == block1);
-    BOOST_REQUIRE_EQUAL(entry->first, height);
+    REQUIRE(entry != instance.blocks().right.end());
+    REQUIRE(entry->second.block() == block1);
+    REQUIRE(entry->first == height);
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__add1__twice__single) {
+TEST_CASE("block pool  add1  twice  single", "[block pool tests]") {
     block_pool instance(0);
     auto const block = std::make_shared<const domain::message::block>();
 
     instance.add(block);
     instance.add(block);
-    BOOST_REQUIRE_EQUAL(instance.size(), 1u);
+    REQUIRE(instance.size() == 1u);
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__add1__two_different_blocks_with_same_hash__first_retained) {
+TEST_CASE("block pool  add1  two different blocks with same hash  first retained", "[block pool tests]") {
     block_pool_fixture instance(0);
     static const size_t height1a = 42;
     auto const block1a = make_block(1, height1a);
     auto const block1b = make_block(1, height1a + 1u);
 
     // The blocks have the same hash value, so second will not be added.
-    BOOST_REQUIRE(block1a->hash() == block1b->hash());
+    REQUIRE(block1a->hash() == block1b->hash());
 
     instance.add(block1a);
     instance.add(block1b);
-    BOOST_REQUIRE_EQUAL(instance.size(), 1u);
+    REQUIRE(instance.size() == 1u);
 
     auto const entry = instance.blocks().right.find(height1a);
-    BOOST_REQUIRE(entry != instance.blocks().right.end());
-    BOOST_REQUIRE(entry->second.block() == block1a);
+    REQUIRE(entry != instance.blocks().right.end());
+    REQUIRE(entry->second.block() == block1a);
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__add1__two_distinct_hash__two) {
+TEST_CASE("block pool  add1  two distinct hash  two", "[block pool tests]") {
     block_pool_fixture instance(0);
     static const size_t height1 = 42;
     static const size_t height2 = height1 + 1u;
