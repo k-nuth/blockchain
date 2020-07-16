@@ -26,13 +26,13 @@ TEST_CASE("validate block  native  block 438513 tx  valid", "[validate block tes
     static auto const encoded_tx = "0100000001a06bf74cc36eac395188b06850c5a01d00b355065c589d14036e89e075d7518e000000009d483045022100ba555ac17a084e2a1b621c2171fa563bc4fb75cd5c0968153f44ba7203cb876f022036626f4579de16e3ad160df01f649ffb8dbf47b504ee56dc3ad7260af24ca0db0101004c50632102768e47607c52e581595711e27faffa7cb646b4f481fe269bd49691b2fbc12106ad6704355e2658b1756821028a5af8284a12848d69a25a0ac5cea20be905848eb645fd03d3b065df88a9117cacfeffffff0158920100000000001976a9149d86f66406d316d44d58cbf90d71179dd8162dd388ac355e2658";
 
     data_chunk decoded_tx;
-    BOOST_REQUIRE(decode_base16(decoded_tx, encoded_tx));
+    REQUIRE(decode_base16(decoded_tx, encoded_tx));
 
     data_chunk decoded_script;
-    BOOST_REQUIRE(decode_base16(decoded_script, encoded_script));
+    REQUIRE(decode_base16(decoded_script, encoded_script));
 
     transaction tx;
-    BOOST_REQUIRE(kd::entity_from_data(tx, decoded_tx));
+    REQUIRE(kd::entity_from_data(tx, decoded_tx));
 
     auto const& input = tx.inputs()[index];
     auto& prevout = input.previous_output().validation.cache;
