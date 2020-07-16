@@ -10,10 +10,10 @@ using namespace kd::chain;
 using namespace kth::blockchain;
 using namespace kd::machine;
 
-BOOST_AUTO_TEST_SUITE(validate_transaction_tests)
+// Start Boost Suite: validate transaction tests
 
-BOOST_AUTO_TEST_CASE(validate_transaction__native__block_438513_tx__valid) {
+TEST_CASE("validate transaction  native  block 438513 tx  valid", "[validate transaction tests]") {
     // TODO
 }
 
-BOOST_AUTO_TEST_SUITE_END()
+// End Boost Suite
