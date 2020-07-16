@@ -48,11 +48,11 @@ TEST_CASE("branch  hash  one block  only previous block hash", "[branch tests]")
     block1->header().set_previous_block_hash(expected);
 
     branch instance;
-    BOOST_REQUIRE(instance.push_front(block1));
-    BOOST_REQUIRE(instance.hash() == expected);
+    REQUIRE(instance.push_front(block1));
+    REQUIRE(instance.hash() == expected);
 }
 
-BOOST_AUTO_TEST_CASE(branch__hash__two_blocks__first_previous_block_hash) {
+TEST_CASE("branch  hash  two blocks  first previous block hash", "[branch tests]") {
     branch instance;
     DECLARE_BLOCK(top, 42);
     DECLARE_BLOCK(block, 0);
