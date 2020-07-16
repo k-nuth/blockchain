@@ -51,126 +51,126 @@ transaction_entry::ptr make_instance() {
 
 // construct1/tx
 
-BOOST_AUTO_TEST_CASE(transaction_entry__construct1__default_tx__expected_values) {
+TEST_CASE("transaction entry  construct1  default tx  expected values", "[transaction entry tests]") {
     const transaction_entry instance(make_tx());
-    BOOST_REQUIRE(instance.is_anchor());
-    BOOST_REQUIRE_EQUAL(instance.fees(), 0);
-    BOOST_REQUIRE_EQUAL(instance.forks(), 0);
-    BOOST_REQUIRE_EQUAL(instance.sigops(), 0);
-    BOOST_REQUIRE_EQUAL(instance.size(), 10u);
-    BOOST_REQUIRE(instance.hash() == default_tx_hash);
-    BOOST_REQUIRE(!instance.is_marked());
-    BOOST_REQUIRE(instance.parents().empty());
-    BOOST_REQUIRE(instance.children().empty());
+    REQUIRE(instance.is_anchor());
+    REQUIRE(instance.fees() == 0);
+    REQUIRE(instance.forks() == 0);
+    REQUIRE(instance.sigops() == 0);
+    REQUIRE(instance.size() == 10u);
+    REQUIRE(instance.hash() == default_tx_hash);
+    REQUIRE(!instance.is_marked());
+    REQUIRE(instance.parents().empty());
+    REQUIRE(instance.children().empty());
 }
 
 // construct2/hash
 
-BOOST_AUTO_TEST_CASE(transaction_entry__construct1__default_block_hash__expected_values) {
+TEST_CASE("transaction entry  construct1  default block hash  expected values", "[transaction entry tests]") {
     const transaction_entry instance(make_tx()->hash());
-    BOOST_REQUIRE(instance.is_anchor());
-    BOOST_REQUIRE_EQUAL(instance.fees(), 0);
-    BOOST_REQUIRE_EQUAL(instance.forks(), 0);
-    BOOST_REQUIRE_EQUAL(instance.sigops(), 0);
-    BOOST_REQUIRE_EQUAL(instance.size(), 0);
-    BOOST_REQUIRE(instance.hash() == default_tx_hash);
-    BOOST_REQUIRE(!instance.is_marked());
-    BOOST_REQUIRE(instance.parents().empty());
-    BOOST_REQUIRE(instance.children().empty());
+    REQUIRE(instance.is_anchor());
+    REQUIRE(instance.fees() == 0);
+    REQUIRE(instance.forks() == 0);
+    REQUIRE(instance.sigops() == 0);
+    REQUIRE(instance.size() == 0);
+    REQUIRE(instance.hash() == default_tx_hash);
+    REQUIRE(!instance.is_marked());
+    REQUIRE(instance.parents().empty());
+    REQUIRE(instance.children().empty());
 }
 
 // is_anchor
 
-BOOST_AUTO_TEST_CASE(transaction_entry__is_anchor__parents__false) {
+TEST_CASE("transaction entry  is anchor  parents  false", "[transaction entry tests]") {
     transaction_entry instance(make_tx());
     auto const parent = make_instance();
     instance.add_parent(parent);
-    BOOST_REQUIRE(!instance.is_anchor());
+    REQUIRE(!instance.is_anchor());
 }
 
-BOOST_AUTO_TEST_CASE(transaction_entry__is_anchor__children__true) {
+TEST_CASE("transaction entry  is anchor  children  true", "[transaction entry tests]") {
     transaction_entry instance(make_tx());
     auto const child = make_instance();
     instance.add_child(child);
-    BOOST_REQUIRE(instance.is_anchor());
+    REQUIRE(instance.is_anchor());
 }
 
 // mark
 
-BOOST_AUTO_TEST_CASE(transaction_entry__mark__true__expected) {
+TEST_CASE("transaction entry  mark  true  expected", "[transaction entry tests]") {
     transaction_entry instance(make_tx());
     instance.mark(true);
-    BOOST_REQUIRE(instance.is_marked());
+    REQUIRE(instance.is_marked());
 }
 
-BOOST_AUTO_TEST_CASE(transaction_entry__mark__true_false__expected) {
+TEST_CASE("transaction entry  mark  true false  expected", "[transaction entry tests]") {
     transaction_entry instance(make_tx());
     instance.mark(true);
     instance.mark(false);
-    BOOST_REQUIRE(!instance.is_marked());
+    REQUIRE(!instance.is_marked());
 }
 
 // is_marked
 
-BOOST_AUTO_TEST_CASE(transaction_entry__mark__default__false) {
+TEST_CASE("transaction entry  mark  default  false", "[transaction entry tests]") {
     const transaction_entry instance(make_tx());
-    BOOST_REQUIRE(!instance.is_marked());
+    REQUIRE(!instance.is_marked());
 }
 
-BOOST_AUTO_TEST_CASE(transaction_entry__is_marked__true__true) {
+TEST_CASE("transaction entry  is marked  true  true", "[transaction entry tests]") {
     transaction_entry instance(make_tx());
     instance.mark(true);
-    BOOST_REQUIRE(instance.is_marked());
+    REQUIRE(instance.is_marked());
 }
 
 // add_parent
 
-BOOST_AUTO_TEST_CASE(transaction_entry__add_parent__one__expected_parents) {
+TEST_CASE("transaction entry  add parent  one  expected parents", "[transaction entry tests]") {
     transaction_entry instance(make_tx());
     auto const parent = make_instance();
     instance.add_parent(parent);
-    BOOST_REQUIRE_EQUAL(instance.parents().size(), 1u);
-    BOOST_REQUIRE_EQUAL(instance.parents().front(), parent);
+    REQUIRE(instance.parents().size() == 1u);
+    REQUIRE(instance.parents().front() == parent);
 }
 
 // add_child
 
-BOOST_AUTO_TEST_CASE(transaction_entry__add_child__one__expected_children) {
+TEST_CASE("transaction entry  add child  one  expected children", "[transaction entry tests]") {
     transaction_entry instance(make_tx());
     auto const child = make_instance();
     instance.add_child(child);
-    BOOST_REQUIRE_EQUAL(instance.children().size(), 1u);
-    BOOST_REQUIRE_EQUAL(instance.children().front(), child);
+    REQUIRE(instance.children().size() == 1u);
+    REQUIRE(instance.children().front() == child);
 }
 
 // remove_child
 
-BOOST_AUTO_TEST_CASE(transaction_entry__remove_child__not_found__empty) {
+TEST_CASE("transaction entry  remove child  not found  empty", "[transaction entry tests]") {
     transaction_entry instance(make_tx());
     auto const child = make_instance();
     instance.remove_child(child);
-    BOOST_REQUIRE(instance.children().empty());
+    REQUIRE(instance.children().empty());
 }
 
-BOOST_AUTO_TEST_CASE(transaction_entry__remove_child__only_found__empty) {
+TEST_CASE("transaction entry  remove child  only found  empty", "[transaction entry tests]") {
     transaction_entry instance(make_tx());
     auto const child = make_instance();
     instance.add_child(child);
-    BOOST_REQUIRE_EQUAL(instance.children().size(), 1u);
+    REQUIRE(instance.children().size() == 1u);
     instance.remove_child(child);
-    BOOST_REQUIRE(instance.children().empty());
+    REQUIRE(instance.children().empty());
 }
 
-BOOST_AUTO_TEST_CASE(transaction_entry__remove_child__one_of_two__expected_one_remains) {
+TEST_CASE("transaction entry  remove child  one of two  expected one remains", "[transaction entry tests]") {
     transaction_entry instance(make_tx());
     auto const child1 = make_instance();
     auto const child2 = make_instance();
     instance.add_child(child1);
     instance.add_child(child2);
-    BOOST_REQUIRE_EQUAL(instance.children().size(), 2u);
+    REQUIRE(instance.children().size() == 2u);
     instance.remove_child(child1);
-    BOOST_REQUIRE_EQUAL(instance.children().size(), 1u);
-    BOOST_REQUIRE_EQUAL(instance.children().front(), child2);
+    REQUIRE(instance.children().size() == 1u);
+    REQUIRE(instance.children().front() == child2);
 }
 
-BOOST_AUTO_TEST_SUITE_END()
+// End Boost Suite
