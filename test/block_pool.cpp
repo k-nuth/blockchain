@@ -130,91 +130,91 @@ TEST_CASE("block pool  add1  two distinct hash  two", "[block pool tests]") {
     auto const block2 = make_block(2, height2);
 
     // The blocks do not have the same hash value, so both will be added.
-    BOOST_REQUIRE(block1->hash() != block2->hash());
+    REQUIRE(block1->hash() != block2->hash());
 
     instance.add(block1);
     instance.add(block2);
-    BOOST_REQUIRE_EQUAL(instance.size(), 2u);
+    REQUIRE(instance.size() == 2u);
 
     auto const& entry1 = instance.blocks().right.find(height1);
-    BOOST_REQUIRE(entry1 != instance.blocks().right.end());
-    BOOST_REQUIRE(entry1->second.block() == block1);
+    REQUIRE(entry1 != instance.blocks().right.end());
+    REQUIRE(entry1->second.block() == block1);
 
     auto const& entry2 = instance.blocks().right.find(height2);
-    BOOST_REQUIRE(entry2 != instance.blocks().right.end());
-    BOOST_REQUIRE(entry2->second.block() == block2);
+    REQUIRE(entry2 != instance.blocks().right.end());
+    REQUIRE(entry2->second.block() == block2);
 }
 
 // add2
 
-BOOST_AUTO_TEST_CASE(block_pool__add2__empty__empty) {
+TEST_CASE("block pool  add2  empty  empty", "[block pool tests]") {
     block_pool instance(0);
     instance.add(std::make_shared<const block_const_ptr_list>());
-    BOOST_REQUIRE_EQUAL(instance.size(), 0u);
+    REQUIRE(instance.size() == 0u);
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__add2__distinct__expected) {
+TEST_CASE("block pool  add2  distinct  expected", "[block pool tests]") {
     block_pool_fixture instance(0);
     auto const block1 = make_block(1, 42);
     auto const block2 = make_block(2, 43);
     block_const_ptr_list blocks{ block1, block2 };
 
     // The blocks do not have the same hash value, so both will be added.
-    BOOST_REQUIRE(block1->hash() != block2->hash());
+    REQUIRE(block1->hash() != block2->hash());
 
     instance.add(std::make_shared<const block_const_ptr_list>(std::move(blocks)));
-    BOOST_REQUIRE_EQUAL(instance.size(), 2u);
+    REQUIRE(instance.size() == 2u);
 
     auto const entry1 = instance.blocks().right.find(42);
-    BOOST_REQUIRE(entry1 != instance.blocks().right.end());
-    BOOST_REQUIRE(entry1->second.block() == block1);
+    REQUIRE(entry1 != instance.blocks().right.end());
+    REQUIRE(entry1->second.block() == block1);
 
     auto const& entry2 = instance.blocks().right.find(43);
-    BOOST_REQUIRE(entry2 != instance.blocks().right.end());
-    BOOST_REQUIRE(entry2->second.block() == block2);
+    REQUIRE(entry2 != instance.blocks().right.end());
+    REQUIRE(entry2->second.block() == block2);
 }
 
 // remove
 
-BOOST_AUTO_TEST_CASE(block_pool__remove__empty__unchanged) {
+TEST_CASE("block pool  remove  empty  unchanged", "[block pool tests]") {
     block_pool instance(0);
     auto const block1 = make_block(1, 42);
     instance.add(block1);
-    BOOST_REQUIRE_EQUAL(instance.size(), 1u);
+    REQUIRE(instance.size() == 1u);
 
     instance.remove(std::make_shared<const block_const_ptr_list>());
-    BOOST_REQUIRE_EQUAL(instance.size(), 1u);
+    REQUIRE(instance.size() == 1u);
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__remove__all_distinct__empty) {
+TEST_CASE("block pool  remove  all distinct  empty", "[block pool tests]") {
     block_pool_fixture instance(0);
     auto const block1 = make_block(1, 42);
     auto const block2 = make_block(2, 43);
     auto const block3 = make_block(2, 44);
     instance.add(block1);
     instance.add(block2);
-    BOOST_REQUIRE_EQUAL(instance.size(), 2u);
+    REQUIRE(instance.size() == 2u);
 
     block_const_ptr_list path{ block1, block2 };
     instance.remove(std::make_shared<const block_const_ptr_list>(std::move(path)));
-    BOOST_REQUIRE_EQUAL(instance.size(), 0u);
+    REQUIRE(instance.size() == 0u);
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__remove__all_connected__empty) {
+TEST_CASE("block pool  remove  all connected  empty", "[block pool tests]") {
     block_pool instance(0);
     auto const block1 = make_block(1, 42);
     auto const block2 = make_block(2, 43, block1);
     auto const block3 = make_block(3, 44, block2);
     instance.add(block1);
     instance.add(block2);
-    BOOST_REQUIRE_EQUAL(instance.size(), 2u);
+    REQUIRE(instance.size() == 2u);
 
     block_const_ptr_list path{ block1, block2, block3 };
     instance.remove(std::make_shared<const block_const_ptr_list>(std::move(path)));
-    BOOST_REQUIRE_EQUAL(instance.size(), 0u);
+    REQUIRE(instance.size() == 0u);
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__remove__subtree__reorganized) {
+TEST_CASE("block pool  remove  subtree  reorganized", "[block pool tests]") {
     block_pool_fixture instance(0);
     auto const block1 = make_block(1, 42);
     auto const block2 = make_block(2, 43, block1);
