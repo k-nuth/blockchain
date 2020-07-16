@@ -69,27 +69,27 @@ TEST_CASE("block entry  add child  two  expected order", "[block entry tests]") 
     child2->header().set_previous_block_hash(hash42);
     instance.add_child(child2);
 
-    BOOST_REQUIRE_EQUAL(instance.children().size(), 2u);
-    BOOST_REQUIRE(instance.children()[0] == child1->hash());
-    BOOST_REQUIRE(instance.children()[1] == child2->hash());
+    REQUIRE(instance.children().size() == 2u);
+    REQUIRE(instance.children()[0] == child1->hash());
+    REQUIRE(instance.children()[1] == child2->hash());
 }
 
 // equality
 
-BOOST_AUTO_TEST_CASE(block_entry__equality__same__true)
+TEST_CASE("block entry  equality  same  true", "[block entry tests]")
 {
     auto const block = std::make_shared<const domain::message::block>();
     block_entry instance1(block);
     block_entry instance2(block->hash());
-    BOOST_REQUIRE(instance1 == instance2);
+    REQUIRE(instance1 == instance2);
 }
 
-BOOST_AUTO_TEST_CASE(block_entry__equality__different__false)
+TEST_CASE("block entry  equality  different  false", "[block entry tests]")
 {
     auto const block = std::make_shared<const domain::message::block>();
     block_entry instance1(block);
     block_entry instance2(null_hash);
-    BOOST_REQUIRE(!(instance1 == instance2));
+    REQUIRE(!(instance1 == instance2));
 }
 
-BOOST_AUTO_TEST_SUITE_END()
+// End Boost Suite
