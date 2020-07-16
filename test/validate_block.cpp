@@ -40,16 +40,16 @@ TEST_CASE("validate block  native  block 438513 tx  valid", "[validate block tes
     prevout.set_value(0);
     prevout.set_script(kd::create<script>(decoded_script, false));
     
-    BOOST_REQUIRE(prevout.script().is_valid());
+    REQUIRE(prevout.script().is_valid());
 
     auto const result = validate_input::verify_script(tx, index, forks);
 
-    BOOST_REQUIRE_EQUAL(result.value(), error::success);
+    REQUIRE(result.value() == error::success);
 
 }
 
 #ifdef KTH_CURRENCY_BCH
-BOOST_AUTO_TEST_CASE(validate_block__native__block_520679_tx__valid) {
+TEST_CASE("validate block  native  block 520679 tx  valid", "[validate block tests]") {
     //// DEBUG [blockchain] Input validation failed (stack false)
     //// forks        : 62 (?)
     //// outpoint     : dae852c88a00e95141cfe924ac6667a91af87431988d23eff268ea3509d6d83c:1
