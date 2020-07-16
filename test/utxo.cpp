@@ -93,19 +93,19 @@ bool create_database(database::settings& out_database) {
 
 domain::chain::block read_block(const std::string hex) {
     data_chunk data;
-    BOOST_REQUIRE(decode_base16(data, hex));
+    REQUIRE(decode_base16(data, hex));
     domain::chain::block result;
-    BOOST_REQUIRE(kd::entity_from_data(result, data));
+    REQUIRE(kd::entity_from_data(result, data));
     return result;
 }
 
 } // namespace utxo_tests
 
-BOOST_AUTO_TEST_SUITE(utxo_tests)
+// Start Boost Suite: utxo tests
 
 #ifdef KTH_DB_NEW
 
-BOOST_AUTO_TEST_CASE(utxo__get_utxo__not_found__false) {
+TEST_CASE("utxo  get utxo  not found  false", "[utxo tests]") {
     START_BLOCKCHAIN(instance, false);
 
     domain::chain::output output;
