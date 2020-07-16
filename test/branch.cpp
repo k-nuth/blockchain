@@ -35,12 +35,12 @@ public:
 
 // hash
 
-BOOST_AUTO_TEST_CASE(branch__hash__default__null_hash) {
+TEST_CASE("branch  hash  default  null hash", "[branch tests]") {
     branch instance;
-    BOOST_REQUIRE(instance.hash() == null_hash);
+    REQUIRE(instance.hash() == null_hash);
 }
 
-BOOST_AUTO_TEST_CASE(branch__hash__one_block__only_previous_block_hash) {
+TEST_CASE("branch  hash  one block  only previous block hash", "[branch tests]") {
     DECLARE_BLOCK(block, 0);
     DECLARE_BLOCK(block, 1);
 
