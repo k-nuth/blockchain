@@ -119,24 +119,24 @@ TEST_CASE("validate block  2018NOV  block 520679 tx  valid", "[validate block te
     // native_forks |= domain::machine::rule_fork::cash_segwit_recovery;
 
     data_chunk decoded_tx;
-    BOOST_REQUIRE(decode_base16(decoded_tx, encoded_tx));
+    REQUIRE(decode_base16(decoded_tx, encoded_tx));
 
     data_chunk decoded_script;
-    BOOST_REQUIRE(decode_base16(decoded_script, encoded_script));
+    REQUIRE(decode_base16(decoded_script, encoded_script));
 
     transaction tx;
-    BOOST_REQUIRE(kd::entity_from_data(tx, decoded_tx));
+    REQUIRE(kd::entity_from_data(tx, decoded_tx));
 
     auto const& input = tx.inputs()[index];
     auto& prevout = input.previous_output().validation.cache;
 
     prevout.set_value(value);
     prevout.set_script(kd::create<script>(decoded_script, false));
-    BOOST_REQUIRE(prevout.script().is_valid());
+    REQUIRE(prevout.script().is_valid());
 
     auto const result = validate_input::verify_script(tx, index, native_forks);
-    BOOST_REQUIRE_EQUAL(result.value(), error::success);
+    REQUIRE(result.value() == error::success);
 }
 #endif
 
-BOOST_AUTO_TEST_SUITE_END()
+// End Boost Suite
