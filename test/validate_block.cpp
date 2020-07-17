@@ -70,27 +70,27 @@ TEST_CASE("validate block  native  block 520679 tx  valid", "[validate block tes
     native_forks |= domain::machine::rule_fork::bch_daa_cw144;
 
     data_chunk decoded_tx;
-    BOOST_REQUIRE(decode_base16(decoded_tx, encoded_tx));
+    REQUIRE(decode_base16(decoded_tx, encoded_tx));
 
     data_chunk decoded_script;
-    BOOST_REQUIRE(decode_base16(decoded_script, encoded_script));
+    REQUIRE(decode_base16(decoded_script, encoded_script));
 
     transaction tx;
-    BOOST_REQUIRE(kd::entity_from_data(tx, decoded_tx));
+    REQUIRE(kd::entity_from_data(tx, decoded_tx));
 
     auto const& input = tx.inputs()[index];
     auto& prevout = input.previous_output().validation.cache;
 
     prevout.set_value(25533210);
     prevout.set_script(kd::create<script>(decoded_script, false));
-    BOOST_REQUIRE(prevout.script().is_valid());
+    REQUIRE(prevout.script().is_valid());
 
     auto const result = validate_input::verify_script(tx, index, native_forks);
-    BOOST_REQUIRE_EQUAL(result.value(), error::success);
+    REQUIRE(result.value() == error::success);
 }
 
 
-BOOST_AUTO_TEST_CASE(validate_block__2018NOV__block_520679_tx__valid) {
+TEST_CASE("validate block  2018NOV  block 520679 tx  valid", "[validate block tests]") {
     //// DEBUG [blockchain] Input validation failed (stack false)
     // forks        : 1073973119
     // outpoint     : 208fc2edc6fbf4c6cf7fb3ac0c7a1cb23f88fc3ddcced6423ad02d429acb2d07:0
