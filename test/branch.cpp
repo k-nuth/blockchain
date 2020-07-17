@@ -192,20 +192,20 @@ TEST_CASE("branch  push front  two unlinked  link failure", "[branch tests]") {
     // Ensure the blocks are not linked.
     block1->header().set_previous_block_hash(null_hash);
 
-    BOOST_REQUIRE(instance.push_front(block1));
-    BOOST_REQUIRE(!instance.push_front(block0));
-    BOOST_REQUIRE_EQUAL(instance.size(), 1u);
-    BOOST_REQUIRE((*instance.blocks())[0] == block1);
+    REQUIRE(instance.push_front(block1));
+    REQUIRE(!instance.push_front(block0));
+    REQUIRE(instance.size() == 1u);
+    REQUIRE((*instance.blocks())[0] == block1);
 }
 
 // top
 
-BOOST_AUTO_TEST_CASE(branch__top__default__nullptr) {
+TEST_CASE("branch  top  default  nullptr", "[branch tests]") {
     branch instance;
-    BOOST_REQUIRE(!instance.top());
+    REQUIRE(!instance.top());
 }
 
-BOOST_AUTO_TEST_CASE(branch__top__two_blocks__expected) {
+TEST_CASE("branch  top  two blocks  expected", "[branch tests]") {
     branch_fixture instance;
     DECLARE_BLOCK(block, 0);
     DECLARE_BLOCK(block, 1);
