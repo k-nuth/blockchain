@@ -232,31 +232,31 @@ TEST_CASE("block pool  remove  subtree  reorganized", "[block pool tests]") {
     instance.add(block4);
     instance.add(block5);
     instance.add(block6);
-    BOOST_REQUIRE_EQUAL(instance.size(), 6u);
+    REQUIRE(instance.size() == 6u);
 
     block_const_ptr_list path{ block1, block2, block6, block7 };
     instance.remove(std::make_shared<const block_const_ptr_list>(std::move(path)));
-    BOOST_REQUIRE_EQUAL(instance.size(), 3u);
+    REQUIRE(instance.size() == 3u);
 
     // Entry3 is the new root block (non-zero height).
     auto const entry3 = instance.blocks().right.find(44);
-    BOOST_REQUIRE(entry3 != instance.blocks().right.end());
-    BOOST_REQUIRE(entry3->second.block() == block3);
+    REQUIRE(entry3 != instance.blocks().right.end());
+    REQUIRE(entry3->second.block() == block3);
 
     // Remaining entries are children (zero height).
     auto const children = instance.blocks().right.find(0);
-    BOOST_REQUIRE(children != instance.blocks().right.end());
+    REQUIRE(children != instance.blocks().right.end());
 }
 
 // prune
 
-BOOST_AUTO_TEST_CASE(block_pool__prune__empty_zero_zero__empty) {
+TEST_CASE("block pool  prune  empty zero zero  empty", "[block pool tests]") {
     block_pool_fixture instance(0);
     instance.prune(0);
-    BOOST_REQUIRE_EQUAL(instance.size(), 0u);
+    REQUIRE(instance.size() == 0u);
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__prune__all_current__unchanged) {
+TEST_CASE("block pool  prune  all current  unchanged", "[block pool tests]") {
     block_pool_fixture instance(10);
     auto const block1 = make_block(1, 42);
     auto const block2 = make_block(2, 43);
