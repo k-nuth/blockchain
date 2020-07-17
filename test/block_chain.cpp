@@ -526,10 +526,8 @@ TEST_CASE("block chain  fetch block2  not exists  error not found", "[safe chain
 static 
 int fetch_block_header_by_height_result(block_chain& instance, block_const_ptr block, size_t height) {
     std::promise<code> promise;
-    auto const handler = [=, &promise](code ec, header_ptr result_header, size_t result_height)
-    {
-        if (ec)
-        {
+    auto const handler = [=, &promise](code ec, header_ptr result_header, size_t result_height) {
+        if (ec) {
             promise.set_value(ec);
             return;
         }
