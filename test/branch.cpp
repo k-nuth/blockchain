@@ -177,14 +177,14 @@ TEST_CASE("branch  push front  two linked  success", "[branch tests]") {
     // Link the blocks.
     block1->header().set_previous_block_hash(block0->hash());
 
-    BOOST_REQUIRE(instance.push_front(block1));
-    BOOST_REQUIRE(instance.push_front(block0));
-    BOOST_REQUIRE_EQUAL(instance.size(), 2u);
-    BOOST_REQUIRE((*instance.blocks())[0] == block0);
-    BOOST_REQUIRE((*instance.blocks())[1] == block1);
+    REQUIRE(instance.push_front(block1));
+    REQUIRE(instance.push_front(block0));
+    REQUIRE(instance.size() == 2u);
+    REQUIRE((*instance.blocks())[0] == block0);
+    REQUIRE((*instance.blocks())[1] == block1);
 }
 
-BOOST_AUTO_TEST_CASE(branch__push_front__two_unlinked__link_failure) {
+TEST_CASE("branch  push front  two unlinked  link failure", "[branch tests]") {
     branch_fixture instance;
     DECLARE_BLOCK(block, 0);
     DECLARE_BLOCK(block, 1);
