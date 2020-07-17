@@ -132,29 +132,29 @@ TEST_CASE("utxo  get utxo  found  expected", "[utxo tests]") {
     const domain::chain::output_point outpoint{ block2->transactions()[0].hash(), 0 };
     auto const expected_value = initial_block_subsidy_satoshi();
     auto const expected_script = block2->transactions()[0].outputs()[0].script().to_string(0);
-    BOOST_REQUIRE(instance.get_utxo(output, height, median_time_past, coinbase, outpoint, 12));
-    BOOST_REQUIRE(coinbase);
-    BOOST_REQUIRE_EQUAL(height, 2u);
-    BOOST_REQUIRE_EQUAL(output.value(), expected_value);
-    BOOST_REQUIRE_EQUAL(output.script().to_string(0), expected_script);
+    REQUIRE(instance.get_utxo(output, height, median_time_past, coinbase, outpoint, 12));
+    REQUIRE(coinbase);
+    REQUIRE(height == 2u);
+    REQUIRE(output.value() == expected_value);
+    REQUIRE(output.script().to_string(0) == expected_script);
 }
 
-BOOST_AUTO_TEST_CASE(utxo__get_utxo__above_fork__false) {
+TEST_CASE("utxo  get utxo  above fork  false", "[utxo tests]") {
     START_BLOCKCHAIN(instance, false);
 
     auto const block1 = NEW_BLOCK(1);
     auto const block2 = NEW_BLOCK(2);
-    BOOST_REQUIRE(instance.insert(block1, 1));
-    BOOST_REQUIRE(instance.insert(block2, 2));
+    REQUIRE(instance.insert(block1, 1));
+    REQUIRE(instance.insert(block2, 2));
 
     domain::chain::output output;
     size_t height;
     uint32_t median_time_past;
     bool coinbase;
     const domain::chain::output_point outpoint{ block2->transactions()[0].hash(), 0 };
-    BOOST_REQUIRE( ! instance.get_utxo(output, height, median_time_past, coinbase, outpoint, 1));
+    REQUIRE( ! instance.get_utxo(output, height, median_time_past, coinbase, outpoint, 1));
 }
 
 #endif // KTH_DB_NEW
 
-BOOST_AUTO_TEST_SUITE_END()
+// End Boost Suite
