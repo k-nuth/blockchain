@@ -269,14 +269,14 @@ TEST_CASE("block pool  prune  all current  unchanged", "[block pool tests]") {
     instance.add(block3);
     instance.add(block4);
     instance.add(block5);
-    BOOST_REQUIRE_EQUAL(instance.size(), 5u);
+    REQUIRE(instance.size() == 5u);
 
     // Any height less than 42 (52 - 10) should be pruned.
     instance.prune(52);
-    BOOST_REQUIRE_EQUAL(instance.size(), 5u);
+    REQUIRE(instance.size() == 5u);
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__prune__one_expired__one_deleted) {
+TEST_CASE("block pool  prune  one expired  one deleted", "[block pool tests]") {
     block_pool_fixture instance(10);
     auto const block1 = make_block(1, 42);
     auto const block2 = make_block(2, 43);
