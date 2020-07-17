@@ -289,14 +289,14 @@ TEST_CASE("block pool  prune  one expired  one deleted", "[block pool tests]") {
     instance.add(block3);
     instance.add(block4);
     instance.add(block5);
-    BOOST_REQUIRE_EQUAL(instance.size(), 5u);
+    REQUIRE(instance.size() == 5u);
 
     // Any height less than 43 (53 - 10) should be pruned.
     instance.prune(53);
-    BOOST_REQUIRE_EQUAL(instance.size(), 4u);
+    REQUIRE(instance.size() == 4u);
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__prune__whole_branch_expired__whole_branch_deleted) {
+TEST_CASE("block pool  prune  whole branch expired  whole branch deleted", "[block pool tests]") {
     block_pool_fixture instance(10);
 
     // branch1
