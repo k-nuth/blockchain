@@ -63,113 +63,113 @@ TEST_CASE("branch  hash  two blocks  first previous block hash", "[branch tests]
     block0->header().set_previous_block_hash(expected);
     block1->header().set_previous_block_hash(block0->hash());
 
-    BOOST_REQUIRE(instance.push_front(block1));
-    BOOST_REQUIRE(instance.push_front(block0));
-    BOOST_REQUIRE(instance.hash() == expected);
+    REQUIRE(instance.push_front(block1));
+    REQUIRE(instance.push_front(block0));
+    REQUIRE(instance.hash() == expected);
 }
 
 // height/set_height
 
-BOOST_AUTO_TEST_CASE(branch__height__default__zero) {
+TEST_CASE("branch  height  default  zero", "[branch tests]") {
     branch instance;
-    BOOST_REQUIRE_EQUAL(instance.height(), 0);
+    REQUIRE(instance.height() == 0);
 }
 
-BOOST_AUTO_TEST_CASE(branch__set_height__round_trip__unchanged) {
+TEST_CASE("branch  set height  round trip  unchanged", "[branch tests]") {
     static const size_t expected = 42;
     branch instance;
     instance.set_height(expected);
-    BOOST_REQUIRE_EQUAL(instance.height(), expected);
+    REQUIRE(instance.height() == expected);
 }
 
 // index_of
 
-BOOST_AUTO_TEST_CASE(branch__index_of__one__zero) {
+TEST_CASE("branch  index of  one  zero", "[branch tests]") {
     branch_fixture instance;
     instance.set_height(0);
-    BOOST_REQUIRE_EQUAL(instance.index_of(1), 0u);
+    REQUIRE(instance.index_of(1) == 0u);
 }
 
-BOOST_AUTO_TEST_CASE(branch__index_of__two__one) {
+TEST_CASE("branch  index of  two  one", "[branch tests]") {
     branch_fixture instance;
     instance.set_height(0);
-    BOOST_REQUIRE_EQUAL(instance.index_of(2), 1u);
+    REQUIRE(instance.index_of(2) == 1u);
 }
 
-BOOST_AUTO_TEST_CASE(branch__index_of__value__expected) {
+TEST_CASE("branch  index of  value  expected", "[branch tests]") {
     branch_fixture instance;
     instance.set_height(42);
-    BOOST_REQUIRE_EQUAL(instance.index_of(53), 10u);
+    REQUIRE(instance.index_of(53) == 10u);
 }
 
 // height_at
 
-BOOST_AUTO_TEST_CASE(branch__height_at__zero__one) {
+TEST_CASE("branch  height at  zero  one", "[branch tests]") {
     branch_fixture instance;
     instance.set_height(0);
-    BOOST_REQUIRE_EQUAL(instance.height_at(0), 1u);
+    REQUIRE(instance.height_at(0) == 1u);
 }
 
-BOOST_AUTO_TEST_CASE(branch__height_at__one__two) {
+TEST_CASE("branch  height at  one  two", "[branch tests]") {
     branch_fixture instance;
     instance.set_height(0);
-    BOOST_REQUIRE_EQUAL(instance.height_at(1), 2u);
+    REQUIRE(instance.height_at(1) == 2u);
 }
 
-BOOST_AUTO_TEST_CASE(branch__height_at__value__expected) {
+TEST_CASE("branch  height at  value  expected", "[branch tests]") {
     branch_fixture instance;
     instance.set_height(42);
-    BOOST_REQUIRE_EQUAL(instance.height_at(10), 53u);
+    REQUIRE(instance.height_at(10) == 53u);
 }
 
 // size
 
-BOOST_AUTO_TEST_CASE(branch__size__empty__zero) {
+TEST_CASE("branch  size  empty  zero", "[branch tests]") {
     branch instance;
-    BOOST_REQUIRE_EQUAL(instance.size(), 0);
+    REQUIRE(instance.size() == 0);
 }
 
 // empty
 
-BOOST_AUTO_TEST_CASE(branch__empty__default__true) {
+TEST_CASE("branch  empty  default  true", "[branch tests]") {
     branch instance;
-    BOOST_REQUIRE(instance.empty());
+    REQUIRE(instance.empty());
 }
 
-BOOST_AUTO_TEST_CASE(branch__empty__push_one__false) {
+TEST_CASE("branch  empty  push one  false", "[branch tests]") {
     branch instance;
     DECLARE_BLOCK(block, 0);
-    BOOST_REQUIRE(instance.push_front(block0));
-    BOOST_REQUIRE(!instance.empty());
+    REQUIRE(instance.push_front(block0));
+    REQUIRE(!instance.empty());
 }
 
 // blocks
 
-BOOST_AUTO_TEST_CASE(branch__blocks__default__empty) {
+TEST_CASE("branch  blocks  default  empty", "[branch tests]") {
     branch instance;
-    BOOST_REQUIRE(instance.blocks()->empty());
+    REQUIRE(instance.blocks()->empty());
 }
 
-BOOST_AUTO_TEST_CASE(branch__blocks__one__empty) {
+TEST_CASE("branch  blocks  one  empty", "[branch tests]") {
     branch instance;
     DECLARE_BLOCK(block, 0);
-    BOOST_REQUIRE(instance.push_front(block0));
-    BOOST_REQUIRE(!instance.empty());
-    BOOST_REQUIRE_EQUAL(instance.blocks()->size(), 1u);
+    REQUIRE(instance.push_front(block0));
+    REQUIRE(!instance.empty());
+    REQUIRE(instance.blocks()->size() == 1u);
 }
 
 // push_front
 
-BOOST_AUTO_TEST_CASE(branch__push_front__one__success) {
+TEST_CASE("branch  push front  one  success", "[branch tests]") {
     branch_fixture instance;
     DECLARE_BLOCK(block, 0);
-    BOOST_REQUIRE(instance.push_front(block0));
-    BOOST_REQUIRE(!instance.empty());
-    BOOST_REQUIRE_EQUAL(instance.size(), 1u);
-    BOOST_REQUIRE((*instance.blocks())[0] == block0);
+    REQUIRE(instance.push_front(block0));
+    REQUIRE(!instance.empty());
+    REQUIRE(instance.size() == 1u);
+    REQUIRE((*instance.blocks())[0] == block0);
 }
 
-BOOST_AUTO_TEST_CASE(branch__push_front__two_linked__success) {
+TEST_CASE("branch  push front  two linked  success", "[branch tests]") {
     branch_fixture instance;
     DECLARE_BLOCK(block, 0);
     DECLARE_BLOCK(block, 1);
