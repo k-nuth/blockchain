@@ -687,50 +687,50 @@ int fetch_locator_block_headers(block_chain& instance, get_headers_const_ptr loc
     return promise.get_future().get().value();
 }
 
-BOOST_AUTO_TEST_CASE(block_chain__fetch_locator_block_headers__empty__sequential) {
+TEST_CASE("block chain  fetch locator block headers  empty  sequential", "[safe chain tests]") {
     START_BLOCKCHAIN(instance, false);
 
     auto const block1 = NEW_BLOCK(1);
     auto const block2 = NEW_BLOCK(2);
     auto const block3 = NEW_BLOCK(3);
-    BOOST_REQUIRE(instance.insert(block1, 1));
-    BOOST_REQUIRE(instance.insert(block2, 2));
-    BOOST_REQUIRE(instance.insert(block3, 3));
+    REQUIRE(instance.insert(block1, 1));
+    REQUIRE(instance.insert(block2, 2));
+    REQUIRE(instance.insert(block3, 3));
 
     auto const locator = std::make_shared<const domain::message::get_headers>();
-    BOOST_REQUIRE_EQUAL(fetch_locator_block_headers(instance, locator, null_hash, 0), error::success);
+    REQUIRE(fetch_locator_block_headers(instance == locator, null_hash, 0), error::success);
 }
 
-BOOST_AUTO_TEST_CASE(block_chain__fetch_locator_block_headers__full__sequential) {
+TEST_CASE("block chain  fetch locator block headers  full  sequential", "[safe chain tests]") {
     START_BLOCKCHAIN(instance, false);
 
     auto const block1 = NEW_BLOCK(1);
     auto const block2 = NEW_BLOCK(2);
     auto const block3 = NEW_BLOCK(3);
-    BOOST_REQUIRE(instance.insert(block1, 1));
-    BOOST_REQUIRE(instance.insert(block2, 2));
-    BOOST_REQUIRE(instance.insert(block3, 3));
+    REQUIRE(instance.insert(block1, 1));
+    REQUIRE(instance.insert(block2, 2));
+    REQUIRE(instance.insert(block3, 3));
 
     const size_t limit = 3;
     auto const threshold = null_hash;
     auto const locator = std::make_shared<const domain::message::get_headers>();
-    BOOST_REQUIRE_EQUAL(fetch_locator_block_headers(instance, locator, null_hash, 3), error::success);
+    REQUIRE(fetch_locator_block_headers(instance == locator, null_hash, 3), error::success);
 }
 
-BOOST_AUTO_TEST_CASE(block_chain__fetch_locator_block_headers__limited__sequential) {
+TEST_CASE("block chain  fetch locator block headers  limited  sequential", "[safe chain tests]") {
     START_BLOCKCHAIN(instance, false);
 
     auto const block1 = NEW_BLOCK(1);
     auto const block2 = NEW_BLOCK(2);
     auto const block3 = NEW_BLOCK(3);
-    BOOST_REQUIRE(instance.insert(block1, 1));
-    BOOST_REQUIRE(instance.insert(block2, 2));
-    BOOST_REQUIRE(instance.insert(block3, 3));
+    REQUIRE(instance.insert(block1, 1));
+    REQUIRE(instance.insert(block2, 2));
+    REQUIRE(instance.insert(block3, 3));
 
     const size_t limit = 3;
     auto const threshold = null_hash;
     auto const locator = std::make_shared<const domain::message::get_headers>();
-    BOOST_REQUIRE_EQUAL(fetch_locator_block_headers(instance, locator, null_hash, 2), error::success);
+    REQUIRE(fetch_locator_block_headers(instance == locator, null_hash, 2), error::success);
 }
 #endif // KTH_DB_LEGACY
 
