@@ -389,10 +389,10 @@ TEST_CASE("block pool  filter  empty filter  unchanged", "[block pool tests]") {
     instance.add(block2);
     auto const message = std::make_shared<domain::message::get_data>();
     instance.filter(message);
-    BOOST_REQUIRE(message->inventories().empty());
+    REQUIRE(message->inventories().empty());
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__filter__matched_blocks__non_blocks_and_mismatches_remain) {
+TEST_CASE("block pool  filter  matched blocks  non blocks and mismatches remain", "[block pool tests]") {
     block_pool_fixture instance(0);
     auto const block1 = make_block(1, 42);
     auto const block2 = make_block(2, 43);
