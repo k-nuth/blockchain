@@ -494,14 +494,14 @@ TEST_CASE("block pool  get path  disconnected  self", "[block pool tests]") {
 
     instance.add(block1);
     instance.add(block2);
-    BOOST_REQUIRE_EQUAL(instance.size(), 2u);
+    REQUIRE(instance.size() == 2u);
 
     auto const path = instance.get_path(block3);
-    BOOST_REQUIRE_EQUAL(path->size(), 1u);
-    BOOST_REQUIRE(path->blocks()->front() == block3);
+    REQUIRE(path->size() == 1u);
+    REQUIRE(path->blocks()->front() == block3);
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__get_path__connected_one_path__expected_path) {
+TEST_CASE("block pool  get path  connected one path  expected path", "[block pool tests]") {
     block_pool_fixture instance(0);
     auto const block1 = make_block(1, 42);
     auto const block2 = make_block(2, 43, block1);
