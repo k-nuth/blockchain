@@ -237,20 +237,20 @@ TEST_CASE("branch  top height  two blocks  expected", "[branch tests]") {
     // Link the blocks.
     block1->header().set_previous_block_hash(block0->hash());
 
-    BOOST_REQUIRE(instance.push_front(block1));
-    BOOST_REQUIRE(instance.push_front(block0));
-    BOOST_REQUIRE_EQUAL(instance.size(), 2u);
-    BOOST_REQUIRE_EQUAL(instance.top_height(), expected);
+    REQUIRE(instance.push_front(block1));
+    REQUIRE(instance.push_front(block0));
+    REQUIRE(instance.size() == 2u);
+    REQUIRE(instance.top_height() == expected);
 }
 
 // work
 
-BOOST_AUTO_TEST_CASE(branch__work__default__zero) {
+TEST_CASE("branch  work  default  zero", "[branch tests]") {
     branch instance;
-    BOOST_REQUIRE(instance.work() == 0);
+    REQUIRE(instance.work() == 0);
 }
 
-BOOST_AUTO_TEST_CASE(branch__work__two_blocks__expected) {
+TEST_CASE("branch  work  two blocks  expected", "[branch tests]") {
     branch instance;
     DECLARE_BLOCK(block, 0);
     DECLARE_BLOCK(block, 1);
