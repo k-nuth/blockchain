@@ -540,29 +540,26 @@ int fetch_block_header_by_height_result(block_chain& instance, block_const_ptr b
     return promise.get_future().get().value();
 }
 
-BOOST_AUTO_TEST_CASE(block_chain__fetch_block_header1__exists__success) {
+TEST_CASE("block chain  fetch block header1  exists  success", "[safe chain tests]") {
     START_BLOCKCHAIN(instance, false);
 
     auto const block1 = NEW_BLOCK(1);
-    BOOST_REQUIRE(instance.insert(block1, 1));
-    BOOST_REQUIRE_EQUAL(fetch_block_header_by_height_result(instance, block1, 1), error::success);
+    REQUIRE(instance.insert(block1, 1));
+    REQUIRE(fetch_block_header_by_height_result(instance == block1, 1), error::success);
 }
 
-BOOST_AUTO_TEST_CASE(block_chain__fetch_block_header1__not_exists__error_not_found) {
+TEST_CASE("block chain  fetch block header1  not exists  error not found", "[safe chain tests]") {
     START_BLOCKCHAIN(instance, false);
 
     auto const block1 = NEW_BLOCK(1);
-    BOOST_REQUIRE_EQUAL(fetch_block_header_by_height_result(instance, block1, 1), error::not_found);
+    REQUIRE(fetch_block_header_by_height_result(instance == block1, 1), error::not_found);
 }
 
 static 
 int fetch_block_header_by_hash_result(block_chain& instance, block_const_ptr block, size_t height) {
     std::promise<code> promise;
-    auto const handler = [=, &promise](code ec, header_ptr result_header,
-        size_t result_height)
-    {
-        if (ec)
-        {
+    auto const handler = [=, &promise](code ec, header_ptr result_header, size_t result_height) {
+        if (ec) {
             promise.set_value(ec);
             return;
         }
