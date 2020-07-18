@@ -513,18 +513,18 @@ TEST_CASE("block pool  get path  connected one path  expected path", "[block poo
     instance.add(block2);
     instance.add(block3);
     instance.add(block4);
-    BOOST_REQUIRE_EQUAL(instance.size(), 4u);
+    REQUIRE(instance.size() == 4u);
 
     auto const path = instance.get_path(block5);
-    BOOST_REQUIRE_EQUAL(path->size(), 5u);
-    BOOST_REQUIRE((*path->blocks())[0] == block1);
-    BOOST_REQUIRE((*path->blocks())[1] == block2);
-    BOOST_REQUIRE((*path->blocks())[2] == block3);
-    BOOST_REQUIRE((*path->blocks())[3] == block4);
-    BOOST_REQUIRE((*path->blocks())[4] == block5);
+    REQUIRE(path->size() == 5u);
+    REQUIRE((*path->blocks())[0] == block1);
+    REQUIRE((*path->blocks())[1] == block2);
+    REQUIRE((*path->blocks())[2] == block3);
+    REQUIRE((*path->blocks())[3] == block4);
+    REQUIRE((*path->blocks())[4] == block5);
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__get_path__connected_multiple_paths__expected_path) {
+TEST_CASE("block pool  get path  connected multiple paths  expected path", "[block pool tests]") {
     block_pool_fixture instance(0);
 
     auto const block1 = make_block(1, 42);
