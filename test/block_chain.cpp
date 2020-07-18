@@ -672,10 +672,8 @@ TEST_CASE("block chain  fetch merkle block2  not exists  error not found", "[saf
 static 
 int fetch_locator_block_headers(block_chain& instance, get_headers_const_ptr locator, hash_digest const& threshold, size_t limit) {
     std::promise<code> promise;
-    auto const handler = [=, &promise](code ec, headers_ptr result_headers)
-    {
-        if (ec)
-        {
+    auto const handler = [=, &promise](code ec, headers_ptr result_headers) {
+        if (ec) {
             promise.set_value(ec);
             return;
         }
