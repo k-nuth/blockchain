@@ -640,19 +640,19 @@ int fetch_merkle_block_by_hash_result(block_chain& instance,
     return promise.get_future().get().value();
 }
 
-BOOST_AUTO_TEST_CASE(block_chain__fetch_merkle_block2__exists__success) {
+TEST_CASE("block chain  fetch merkle block2  exists  success", "[safe chain tests]") {
     START_BLOCKCHAIN(instance, false);
 
     auto const block1 = NEW_BLOCK(1);
-    BOOST_REQUIRE(instance.insert(block1, 1));
-    BOOST_REQUIRE_EQUAL(fetch_merkle_block_by_hash_result(instance, block1, 1), error::success);
+    REQUIRE(instance.insert(block1, 1));
+    REQUIRE(fetch_merkle_block_by_hash_result(instance == block1, 1), error::success);
 }
 
-BOOST_AUTO_TEST_CASE(block_chain__fetch_merkle_block2__not_exists__error_not_found) {
+TEST_CASE("block chain  fetch merkle block2  not exists  error not found", "[safe chain tests]") {
     START_BLOCKCHAIN(instance, false);
 
     auto const block1 = NEW_BLOCK(1);
-    BOOST_REQUIRE_EQUAL(fetch_merkle_block_by_hash_result(instance, block1, 1), error::not_found);
+    REQUIRE(fetch_merkle_block_by_hash_result(instance == block1, 1), error::not_found);
 }
 
 
