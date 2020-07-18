@@ -413,80 +413,80 @@ TEST_CASE("block pool  filter  matched blocks  non blocks and mismatches remain"
     };
     auto const message = std::make_shared<domain::message::get_data>(std::move(data));
     instance.filter(message);
-    BOOST_REQUIRE_EQUAL(message->inventories().size(), 3u);
-    BOOST_REQUIRE(message->inventories()[0] == expected1);
-    BOOST_REQUIRE(message->inventories()[1] == expected2);
-    BOOST_REQUIRE(message->inventories()[2] == expected3);
+    REQUIRE(message->inventories().size() == 3u);
+    REQUIRE(message->inventories()[0] == expected1);
+    REQUIRE(message->inventories()[1] == expected2);
+    REQUIRE(message->inventories()[2] == expected3);
 }
 
 // exists
 
-BOOST_AUTO_TEST_CASE(block_pool__exists__empty__false) {
+TEST_CASE("block pool  exists  empty  false", "[block pool tests]") {
     block_pool_fixture instance(0);
     auto const block1 = make_block(1, 42);
-    BOOST_REQUIRE(!instance.exists(block1));
+    REQUIRE(!instance.exists(block1));
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__exists__not_empty_mismatch__false) {
+TEST_CASE("block pool  exists  not empty mismatch  false", "[block pool tests]") {
     block_pool_fixture instance(0);
     auto const block1 = make_block(1, 42);
     auto const block2 = make_block(2, 43, block1);
     instance.add(block1);
-    BOOST_REQUIRE(!instance.exists(block2));
+    REQUIRE(!instance.exists(block2));
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__exists__match__true) {
+TEST_CASE("block pool  exists  match  true", "[block pool tests]") {
     block_pool_fixture instance(0);
     auto const block1 = make_block(1, 42);
     instance.add(block1);
-    BOOST_REQUIRE(instance.exists(block1));
+    REQUIRE(instance.exists(block1));
 }
 
 // parent
 
-BOOST_AUTO_TEST_CASE(block_pool__parent__empty__false) {
+TEST_CASE("block pool  parent  empty  false", "[block pool tests]") {
     block_pool_fixture instance(0);
     auto const block1 = make_block(1, 42);
-    BOOST_REQUIRE(!instance.parent(block1));
+    REQUIRE(!instance.parent(block1));
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__parent__nonempty_mismatch___false) {
+TEST_CASE("block pool  parent  nonempty mismatch   false", "[block pool tests]") {
     block_pool_fixture instance(0);
     auto const block1 = make_block(1, 42);
     auto const block2 = make_block(2, 43);
     instance.add(block1);
     instance.add(block2);
-    BOOST_REQUIRE(!instance.parent(block2));
+    REQUIRE(!instance.parent(block2));
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__parent__match___true) {
+TEST_CASE("block pool  parent  match   true", "[block pool tests]") {
     block_pool_fixture instance(0);
     auto const block1 = make_block(1, 42);
     auto const block2 = make_block(2, 43, block1);
     instance.add(block1);
     instance.add(block2);
-    BOOST_REQUIRE(instance.parent(block2));
+    REQUIRE(instance.parent(block2));
 }
 
 // get_path
 
-BOOST_AUTO_TEST_CASE(block_pool__get_path__empty__self) {
+TEST_CASE("block pool  get path  empty  self", "[block pool tests]") {
     block_pool instance(0);
     auto const block1 = make_block(1, 42);
     auto const path = instance.get_path(block1);
-    BOOST_REQUIRE_EQUAL(path->size(), 1u);
-    BOOST_REQUIRE(path->blocks()->front() == block1);
+    REQUIRE(path->size() == 1u);
+    REQUIRE(path->blocks()->front() == block1);
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__get_path__exists__empty) {
+TEST_CASE("block pool  get path  exists  empty", "[block pool tests]") {
     block_pool instance(0);
     auto const block1 = make_block(1, 42);
     instance.add(block1);
     auto const path = instance.get_path(block1);
-    BOOST_REQUIRE_EQUAL(path->size(), 0u);
+    REQUIRE(path->size() == 0u);
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__get_path__disconnected__self) {
+TEST_CASE("block pool  get path  disconnected  self", "[block pool tests]") {
     block_pool_fixture instance(0);
     auto const block1 = make_block(1, 42);
     auto const block2 = make_block(2, 43);
