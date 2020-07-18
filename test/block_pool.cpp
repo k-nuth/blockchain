@@ -357,31 +357,31 @@ TEST_CASE("block pool  prune  partial branch expired  partial branch deleted", "
     instance.add(block10);
     instance.add(block11);
     instance.add(block12);
-    BOOST_REQUIRE_EQUAL(instance.size(), 12u);
+    REQUIRE(instance.size() == 12u);
 
     // Any height less than 46 (56 - 10) should be pruned, others replanted.
     instance.prune(56);
-    BOOST_REQUIRE_EQUAL(instance.size(), 6u);
+    REQUIRE(instance.size() == 6u);
 
     // There are four blocks at height 46, make sure at least one exists.
     auto const entry = instance.blocks().right.find(46);
-    BOOST_REQUIRE(entry != instance.blocks().right.end());
+    REQUIRE(entry != instance.blocks().right.end());
 
     // There are two blocks at 47 but neither is a root (not replanted).
     auto const entry8 = instance.blocks().right.find(47);
-    BOOST_REQUIRE(entry8 == instance.blocks().right.end());
+    REQUIRE(entry8 == instance.blocks().right.end());
 }
 
 // filter
 
-BOOST_AUTO_TEST_CASE(block_pool__filter__empty__empty) {
+TEST_CASE("block pool  filter  empty  empty", "[block pool tests]") {
     block_pool_fixture instance(0);
     auto const message = std::make_shared<domain::message::get_data>();
     instance.filter(message);
-    BOOST_REQUIRE(message->inventories().empty());
+    REQUIRE(message->inventories().empty());
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__filter__empty_filter__unchanged) {
+TEST_CASE("block pool  filter  empty filter  unchanged", "[block pool tests]") {
     block_pool_fixture instance(0);
     auto const block1 = make_block(1, 42);
     auto const block2 = make_block(2, 42);
