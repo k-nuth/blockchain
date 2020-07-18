@@ -258,14 +258,14 @@ TEST_CASE("branch  work  two blocks  expected", "[branch tests]") {
     // Link the blocks.
     block1->header().set_previous_block_hash(block0->hash());
 
-    BOOST_REQUIRE(instance.push_front(block1));
-    BOOST_REQUIRE(instance.push_front(block0));
-    BOOST_REQUIRE_EQUAL(instance.size(), 2u);
+    REQUIRE(instance.push_front(block1));
+    REQUIRE(instance.push_front(block0));
+    REQUIRE(instance.size() == 2u);
 
     ///////////////////////////////////////////////////////////////////////////
     // TODO: devise value tests.
     ///////////////////////////////////////////////////////////////////////////
-    BOOST_REQUIRE(instance.work() == 0);
+    REQUIRE(instance.work() == 0);
 }
 
-BOOST_AUTO_TEST_SUITE_END()
+// End Boost Suite
