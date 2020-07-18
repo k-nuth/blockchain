@@ -594,31 +594,31 @@ TEST_CASE("block pool  get path  connected multiple sub branches  expected path"
     instance.add(block11);
     instance.add(block21);
     instance.add(block22);
-    BOOST_REQUIRE_EQUAL(instance.size(), 7u);
+    REQUIRE(instance.size() == 7u);
 
     auto const path1 = instance.get_path(block5);
-    BOOST_REQUIRE_EQUAL(path1->size(), 5u);
-    BOOST_REQUIRE((*path1->blocks())[0] == block1);
-    BOOST_REQUIRE((*path1->blocks())[1] == block2);
-    BOOST_REQUIRE((*path1->blocks())[2] == block3);
-    BOOST_REQUIRE((*path1->blocks())[3] == block4);
-    BOOST_REQUIRE((*path1->blocks())[4] == block5);
+    REQUIRE(path1->size() == 5u);
+    REQUIRE((*path1->blocks())[0] == block1);
+    REQUIRE((*path1->blocks())[1] == block2);
+    REQUIRE((*path1->blocks())[2] == block3);
+    REQUIRE((*path1->blocks())[3] == block4);
+    REQUIRE((*path1->blocks())[4] == block5);
 
     auto const path2 = instance.get_path(block12);
-    BOOST_REQUIRE_EQUAL(path2->size(), 3u);
-    BOOST_REQUIRE((*path2->blocks())[0] == block1);
-    BOOST_REQUIRE((*path2->blocks())[1] == block11);
-    BOOST_REQUIRE((*path2->blocks())[2] == block12);
+    REQUIRE(path2->size() == 3u);
+    REQUIRE((*path2->blocks())[0] == block1);
+    REQUIRE((*path2->blocks())[1] == block11);
+    REQUIRE((*path2->blocks())[2] == block12);
 
     auto const path3 = instance.get_path(block23);
-    BOOST_REQUIRE_EQUAL(path3->size(), 7u);
-    BOOST_REQUIRE((*path3->blocks())[0] == block1);
-    BOOST_REQUIRE((*path3->blocks())[1] == block2);
-    BOOST_REQUIRE((*path3->blocks())[2] == block3);
-    BOOST_REQUIRE((*path3->blocks())[3] == block4);
-    BOOST_REQUIRE((*path3->blocks())[4] == block21);
-    BOOST_REQUIRE((*path3->blocks())[5] == block22);
-    BOOST_REQUIRE((*path3->blocks())[6] == block23);
+    REQUIRE(path3->size() == 7u);
+    REQUIRE((*path3->blocks())[0] == block1);
+    REQUIRE((*path3->blocks())[1] == block2);
+    REQUIRE((*path3->blocks())[2] == block3);
+    REQUIRE((*path3->blocks())[3] == block4);
+    REQUIRE((*path3->blocks())[4] == block21);
+    REQUIRE((*path3->blocks())[5] == block22);
+    REQUIRE((*path3->blocks())[6] == block23);
 }
 
-BOOST_AUTO_TEST_SUITE_END()
+// End Boost Suite
