@@ -593,11 +593,8 @@ static
 int fetch_merkle_block_by_height_result(block_chain& instance,
     block_const_ptr block, size_t height) {
     std::promise<code> promise;
-    auto const handler = [=, &promise](code ec, merkle_block_ptr result_merkle,
-        size_t result_height)
-    {
-        if (ec)
-        {
+    auto const handler = [=, &promise](code ec, merkle_block_ptr result_merkle, size_t result_height) {
+        if (ec) {
             promise.set_value(ec);
             return;
         }
