@@ -543,32 +543,32 @@ TEST_CASE("block pool  get path  connected multiple paths  expected path", "[blo
     instance.add(block2);
     instance.add(block3);
     instance.add(block4);
-    BOOST_REQUIRE_EQUAL(instance.size(), 4u);
+    REQUIRE(instance.size() == 4u);
 
     instance.add(block11);
     instance.add(block12);
     instance.add(block13);
     instance.add(block14);
-    BOOST_REQUIRE_EQUAL(instance.size(), 8u);
+    REQUIRE(instance.size() == 8u);
 
     auto const path1 = instance.get_path(block5);
-    BOOST_REQUIRE_EQUAL(path1->size(), 5u);
-    BOOST_REQUIRE((*path1->blocks())[0] == block1);
-    BOOST_REQUIRE((*path1->blocks())[1] == block2);
-    BOOST_REQUIRE((*path1->blocks())[2] == block3);
-    BOOST_REQUIRE((*path1->blocks())[3] == block4);
-    BOOST_REQUIRE((*path1->blocks())[4] == block5);
+    REQUIRE(path1->size() == 5u);
+    REQUIRE((*path1->blocks())[0] == block1);
+    REQUIRE((*path1->blocks())[1] == block2);
+    REQUIRE((*path1->blocks())[2] == block3);
+    REQUIRE((*path1->blocks())[3] == block4);
+    REQUIRE((*path1->blocks())[4] == block5);
 
     auto const path2 = instance.get_path(block15);
-    BOOST_REQUIRE_EQUAL(path2->size(), 5u);
-    BOOST_REQUIRE((*path2->blocks())[0] == block11);
-    BOOST_REQUIRE((*path2->blocks())[1] == block12);
-    BOOST_REQUIRE((*path2->blocks())[2] == block13);
-    BOOST_REQUIRE((*path2->blocks())[3] == block14);
-    BOOST_REQUIRE((*path2->blocks())[4] == block15);
+    REQUIRE(path2->size() == 5u);
+    REQUIRE((*path2->blocks())[0] == block11);
+    REQUIRE((*path2->blocks())[1] == block12);
+    REQUIRE((*path2->blocks())[2] == block13);
+    REQUIRE((*path2->blocks())[3] == block14);
+    REQUIRE((*path2->blocks())[4] == block15);
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__get_path__connected_multiple_sub_branches__expected_path) {
+TEST_CASE("block pool  get path  connected multiple sub branches  expected path", "[block pool tests]") {
     block_pool_fixture instance(0);
 
     // root branch
