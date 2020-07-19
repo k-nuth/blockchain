@@ -747,4 +747,4 @@ TEST_CASE("block chain  fetch locator block headers  limited  sequential", "[saf
 // TODO: stopped
 // TODO: to_hashes
 
-BOOST_AUTO_TEST_SUITE_END()
+// End Boost Suite
