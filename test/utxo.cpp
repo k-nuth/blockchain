@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <boost/test/unit_test.hpp>
+#include <test_helpers.hpp>
 
 #include <future>
 #include <memory>
@@ -42,17 +42,17 @@ using namespace std::filesystem;
     "p2p_tests"
 
 #define TEST_NAME \
-    std::string(boost::unit_test::framework::current_test_case().p_name)
+    Catch::getResultCapture().getCurrentTestName()
 
-#define START_BLOCKCHAIN(name, flush) \
-    threadpool pool; \
-    database::settings database_settings; \
-    database_settings.flush_writes = flush; \
-    database_settings.directory = TEST_NAME; \
-    BOOST_REQUIRE(utxo_tests::create_database(database_settings)); \
-    blockchain::settings blockchain_settings; \
+#define START_BLOCKCHAIN(name, flush)                               \
+    threadpool pool;                                                \
+    database::settings database_settings;                           \
+    database_settings.flush_writes = flush;                         \
+    database_settings.directory = TEST_NAME;                        \
+    REQUIRE(utxo_tests::create_database(database_settings));        \
+    blockchain::settings blockchain_settings;                       \
     block_chain name(pool, blockchain_settings, database_settings); \
-    BOOST_REQUIRE(name.start())
+    REQUIRE(name.start())
 
 #define NEW_BLOCK(height) \
     std::make_shared<const domain::message::block>(utxo_tests::read_block(MAINNET_BLOCK##height))
@@ -93,20 +93,19 @@ bool create_database(database::settings& out_database) {
 
 domain::chain::block read_block(const std::string hex) {
     data_chunk data;
-    BOOST_REQUIRE(decode_base16(data, hex));
+    REQUIRE(decode_base16(data, hex));
     domain::chain::block result;
-    BOOST_REQUIRE(kd::entity_from_data(result, data));
+    REQUIRE(kd::entity_from_data(result, data));
     return result;
 }
 
 } // namespace utxo_tests
 
-BOOST_AUTO_TEST_SUITE(utxo_tests)
+// Start Boost Suite: utxo tests
 
 #ifdef KTH_DB_NEW
 
-BOOST_AUTO_TEST_CASE(utxo__get_utxo__not_found__false)
-{
+TEST_CASE("utxo  get utxo  not found  false", "[utxo tests]") {
     START_BLOCKCHAIN(instance, false);
 
     domain::chain::output output;
@@ -115,17 +114,16 @@ BOOST_AUTO_TEST_CASE(utxo__get_utxo__not_found__false)
     bool coinbase;
     const domain::chain::output_point outpoint{ null_hash, 42 };
     size_t branch_height = 0;
-    BOOST_REQUIRE( ! instance.get_utxo(output, height, median_time_past, coinbase, outpoint, branch_height));
+    REQUIRE( ! instance.get_utxo(output, height, median_time_past, coinbase, outpoint, branch_height));
 }
 
-BOOST_AUTO_TEST_CASE(utxo__get_utxo__found__expected)
-{
+TEST_CASE("utxo  get utxo  found  expected", "[utxo tests]") {
     START_BLOCKCHAIN(instance, false);
 
     auto const block1 = NEW_BLOCK(1);
     auto const block2 = NEW_BLOCK(2);
-    BOOST_REQUIRE(instance.insert(block1, 1));
-    BOOST_REQUIRE(instance.insert(block2, 2));
+    REQUIRE(instance.insert(block1, 1));
+    REQUIRE(instance.insert(block2, 2));
 
     domain::chain::output output;
     size_t height;
@@ -134,30 +132,29 @@ BOOST_AUTO_TEST_CASE(utxo__get_utxo__found__expected)
     const domain::chain::output_point outpoint{ block2->transactions()[0].hash(), 0 };
     auto const expected_value = initial_block_subsidy_satoshi();
     auto const expected_script = block2->transactions()[0].outputs()[0].script().to_string(0);
-    BOOST_REQUIRE(instance.get_utxo(output, height, median_time_past, coinbase, outpoint, 12));
-    BOOST_REQUIRE(coinbase);
-    BOOST_REQUIRE_EQUAL(height, 2u);
-    BOOST_REQUIRE_EQUAL(output.value(), expected_value);
-    BOOST_REQUIRE_EQUAL(output.script().to_string(0), expected_script);
+    REQUIRE(instance.get_utxo(output, height, median_time_past, coinbase, outpoint, 12));
+    REQUIRE(coinbase);
+    REQUIRE(height == 2u);
+    REQUIRE(output.value() == expected_value);
+    REQUIRE(output.script().to_string(0) == expected_script);
 }
 
-BOOST_AUTO_TEST_CASE(utxo__get_utxo__above_fork__false)
-{
+TEST_CASE("utxo  get utxo  above fork  false", "[utxo tests]") {
     START_BLOCKCHAIN(instance, false);
 
     auto const block1 = NEW_BLOCK(1);
     auto const block2 = NEW_BLOCK(2);
-    BOOST_REQUIRE(instance.insert(block1, 1));
-    BOOST_REQUIRE(instance.insert(block2, 2));
+    REQUIRE(instance.insert(block1, 1));
+    REQUIRE(instance.insert(block2, 2));
 
     domain::chain::output output;
     size_t height;
     uint32_t median_time_past;
     bool coinbase;
     const domain::chain::output_point outpoint{ block2->transactions()[0].hash(), 0 };
-    BOOST_REQUIRE( ! instance.get_utxo(output, height, median_time_past, coinbase, outpoint, 1));
+    REQUIRE( ! instance.get_utxo(output, height, median_time_past, coinbase, outpoint, 1));
 }
 
 #endif // KTH_DB_NEW
 
-BOOST_AUTO_TEST_SUITE_END()
+// End Boost Suite

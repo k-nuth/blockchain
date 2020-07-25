@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <boost/test/unit_test.hpp>
+#include <test_helpers.hpp>
 
 #include <utility>
 #include <kth/blockchain.hpp>
@@ -10,17 +10,14 @@
 using namespace kth;
 using namespace kth::blockchain;
 
-BOOST_AUTO_TEST_SUITE(block_pool_tests)
+// Start Boost Suite: block pool tests
 
 // Access to protected members.
-class block_pool_fixture
-  : public block_pool
-{
+class block_pool_fixture : public block_pool {
 public:
     block_pool_fixture(size_t maximum_depth)
-      : block_pool(maximum_depth)
-    {
-    }
+        : block_pool(maximum_depth)
+    {}
 
     void prune(size_t top_height)
     {
@@ -60,80 +57,72 @@ block_const_ptr make_block(uint32_t id, size_t height,
     return block;
 }
 
-block_const_ptr make_block(uint32_t id, size_t height, block_const_ptr parent)
-{
+block_const_ptr make_block(uint32_t id, size_t height, block_const_ptr parent) {
     return make_block(id, height, parent->hash());
 }
 
-block_const_ptr make_block(uint32_t id, size_t height)
-{
+block_const_ptr make_block(uint32_t id, size_t height) {
     return make_block(id, height, null_hash);
 }
 
 // construct
 
-BOOST_AUTO_TEST_CASE(block_pool__construct__zero_depth__sets__maximum_value)
-{
+TEST_CASE("block pool  construct  zero depth  sets  maximum value", "[block pool tests]") {
     block_pool_fixture instance(0);
-    BOOST_REQUIRE_EQUAL(instance.maximum_depth(), max_size_t);
+    REQUIRE(instance.maximum_depth() == max_size_t);
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__construct__nonzero_depth__round_trips)
-{
+TEST_CASE("block pool  construct  nonzero depth  round trips", "[block pool tests]") {
     static const size_t expected = 42;
     block_pool_fixture instance(expected);
-    BOOST_REQUIRE_EQUAL(instance.maximum_depth(), expected);
+    REQUIRE(instance.maximum_depth() == expected);
 }
 
 // add1
 
-BOOST_AUTO_TEST_CASE(block_pool__add1__one__single)
-{
+TEST_CASE("block pool  add1  one  single", "[block pool tests]") {
     block_pool_fixture instance(0);
     static const size_t height = 42;
     auto const block1 = make_block(1, height);
 
     instance.add(block1);
     instance.add(block1);
-    BOOST_REQUIRE_EQUAL(instance.size(), 1u);
+    REQUIRE(instance.size() == 1u);
 
     auto const entry = instance.blocks().right.find(height);
-    BOOST_REQUIRE(entry != instance.blocks().right.end());
-    BOOST_REQUIRE(entry->second.block() == block1);
-    BOOST_REQUIRE_EQUAL(entry->first, height);
+    REQUIRE(entry != instance.blocks().right.end());
+    REQUIRE(entry->second.block() == block1);
+    REQUIRE(entry->first == height);
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__add1__twice__single)
-{
+TEST_CASE("block pool  add1  twice  single", "[block pool tests]") {
     block_pool instance(0);
     auto const block = std::make_shared<const domain::message::block>();
 
     instance.add(block);
     instance.add(block);
-    BOOST_REQUIRE_EQUAL(instance.size(), 1u);
+    REQUIRE(instance.size() == 1u);
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__add1__two_different_blocks_with_same_hash__first_retained)
-{
+TEST_CASE("block pool  add1  two different blocks with same hash  first retained", "[block pool tests]") {
     block_pool_fixture instance(0);
     static const size_t height1a = 42;
     auto const block1a = make_block(1, height1a);
     auto const block1b = make_block(1, height1a + 1u);
 
     // The blocks have the same hash value, so second will not be added.
-    BOOST_REQUIRE(block1a->hash() == block1b->hash());
+    REQUIRE(block1a->hash() == block1b->hash());
 
     instance.add(block1a);
     instance.add(block1b);
-    BOOST_REQUIRE_EQUAL(instance.size(), 1u);
+    REQUIRE(instance.size() == 1u);
 
     auto const entry = instance.blocks().right.find(height1a);
-    BOOST_REQUIRE(entry != instance.blocks().right.end());
-    BOOST_REQUIRE(entry->second.block() == block1a);
+    REQUIRE(entry != instance.blocks().right.end());
+    REQUIRE(entry->second.block() == block1a);
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__add1__two_distinct_hash__two)
-{
+TEST_CASE("block pool  add1  two distinct hash  two", "[block pool tests]") {
     block_pool_fixture instance(0);
     static const size_t height1 = 42;
     static const size_t height2 = height1 + 1u;
@@ -141,97 +130,91 @@ BOOST_AUTO_TEST_CASE(block_pool__add1__two_distinct_hash__two)
     auto const block2 = make_block(2, height2);
 
     // The blocks do not have the same hash value, so both will be added.
-    BOOST_REQUIRE(block1->hash() != block2->hash());
+    REQUIRE(block1->hash() != block2->hash());
 
     instance.add(block1);
     instance.add(block2);
-    BOOST_REQUIRE_EQUAL(instance.size(), 2u);
+    REQUIRE(instance.size() == 2u);
 
     auto const& entry1 = instance.blocks().right.find(height1);
-    BOOST_REQUIRE(entry1 != instance.blocks().right.end());
-    BOOST_REQUIRE(entry1->second.block() == block1);
+    REQUIRE(entry1 != instance.blocks().right.end());
+    REQUIRE(entry1->second.block() == block1);
 
     auto const& entry2 = instance.blocks().right.find(height2);
-    BOOST_REQUIRE(entry2 != instance.blocks().right.end());
-    BOOST_REQUIRE(entry2->second.block() == block2);
+    REQUIRE(entry2 != instance.blocks().right.end());
+    REQUIRE(entry2->second.block() == block2);
 }
 
 // add2
 
-BOOST_AUTO_TEST_CASE(block_pool__add2__empty__empty)
-{
+TEST_CASE("block pool  add2  empty  empty", "[block pool tests]") {
     block_pool instance(0);
     instance.add(std::make_shared<const block_const_ptr_list>());
-    BOOST_REQUIRE_EQUAL(instance.size(), 0u);
+    REQUIRE(instance.size() == 0u);
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__add2__distinct__expected)
-{
+TEST_CASE("block pool  add2  distinct  expected", "[block pool tests]") {
     block_pool_fixture instance(0);
     auto const block1 = make_block(1, 42);
     auto const block2 = make_block(2, 43);
     block_const_ptr_list blocks{ block1, block2 };
 
     // The blocks do not have the same hash value, so both will be added.
-    BOOST_REQUIRE(block1->hash() != block2->hash());
+    REQUIRE(block1->hash() != block2->hash());
 
     instance.add(std::make_shared<const block_const_ptr_list>(std::move(blocks)));
-    BOOST_REQUIRE_EQUAL(instance.size(), 2u);
+    REQUIRE(instance.size() == 2u);
 
     auto const entry1 = instance.blocks().right.find(42);
-    BOOST_REQUIRE(entry1 != instance.blocks().right.end());
-    BOOST_REQUIRE(entry1->second.block() == block1);
+    REQUIRE(entry1 != instance.blocks().right.end());
+    REQUIRE(entry1->second.block() == block1);
 
     auto const& entry2 = instance.blocks().right.find(43);
-    BOOST_REQUIRE(entry2 != instance.blocks().right.end());
-    BOOST_REQUIRE(entry2->second.block() == block2);
+    REQUIRE(entry2 != instance.blocks().right.end());
+    REQUIRE(entry2->second.block() == block2);
 }
 
 // remove
 
-BOOST_AUTO_TEST_CASE(block_pool__remove__empty__unchanged)
-{
+TEST_CASE("block pool  remove  empty  unchanged", "[block pool tests]") {
     block_pool instance(0);
     auto const block1 = make_block(1, 42);
     instance.add(block1);
-    BOOST_REQUIRE_EQUAL(instance.size(), 1u);
+    REQUIRE(instance.size() == 1u);
 
     instance.remove(std::make_shared<const block_const_ptr_list>());
-    BOOST_REQUIRE_EQUAL(instance.size(), 1u);
+    REQUIRE(instance.size() == 1u);
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__remove__all_distinct__empty)
-{
+TEST_CASE("block pool  remove  all distinct  empty", "[block pool tests]") {
     block_pool_fixture instance(0);
     auto const block1 = make_block(1, 42);
     auto const block2 = make_block(2, 43);
     auto const block3 = make_block(2, 44);
     instance.add(block1);
     instance.add(block2);
-    BOOST_REQUIRE_EQUAL(instance.size(), 2u);
+    REQUIRE(instance.size() == 2u);
 
     block_const_ptr_list path{ block1, block2 };
     instance.remove(std::make_shared<const block_const_ptr_list>(std::move(path)));
-    BOOST_REQUIRE_EQUAL(instance.size(), 0u);
+    REQUIRE(instance.size() == 0u);
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__remove__all_connected__empty)
-{
+TEST_CASE("block pool  remove  all connected  empty", "[block pool tests]") {
     block_pool instance(0);
     auto const block1 = make_block(1, 42);
     auto const block2 = make_block(2, 43, block1);
     auto const block3 = make_block(3, 44, block2);
     instance.add(block1);
     instance.add(block2);
-    BOOST_REQUIRE_EQUAL(instance.size(), 2u);
+    REQUIRE(instance.size() == 2u);
 
     block_const_ptr_list path{ block1, block2, block3 };
     instance.remove(std::make_shared<const block_const_ptr_list>(std::move(path)));
-    BOOST_REQUIRE_EQUAL(instance.size(), 0u);
+    REQUIRE(instance.size() == 0u);
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__remove__subtree__reorganized)
-{
+TEST_CASE("block pool  remove  subtree  reorganized", "[block pool tests]") {
     block_pool_fixture instance(0);
     auto const block1 = make_block(1, 42);
     auto const block2 = make_block(2, 43, block1);
@@ -249,33 +232,31 @@ BOOST_AUTO_TEST_CASE(block_pool__remove__subtree__reorganized)
     instance.add(block4);
     instance.add(block5);
     instance.add(block6);
-    BOOST_REQUIRE_EQUAL(instance.size(), 6u);
+    REQUIRE(instance.size() == 6u);
 
     block_const_ptr_list path{ block1, block2, block6, block7 };
     instance.remove(std::make_shared<const block_const_ptr_list>(std::move(path)));
-    BOOST_REQUIRE_EQUAL(instance.size(), 3u);
+    REQUIRE(instance.size() == 3u);
 
     // Entry3 is the new root block (non-zero height).
     auto const entry3 = instance.blocks().right.find(44);
-    BOOST_REQUIRE(entry3 != instance.blocks().right.end());
-    BOOST_REQUIRE(entry3->second.block() == block3);
+    REQUIRE(entry3 != instance.blocks().right.end());
+    REQUIRE(entry3->second.block() == block3);
 
     // Remaining entries are children (zero height).
     auto const children = instance.blocks().right.find(0);
-    BOOST_REQUIRE(children != instance.blocks().right.end());
+    REQUIRE(children != instance.blocks().right.end());
 }
 
 // prune
 
-BOOST_AUTO_TEST_CASE(block_pool__prune__empty_zero_zero__empty)
-{
+TEST_CASE("block pool  prune  empty zero zero  empty", "[block pool tests]") {
     block_pool_fixture instance(0);
     instance.prune(0);
-    BOOST_REQUIRE_EQUAL(instance.size(), 0u);
+    REQUIRE(instance.size() == 0u);
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__prune__all_current__unchanged)
-{
+TEST_CASE("block pool  prune  all current  unchanged", "[block pool tests]") {
     block_pool_fixture instance(10);
     auto const block1 = make_block(1, 42);
     auto const block2 = make_block(2, 43);
@@ -288,15 +269,14 @@ BOOST_AUTO_TEST_CASE(block_pool__prune__all_current__unchanged)
     instance.add(block3);
     instance.add(block4);
     instance.add(block5);
-    BOOST_REQUIRE_EQUAL(instance.size(), 5u);
+    REQUIRE(instance.size() == 5u);
 
     // Any height less than 42 (52 - 10) should be pruned.
     instance.prune(52);
-    BOOST_REQUIRE_EQUAL(instance.size(), 5u);
+    REQUIRE(instance.size() == 5u);
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__prune__one_expired__one_deleted)
-{
+TEST_CASE("block pool  prune  one expired  one deleted", "[block pool tests]") {
     block_pool_fixture instance(10);
     auto const block1 = make_block(1, 42);
     auto const block2 = make_block(2, 43);
@@ -309,15 +289,14 @@ BOOST_AUTO_TEST_CASE(block_pool__prune__one_expired__one_deleted)
     instance.add(block3);
     instance.add(block4);
     instance.add(block5);
-    BOOST_REQUIRE_EQUAL(instance.size(), 5u);
+    REQUIRE(instance.size() == 5u);
 
     // Any height less than 43 (53 - 10) should be pruned.
     instance.prune(53);
-    BOOST_REQUIRE_EQUAL(instance.size(), 4u);
+    REQUIRE(instance.size() == 4u);
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__prune__whole_branch_expired__whole_branch_deleted)
-{
+TEST_CASE("block pool  prune  whole branch expired  whole branch deleted", "[block pool tests]") {
     block_pool_fixture instance(10);
 
     // branch1
@@ -334,15 +313,14 @@ BOOST_AUTO_TEST_CASE(block_pool__prune__whole_branch_expired__whole_branch_delet
     instance.add(block3);
     instance.add(block4);
     instance.add(block5);
-    BOOST_REQUIRE_EQUAL(instance.size(), 5u);
+    REQUIRE(instance.size() == 5u);
 
     // Any height less than 44 (54 - 10) should be pruned.
     instance.prune(54);
-    BOOST_REQUIRE_EQUAL(instance.size(), 3u);
+    REQUIRE(instance.size() == 3u);
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__prune__partial_branch_expired__partial_branch_deleted)
-{
+TEST_CASE("block pool  prune  partial branch expired  partial branch deleted", "[block pool tests]") {
     block_pool_fixture instance(10);
 
     // branch1
@@ -379,33 +357,31 @@ BOOST_AUTO_TEST_CASE(block_pool__prune__partial_branch_expired__partial_branch_d
     instance.add(block10);
     instance.add(block11);
     instance.add(block12);
-    BOOST_REQUIRE_EQUAL(instance.size(), 12u);
+    REQUIRE(instance.size() == 12u);
 
     // Any height less than 46 (56 - 10) should be pruned, others replanted.
     instance.prune(56);
-    BOOST_REQUIRE_EQUAL(instance.size(), 6u);
+    REQUIRE(instance.size() == 6u);
 
     // There are four blocks at height 46, make sure at least one exists.
     auto const entry = instance.blocks().right.find(46);
-    BOOST_REQUIRE(entry != instance.blocks().right.end());
+    REQUIRE(entry != instance.blocks().right.end());
 
     // There are two blocks at 47 but neither is a root (not replanted).
     auto const entry8 = instance.blocks().right.find(47);
-    BOOST_REQUIRE(entry8 == instance.blocks().right.end());
+    REQUIRE(entry8 == instance.blocks().right.end());
 }
 
 // filter
 
-BOOST_AUTO_TEST_CASE(block_pool__filter__empty__empty)
-{
+TEST_CASE("block pool  filter  empty  empty", "[block pool tests]") {
     block_pool_fixture instance(0);
     auto const message = std::make_shared<domain::message::get_data>();
     instance.filter(message);
-    BOOST_REQUIRE(message->inventories().empty());
+    REQUIRE(message->inventories().empty());
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__filter__empty_filter__unchanged)
-{
+TEST_CASE("block pool  filter  empty filter  unchanged", "[block pool tests]") {
     block_pool_fixture instance(0);
     auto const block1 = make_block(1, 42);
     auto const block2 = make_block(2, 42);
@@ -413,11 +389,10 @@ BOOST_AUTO_TEST_CASE(block_pool__filter__empty_filter__unchanged)
     instance.add(block2);
     auto const message = std::make_shared<domain::message::get_data>();
     instance.filter(message);
-    BOOST_REQUIRE(message->inventories().empty());
+    REQUIRE(message->inventories().empty());
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__filter__matched_blocks__non_blocks_and_mismatches_remain)
-{
+TEST_CASE("block pool  filter  matched blocks  non blocks and mismatches remain", "[block pool tests]") {
     block_pool_fixture instance(0);
     auto const block1 = make_block(1, 42);
     auto const block2 = make_block(2, 43);
@@ -438,89 +413,80 @@ BOOST_AUTO_TEST_CASE(block_pool__filter__matched_blocks__non_blocks_and_mismatch
     };
     auto const message = std::make_shared<domain::message::get_data>(std::move(data));
     instance.filter(message);
-    BOOST_REQUIRE_EQUAL(message->inventories().size(), 3u);
-    BOOST_REQUIRE(message->inventories()[0] == expected1);
-    BOOST_REQUIRE(message->inventories()[1] == expected2);
-    BOOST_REQUIRE(message->inventories()[2] == expected3);
+    REQUIRE(message->inventories().size() == 3u);
+    REQUIRE(message->inventories()[0] == expected1);
+    REQUIRE(message->inventories()[1] == expected2);
+    REQUIRE(message->inventories()[2] == expected3);
 }
 
 // exists
 
-BOOST_AUTO_TEST_CASE(block_pool__exists__empty__false)
-{
+TEST_CASE("block pool  exists  empty  false", "[block pool tests]") {
     block_pool_fixture instance(0);
     auto const block1 = make_block(1, 42);
-    BOOST_REQUIRE(!instance.exists(block1));
+    REQUIRE(!instance.exists(block1));
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__exists__not_empty_mismatch__false)
-{
+TEST_CASE("block pool  exists  not empty mismatch  false", "[block pool tests]") {
     block_pool_fixture instance(0);
     auto const block1 = make_block(1, 42);
     auto const block2 = make_block(2, 43, block1);
     instance.add(block1);
-    BOOST_REQUIRE(!instance.exists(block2));
+    REQUIRE(!instance.exists(block2));
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__exists__match__true)
-{
+TEST_CASE("block pool  exists  match  true", "[block pool tests]") {
     block_pool_fixture instance(0);
     auto const block1 = make_block(1, 42);
     instance.add(block1);
-    BOOST_REQUIRE(instance.exists(block1));
+    REQUIRE(instance.exists(block1));
 }
 
 // parent
 
-BOOST_AUTO_TEST_CASE(block_pool__parent__empty__false)
-{
+TEST_CASE("block pool  parent  empty  false", "[block pool tests]") {
     block_pool_fixture instance(0);
     auto const block1 = make_block(1, 42);
-    BOOST_REQUIRE(!instance.parent(block1));
+    REQUIRE(!instance.parent(block1));
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__parent__nonempty_mismatch___false)
-{
+TEST_CASE("block pool  parent  nonempty mismatch   false", "[block pool tests]") {
     block_pool_fixture instance(0);
     auto const block1 = make_block(1, 42);
     auto const block2 = make_block(2, 43);
     instance.add(block1);
     instance.add(block2);
-    BOOST_REQUIRE(!instance.parent(block2));
+    REQUIRE(!instance.parent(block2));
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__parent__match___true)
-{
+TEST_CASE("block pool  parent  match   true", "[block pool tests]") {
     block_pool_fixture instance(0);
     auto const block1 = make_block(1, 42);
     auto const block2 = make_block(2, 43, block1);
     instance.add(block1);
     instance.add(block2);
-    BOOST_REQUIRE(instance.parent(block2));
+    REQUIRE(instance.parent(block2));
 }
 
 // get_path
 
-BOOST_AUTO_TEST_CASE(block_pool__get_path__empty__self)
-{
+TEST_CASE("block pool  get path  empty  self", "[block pool tests]") {
     block_pool instance(0);
     auto const block1 = make_block(1, 42);
     auto const path = instance.get_path(block1);
-    BOOST_REQUIRE_EQUAL(path->size(), 1u);
-    BOOST_REQUIRE(path->blocks()->front() == block1);
+    REQUIRE(path->size() == 1u);
+    REQUIRE(path->blocks()->front() == block1);
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__get_path__exists__empty)
-{
+TEST_CASE("block pool  get path  exists  empty", "[block pool tests]") {
     block_pool instance(0);
     auto const block1 = make_block(1, 42);
     instance.add(block1);
     auto const path = instance.get_path(block1);
-    BOOST_REQUIRE_EQUAL(path->size(), 0u);
+    REQUIRE(path->size() == 0u);
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__get_path__disconnected__self)
-{
+TEST_CASE("block pool  get path  disconnected  self", "[block pool tests]") {
     block_pool_fixture instance(0);
     auto const block1 = make_block(1, 42);
     auto const block2 = make_block(2, 43);
@@ -528,15 +494,14 @@ BOOST_AUTO_TEST_CASE(block_pool__get_path__disconnected__self)
 
     instance.add(block1);
     instance.add(block2);
-    BOOST_REQUIRE_EQUAL(instance.size(), 2u);
+    REQUIRE(instance.size() == 2u);
 
     auto const path = instance.get_path(block3);
-    BOOST_REQUIRE_EQUAL(path->size(), 1u);
-    BOOST_REQUIRE(path->blocks()->front() == block3);
+    REQUIRE(path->size() == 1u);
+    REQUIRE(path->blocks()->front() == block3);
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__get_path__connected_one_path__expected_path)
-{
+TEST_CASE("block pool  get path  connected one path  expected path", "[block pool tests]") {
     block_pool_fixture instance(0);
     auto const block1 = make_block(1, 42);
     auto const block2 = make_block(2, 43, block1);
@@ -548,19 +513,18 @@ BOOST_AUTO_TEST_CASE(block_pool__get_path__connected_one_path__expected_path)
     instance.add(block2);
     instance.add(block3);
     instance.add(block4);
-    BOOST_REQUIRE_EQUAL(instance.size(), 4u);
+    REQUIRE(instance.size() == 4u);
 
     auto const path = instance.get_path(block5);
-    BOOST_REQUIRE_EQUAL(path->size(), 5u);
-    BOOST_REQUIRE((*path->blocks())[0] == block1);
-    BOOST_REQUIRE((*path->blocks())[1] == block2);
-    BOOST_REQUIRE((*path->blocks())[2] == block3);
-    BOOST_REQUIRE((*path->blocks())[3] == block4);
-    BOOST_REQUIRE((*path->blocks())[4] == block5);
+    REQUIRE(path->size() == 5u);
+    REQUIRE((*path->blocks())[0] == block1);
+    REQUIRE((*path->blocks())[1] == block2);
+    REQUIRE((*path->blocks())[2] == block3);
+    REQUIRE((*path->blocks())[3] == block4);
+    REQUIRE((*path->blocks())[4] == block5);
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__get_path__connected_multiple_paths__expected_path)
-{
+TEST_CASE("block pool  get path  connected multiple paths  expected path", "[block pool tests]") {
     block_pool_fixture instance(0);
 
     auto const block1 = make_block(1, 42);
@@ -579,33 +543,32 @@ BOOST_AUTO_TEST_CASE(block_pool__get_path__connected_multiple_paths__expected_pa
     instance.add(block2);
     instance.add(block3);
     instance.add(block4);
-    BOOST_REQUIRE_EQUAL(instance.size(), 4u);
+    REQUIRE(instance.size() == 4u);
 
     instance.add(block11);
     instance.add(block12);
     instance.add(block13);
     instance.add(block14);
-    BOOST_REQUIRE_EQUAL(instance.size(), 8u);
+    REQUIRE(instance.size() == 8u);
 
     auto const path1 = instance.get_path(block5);
-    BOOST_REQUIRE_EQUAL(path1->size(), 5u);
-    BOOST_REQUIRE((*path1->blocks())[0] == block1);
-    BOOST_REQUIRE((*path1->blocks())[1] == block2);
-    BOOST_REQUIRE((*path1->blocks())[2] == block3);
-    BOOST_REQUIRE((*path1->blocks())[3] == block4);
-    BOOST_REQUIRE((*path1->blocks())[4] == block5);
+    REQUIRE(path1->size() == 5u);
+    REQUIRE((*path1->blocks())[0] == block1);
+    REQUIRE((*path1->blocks())[1] == block2);
+    REQUIRE((*path1->blocks())[2] == block3);
+    REQUIRE((*path1->blocks())[3] == block4);
+    REQUIRE((*path1->blocks())[4] == block5);
 
     auto const path2 = instance.get_path(block15);
-    BOOST_REQUIRE_EQUAL(path2->size(), 5u);
-    BOOST_REQUIRE((*path2->blocks())[0] == block11);
-    BOOST_REQUIRE((*path2->blocks())[1] == block12);
-    BOOST_REQUIRE((*path2->blocks())[2] == block13);
-    BOOST_REQUIRE((*path2->blocks())[3] == block14);
-    BOOST_REQUIRE((*path2->blocks())[4] == block15);
+    REQUIRE(path2->size() == 5u);
+    REQUIRE((*path2->blocks())[0] == block11);
+    REQUIRE((*path2->blocks())[1] == block12);
+    REQUIRE((*path2->blocks())[2] == block13);
+    REQUIRE((*path2->blocks())[3] == block14);
+    REQUIRE((*path2->blocks())[4] == block15);
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__get_path__connected_multiple_sub_branches__expected_path)
-{
+TEST_CASE("block pool  get path  connected multiple sub branches  expected path", "[block pool tests]") {
     block_pool_fixture instance(0);
 
     // root branch
@@ -631,31 +594,31 @@ BOOST_AUTO_TEST_CASE(block_pool__get_path__connected_multiple_sub_branches__expe
     instance.add(block11);
     instance.add(block21);
     instance.add(block22);
-    BOOST_REQUIRE_EQUAL(instance.size(), 7u);
+    REQUIRE(instance.size() == 7u);
 
     auto const path1 = instance.get_path(block5);
-    BOOST_REQUIRE_EQUAL(path1->size(), 5u);
-    BOOST_REQUIRE((*path1->blocks())[0] == block1);
-    BOOST_REQUIRE((*path1->blocks())[1] == block2);
-    BOOST_REQUIRE((*path1->blocks())[2] == block3);
-    BOOST_REQUIRE((*path1->blocks())[3] == block4);
-    BOOST_REQUIRE((*path1->blocks())[4] == block5);
+    REQUIRE(path1->size() == 5u);
+    REQUIRE((*path1->blocks())[0] == block1);
+    REQUIRE((*path1->blocks())[1] == block2);
+    REQUIRE((*path1->blocks())[2] == block3);
+    REQUIRE((*path1->blocks())[3] == block4);
+    REQUIRE((*path1->blocks())[4] == block5);
 
     auto const path2 = instance.get_path(block12);
-    BOOST_REQUIRE_EQUAL(path2->size(), 3u);
-    BOOST_REQUIRE((*path2->blocks())[0] == block1);
-    BOOST_REQUIRE((*path2->blocks())[1] == block11);
-    BOOST_REQUIRE((*path2->blocks())[2] == block12);
+    REQUIRE(path2->size() == 3u);
+    REQUIRE((*path2->blocks())[0] == block1);
+    REQUIRE((*path2->blocks())[1] == block11);
+    REQUIRE((*path2->blocks())[2] == block12);
 
     auto const path3 = instance.get_path(block23);
-    BOOST_REQUIRE_EQUAL(path3->size(), 7u);
-    BOOST_REQUIRE((*path3->blocks())[0] == block1);
-    BOOST_REQUIRE((*path3->blocks())[1] == block2);
-    BOOST_REQUIRE((*path3->blocks())[2] == block3);
-    BOOST_REQUIRE((*path3->blocks())[3] == block4);
-    BOOST_REQUIRE((*path3->blocks())[4] == block21);
-    BOOST_REQUIRE((*path3->blocks())[5] == block22);
-    BOOST_REQUIRE((*path3->blocks())[6] == block23);
+    REQUIRE(path3->size() == 7u);
+    REQUIRE((*path3->blocks())[0] == block1);
+    REQUIRE((*path3->blocks())[1] == block2);
+    REQUIRE((*path3->blocks())[2] == block3);
+    REQUIRE((*path3->blocks())[3] == block4);
+    REQUIRE((*path3->blocks())[4] == block21);
+    REQUIRE((*path3->blocks())[5] == block22);
+    REQUIRE((*path3->blocks())[6] == block23);
 }
 
-BOOST_AUTO_TEST_SUITE_END()
+// End Boost Suite

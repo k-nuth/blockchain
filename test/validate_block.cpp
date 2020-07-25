@@ -2,7 +2,7 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <boost/test/unit_test.hpp>
+#include <test_helpers.hpp>
 #include <kth/blockchain.hpp>
 
 using namespace kth;
@@ -10,9 +10,9 @@ using namespace kd::chain;
 using namespace kth::blockchain;
 using namespace kd::machine;
 
-BOOST_AUTO_TEST_SUITE(validate_block_tests)
+// Start Boost Suite: validate block tests
 
-BOOST_AUTO_TEST_CASE(validate_block__native__block_438513_tx__valid) {
+TEST_CASE("validate block  native  block 438513 tx  valid", "[validate block tests]") {
     //// DEBUG [blockchain] Input validation failed (stack false)
     //// forks        : 62
     //// outpoint     : 8e51d775e0896e03149d585c0655b3001da0c55068b0885139ac6ec34cf76ba0:0
@@ -26,13 +26,13 @@ BOOST_AUTO_TEST_CASE(validate_block__native__block_438513_tx__valid) {
     static auto const encoded_tx = "0100000001a06bf74cc36eac395188b06850c5a01d00b355065c589d14036e89e075d7518e000000009d483045022100ba555ac17a084e2a1b621c2171fa563bc4fb75cd5c0968153f44ba7203cb876f022036626f4579de16e3ad160df01f649ffb8dbf47b504ee56dc3ad7260af24ca0db0101004c50632102768e47607c52e581595711e27faffa7cb646b4f481fe269bd49691b2fbc12106ad6704355e2658b1756821028a5af8284a12848d69a25a0ac5cea20be905848eb645fd03d3b065df88a9117cacfeffffff0158920100000000001976a9149d86f66406d316d44d58cbf90d71179dd8162dd388ac355e2658";
 
     data_chunk decoded_tx;
-    BOOST_REQUIRE(decode_base16(decoded_tx, encoded_tx));
+    REQUIRE(decode_base16(decoded_tx, encoded_tx));
 
     data_chunk decoded_script;
-    BOOST_REQUIRE(decode_base16(decoded_script, encoded_script));
+    REQUIRE(decode_base16(decoded_script, encoded_script));
 
     transaction tx;
-    BOOST_REQUIRE(kd::entity_from_data(tx, decoded_tx));
+    REQUIRE(kd::entity_from_data(tx, decoded_tx));
 
     auto const& input = tx.inputs()[index];
     auto& prevout = input.previous_output().validation.cache;
@@ -40,17 +40,16 @@ BOOST_AUTO_TEST_CASE(validate_block__native__block_438513_tx__valid) {
     prevout.set_value(0);
     prevout.set_script(kd::create<script>(decoded_script, false));
     
-    BOOST_REQUIRE(prevout.script().is_valid());
+    REQUIRE(prevout.script().is_valid());
 
     auto const result = validate_input::verify_script(tx, index, forks);
 
-    BOOST_REQUIRE_EQUAL(result.value(), error::success);
+    REQUIRE(result.value() == error::success);
 
 }
 
 #ifdef KTH_CURRENCY_BCH
-BOOST_AUTO_TEST_CASE(validate_block__native__block_520679_tx__valid)
-{
+TEST_CASE("validate block  native  block 520679 tx  valid", "[validate block tests]") {
     //// DEBUG [blockchain] Input validation failed (stack false)
     //// forks        : 62 (?)
     //// outpoint     : dae852c88a00e95141cfe924ac6667a91af87431988d23eff268ea3509d6d83c:1
@@ -71,28 +70,27 @@ BOOST_AUTO_TEST_CASE(validate_block__native__block_520679_tx__valid)
     native_forks |= domain::machine::rule_fork::bch_daa_cw144;
 
     data_chunk decoded_tx;
-    BOOST_REQUIRE(decode_base16(decoded_tx, encoded_tx));
+    REQUIRE(decode_base16(decoded_tx, encoded_tx));
 
     data_chunk decoded_script;
-    BOOST_REQUIRE(decode_base16(decoded_script, encoded_script));
+    REQUIRE(decode_base16(decoded_script, encoded_script));
 
     transaction tx;
-    BOOST_REQUIRE(kd::entity_from_data(tx, decoded_tx));
+    REQUIRE(kd::entity_from_data(tx, decoded_tx));
 
     auto const& input = tx.inputs()[index];
     auto& prevout = input.previous_output().validation.cache;
 
     prevout.set_value(25533210);
     prevout.set_script(kd::create<script>(decoded_script, false));
-    BOOST_REQUIRE(prevout.script().is_valid());
+    REQUIRE(prevout.script().is_valid());
 
     auto const result = validate_input::verify_script(tx, index, native_forks);
-    BOOST_REQUIRE_EQUAL(result.value(), error::success);
+    REQUIRE(result.value() == error::success);
 }
 
 
-BOOST_AUTO_TEST_CASE(validate_block__2018NOV__block_520679_tx__valid)
-{
+TEST_CASE("validate block  2018NOV  block 520679 tx  valid", "[validate block tests]") {
     //// DEBUG [blockchain] Input validation failed (stack false)
     // forks        : 1073973119
     // outpoint     : 208fc2edc6fbf4c6cf7fb3ac0c7a1cb23f88fc3ddcced6423ad02d429acb2d07:0
@@ -121,24 +119,24 @@ BOOST_AUTO_TEST_CASE(validate_block__2018NOV__block_520679_tx__valid)
     // native_forks |= domain::machine::rule_fork::cash_segwit_recovery;
 
     data_chunk decoded_tx;
-    BOOST_REQUIRE(decode_base16(decoded_tx, encoded_tx));
+    REQUIRE(decode_base16(decoded_tx, encoded_tx));
 
     data_chunk decoded_script;
-    BOOST_REQUIRE(decode_base16(decoded_script, encoded_script));
+    REQUIRE(decode_base16(decoded_script, encoded_script));
 
     transaction tx;
-    BOOST_REQUIRE(kd::entity_from_data(tx, decoded_tx));
+    REQUIRE(kd::entity_from_data(tx, decoded_tx));
 
     auto const& input = tx.inputs()[index];
     auto& prevout = input.previous_output().validation.cache;
 
     prevout.set_value(value);
     prevout.set_script(kd::create<script>(decoded_script, false));
-    BOOST_REQUIRE(prevout.script().is_valid());
+    REQUIRE(prevout.script().is_valid());
 
     auto const result = validate_input::verify_script(tx, index, native_forks);
-    BOOST_REQUIRE_EQUAL(result.value(), error::success);
+    REQUIRE(result.value() == error::success);
 }
 #endif
 
-BOOST_AUTO_TEST_SUITE_END()
+// End Boost Suite

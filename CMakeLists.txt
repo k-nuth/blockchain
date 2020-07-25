@@ -44,7 +44,6 @@ option(WITH_CONSENSUS "Link kth-consensus and use for consensus checks." ON)
 # Implement --with-tests and declare WITH_TESTS.
 #------------------------------------------------------------------------------
 option(WITH_TESTS "Compile with unit tests." ON)
-option(WITH_TESTS_NEW "Compile with unit tests." OFF)
 
 # Implement --with-tools and declare WITH_TOOLS.
 #------------------------------------------------------------------------------
@@ -475,84 +474,55 @@ _group_sources(kth-blockchain "${CMAKE_CURRENT_LIST_DIR}")
 # Tests
 #==============================================================================
 
-if (WITH_TESTS OR WITH_TESTS_NEW)
+if (WITH_TESTS)
   enable_testing()
 endif()
 
 # local: test/kth_blockchain_test
 #------------------------------------------------------------------------------
 if (WITH_TESTS)
-  add_executable(kth_blockchain_test
-    test/block_chain.cpp
-    test/block_entry.cpp
-    test/block_pool.cpp
-    test/branch.cpp
-    test/transaction_entry.cpp
-    test/transaction_pool.cpp
-    test/validate_block.cpp
-    test/validate_transaction.cpp
-    test/utxo.cpp
-    test/main.cpp
-  )
-
-  target_link_libraries(kth_blockchain_test PUBLIC kth-blockchain)
-  _group_sources(kth_blockchain_test "${CMAKE_CURRENT_LIST_DIR}/test")
-
-  # _add_tests(kth_blockchain_test "blockchain" transaction_pool_tests) # validate_block_tests) # no test cases
-
-  _add_tests(kth_blockchain_test 
-    block_entry_tests
-    block_pool_tests
-    branch_tests
-    transaction_entry_tests
-    validate_block_tests
-    validate_transaction_tests
-  )
-
-  if (DB_LEGACY)
-    _add_tests(kth_blockchain_test 
-      fast_chain_tests
-      safe_chain_tests
+    set(kth_blockchain_test_sources 
+        test/block_chain.cpp
+        test/block_entry.cpp
+        test/block_pool.cpp
+        test/branch.cpp
+        test/transaction_entry.cpp
+        test/transaction_pool.cpp
+        test/validate_block.cpp
+        test/validate_transaction.cpp
+        test/utxo.cpp
+        test/main.cpp
     )
-  endif()
 
-  if (DB_NEW)
-    if (NOT WIN32)
-      _add_tests(kth_blockchain_test 
-        utxo_tests
-      )
-    endif()
-  endif()
-endif()
-
-if (WITH_TESTS_NEW)
-    if (WITH_MEMPOOL OR WITH_KEOKEN)
-        set(kth_blockchain_test_new_sources 
-            test_new/main.cpp
+    if (WITH_MEMPOOL)
+        set(kth_blockchain_test_sources 
+            ${kth_blockchain_test_sources}
+            test/mempool_tests.cpp
         )
-
-        if (WITH_MEMPOOL)
-            set(kth_blockchain_test_new_sources 
-                ${kth_blockchain_test_new_sources}
-                test_new/mempool_tests.cpp
-            )
-        endif()
-
-        if (WITH_KEOKEN)
-            set(kth_blockchain_test_new_sources 
-                ${kth_blockchain_test_new_sources}   
-                test_new/state_delegated_tests.cpp
-                test_new/state_tests.cpp
-                test_new/interpreter_tests.cpp
-            )
-        endif()
-
-        add_executable(kth_blockchain_test_new
-            ${kth_blockchain_test_new_sources}
-        )
-        target_link_libraries(kth_blockchain_test_new PUBLIC kth-blockchain)
-        add_test(NAME kth_blockchain_test_new COMMAND kth_blockchain_test_new)
     endif()
+
+    if (WITH_KEOKEN)
+        set(kth_blockchain_test_sources 
+            ${kth_blockchain_test_sources}   
+            test/state_delegated_tests.cpp
+            test/state_tests.cpp
+            test/interpreter_tests.cpp
+        )
+    endif()
+
+    add_executable(kth_blockchain_test
+        ${kth_blockchain_test_sources}
+    )
+
+    target_include_directories(kth_blockchain_test PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test>)
+
+    target_link_libraries(kth_blockchain_test PUBLIC kth-blockchain)
+    _group_sources(kth_blockchain_test "${CMAKE_CURRENT_LIST_DIR}/test")
+
+    include(CTest)
+    include(Catch)
+    catch_discover_tests(kth_blockchain_test)
 endif()
 
 
