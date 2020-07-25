@@ -66,10 +66,10 @@ private:
     void signal_completion(code const& ec);
 
 #if defined(KTH_WITH_MEMPOOL)
-    void populate_prevout_1(branch::const_ptr branch, chain::output_point const& outpoint, bool require_confirmed) const;
-    void populate_prevout_2(branch::const_ptr branch, chain::output_point const& outpoint, local_utxo_set_t const& branch_utxo) const;
-    void populate_transaction_inputs(branch::const_ptr branch, chain::input::list const& inputs, local_utxo_set_t const& branch_utxo) const;
-    void populate_transactions(branch::const_ptr branch, chain::block const& block, local_utxo_set_t const& branch_utxo) const;
+    void populate_prevout_1(branch::const_ptr branch, domain::chain::output_point const& outpoint, bool require_confirmed) const;
+    void populate_prevout_2(branch::const_ptr branch, domain::chain::output_point const& outpoint, local_utxo_set_t const& branch_utxo) const;
+    void populate_transaction_inputs(branch::const_ptr branch, domain::chain::input::list const& inputs, local_utxo_set_t const& branch_utxo) const;
+    void populate_transactions(branch::const_ptr branch, domain::chain::block const& block, local_utxo_set_t const& branch_utxo) const;
     // void organize_mempool(branch::const_ptr branch, block_const_ptr_list_const_ptr const& incoming_blocks, block_const_ptr_list_ptr const& outgoing_blocks, local_utxo_set_t const& branch_utxo);
     void organize_mempool(branch::const_ptr branch, block_const_ptr_list_const_ptr const& incoming_blocks, block_const_ptr_list_ptr const& outgoing_blocks);
 #endif

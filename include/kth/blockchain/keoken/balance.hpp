@@ -26,7 +26,7 @@ namespace std {
 template <>
 struct hash<knuth::keoken::balance_key> {
     size_t operator()(knuth::keoken::balance_key const& key) const {
-        //Note: if we choose use boost::hash_combine we have to specialize bc::wallet::payment_address in the boost namespace
+        //Note: if we choose use boost::hash_combine we have to specialize kd::wallet::payment_address in the boost namespace
         // size_t seed = 0;
         // boost::hash_combine(seed, std::get<0>(key));
         // boost::hash_combine(seed, std::get<1>(key));

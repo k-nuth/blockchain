@@ -9,11 +9,10 @@
 #include <kth/domain.hpp>
 #include <kth/blockchain/interface/fast_chain.hpp>
 
-namespace kth {
-namespace blockchain {
+namespace kth::blockchain {
 
-using namespace bc::chain;
-using namespace bc::database;
+using namespace kd::chain;
+using namespace kth::database;
 
 #define NAME "populate_base"
 
@@ -28,7 +27,7 @@ populate_base::populate_base(dispatcher& dispatch, const fast_chain& chain)
 {}
 
 // This is the only necessary file system read in block/tx validation.
-void populate_base::populate_duplicate(size_t branch_height, const chain::transaction& tx, bool require_confirmed) const {
+void populate_base::populate_duplicate(size_t branch_height, const domain::chain::transaction& tx, bool require_confirmed) const {
 
 #if defined(KTH_DB_LEGACY)    
     tx.validation.duplicate = fast_chain_.get_is_unspent_transaction(tx.hash(), branch_height, require_confirmed);
@@ -38,7 +37,7 @@ void populate_base::populate_duplicate(size_t branch_height, const chain::transa
 #endif // KTH_DB_LEGACY
 }
 
-void populate_base::populate_pooled(const chain::transaction& tx, uint32_t forks) const {
+void populate_base::populate_pooled(const domain::chain::transaction& tx, uint32_t forks) const {
     size_t height;
     size_t position;
 
@@ -70,7 +69,7 @@ void populate_base::populate_prevout(size_t branch_height, output_point const& o
 
     prevout.spent = false;
     prevout.confirmed = false;
-    prevout.cache = chain::output{};
+    prevout.cache = domain::chain::output{};
     prevout.from_mempool = false;
 
     // If the input is a coinbase there is no prevout to populate.
@@ -115,9 +114,8 @@ void populate_base::populate_prevout(size_t branch_height, output_point const& o
     if ((spend_height <= branch_height) && (spend_height != output::validation::not_spent)) {
         prevout.spent = true;
         prevout.confirmed = true;
-        prevout.cache = chain::output{};
+        prevout.cache = domain::chain::output{};
     }
 }
 
-} // namespace blockchain
-} // namespace kth
+} // namespace kth::blockchain

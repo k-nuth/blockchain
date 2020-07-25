@@ -33,9 +33,9 @@ public:
     interpreter(interpreter const&) = delete;
     interpreter& operator=(interpreter const&) = delete;
 
-    error::error_code_t process(size_t block_height, bc::chain::transaction const& tx) {
-        using bc::istream_reader;
-        using bc::data_source;
+    error::error_code_t process(size_t block_height, kd::domain::chain::transaction const& tx) {
+        using kd::istream_reader;
+        using kd::data_source;
 
         auto data = first_keoken_output(tx);
         if ( ! data.empty()) {
@@ -50,7 +50,7 @@ public:
 private:
 
     template <typename R, KTH_IS_READER(R)>
-    error::error_code_t version_dispatcher(size_t block_height, bc::chain::transaction const& tx, R& source) {
+    error::error_code_t version_dispatcher(size_t block_height, kd::domain::chain::transaction const& tx, R& source) {
         auto version = source.read_2_bytes_big_endian();
         if ( ! source) return error::invalid_version_number;
 
@@ -62,7 +62,7 @@ private:
     }
 
     template <typename R, KTH_IS_READER(R)>
-    error::error_code_t version_0_type_dispatcher(size_t block_height, bc::chain::transaction const& tx, R& source) {
+    error::error_code_t version_0_type_dispatcher(size_t block_height, kd::domain::chain::transaction const& tx, R& source) {
         using namespace transaction_processors::v0;
 
         auto type = source.read_2_bytes_big_endian();

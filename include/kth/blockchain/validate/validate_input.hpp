@@ -28,7 +28,7 @@ public:
 #endif
 
     static 
-    code verify_script(chain::transaction const& tx, uint32_t input_index, uint32_t forks);
+    code verify_script(domain::chain::transaction const& tx, uint32_t input_index, uint32_t forks);
 };
 
 } // namespace kth::blockchain

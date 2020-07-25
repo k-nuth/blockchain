@@ -7,9 +7,9 @@
 #include <memory>
 #include <kth/blockchain.hpp>
 
-using namespace bc;
-using namespace bc::message;
-using namespace bc::blockchain;
+using namespace kth;
+using namespace kd::message;
+using namespace kth::blockchain;
 
 BOOST_AUTO_TEST_SUITE(branch_tests)
 

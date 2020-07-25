@@ -11,6 +11,9 @@
 #include <ctime>
 #include <functional>
 #include <vector>
+
+#include <kth/infrastructure.hpp>
+
 #include <kth/database.hpp>
 #include <kth/blockchain/define.hpp>
 #include <kth/blockchain/interface/fast_chain.hpp>
@@ -27,8 +30,7 @@
 namespace kth::blockchain {
 
 /// The fast_chain interface portion of this class is not thread safe.
-class BCB_API block_chain : public safe_chain, public fast_chain, noncopyable
-{
+class BCB_API block_chain : public safe_chain, public fast_chain, noncopyable {
 public:
     /// Relay transactions is network setting that is passed through to block
     /// population as an optimization. This can be removed once there is an
@@ -53,7 +55,7 @@ public:
     /// Get the set of block gaps in the chain.
     bool get_gaps(database::block_database::heights& out_gaps) const override;
 
-    bool get_output_is_confirmed(chain::output& out_output, size_t& out_height, bool& out_coinbase, bool& out_is_confirmed, const chain::output_point& outpoint, size_t branch_height, bool require_confirmed) const;
+    bool get_output_is_confirmed(domain::chain::output& out_output, size_t& out_height, bool& out_coinbase, bool& out_is_confirmed, const domain::chain::output_point& outpoint, size_t branch_height, bool require_confirmed) const;
 
      //TODO(fernando): check if can we do it just with the UTXO
     /// Determine if an unspent transaction exists with the given hash.
@@ -64,7 +66,7 @@ public:
 #if defined(KTH_DB_LEGACY) || defined(KTH_DB_NEW_FULL) 
    
     /// Get the output that is referenced by the outpoint.
-    bool get_output(chain::output& out_output, size_t& out_height, uint32_t& out_median_time_past, bool& out_coinbase, const chain::output_point& outpoint, size_t branch_height, bool require_confirmed) const override;
+    bool get_output(domain::chain::output& out_output, size_t& out_height, uint32_t& out_median_time_past, bool& out_coinbase, const domain::chain::output_point& outpoint, size_t branch_height, bool require_confirmed) const override;
 
     /// Get position data for a transaction.
     bool get_transaction_position(size_t& out_height, size_t& out_position, hash_digest const& hash, bool require_confirmed) const override;
@@ -72,7 +74,7 @@ public:
 
 #ifdef KTH_DB_NEW
     /// Get the output that is referenced by the outpoint in the UTXO Set.
-    bool get_utxo(chain::output& out_output, size_t& out_height, uint32_t& out_median_time_past, bool& out_coinbase, chain::output_point const& outpoint, size_t branch_height) const override;
+    bool get_utxo(domain::chain::output& out_output, size_t& out_height, uint32_t& out_median_time_past, bool& out_coinbase, domain::chain::output_point const& outpoint, size_t branch_height) const override;
 
     // std::pair<result_code, utxo_pool_t> get_utxo_pool_from(uint32_t from, uint32_t to) const {
     std::pair<bool, database::internal_database::utxo_pool_t> get_utxo_pool_from(uint32_t from, uint32_t to) const override;
@@ -88,7 +90,7 @@ public:
     bool get_branch_work(uint256_t& out_work, const uint256_t& maximum, size_t height) const override;
 
     /// Get the header of the block at the given height.
-    bool get_header(chain::header& out_header, size_t height) const override;
+    bool get_header(domain::chain::header& out_header, size_t height) const override;
 
     /// Get the height of the block with the given hash.
     bool get_height(size_t& out_height, hash_digest const& block_hash) const override;
@@ -141,7 +143,7 @@ public:
     void push(transaction_const_ptr tx, dispatcher& dispatch, result_handler handler) override;
 
     /// Swap incoming and outgoing blocks, height is validated.
-    void reorganize(const config::checkpoint& fork_point,
+    void reorganize(const infrastructure::config::checkpoint& fork_point,
         block_const_ptr_list_const_ptr incoming_blocks,
         block_const_ptr_list_ptr outgoing_blocks, dispatcher& dispatch,
         result_handler handler) override;
@@ -152,10 +154,10 @@ public:
     // ------------------------------------------------------------------------
 
     /// Get forks chain state relative to chain top.
-    chain::chain_state::ptr chain_state() const override;
+    domain::chain::chain_state::ptr chain_state() const override;
 
     /// Get full chain state relative to the branch top.
-    chain::chain_state::ptr chain_state(branch::const_ptr branch) const override;
+    domain::chain::chain_state::ptr chain_state(branch::const_ptr branch) const override;
 
     // ========================================================================
     // SAFE CHAIN
@@ -222,7 +224,7 @@ public:
     void fetch_locator_block_headers(get_headers_const_ptr locator, hash_digest const& threshold, size_t limit, locator_block_headers_fetch_handler handler) const override;
 
     /// fetch a block locator relative to the current top and threshold.
-    void fetch_block_locator(chain::block::indexes const& heights, block_locator_fetch_handler handler) const override;
+    void fetch_block_locator(domain::chain::block::indexes const& heights, block_locator_fetch_handler handler) const override;
 
     /// fetch height of latest block.
     void fetch_last_height(last_height_fetch_handler handler) const override;
@@ -253,7 +255,7 @@ public:
             auto const tx_result = tx_store.get(hash, max_size_t, true);
 
             if ( ! tx_result) {
-                handler(error::operation_failed_16, 0, chain::transaction{});
+                handler(error::operation_failed_16, 0, domain::chain::transaction{});
                 return;
             }
             KTH_ASSERT(tx_result.height() == height);
@@ -278,7 +280,7 @@ public:
             auto const tx_result = database_.internal_db().get_transaction(hash, max_size_t);
         
             if ( ! tx_result.is_valid()) {
-                handler(error::operation_failed_16, 0, chain::transaction{});
+                handler(error::operation_failed_16, 0, domain::chain::transaction{});
                 return;
             }
             KTH_ASSERT(tx_result.height() == height);
@@ -296,7 +298,7 @@ public:
             auto const& tx = *f;
             
             if ( ! tx.is_valid()) {
-                handler(error::operation_failed_16, 0, chain::transaction{});
+                handler(error::operation_failed_16, 0, domain::chain::transaction{});
                 return;
             }
             //KTH_ASSERT(tx.height() == height);
@@ -313,7 +315,7 @@ public:
 
 #if defined(KTH_DB_SPENDS) || defined(KTH_DB_NEW_FULL)
     /// fetch the inpoint (spender) of an outpoint.
-    void fetch_spend(const chain::output_point& outpoint, spend_fetch_handler handler) const override;
+    void fetch_spend(const domain::chain::output_point& outpoint, spend_fetch_handler handler) const override;
 #endif // KTH_DB_SPENDS
 
 #if defined(KTH_DB_HISTORY) || defined(KTH_DB_NEW_FULL)
@@ -343,13 +345,13 @@ public:
 #if defined(KTH_DB_TRANSACTION_UNCONFIRMED) || defined(KTH_DB_NEW_FULL)    
     std::vector<mempool_transaction_summary> get_mempool_transactions(std::vector<std::string> const& payment_addresses, bool use_testnet_rules, bool witness) const override;
     std::vector<mempool_transaction_summary> get_mempool_transactions(std::string const& payment_address, bool use_testnet_rules, bool witness) const override;
-    std::vector<chain::transaction> get_mempool_transactions_from_wallets(std::vector<wallet::payment_address> const& payment_addresses, bool use_testnet_rules, bool witness) const override;
+    std::vector<domain::chain::transaction> get_mempool_transactions_from_wallets(std::vector<wallet::payment_address> const& payment_addresses, bool use_testnet_rules, bool witness) const override;
 
     /// fetch unconfirmed transaction by hash.
     void fetch_unconfirmed_transaction(hash_digest const& hash, transaction_unconfirmed_fetch_handler handler) const;
     
-    mempool_mini_hash_map get_mempool_mini_hash_map(message::compact_block const& block) const override;
-    void fill_tx_list_from_mempool(message::compact_block const& block, size_t& mempool_count, std::vector<chain::transaction>& txn_available, std::unordered_map<uint64_t, uint16_t> const& shorttxids) const override;
+    mempool_mini_hash_map get_mempool_mini_hash_map(domain::message::compact_block const& block) const override;
+    void fill_tx_list_from_mempool(domain::message::compact_block const& block, size_t& mempool_count, std::vector<domain::chain::transaction>& txn_available, std::unordered_map<uint64_t, uint16_t> const& shorttxids) const override;
 #endif // KTH_DB_TRANSACTION_UNCONFIRMED
 
     // Filters.
@@ -438,7 +440,7 @@ private:
     // Utilities.
     //-------------------------------------------------------------------------
 
-    code set_chain_state(chain::chain_state::ptr previous);
+    code set_chain_state(domain::chain::chain_state::ptr previous);
     void handle_transaction(code const& ec, transaction_const_ptr tx, result_handler handler) const;
     void handle_block(code const& ec, block_const_ptr block, result_handler handler) const;
     void handle_reorganize(code const& ec, block_const_ptr top, result_handler handler);
@@ -447,16 +449,16 @@ private:
     std::atomic<bool> stopped_;
     const settings& settings_;
     const time_t notify_limit_seconds_;
-    bc::atomic<block_const_ptr> last_block_;
+    kth::atomic<block_const_ptr> last_block_;
 
     //TODO(kth):  dissabled this tx cache because we don't want special treatment for the last txn, it affects the explorer rpc methods
-    //bc::atomic<transaction_const_ptr> last_transaction_;
+    //kth::atomic<transaction_const_ptr> last_transaction_;
     
     const populate_chain_state chain_state_populator_;
     database::data_base database_;
 
     // This is protected by mutex.
-    chain::chain_state::ptr pool_state_;
+    domain::chain::chain_state::ptr pool_state_;
     mutable shared_mutex pool_state_mutex_;
 
     // These are thread safe.

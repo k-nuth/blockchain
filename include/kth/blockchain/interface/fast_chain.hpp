@@ -40,7 +40,7 @@ public:
     virtual bool get_transaction_position(size_t& out_height, size_t& out_position, hash_digest const& hash, bool require_confirmed) const = 0;
 
     /// Get the output that is referenced by the outpoint.
-    virtual bool get_output(chain::output& out_output, size_t& out_height, uint32_t& out_median_time_past, bool& out_coinbase, const chain::output_point& outpoint, size_t branch_height, bool require_confirmed) const = 0;
+    virtual bool get_output(domain::chain::output& out_output, size_t& out_height, uint32_t& out_median_time_past, bool& out_coinbase, const domain::chain::output_point& outpoint, size_t branch_height, bool require_confirmed) const = 0;
 #endif
 
     /// Get a determination of whether the block hash exists in the store.
@@ -53,7 +53,7 @@ public:
     virtual bool get_branch_work(uint256_t& out_work, const uint256_t& maximum, size_t from_height) const = 0;
 
     /// Get the header of the block at the given height.
-    virtual bool get_header(chain::header& out_header, size_t height) const = 0;
+    virtual bool get_header(domain::chain::header& out_header, size_t height) const = 0;
 
     /// Get the height of the block with the given hash.
     virtual bool get_height(size_t& out_height, hash_digest const& block_hash) const = 0;
@@ -73,7 +73,7 @@ public:
 
 #ifdef KTH_DB_NEW
     /// Get the output that is referenced by the outpoint in the UTXO Set.
-    virtual bool get_utxo(chain::output& out_output, size_t& out_height, uint32_t& out_median_time_past, bool& out_coinbase, chain::output_point const& outpoint, size_t branch_height) const = 0;
+    virtual bool get_utxo(domain::chain::output& out_output, size_t& out_height, uint32_t& out_median_time_past, bool& out_coinbase, domain::chain::output_point const& outpoint, size_t branch_height) const = 0;
 
     /// Get a UTXO subset from the reorganization pool, [from, to] the specified heights.
     virtual std::pair<bool, database::internal_database::utxo_pool_t> get_utxo_pool_from(uint32_t from, uint32_t to) const = 0;
@@ -110,7 +110,7 @@ public:
         complete_handler handler) = 0;
 
     /// Swap incoming and outgoing blocks, height is validated.
-    virtual void reorganize(const config::checkpoint& fork_point,
+    virtual void reorganize(const infrastructure::config::checkpoint& fork_point,
         block_const_ptr_list_const_ptr incoming_blocks,
         block_const_ptr_list_ptr outgoing_blocks, dispatcher& dispatch,
         complete_handler handler) = 0;
@@ -121,10 +121,10 @@ public:
     // ------------------------------------------------------------------------
 
     /// Get a reference to the chain state relative to the next block.
-    virtual chain::chain_state::ptr chain_state() const = 0;
+    virtual domain::chain::chain_state::ptr chain_state() const = 0;
 
     /// Get a reference to the chain state relative to the next block.
-    virtual chain::chain_state::ptr chain_state(branch::const_ptr branch) const = 0;
+    virtual domain::chain::chain_state::ptr chain_state(branch::const_ptr branch) const = 0;
 
     virtual bool is_stale_fast() const = 0;
 };

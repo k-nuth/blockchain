@@ -16,7 +16,7 @@ namespace mining {
 class transaction_element {
 public:
 
-    transaction_element(chain::transaction const& tx)
+    transaction_element(domain::chain::transaction const& tx)
         : transaction_(tx)
         , txid_(transaction_.hash())
 #if ! defined(KTH_CURRENCY_BCH)
@@ -27,7 +27,7 @@ public:
         , sigops_(transaction_.signature_operations())
     {}
 
-    transaction_element(chain::transaction&& tx)
+    transaction_element(domain::chain::transaction&& tx)
         : transaction_(std::move(tx))
         , txid_(transaction_.hash())
 #if ! defined(KTH_CURRENCY_BCH)
@@ -38,7 +38,7 @@ public:
         , sigops_(transaction_.signature_operations())
     {}
 
-    chain::transaction const& transaction() const {
+    domain::chain::transaction const& transaction() const {
         return transaction_;
     }
 
@@ -73,7 +73,7 @@ public:
     }
 
 private:
-    chain::transaction transaction_;
+    domain::chain::transaction transaction_;
     hash_digest txid_;
 
 #if ! defined(KTH_CURRENCY_BCH)

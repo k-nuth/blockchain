@@ -13,9 +13,9 @@
 
 namespace kth::blockchain {
 
-settings::settings(config::settings context) {
+settings::settings(infrastructure::config::settings context) {
     switch (context) {
-        case config::settings::mainnet: {
+        case infrastructure::config::settings::mainnet: {
             checkpoints.reserve(22);
             checkpoints.emplace_back("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f", 0);
             checkpoints.emplace_back("0000000069e244f73d78e8fd29ba2fd2ed618bd6fa2ee92559f542fdb26e7c1d", 11111);
@@ -37,7 +37,7 @@ settings::settings(config::settings context) {
             checkpoints.emplace_back("00000000000000004d9b4ef50f0f9d686fd69db2e03af35a100370c64632a983", 295000);
             break;
         }
-        case config::settings::testnet: {
+        case infrastructure::config::settings::testnet: {
             easy_blocks = true;
 
             checkpoints.reserve(7);
@@ -50,7 +50,7 @@ settings::settings(config::settings context) {
             checkpoints.emplace_back("000000000000624f06c69d3a9fe8d25e0a9030569128d63ad1b704bbb3059a16", 600000);
             break;
         }
-        case config::settings::regtest: {
+        case infrastructure::config::settings::regtest: {
             easy_blocks = true;
             retarget = false;
             checkpoints.emplace_back("06226e46111a0b59caaf126043eb5bbf28c34f3a5e332a1fc7b2b73cf188910f", 0);
@@ -58,12 +58,12 @@ settings::settings(config::settings context) {
         }
 
         default:
-        case config::settings::none: {}
+        case infrastructure::config::settings::none: {}
     }
 }
 
 uint32_t settings::enabled_forks() const {
-    using namespace machine;
+    using namespace domain::machine;
 
     uint32_t forks = rule_fork::no_rules;
     forks |= (easy_blocks ? rule_fork::easy_blocks : 0);
@@ -80,7 +80,7 @@ uint32_t settings::enabled_forks() const {
 
 #if defined(KTH_CURRENCY_BCH)
     forks |= (bch_uahf             ? rule_fork::bch_uahf : 0);
-    forks |= (bch_daa              ? rule_fork::bch_daa : 0);
+    forks |= (bch_daa_cw144        ? rule_fork::bch_daa_cw144 : 0);
     forks |= (bch_monolith         ? rule_fork::bch_monolith : 0);
     forks |= (bch_magnetic_anomaly ? rule_fork::bch_magnetic_anomaly : 0);
     forks |= (bch_great_wall       ? rule_fork::bch_great_wall : 0);

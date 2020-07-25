@@ -44,7 +44,7 @@ transaction get_tx(std::string const& hex) {
     return tx;
 }
 
-transaction get_tx_from_mempool(mining::mempool const& mp, std::unordered_map<chain::point, chain::output> const& internal_utxo, std::string const& hex) {
+transaction get_tx_from_mempool(mining::mempool const& mp, std::unordered_map<domain::chain::point, domain::chain::output> const& internal_utxo, std::string const& hex) {
     data_chunk data;
     decode_base16(data, hex);
     auto tx = transaction::factory_from_data(data);
@@ -73,15 +73,15 @@ transaction get_tx_from_mempool(mining::mempool const& mp, std::unordered_map<ch
     return tx;
 }
 
-chain::block get_block(std::string const& hex) {
+domain::chain::block get_block(std::string const& hex) {
     data_chunk data;
     decode_base16(data, hex);
-    auto blk = chain::block::factory_from_data(data);
+    auto blk = domain::chain::block::factory_from_data(data);
     // add_state(tx);
     return blk;
 }
 
-kth::chain::block get_block_from_template(mempool const& mp) {
+kth::domain::chain::block get_block_from_template(mempool const& mp) {
     auto gbt = mp.get_block_template();
     transaction::list tx_list;
     for (auto const& elem : gbt.first) {
@@ -1399,14 +1399,14 @@ TEST_CASE("[mempool] testnet case 0") {
         "0100000001ba984772df8136fa25026bfff3b07d35d259f50c451ea078e5a92d06aa035521010000006a4730440220675dc0222a585bbb11dc3aa72b794dd06c424c95c7010b4033c4898716d042db0220709a8efef19816748178b4ce9476fbbac5e09fc73c44294ef6a031669d2ed13e4121033592498a12775a8a46dc580cf418256beab4a6a21c223d06b46de2ef02098a99ffffffff02d0070000000000001976a91432b57f34861bcbe33a701be9ac3a50288fbc0a3d88ac54808800000000001976a91417da70492df2f93234367d8146908abc85cc19fd88ac00000000"
     };
 
-    std::unordered_map<chain::point, chain::output> internal_utxo;
+    std::unordered_map<domain::chain::point, domain::chain::output> internal_utxo;
 
     for (auto const& oldstr : olds) {
         auto tx = get_tx(oldstr);
 
         uint32_t i = 0;
         for (auto const& out : tx.outputs()) {
-            internal_utxo.emplace(chain::point{tx.hash(), i}, out);
+            internal_utxo.emplace(domain::chain::point{tx.hash(), i}, out);
             ++i;
         }
     }
@@ -1577,14 +1577,14 @@ TEST_CASE("[mempool] testnet case 1") {
         "0100000001ba984772df8136fa25026bfff3b07d35d259f50c451ea078e5a92d06aa035521010000006a4730440220675dc0222a585bbb11dc3aa72b794dd06c424c95c7010b4033c4898716d042db0220709a8efef19816748178b4ce9476fbbac5e09fc73c44294ef6a031669d2ed13e4121033592498a12775a8a46dc580cf418256beab4a6a21c223d06b46de2ef02098a99ffffffff02d0070000000000001976a91432b57f34861bcbe33a701be9ac3a50288fbc0a3d88ac54808800000000001976a91417da70492df2f93234367d8146908abc85cc19fd88ac00000000"
     };
 
-    std::unordered_map<chain::point, chain::output> internal_utxo;
+    std::unordered_map<domain::chain::point, domain::chain::output> internal_utxo;
 
     for (auto const& oldstr : olds) {
         auto tx = get_tx(oldstr);
 
         uint32_t i = 0;
         for (auto const& out : tx.outputs()) {
-            internal_utxo.emplace(chain::point{tx.hash(), i}, out);
+            internal_utxo.emplace(domain::chain::point{tx.hash(), i}, out);
             ++i;
         }
     }
@@ -1728,7 +1728,7 @@ TEST_CASE("[mempool] testnet case 1") {
 #endif    
 
 
-    chain::transaction::list txs {
+    domain::chain::transaction::list txs {
           get_tx("0100000001bdb1ba353b91f33c91c9860ed82acea5e853e3f61394501e5e48a6cb524f2bd4010000006b48304502210081149fdd50398db9f8494eaff4111200286b2f2f93e45c9bd155a04a1629cbc602207a39adf344da455d739acbf9e1befde1cd931fa9a0558ff65f3f5df6f5a23f1c412102e0cfe082d408b020cc9b8c297f22ad94d1a390a10f62dafdc01ea97dfdbe4387feffffff02dcc62600000000001976a91446e1437885b22d939ef736344b798a9cbf433c0888ac00000000000000002c6a09696e7465726c696e6b2084cda8971d0b07bdfb0da84915b33d07bb8265481e4774d0e666f93dbdfb643c00000000")
         , get_tx("0100000001b6a220148f412dae574e51e92f072aa90f4baee88f1ad285a736b2f63cf3460b010000006b483045022100ac88e4708716af3e1b19a7bec8fef9b6bc7d7829974997eb1b266dfb3923c689022039d39f76857aea5a8b466fa5a37c94a09a328af7d92a24ae342915b7ab0de94c412102f6b775b62f032e462df94d6d15f69db114bb7feb2748c6c2886a3d4d925703c3ffffffff0200000000000000002c6a09696e7465726c696e6b209a67ec902a1b500d939bf2a0dfb79adf2db3e6d10c6c565671b38806a993fc72f015a103000000001976a914a588cb7b781a0b67c02e87129b8ccb56fde3469c88ac00000000")
         , get_tx("01000000014b21ee302772fbc21f8e8259027d18eeea59e72dcc74b7a324eaa45eec31b9fa010000006a47304402204dbd3629acc05b5ba2747ff54c839af0423552f2582d3d025f63b87756098aee02206707a7cce3945e91c372b9778488bce772f5e16fa6cb426dbe8f78d165aa58db412103438ab580b4db848f5dcdc84ef989afd8da761177c7eb3e412b0374e3631afc6bffffffff02d0070000000000001976a91432b57f34861bcbe33a701be9ac3a50288fbc0a3d88ac6c938700000000001976a914dd4a414c40b3ea4bcab0a1374de0bcd03d999c9888ac00000000")
@@ -1739,7 +1739,7 @@ TEST_CASE("[mempool] testnet case 1") {
         , get_tx("010000000106fd6ad50034509df5399562d8d108ea448553093c721ca9aaf477b98a589e61010000006a47304402206ff11e73e3be12c23667a161ee56f5e7ddb0f861cc404438cae1cbbef40b135902201793b598f3779b5cc367ae78f46549396afa2c1afd8ed19ca580ed0aaef9b97841210374a762d0a9e678aef54ba5d7a98a0f24c252008d31e6e5087c5557009acf786dffffffff02d0070000000000001976a91432b57f34861bcbe33a701be9ac3a50288fbc0a3d88ac377a8800000000001976a91427422cd8315f1701f206c261fb46609cea1b648588ac00000000")
     };
 
-    chain::block blk{chain::header{}, txs};
+    domain::chain::block blk{domain::chain::header{}, txs};
     auto res = mp.remove(blk.transactions().begin(), blk.transactions().end());
     // std::cout << res << std::endl;
     REQUIRE(res == error::success);
@@ -1771,14 +1771,14 @@ TEST_CASE("[mempool] testnet case 2") {
         , "01000000012697dd5ed15af075e6c01e01bcbed63b73ead19ce09073ef092d78c48c0cdbcd010000006a4730440220468e1269b1a182dbfe66716554286df0afa2350596f3a00872e75c4c179c8555022066ca98d428e4a4b5bb1c02680bf2f4af14e54cab910bd5aeefcb31e5ca0c266e4121026f77aac396bd82dde783509ccf188c5140a1b3e69809bbe65309fab98e97d95affffffff02d0070000000000001976a91432b57f34861bcbe33a701be9ac3a50288fbc0a3d88aceab54f00000000001976a914e048131a271885ad572722ff444e6b133e123e3088ac00000000"
     };
 
-    std::unordered_map<chain::point, chain::output> internal_utxo;
+    std::unordered_map<domain::chain::point, domain::chain::output> internal_utxo;
 
     for (auto const& oldstr : olds) {
         auto tx = get_tx(oldstr);
 
         uint32_t i = 0;
         for (auto const& out : tx.outputs()) {
-            internal_utxo.emplace(chain::point{tx.hash(), i}, out);
+            internal_utxo.emplace(domain::chain::point{tx.hash(), i}, out);
             ++i;
         }
     }
@@ -2188,14 +2188,14 @@ TEST_CASE("[mempool] testnet case 3") {
     };
 
 
-    std::unordered_map<chain::point, chain::output> internal_utxo;
+    std::unordered_map<domain::chain::point, domain::chain::output> internal_utxo;
 
     for (auto const& oldstr : olds) {
         auto tx = get_tx(oldstr);
 
         uint32_t i = 0;
         for (auto const& out : tx.outputs()) {
-            internal_utxo.emplace(chain::point{tx.hash(), i}, out);
+            internal_utxo.emplace(domain::chain::point{tx.hash(), i}, out);
             ++i;
         }
     }
@@ -2570,14 +2570,14 @@ TEST_CASE("[mempool] GetBlockTemplate CTOR/LTOR 2 - testnet case 2") {
         , "01000000012697dd5ed15af075e6c01e01bcbed63b73ead19ce09073ef092d78c48c0cdbcd010000006a4730440220468e1269b1a182dbfe66716554286df0afa2350596f3a00872e75c4c179c8555022066ca98d428e4a4b5bb1c02680bf2f4af14e54cab910bd5aeefcb31e5ca0c266e4121026f77aac396bd82dde783509ccf188c5140a1b3e69809bbe65309fab98e97d95affffffff02d0070000000000001976a91432b57f34861bcbe33a701be9ac3a50288fbc0a3d88aceab54f00000000001976a914e048131a271885ad572722ff444e6b133e123e3088ac00000000"
     };
 
-    std::unordered_map<chain::point, chain::output> internal_utxo;
+    std::unordered_map<domain::chain::point, domain::chain::output> internal_utxo;
 
     for (auto const& oldstr : olds) {
         auto tx = get_tx(oldstr);
 
         uint32_t i = 0;
         for (auto const& out : tx.outputs()) {
-            internal_utxo.emplace(chain::point{tx.hash(), i}, out);
+            internal_utxo.emplace(domain::chain::point{tx.hash(), i}, out);
             ++i;
         }
     }
@@ -3105,14 +3105,14 @@ TEST_CASE("[mempool] testnet case 4") {
 
 
 
-    std::unordered_map<chain::point, chain::output> internal_utxo;
+    std::unordered_map<domain::chain::point, domain::chain::output> internal_utxo;
 
     for (auto const& oldstr : olds) {
         auto tx = get_tx(oldstr);
 
         uint32_t i = 0;
         for (auto const& out : tx.outputs()) {
-            internal_utxo.emplace(chain::point{tx.hash(), i}, out);
+            internal_utxo.emplace(domain::chain::point{tx.hash(), i}, out);
             ++i;
         }
     }

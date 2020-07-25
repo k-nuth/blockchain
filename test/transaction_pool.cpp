@@ -6,8 +6,8 @@
 // #include <kth/consensus.hpp>
 #include <kth/blockchain.hpp>
 
-using namespace bc;
-using namespace bc::blockchain;
+using namespace kth;
+using namespace kth::blockchain;
 
 struct fixture {};
 

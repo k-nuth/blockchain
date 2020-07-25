@@ -7,8 +7,8 @@
 #include <memory>
 #include <kth/blockchain.hpp>
 
-using namespace bc;
-using namespace bc::blockchain;
+using namespace kth;
+using namespace kth::blockchain;
 
 BOOST_AUTO_TEST_SUITE(block_entry_tests)
 
@@ -19,7 +19,7 @@ static auto const default_block_hash = hash_literal("14508459b221041eab257d2baaa
 
 BOOST_AUTO_TEST_CASE(block_entry__construct1__default_block__expected)
 {
-    auto const block = std::make_shared<const message::block>();
+    auto const block = std::make_shared<const domain::message::block>();
     block_entry instance(block);
     BOOST_REQUIRE(instance.block() == block);
     BOOST_REQUIRE(instance.hash() == default_block_hash);
@@ -37,7 +37,7 @@ BOOST_AUTO_TEST_CASE(block_entry__construct2__default_block_hash__round_trips)
 
 BOOST_AUTO_TEST_CASE(block_entry__parent__hash42__expected)
 {
-    auto const block = std::make_shared<message::block>();
+    auto const block = std::make_shared<domain::message::block>();
     block->header().set_previous_block_hash(hash42);
     block_entry instance(block);
     BOOST_REQUIRE(instance.parent() == hash42);
@@ -56,7 +56,7 @@ BOOST_AUTO_TEST_CASE(block_entry__children__default__empty)
 BOOST_AUTO_TEST_CASE(block_entry__add_child__one__single)
 {
     block_entry instance(null_hash);
-    auto const child = std::make_shared<const message::block>();
+    auto const child = std::make_shared<const domain::message::block>();
     instance.add_child(child);
     BOOST_REQUIRE_EQUAL(instance.children().size(), 1u);
     BOOST_REQUIRE(instance.children()[0] == child->hash());
@@ -66,10 +66,10 @@ BOOST_AUTO_TEST_CASE(block_entry__add_child__two__expected_order)
 {
     block_entry instance(null_hash);
 
-    auto const child1 = std::make_shared<const message::block>();
+    auto const child1 = std::make_shared<const domain::message::block>();
     instance.add_child(child1);
 
-    auto const child2 = std::make_shared<message::block>();
+    auto const child2 = std::make_shared<domain::message::block>();
     child2->header().set_previous_block_hash(hash42);
     instance.add_child(child2);
 
@@ -82,7 +82,7 @@ BOOST_AUTO_TEST_CASE(block_entry__add_child__two__expected_order)
 
 BOOST_AUTO_TEST_CASE(block_entry__equality__same__true)
 {
-    auto const block = std::make_shared<const message::block>();
+    auto const block = std::make_shared<const domain::message::block>();
     block_entry instance1(block);
     block_entry instance2(block->hash());
     BOOST_REQUIRE(instance1 == instance2);
@@ -90,7 +90,7 @@ BOOST_AUTO_TEST_CASE(block_entry__equality__same__true)
 
 BOOST_AUTO_TEST_CASE(block_entry__equality__different__false)
 {
-    auto const block = std::make_shared<const message::block>();
+    auto const block = std::make_shared<const domain::message::block>();
     block_entry instance1(block);
     block_entry instance2(null_hash);
     BOOST_REQUIRE(!(instance1 == instance2));

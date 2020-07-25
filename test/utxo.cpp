@@ -9,8 +9,8 @@
 #include <string>
 #include <kth/blockchain.hpp>
 
-using namespace bc;
-using namespace bc::blockchain;
+using namespace kth;
+using namespace kth::blockchain;
 using namespace boost::system;
 using namespace std::filesystem;
 
@@ -55,21 +55,20 @@ using namespace std::filesystem;
     BOOST_REQUIRE(name.start())
 
 #define NEW_BLOCK(height) \
-    std::make_shared<const message::block>(utxo_tests::read_block(MAINNET_BLOCK##height))
+    std::make_shared<const domain::message::block>(utxo_tests::read_block(MAINNET_BLOCK##height))
 
 
 namespace utxo_tests {
 
 static const uint64_t genesis_mainnet_work = 0x0000000100010001;
 
-static void print_headers(std::string const& test)
-{
+static 
+void print_headers(std::string const& test) {
     auto const header = "=========== " + test + " ==========";
-    LOG_INFO(TEST_SET_NAME) << header;
+    LOG_INFO(TEST_SET_NAME, header);
 }
 
-bool create_database(database::settings& out_database)
-{
+bool create_database(database::settings& out_database) {
     print_headers(out_database.directory.string());
 
     // Blockchain doesn't care about other indexes.
@@ -86,19 +85,17 @@ bool create_database(database::settings& out_database)
     out_database.db_max_size = 16106127360;
 #endif
 
-    error_code ec;
+    std::error_code ec;
     remove_all(out_database.directory, ec);
     database::data_base database(out_database);
-    return create_directories(out_database.directory, ec) 
-            && database.create(chain::block::genesis_mainnet());
+    return create_directories(out_database.directory, ec) && database.create(domain::chain::block::genesis_mainnet());
 }
 
-chain::block read_block(const std::string hex)
-{
+domain::chain::block read_block(const std::string hex) {
     data_chunk data;
     BOOST_REQUIRE(decode_base16(data, hex));
-    chain::block result;
-    BOOST_REQUIRE(result.from_data(data));
+    domain::chain::block result;
+    BOOST_REQUIRE(kd::entity_from_data(result, data));
     return result;
 }
 
@@ -112,11 +109,11 @@ BOOST_AUTO_TEST_CASE(utxo__get_utxo__not_found__false)
 {
     START_BLOCKCHAIN(instance, false);
 
-    chain::output output;
+    domain::chain::output output;
     size_t height;
     uint32_t median_time_past;
     bool coinbase;
-    const chain::output_point outpoint{ null_hash, 42 };
+    const domain::chain::output_point outpoint{ null_hash, 42 };
     size_t branch_height = 0;
     BOOST_REQUIRE( ! instance.get_utxo(output, height, median_time_past, coinbase, outpoint, branch_height));
 }
@@ -130,11 +127,11 @@ BOOST_AUTO_TEST_CASE(utxo__get_utxo__found__expected)
     BOOST_REQUIRE(instance.insert(block1, 1));
     BOOST_REQUIRE(instance.insert(block2, 2));
 
-    chain::output output;
+    domain::chain::output output;
     size_t height;
     uint32_t median_time_past;
     bool coinbase;
-    const chain::output_point outpoint{ block2->transactions()[0].hash(), 0 };
+    const domain::chain::output_point outpoint{ block2->transactions()[0].hash(), 0 };
     auto const expected_value = initial_block_subsidy_satoshi();
     auto const expected_script = block2->transactions()[0].outputs()[0].script().to_string(0);
     BOOST_REQUIRE(instance.get_utxo(output, height, median_time_past, coinbase, outpoint, 12));
@@ -153,11 +150,11 @@ BOOST_AUTO_TEST_CASE(utxo__get_utxo__above_fork__false)
     BOOST_REQUIRE(instance.insert(block1, 1));
     BOOST_REQUIRE(instance.insert(block2, 2));
 
-    chain::output output;
+    domain::chain::output output;
     size_t height;
     uint32_t median_time_past;
     bool coinbase;
-    const chain::output_point outpoint{ block2->transactions()[0].hash(), 0 };
+    const domain::chain::output_point outpoint{ block2->transactions()[0].hash(), 0 };
     BOOST_REQUIRE( ! instance.get_utxo(output, height, median_time_past, coinbase, outpoint, 1));
 }
 
