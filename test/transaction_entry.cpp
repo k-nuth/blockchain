@@ -17,8 +17,7 @@ BOOST_AUTO_TEST_SUITE(transaction_entry_tests)
 
 static auto const default_tx_hash = hash_literal("f702453dd03b0f055e5437d76128141803984fb10acb85fc3b2184fae2f3fa78");
 
-static chain_state::data data()
-{
+static chain_state::data data() {
     chain_state::data value;
     value.height = 1;
     value.bits = { 0, { 0 } };
@@ -27,8 +26,7 @@ static chain_state::data data()
     return value;
 }
 
-static transaction_const_ptr make_tx()
-{
+static transaction_const_ptr make_tx() {
     auto const tx = std::make_shared<const message::transaction>();
     tx->validation.state = std::make_shared<chain_state>(
 #ifdef KTH_CURRENCY_BCH
@@ -40,8 +38,7 @@ static transaction_const_ptr make_tx()
     return tx;
 }
 
-static transaction_entry::ptr make_instance()
-{
+static transaction_entry::ptr make_instance() {
     return std::make_shared<transaction_entry>(transaction_entry(make_tx()));
 }
 
@@ -49,8 +46,7 @@ static transaction_entry::ptr make_instance()
 
 // construct1/tx
 
-BOOST_AUTO_TEST_CASE(transaction_entry__construct1__default_tx__expected_values)
-{
+BOOST_AUTO_TEST_CASE(transaction_entry__construct1__default_tx__expected_values) {
     const transaction_entry instance(make_tx());
     BOOST_REQUIRE(instance.is_anchor());
     BOOST_REQUIRE_EQUAL(instance.fees(), 0);
@@ -65,8 +61,7 @@ BOOST_AUTO_TEST_CASE(transaction_entry__construct1__default_tx__expected_values)
 
 // construct2/hash
 
-BOOST_AUTO_TEST_CASE(transaction_entry__construct1__default_block_hash__expected_values)
-{
+BOOST_AUTO_TEST_CASE(transaction_entry__construct1__default_block_hash__expected_values) {
     const transaction_entry instance(make_tx()->hash());
     BOOST_REQUIRE(instance.is_anchor());
     BOOST_REQUIRE_EQUAL(instance.fees(), 0);
@@ -81,16 +76,14 @@ BOOST_AUTO_TEST_CASE(transaction_entry__construct1__default_block_hash__expected
 
 // is_anchor
 
-BOOST_AUTO_TEST_CASE(transaction_entry__is_anchor__parents__false)
-{
+BOOST_AUTO_TEST_CASE(transaction_entry__is_anchor__parents__false) {
     transaction_entry instance(make_tx());
     auto const parent = make_instance();
     instance.add_parent(parent);
     BOOST_REQUIRE(!instance.is_anchor());
 }
 
-BOOST_AUTO_TEST_CASE(transaction_entry__is_anchor__children__true)
-{
+BOOST_AUTO_TEST_CASE(transaction_entry__is_anchor__children__true) {
     transaction_entry instance(make_tx());
     auto const child = make_instance();
     instance.add_child(child);
@@ -99,15 +92,13 @@ BOOST_AUTO_TEST_CASE(transaction_entry__is_anchor__children__true)
 
 // mark
 
-BOOST_AUTO_TEST_CASE(transaction_entry__mark__true__expected)
-{
+BOOST_AUTO_TEST_CASE(transaction_entry__mark__true__expected) {
     transaction_entry instance(make_tx());
     instance.mark(true);
     BOOST_REQUIRE(instance.is_marked());
 }
 
-BOOST_AUTO_TEST_CASE(transaction_entry__mark__true_false__expected)
-{
+BOOST_AUTO_TEST_CASE(transaction_entry__mark__true_false__expected) {
     transaction_entry instance(make_tx());
     instance.mark(true);
     instance.mark(false);
@@ -116,14 +107,12 @@ BOOST_AUTO_TEST_CASE(transaction_entry__mark__true_false__expected)
 
 // is_marked
 
-BOOST_AUTO_TEST_CASE(transaction_entry__mark__default__false)
-{
+BOOST_AUTO_TEST_CASE(transaction_entry__mark__default__false) {
     const transaction_entry instance(make_tx());
     BOOST_REQUIRE(!instance.is_marked());
 }
 
-BOOST_AUTO_TEST_CASE(transaction_entry__is_marked__true__true)
-{
+BOOST_AUTO_TEST_CASE(transaction_entry__is_marked__true__true) {
     transaction_entry instance(make_tx());
     instance.mark(true);
     BOOST_REQUIRE(instance.is_marked());
@@ -131,8 +120,7 @@ BOOST_AUTO_TEST_CASE(transaction_entry__is_marked__true__true)
 
 // add_parent
 
-BOOST_AUTO_TEST_CASE(transaction_entry__add_parent__one__expected_parents)
-{
+BOOST_AUTO_TEST_CASE(transaction_entry__add_parent__one__expected_parents) {
     transaction_entry instance(make_tx());
     auto const parent = make_instance();
     instance.add_parent(parent);
@@ -142,8 +130,7 @@ BOOST_AUTO_TEST_CASE(transaction_entry__add_parent__one__expected_parents)
 
 // add_child
 
-BOOST_AUTO_TEST_CASE(transaction_entry__add_child__one__expected_children)
-{
+BOOST_AUTO_TEST_CASE(transaction_entry__add_child__one__expected_children) {
     transaction_entry instance(make_tx());
     auto const child = make_instance();
     instance.add_child(child);
@@ -153,16 +140,14 @@ BOOST_AUTO_TEST_CASE(transaction_entry__add_child__one__expected_children)
 
 // remove_child
 
-BOOST_AUTO_TEST_CASE(transaction_entry__remove_child__not_found__empty)
-{
+BOOST_AUTO_TEST_CASE(transaction_entry__remove_child__not_found__empty) {
     transaction_entry instance(make_tx());
     auto const child = make_instance();
     instance.remove_child(child);
     BOOST_REQUIRE(instance.children().empty());
 }
 
-BOOST_AUTO_TEST_CASE(transaction_entry__remove_child__only_found__empty)
-{
+BOOST_AUTO_TEST_CASE(transaction_entry__remove_child__only_found__empty) {
     transaction_entry instance(make_tx());
     auto const child = make_instance();
     instance.add_child(child);
@@ -171,8 +156,7 @@ BOOST_AUTO_TEST_CASE(transaction_entry__remove_child__only_found__empty)
     BOOST_REQUIRE(instance.children().empty());
 }
 
-BOOST_AUTO_TEST_CASE(transaction_entry__remove_child__one_of_two__expected_one_remains)
-{
+BOOST_AUTO_TEST_CASE(transaction_entry__remove_child__one_of_two__expected_one_remains) {
     transaction_entry instance(make_tx());
     auto const child1 = make_instance();
     auto const child2 = make_instance();

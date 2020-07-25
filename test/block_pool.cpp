@@ -13,14 +13,11 @@ using namespace bc::blockchain;
 BOOST_AUTO_TEST_SUITE(block_pool_tests)
 
 // Access to protected members.
-class block_pool_fixture
-  : public block_pool
-{
+class block_pool_fixture : public block_pool {
 public:
     block_pool_fixture(size_t maximum_depth)
-      : block_pool(maximum_depth)
-    {
-    }
+        : block_pool(maximum_depth)
+    {}
 
     void prune(size_t top_height)
     {
@@ -49,8 +46,7 @@ public:
 };
 
 block_const_ptr make_block(uint32_t id, size_t height,
-    hash_digest const& parent)
-{
+    hash_digest const& parent) {
     auto const block = std::make_shared<const message::block>(message::block
     {
         chain::header{ id, parent, null_hash, 0, 0, 0 }, {}
@@ -60,26 +56,22 @@ block_const_ptr make_block(uint32_t id, size_t height,
     return block;
 }
 
-block_const_ptr make_block(uint32_t id, size_t height, block_const_ptr parent)
-{
+block_const_ptr make_block(uint32_t id, size_t height, block_const_ptr parent) {
     return make_block(id, height, parent->hash());
 }
 
-block_const_ptr make_block(uint32_t id, size_t height)
-{
+block_const_ptr make_block(uint32_t id, size_t height) {
     return make_block(id, height, null_hash);
 }
 
 // construct
 
-BOOST_AUTO_TEST_CASE(block_pool__construct__zero_depth__sets__maximum_value)
-{
+BOOST_AUTO_TEST_CASE(block_pool__construct__zero_depth__sets__maximum_value) {
     block_pool_fixture instance(0);
     BOOST_REQUIRE_EQUAL(instance.maximum_depth(), max_size_t);
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__construct__nonzero_depth__round_trips)
-{
+BOOST_AUTO_TEST_CASE(block_pool__construct__nonzero_depth__round_trips) {
     static const size_t expected = 42;
     block_pool_fixture instance(expected);
     BOOST_REQUIRE_EQUAL(instance.maximum_depth(), expected);
@@ -87,8 +79,7 @@ BOOST_AUTO_TEST_CASE(block_pool__construct__nonzero_depth__round_trips)
 
 // add1
 
-BOOST_AUTO_TEST_CASE(block_pool__add1__one__single)
-{
+BOOST_AUTO_TEST_CASE(block_pool__add1__one__single) {
     block_pool_fixture instance(0);
     static const size_t height = 42;
     auto const block1 = make_block(1, height);
@@ -103,8 +94,7 @@ BOOST_AUTO_TEST_CASE(block_pool__add1__one__single)
     BOOST_REQUIRE_EQUAL(entry->first, height);
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__add1__twice__single)
-{
+BOOST_AUTO_TEST_CASE(block_pool__add1__twice__single) {
     block_pool instance(0);
     auto const block = std::make_shared<const message::block>();
 
@@ -113,8 +103,7 @@ BOOST_AUTO_TEST_CASE(block_pool__add1__twice__single)
     BOOST_REQUIRE_EQUAL(instance.size(), 1u);
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__add1__two_different_blocks_with_same_hash__first_retained)
-{
+BOOST_AUTO_TEST_CASE(block_pool__add1__two_different_blocks_with_same_hash__first_retained) {
     block_pool_fixture instance(0);
     static const size_t height1a = 42;
     auto const block1a = make_block(1, height1a);
@@ -132,8 +121,7 @@ BOOST_AUTO_TEST_CASE(block_pool__add1__two_different_blocks_with_same_hash__firs
     BOOST_REQUIRE(entry->second.block() == block1a);
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__add1__two_distinct_hash__two)
-{
+BOOST_AUTO_TEST_CASE(block_pool__add1__two_distinct_hash__two) {
     block_pool_fixture instance(0);
     static const size_t height1 = 42;
     static const size_t height2 = height1 + 1u;
@@ -158,15 +146,13 @@ BOOST_AUTO_TEST_CASE(block_pool__add1__two_distinct_hash__two)
 
 // add2
 
-BOOST_AUTO_TEST_CASE(block_pool__add2__empty__empty)
-{
+BOOST_AUTO_TEST_CASE(block_pool__add2__empty__empty) {
     block_pool instance(0);
     instance.add(std::make_shared<const block_const_ptr_list>());
     BOOST_REQUIRE_EQUAL(instance.size(), 0u);
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__add2__distinct__expected)
-{
+BOOST_AUTO_TEST_CASE(block_pool__add2__distinct__expected) {
     block_pool_fixture instance(0);
     auto const block1 = make_block(1, 42);
     auto const block2 = make_block(2, 43);
@@ -189,8 +175,7 @@ BOOST_AUTO_TEST_CASE(block_pool__add2__distinct__expected)
 
 // remove
 
-BOOST_AUTO_TEST_CASE(block_pool__remove__empty__unchanged)
-{
+BOOST_AUTO_TEST_CASE(block_pool__remove__empty__unchanged) {
     block_pool instance(0);
     auto const block1 = make_block(1, 42);
     instance.add(block1);
@@ -200,8 +185,7 @@ BOOST_AUTO_TEST_CASE(block_pool__remove__empty__unchanged)
     BOOST_REQUIRE_EQUAL(instance.size(), 1u);
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__remove__all_distinct__empty)
-{
+BOOST_AUTO_TEST_CASE(block_pool__remove__all_distinct__empty) {
     block_pool_fixture instance(0);
     auto const block1 = make_block(1, 42);
     auto const block2 = make_block(2, 43);
@@ -215,8 +199,7 @@ BOOST_AUTO_TEST_CASE(block_pool__remove__all_distinct__empty)
     BOOST_REQUIRE_EQUAL(instance.size(), 0u);
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__remove__all_connected__empty)
-{
+BOOST_AUTO_TEST_CASE(block_pool__remove__all_connected__empty) {
     block_pool instance(0);
     auto const block1 = make_block(1, 42);
     auto const block2 = make_block(2, 43, block1);
@@ -230,8 +213,7 @@ BOOST_AUTO_TEST_CASE(block_pool__remove__all_connected__empty)
     BOOST_REQUIRE_EQUAL(instance.size(), 0u);
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__remove__subtree__reorganized)
-{
+BOOST_AUTO_TEST_CASE(block_pool__remove__subtree__reorganized) {
     block_pool_fixture instance(0);
     auto const block1 = make_block(1, 42);
     auto const block2 = make_block(2, 43, block1);
@@ -267,15 +249,13 @@ BOOST_AUTO_TEST_CASE(block_pool__remove__subtree__reorganized)
 
 // prune
 
-BOOST_AUTO_TEST_CASE(block_pool__prune__empty_zero_zero__empty)
-{
+BOOST_AUTO_TEST_CASE(block_pool__prune__empty_zero_zero__empty) {
     block_pool_fixture instance(0);
     instance.prune(0);
     BOOST_REQUIRE_EQUAL(instance.size(), 0u);
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__prune__all_current__unchanged)
-{
+BOOST_AUTO_TEST_CASE(block_pool__prune__all_current__unchanged) {
     block_pool_fixture instance(10);
     auto const block1 = make_block(1, 42);
     auto const block2 = make_block(2, 43);
@@ -295,8 +275,7 @@ BOOST_AUTO_TEST_CASE(block_pool__prune__all_current__unchanged)
     BOOST_REQUIRE_EQUAL(instance.size(), 5u);
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__prune__one_expired__one_deleted)
-{
+BOOST_AUTO_TEST_CASE(block_pool__prune__one_expired__one_deleted) {
     block_pool_fixture instance(10);
     auto const block1 = make_block(1, 42);
     auto const block2 = make_block(2, 43);
@@ -316,8 +295,7 @@ BOOST_AUTO_TEST_CASE(block_pool__prune__one_expired__one_deleted)
     BOOST_REQUIRE_EQUAL(instance.size(), 4u);
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__prune__whole_branch_expired__whole_branch_deleted)
-{
+BOOST_AUTO_TEST_CASE(block_pool__prune__whole_branch_expired__whole_branch_deleted) {
     block_pool_fixture instance(10);
 
     // branch1
@@ -341,8 +319,7 @@ BOOST_AUTO_TEST_CASE(block_pool__prune__whole_branch_expired__whole_branch_delet
     BOOST_REQUIRE_EQUAL(instance.size(), 3u);
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__prune__partial_branch_expired__partial_branch_deleted)
-{
+BOOST_AUTO_TEST_CASE(block_pool__prune__partial_branch_expired__partial_branch_deleted) {
     block_pool_fixture instance(10);
 
     // branch1
@@ -396,16 +373,14 @@ BOOST_AUTO_TEST_CASE(block_pool__prune__partial_branch_expired__partial_branch_d
 
 // filter
 
-BOOST_AUTO_TEST_CASE(block_pool__filter__empty__empty)
-{
+BOOST_AUTO_TEST_CASE(block_pool__filter__empty__empty) {
     block_pool_fixture instance(0);
     auto const message = std::make_shared<message::get_data>();
     instance.filter(message);
     BOOST_REQUIRE(message->inventories().empty());
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__filter__empty_filter__unchanged)
-{
+BOOST_AUTO_TEST_CASE(block_pool__filter__empty_filter__unchanged) {
     block_pool_fixture instance(0);
     auto const block1 = make_block(1, 42);
     auto const block2 = make_block(2, 42);
@@ -416,8 +391,7 @@ BOOST_AUTO_TEST_CASE(block_pool__filter__empty_filter__unchanged)
     BOOST_REQUIRE(message->inventories().empty());
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__filter__matched_blocks__non_blocks_and_mismatches_remain)
-{
+BOOST_AUTO_TEST_CASE(block_pool__filter__matched_blocks__non_blocks_and_mismatches_remain) {
     block_pool_fixture instance(0);
     auto const block1 = make_block(1, 42);
     auto const block2 = make_block(2, 43);
@@ -446,15 +420,13 @@ BOOST_AUTO_TEST_CASE(block_pool__filter__matched_blocks__non_blocks_and_mismatch
 
 // exists
 
-BOOST_AUTO_TEST_CASE(block_pool__exists__empty__false)
-{
+BOOST_AUTO_TEST_CASE(block_pool__exists__empty__false) {
     block_pool_fixture instance(0);
     auto const block1 = make_block(1, 42);
     BOOST_REQUIRE(!instance.exists(block1));
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__exists__not_empty_mismatch__false)
-{
+BOOST_AUTO_TEST_CASE(block_pool__exists__not_empty_mismatch__false) {
     block_pool_fixture instance(0);
     auto const block1 = make_block(1, 42);
     auto const block2 = make_block(2, 43, block1);
@@ -462,8 +434,7 @@ BOOST_AUTO_TEST_CASE(block_pool__exists__not_empty_mismatch__false)
     BOOST_REQUIRE(!instance.exists(block2));
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__exists__match__true)
-{
+BOOST_AUTO_TEST_CASE(block_pool__exists__match__true) {
     block_pool_fixture instance(0);
     auto const block1 = make_block(1, 42);
     instance.add(block1);
@@ -472,15 +443,13 @@ BOOST_AUTO_TEST_CASE(block_pool__exists__match__true)
 
 // parent
 
-BOOST_AUTO_TEST_CASE(block_pool__parent__empty__false)
-{
+BOOST_AUTO_TEST_CASE(block_pool__parent__empty__false) {
     block_pool_fixture instance(0);
     auto const block1 = make_block(1, 42);
     BOOST_REQUIRE(!instance.parent(block1));
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__parent__nonempty_mismatch___false)
-{
+BOOST_AUTO_TEST_CASE(block_pool__parent__nonempty_mismatch___false) {
     block_pool_fixture instance(0);
     auto const block1 = make_block(1, 42);
     auto const block2 = make_block(2, 43);
@@ -489,8 +458,7 @@ BOOST_AUTO_TEST_CASE(block_pool__parent__nonempty_mismatch___false)
     BOOST_REQUIRE(!instance.parent(block2));
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__parent__match___true)
-{
+BOOST_AUTO_TEST_CASE(block_pool__parent__match___true) {
     block_pool_fixture instance(0);
     auto const block1 = make_block(1, 42);
     auto const block2 = make_block(2, 43, block1);
@@ -501,8 +469,7 @@ BOOST_AUTO_TEST_CASE(block_pool__parent__match___true)
 
 // get_path
 
-BOOST_AUTO_TEST_CASE(block_pool__get_path__empty__self)
-{
+BOOST_AUTO_TEST_CASE(block_pool__get_path__empty__self) {
     block_pool instance(0);
     auto const block1 = make_block(1, 42);
     auto const path = instance.get_path(block1);
@@ -510,8 +477,7 @@ BOOST_AUTO_TEST_CASE(block_pool__get_path__empty__self)
     BOOST_REQUIRE(path->blocks()->front() == block1);
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__get_path__exists__empty)
-{
+BOOST_AUTO_TEST_CASE(block_pool__get_path__exists__empty) {
     block_pool instance(0);
     auto const block1 = make_block(1, 42);
     instance.add(block1);
@@ -519,8 +485,7 @@ BOOST_AUTO_TEST_CASE(block_pool__get_path__exists__empty)
     BOOST_REQUIRE_EQUAL(path->size(), 0u);
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__get_path__disconnected__self)
-{
+BOOST_AUTO_TEST_CASE(block_pool__get_path__disconnected__self) {
     block_pool_fixture instance(0);
     auto const block1 = make_block(1, 42);
     auto const block2 = make_block(2, 43);
@@ -535,8 +500,7 @@ BOOST_AUTO_TEST_CASE(block_pool__get_path__disconnected__self)
     BOOST_REQUIRE(path->blocks()->front() == block3);
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__get_path__connected_one_path__expected_path)
-{
+BOOST_AUTO_TEST_CASE(block_pool__get_path__connected_one_path__expected_path) {
     block_pool_fixture instance(0);
     auto const block1 = make_block(1, 42);
     auto const block2 = make_block(2, 43, block1);
@@ -559,8 +523,7 @@ BOOST_AUTO_TEST_CASE(block_pool__get_path__connected_one_path__expected_path)
     BOOST_REQUIRE((*path->blocks())[4] == block5);
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__get_path__connected_multiple_paths__expected_path)
-{
+BOOST_AUTO_TEST_CASE(block_pool__get_path__connected_multiple_paths__expected_path) {
     block_pool_fixture instance(0);
 
     auto const block1 = make_block(1, 42);
@@ -604,8 +567,7 @@ BOOST_AUTO_TEST_CASE(block_pool__get_path__connected_multiple_paths__expected_pa
     BOOST_REQUIRE((*path2->blocks())[4] == block15);
 }
 
-BOOST_AUTO_TEST_CASE(block_pool__get_path__connected_multiple_sub_branches__expected_path)
-{
+BOOST_AUTO_TEST_CASE(block_pool__get_path__connected_multiple_sub_branches__expected_path) {
     block_pool_fixture instance(0);
 
     // root branch

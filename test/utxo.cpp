@@ -62,14 +62,12 @@ namespace utxo_tests {
 
 static const uint64_t genesis_mainnet_work = 0x0000000100010001;
 
-static void print_headers(std::string const& test)
-{
+static void print_headers(std::string const& test) {
     auto const header = "=========== " + test + " ==========";
     LOG_INFO(TEST_SET_NAME) << header;
 }
 
-bool create_database(database::settings& out_database)
-{
+bool create_database(database::settings& out_database) {
     print_headers(out_database.directory.string());
 
     // Blockchain doesn't care about other indexes.
@@ -93,8 +91,7 @@ bool create_database(database::settings& out_database)
             && database.create(chain::block::genesis_mainnet());
 }
 
-chain::block read_block(const std::string hex)
-{
+chain::block read_block(const std::string hex) {
     data_chunk data;
     BOOST_REQUIRE(decode_base16(data, hex));
     chain::block result;
@@ -108,8 +105,7 @@ BOOST_AUTO_TEST_SUITE(utxo_tests)
 
 #ifdef KTH_DB_NEW
 
-BOOST_AUTO_TEST_CASE(utxo__get_utxo__not_found__false)
-{
+BOOST_AUTO_TEST_CASE(utxo__get_utxo__not_found__false) {
     START_BLOCKCHAIN(instance, false);
 
     chain::output output;
@@ -121,8 +117,7 @@ BOOST_AUTO_TEST_CASE(utxo__get_utxo__not_found__false)
     BOOST_REQUIRE( ! instance.get_utxo(output, height, median_time_past, coinbase, outpoint, branch_height));
 }
 
-BOOST_AUTO_TEST_CASE(utxo__get_utxo__found__expected)
-{
+BOOST_AUTO_TEST_CASE(utxo__get_utxo__found__expected) {
     START_BLOCKCHAIN(instance, false);
 
     auto const block1 = NEW_BLOCK(1);
@@ -144,8 +139,7 @@ BOOST_AUTO_TEST_CASE(utxo__get_utxo__found__expected)
     BOOST_REQUIRE_EQUAL(output.script().to_string(0), expected_script);
 }
 
-BOOST_AUTO_TEST_CASE(utxo__get_utxo__above_fork__false)
-{
+BOOST_AUTO_TEST_CASE(utxo__get_utxo__above_fork__false) {
     START_BLOCKCHAIN(instance, false);
 
     auto const block1 = NEW_BLOCK(1);

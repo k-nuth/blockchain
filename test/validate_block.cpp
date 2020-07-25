@@ -47,8 +47,7 @@ BOOST_AUTO_TEST_CASE(validate_block__native__block_438513_tx__valid) {
 
 }
 #ifdef KTH_CURRENCY_BCH
-BOOST_AUTO_TEST_CASE(validate_block__native__block_520679_tx__valid)
-{
+BOOST_AUTO_TEST_CASE(validate_block__native__block_520679_tx__valid) {
     //// DEBUG [blockchain] Input validation failed (stack false)
     //// forks        : 62 (?)
     //// outpoint     : dae852c88a00e95141cfe924ac6667a91af87431988d23eff268ea3509d6d83c:1
@@ -89,8 +88,7 @@ BOOST_AUTO_TEST_CASE(validate_block__native__block_520679_tx__valid)
 }
 
 
-BOOST_AUTO_TEST_CASE(validate_block__2018NOV__block_520679_tx__valid)
-{
+BOOST_AUTO_TEST_CASE(validate_block__2018NOV__block_520679_tx__valid) {
     //// DEBUG [blockchain] Input validation failed (stack false)
     // forks        : 1073973119
     // outpoint     : 208fc2edc6fbf4c6cf7fb3ac0c7a1cb23f88fc3ddcced6423ad02d429acb2d07:0
