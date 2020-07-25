@@ -9,8 +9,7 @@
 #include <kth/domain.hpp>
 #include <kth/blockchain/settings.hpp>
 
-namespace kth {
-namespace blockchain {
+namespace kth::blockchain {
 
 // Duplicate tx hashes are disallowed in a block and therefore same in pool.
 // A transaction hash that exists unspent in the chain is still not acceptable
@@ -28,7 +27,7 @@ transaction_pool::transaction_pool(const settings& settings)
 void transaction_pool::fetch_template(merkle_block_fetch_handler handler) const
 {
     const size_t height = max_size_t;
-    auto const block = std::make_shared<message::merkle_block>();
+    auto const block = std::make_shared<domain::message::merkle_block>();
     handler(error::success, block, height);
 }
 
@@ -36,9 +35,8 @@ void transaction_pool::fetch_template(merkle_block_fetch_handler handler) const
 void transaction_pool::fetch_mempool(size_t maximum,
     inventory_fetch_handler handler) const
 {
-    auto const empty = std::make_shared<message::inventory>();
+    auto const empty = std::make_shared<domain::message::inventory>();
     handler(error::success, empty);
 }
 
-} // namespace blockchain
-} // namespace kth
+} // namespace kth::blockchain

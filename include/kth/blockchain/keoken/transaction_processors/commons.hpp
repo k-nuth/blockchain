@@ -18,35 +18,35 @@ enum class message_type_t {
 
 
 template <typename Fastchain>
-bc::wallet::payment_address get_first_input_addr(Fastchain const& fast_chain, bc::chain::transaction const& tx, bool testnet = false) {
+kd::wallet::payment_address get_first_input_addr(Fastchain const& fast_chain, kd::domain::chain::transaction const& tx, bool testnet = false) {
     auto const& owner_input = tx.inputs()[0];
 
-    bc::chain::output out_output;
+    kd::domain::chain::output out_output;
     size_t out_height;
     uint32_t out_median_time_past;
     bool out_coinbase;
 
     if ( ! fast_chain.get_output(out_output, out_height, out_median_time_past, out_coinbase, 
-                                  owner_input.previous_output(), bc::max_size_t, true)) {
-        return bc::wallet::payment_address{};
+                                  owner_input.previous_output(), kd::max_size_t, true)) {
+        return kd::wallet::payment_address{};
     }
 
     return out_output.address(testnet);
 }
 
 template <typename Fastchain>
-std::pair<bc::wallet::payment_address, bc::wallet::payment_address> get_send_tokens_addrs(Fastchain const& fast_chain, bc::chain::transaction const& tx, bool testnet = false) {
+std::pair<kd::wallet::payment_address, kd::wallet::payment_address> get_send_tokens_addrs(Fastchain const& fast_chain, kd::domain::chain::transaction const& tx, bool testnet = false) {
     auto source = get_first_input_addr(fast_chain, tx, testnet);
     if ( ! source) {
-        return {bc::wallet::payment_address{}, bc::wallet::payment_address{}};
+        return {kd::wallet::payment_address{}, kd::wallet::payment_address{}};
     }
 
-    auto it = std::find_if(tx.outputs().begin(), tx.outputs().end(), [&source, &testnet](bc::chain::output const& o) {
+    auto it = std::find_if(tx.outputs().begin(), tx.outputs().end(), [&source, &testnet](kd::domain::chain::output const& o) {
         return o.address(testnet) && o.address(testnet) != source;
     });
 
     if (it == tx.outputs().end()) {
-        return {std::move(source), bc::wallet::payment_address{}};        
+        return {std::move(source), kd::wallet::payment_address{}};        
     }
 
     return {std::move(source), it->address(testnet)};

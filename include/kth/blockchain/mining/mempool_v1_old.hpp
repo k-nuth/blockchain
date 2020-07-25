@@ -31,12 +31,12 @@ namespace kth {
 namespace mining {
 
 // inline
-// node make_node(chain::transaction const& tx) {
+// node make_node(domain::chain::transaction const& tx) {
 //     return node(transaction_element(tx));
 // }
 
 inline
-node make_node(chain::transaction const& tx) {
+node make_node(domain::chain::transaction const& tx) {
     return node(
                 transaction_element(tx.hash()
 #if ! defined(KTH_CURRENCY_BCH)
@@ -110,13 +110,13 @@ public:
     // using to_insert_t = std::tuple<indexes_t, uint64_t, size_t, size_t, indexes_t, uint64_t, size_t, size_t>;
     using accum_t = std::tuple<uint64_t, size_t, size_t>;
     using all_transactions_t = std::vector<node>;
-    using internal_utxo_set_t = std::unordered_map<chain::point, chain::output>;
+    using internal_utxo_set_t = std::unordered_map<domain::chain::point, domain::chain::output>;
     
-    // using previous_outputs_t = boost::bimap<chain::point, index_t>;
-    using previous_outputs_t = std::unordered_map<chain::point, index_t>;
+    // using previous_outputs_t = boost::bimap<domain::chain::point, index_t>;
+    using previous_outputs_t = std::unordered_map<domain::chain::point, index_t>;
 
     // using hash_index_t = std::unordered_map<hash_digest, index_t>;
-    using hash_index_t = std::unordered_map<hash_digest, std::pair<index_t, chain::transaction>>;
+    using hash_index_t = std::unordered_map<hash_digest, std::pair<index_t, domain::chain::transaction>>;
 
     // using mutex_t = boost::shared_mutex;
     // using shared_lock_t = boost::shared_lock<mutex_t>;
@@ -382,7 +382,7 @@ public:
 
     }
 
-    error::error_code_t add(chain::transaction const& tx) {
+    error::error_code_t add(domain::chain::transaction const& tx) {
         //precondition: tx is fully validated: check() && accept() && connect()
         //              ! tx.is_coinbase()
 
@@ -460,7 +460,7 @@ public:
         auto unique = scope_guard([&](void*){ processing_block_ = false; });
 
         std::set<index_t, std::greater<index_t>> to_remove;
-        std::vector<chain::point> outs;
+        std::vector<domain::chain::point> outs;
         if (non_coinbase_input_count > 0) {
             outs.reserve(non_coinbase_input_count);   //TODO: unnecesary extra space
         }
@@ -646,7 +646,7 @@ public:
         });
     }
 
-    bool is_candidate(chain::transaction const& tx) const {
+    bool is_candidate(domain::chain::transaction const& tx) const {
         // shared_lock_t lock(mutex_);
         return prioritizer_.low_job([&tx, this]{
             auto it = hash_index_.find(tx.hash());
@@ -658,7 +658,7 @@ public:
         });
     }
 
-    index_t candidate_rank(chain::transaction const& tx) const {
+    index_t candidate_rank(domain::chain::transaction const& tx) const {
         // shared_lock_t lock(mutex_);
         return prioritizer_.low_job([&tx, this]{
             auto it = hash_index_.find(tx.hash());
@@ -709,7 +709,7 @@ public:
         return {std::move(res), accum_fees};
     }
 
-    chain::output get_utxo(chain::point const& point) const {
+    domain::chain::output get_utxo(domain::chain::point const& point) const {
         // shared_lock_t lock(mutex_);
         return prioritizer_.low_job([&point, this]{
             auto it = internal_utxo_set_.find(point);
@@ -717,7 +717,7 @@ public:
                 return it->second;
             } 
 
-            return chain::output{};
+            return domain::chain::output{};
         });
     }
 
@@ -790,7 +790,7 @@ private:
         }
     }
 
-    void find_double_spend_issues(std::set<index_t, std::greater<index_t>>& to_remove, std::vector<chain::point> const& outs) {
+    void find_double_spend_issues(std::set<index_t, std::greater<index_t>>& to_remove, std::vector<domain::chain::point> const& outs) {
 
         for (auto const& po : outs) {
             // auto it = previous_outputs_.left.find(po);
@@ -814,7 +814,7 @@ private:
 
     void remove_from_utxo(hash_digest const& txid, uint32_t output_count) {
         for (uint32_t i = 0; i < output_count; ++i) {
-            internal_utxo_set_.erase(chain::point{txid, i});
+            internal_utxo_set_.erase(domain::chain::point{txid, i});
         }
 
         //TODO(fernando): Do I have to insert the prevouts removed before??
@@ -1038,7 +1038,7 @@ private:
         return true;
     }
 
-    error::error_code_t process_utxo_and_graph(chain::transaction const& tx, index_t node_index, node& new_node) {
+    error::error_code_t process_utxo_and_graph(domain::chain::transaction const& tx, index_t node_index, node& new_node) {
         //TODO: evitar tratar de borrar en el UTXO Local, si el UTXO fue encontrado en la DB
 
         auto it = hash_index_.find(tx.hash());
@@ -1092,7 +1092,7 @@ private:
         return error::success;
     }
 
-    error::error_code_t check_double_spend(chain::transaction const& tx) {
+    error::error_code_t check_double_spend(domain::chain::transaction const& tx) {
         for (auto const& i : tx.inputs()) {
             if (i.previous_output().validation.from_mempool) {
                 auto it = internal_utxo_set_.find(i.previous_output());
@@ -1113,10 +1113,10 @@ private:
         return error::success;
     }
 
-    // bool check_no_duplicated_outputs(chain::transaction const& tx) {
+    // bool check_no_duplicated_outputs(domain::chain::transaction const& tx) {
     //     uint32_t index = 0;
     //     for (auto const& o : tx.outputs()) {
-    //         auto it = internal_utxo_set_.find(chain::point{tx.hash(), index});
+    //         auto it = internal_utxo_set_.find(domain::chain::point{tx.hash(), index});
     //         if (it != internal_utxo_set_.end()) {
     //             return false;
     //         }
@@ -1125,11 +1125,11 @@ private:
     //     return true;
     // }
 
-    void insert_outputs_in_utxo(chain::transaction const& tx) {
+    void insert_outputs_in_utxo(domain::chain::transaction const& tx) {
         //precondition: there are no duplicates outputs between tx.outputs() and internal_utxo_set_
         uint32_t index = 0;
         for (auto const& o : tx.outputs()) {
-            internal_utxo_set_.emplace(chain::point{tx.hash(), index}, o);
+            internal_utxo_set_.emplace(domain::chain::point{tx.hash(), index}, o);
             ++index;
         }
     }
@@ -1848,7 +1848,7 @@ private:
     indexes_t candidate_transactions_ctor_;   //Por CTOR, solamente para BCH...
 #endif
 
-    // std::unordered_map<chain::point, index_t> previous_outputs_;
+    // std::unordered_map<domain::chain::point, index_t> previous_outputs_;
     previous_outputs_t previous_outputs_;
 
     // mutable mutex_t mutex_;

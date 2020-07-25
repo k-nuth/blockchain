@@ -7,8 +7,8 @@
 #include <utility>
 #include <kth/blockchain.hpp>
 
-using namespace bc;
-using namespace bc::blockchain;
+using namespace kth;
+using namespace kth::blockchain;
 
 BOOST_AUTO_TEST_SUITE(block_pool_tests)
 
@@ -46,10 +46,11 @@ public:
 };
 
 block_const_ptr make_block(uint32_t id, size_t height,
-    hash_digest const& parent) {
-    auto const block = std::make_shared<const message::block>(message::block
+    hash_digest const& parent)
+{
+    auto const block = std::make_shared<const domain::message::block>(domain::message::block
     {
-        chain::header{ id, parent, null_hash, 0, 0, 0 }, {}
+        domain::chain::header{ id, parent, null_hash, 0, 0, 0 }, {}
     });
 
     block->header().validation.height = height;
@@ -96,7 +97,7 @@ BOOST_AUTO_TEST_CASE(block_pool__add1__one__single) {
 
 BOOST_AUTO_TEST_CASE(block_pool__add1__twice__single) {
     block_pool instance(0);
-    auto const block = std::make_shared<const message::block>();
+    auto const block = std::make_shared<const domain::message::block>();
 
     instance.add(block);
     instance.add(block);
@@ -375,7 +376,7 @@ BOOST_AUTO_TEST_CASE(block_pool__prune__partial_branch_expired__partial_branch_d
 
 BOOST_AUTO_TEST_CASE(block_pool__filter__empty__empty) {
     block_pool_fixture instance(0);
-    auto const message = std::make_shared<message::get_data>();
+    auto const message = std::make_shared<domain::message::get_data>();
     instance.filter(message);
     BOOST_REQUIRE(message->inventories().empty());
 }
@@ -386,7 +387,7 @@ BOOST_AUTO_TEST_CASE(block_pool__filter__empty_filter__unchanged) {
     auto const block2 = make_block(2, 42);
     instance.add(block1);
     instance.add(block2);
-    auto const message = std::make_shared<message::get_data>();
+    auto const message = std::make_shared<domain::message::get_data>();
     instance.filter(message);
     BOOST_REQUIRE(message->inventories().empty());
 }
@@ -398,19 +399,19 @@ BOOST_AUTO_TEST_CASE(block_pool__filter__matched_blocks__non_blocks_and_mismatch
     auto const block3 = make_block(3, 44);
     instance.add(block1);
     instance.add(block2);
-    const message::inventory_vector expected1{ message::inventory::type_id::error, block1->hash() };
-    const message::inventory_vector expected2{ message::inventory::type_id::transaction, block3->hash() };
-    const message::inventory_vector expected3{ message::inventory::type_id::block, block3->hash() };
-    message::get_data data
+    const domain::message::inventory_vector expected1{ domain::message::inventory::type_id::error, block1->hash() };
+    const domain::message::inventory_vector expected2{ domain::message::inventory::type_id::transaction, block3->hash() };
+    const domain::message::inventory_vector expected3{ domain::message::inventory::type_id::block, block3->hash() };
+    domain::message::get_data data
     {
         expected1,
-        { message::inventory::type_id::block, block1->hash() },
+        { domain::message::inventory::type_id::block, block1->hash() },
         expected2,
-        { message::inventory::type_id::block, block2->hash() },
-        { message::inventory::type_id::block, block2->hash() },
+        { domain::message::inventory::type_id::block, block2->hash() },
+        { domain::message::inventory::type_id::block, block2->hash() },
         expected3
     };
-    auto const message = std::make_shared<message::get_data>(std::move(data));
+    auto const message = std::make_shared<domain::message::get_data>(std::move(data));
     instance.filter(message);
     BOOST_REQUIRE_EQUAL(message->inventories().size(), 3u);
     BOOST_REQUIRE(message->inventories()[0] == expected1);

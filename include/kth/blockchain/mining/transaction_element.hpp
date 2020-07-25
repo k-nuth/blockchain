@@ -24,7 +24,7 @@ public:
                         uint64_t fee,
                         size_t sigops,
                         uint32_t output_count
-                        // std::vector<chain::point> const& previous_outputs
+                        // std::vector<domain::chain::point> const& previous_outputs
                         )
         : txid_(txid)
 #if ! defined(KTH_CURRENCY_BCH)
@@ -45,7 +45,7 @@ public:
                         uint64_t fee,
                         size_t sigops,
                         uint32_t output_count
-                        // std::vector<chain::point>&& previous_outputs
+                        // std::vector<domain::chain::point>&& previous_outputs
                         )
         : txid_(txid)
 #if ! defined(KTH_CURRENCY_BCH)
@@ -89,7 +89,7 @@ public:
         return output_count_;
     }
 
-    // std::vector<chain::point> const& previous_outputs() const {
+    // std::vector<domain::chain::point> const& previous_outputs() const {
     //     return previous_outputs_;
     // }
 private:
@@ -103,7 +103,7 @@ private:
     uint64_t fee_;
     size_t sigops_;
     uint32_t output_count_;
-    // std::vector<chain::point> previous_outputs_;
+    // std::vector<domain::chain::point> previous_outputs_;
 };
 
 }  // namespace mining

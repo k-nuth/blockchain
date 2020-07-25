@@ -18,8 +18,7 @@
  */
 #include <kth/blockchain/pools/mempool_transaction_summary.hpp>
 
-namespace kth {
-namespace blockchain {
+namespace kth::blockchain {
 
 mempool_transaction_summary::mempool_transaction_summary(std::string const& address, std::string const& hash, std::string const& previous_output_hash,
                         std::string const& previous_output_index, std::string const& satoshis, uint64_t index,
@@ -62,5 +61,4 @@ uint64_t mempool_transaction_summary::timestamp() const {
     return timestamp_;
 }
 
-} // namespace blockchain
-} // namespace kth
+} // namespace kth::blockchain

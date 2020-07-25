@@ -56,9 +56,9 @@ mempool* mempool::candidate_index_t::parent_ = nullptr;
 
 namespace blockchain {
 
-using namespace bc::config;
-using namespace bc::message;
-using namespace bc::database;
+using namespace kd::config;
+using namespace kd::message;
+using namespace kth::database;
 using namespace std::placeholders;
 
 #define NAME "block_chain"
@@ -152,13 +152,13 @@ bool block_chain::get_branch_work(uint256_t& out_work,
         if (!result)
             return false;
 
-        out_work += chain::header::proof(result.bits());
+        out_work += domain::chain::header::proof(result.bits());
     }
 
     return true;
 }
 
-bool block_chain::get_header(chain::header& out_header, size_t height) const
+bool block_chain::get_header(domain::chain::header& out_header, size_t height) const
 {
     auto result = database_.blocks().get(height);
     if (!result)
@@ -213,8 +213,8 @@ bool block_chain::get_last_height(size_t& out_height) const
 
 
 
-bool block_chain::get_output_is_confirmed(chain::output& out_output, size_t& out_height,
-                             bool& out_coinbase, bool& out_is_confirmed, const chain::output_point& outpoint,
+bool block_chain::get_output_is_confirmed(domain::chain::output& out_output, size_t& out_height,
+                             bool& out_coinbase, bool& out_is_confirmed, const domain::chain::output_point& outpoint,
                              size_t branch_height, bool require_confirmed) const
 {
     // This includes a cached value for spender height (or not_spent).
@@ -234,9 +234,9 @@ bool block_chain::get_is_unspent_transaction(hash_digest const& hash, size_t bra
 
 #if defined(KTH_DB_LEGACY) || defined(KTH_DB_NEW_FULL) 
 
-bool block_chain::get_output(chain::output& out_output, size_t& out_height,
+bool block_chain::get_output(domain::chain::output& out_output, size_t& out_height,
     uint32_t& out_median_time_past, bool& out_coinbase,
-    const chain::output_point& outpoint, size_t branch_height,
+    const domain::chain::output_point& outpoint, size_t branch_height,
     bool require_confirmed) const
 {
 
@@ -370,13 +370,13 @@ bool block_chain::get_branch_work(uint256_t& out_work, uint256_t const& maximum,
     for (uint32_t height = from_height; height <= top && out_work < maximum; ++height) {
         auto const result = database_.internal_db().get_header(height);
         if ( ! result.is_valid()) return false;
-        out_work += chain::header::proof(result.bits());
+        out_work += domain::chain::header::proof(result.bits());
     }
 
     return true;
 }
 
-bool block_chain::get_header(chain::header& out_header, size_t height) const {
+bool block_chain::get_header(domain::chain::header& out_header, size_t height) const {
     out_header = database_.internal_db().get_header(height);
     return out_header.is_valid();
 }
@@ -421,7 +421,7 @@ bool block_chain::get_last_height(size_t& out_height) const {
     return succeed(res);
 }
 
-bool block_chain::get_utxo(chain::output& out_output, size_t& out_height, uint32_t& out_median_time_past, bool& out_coinbase, chain::output_point const& outpoint, size_t branch_height) const {
+bool block_chain::get_utxo(domain::chain::output& out_output, size_t& out_height, uint32_t& out_median_time_past, bool& out_coinbase, domain::chain::output_point const& outpoint, size_t branch_height) const {
     auto entry = database_.internal_db().get_utxo(outpoint);
     if ( ! entry.is_valid()) return false;
     if (entry.height() > branch_height) return false;
@@ -511,7 +511,7 @@ void block_chain::fetch_unconfirmed_transaction(hash_digest const& hash, transac
 #endif // KTH_DB_TRANSACTION_UNCONFIRMED
 
 #if ! defined(KTH_DB_READONLY)
-void block_chain::reorganize(const checkpoint& fork_point,
+void block_chain::reorganize(const infrastructure::config::checkpoint& fork_point,
     block_const_ptr_list_const_ptr incoming_blocks,
     block_const_ptr_list_ptr outgoing_blocks, dispatcher& dispatch,
     result_handler handler) {
@@ -548,7 +548,7 @@ void block_chain::handle_reorganize(code const& ec, block_const_ptr top, result_
 // ----------------------------------------------------------------------------
 
 // For tx validator, call only from inside validate critical section.
-chain::chain_state::ptr block_chain::chain_state() const {
+domain::chain::chain_state::ptr block_chain::chain_state() const {
     // Critical Section
     ///////////////////////////////////////////////////////////////////////////
     shared_lock lock(pool_state_mutex_);
@@ -559,7 +559,7 @@ chain::chain_state::ptr block_chain::chain_state() const {
 }
 
 // For block validator, call only from inside validate critical section.
-chain::chain_state::ptr block_chain::chain_state(branch::const_ptr branch) const {
+domain::chain::chain_state::ptr block_chain::chain_state(branch::const_ptr branch) const {
     // Promote from cache if branch is same height as pool (most typical).
     // Generate from branch/store if the promotion is not successful.
     // If the organize is successful pool state will be updated accordingly.
@@ -567,8 +567,7 @@ chain::chain_state::ptr block_chain::chain_state(branch::const_ptr branch) const
 }
 
 // private.
-code block_chain::set_chain_state(chain::chain_state::ptr previous)
-{
+code block_chain::set_chain_state(domain::chain::chain_state::ptr previous) {
     // Critical Section
     ///////////////////////////////////////////////////////////////////////////
     unique_lock lock(pool_state_mutex_);
@@ -1307,7 +1306,7 @@ void block_chain::fetch_transaction_position(hash_digest const& hash, bool requi
 
 
 //TODO (Mario) : Review and move to proper location
-hash_digest generate_merkle_root(std::vector<chain::transaction> transactions) {
+hash_digest generate_merkle_root(std::vector<domain::chain::transaction> transactions) {
     if (transactions.empty())
         return null_hash;
 
@@ -1430,7 +1429,7 @@ std::vector<kth::blockchain::mempool_transaction_summary> block_chain::get_mempo
 }
 
 // Precondition: valid payment addresses
-std::vector<chain::transaction> block_chain::get_mempool_transactions_from_wallets(std::vector<wallet::payment_address> const& payment_addresses, bool use_testnet_rules, bool witness) const {
+std::vector<domain::chain::transaction> block_chain::get_mempool_transactions_from_wallets(std::vector<wallet::payment_address> const& payment_addresses, bool use_testnet_rules, bool witness) const {
 
 #ifdef KTH_CURRENCY_BCH
     witness = false;
@@ -1446,7 +1445,7 @@ std::vector<chain::transaction> block_chain::get_mempool_transactions_from_walle
         encoding_p2sh = kth::wallet::payment_address::mainnet_p2sh;
     }
 
-    std::vector<chain::transaction> ret;
+    std::vector<domain::chain::transaction> ret;
 
     auto const result = database_.internal_db().get_all_transaction_unconfirmed();
 
@@ -1491,7 +1490,7 @@ std::vector<chain::transaction> block_chain::get_mempool_transactions_from_walle
     return ret;
 }
 
-void block_chain::fill_tx_list_from_mempool(message::compact_block const& block, size_t& mempool_count, std::vector<chain::transaction>& txn_available, std::unordered_map<uint64_t, uint16_t> const& shorttxids) const {
+void block_chain::fill_tx_list_from_mempool(domain::message::compact_block const& block, size_t& mempool_count, std::vector<domain::chain::transaction>& txn_available, std::unordered_map<uint64_t, uint16_t> const& shorttxids) const {
     
     std::vector<bool> have_txn(txn_available.size());
     
@@ -1524,7 +1523,7 @@ void block_chain::fill_tx_list_from_mempool(message::compact_block const& block,
                 // FillBlock failure would be annoying.
                 if (txn_available[idit->second].is_valid()) {
                     //txn_available[idit->second].reset();
-                    txn_available[idit->second] = chain::transaction{};
+                    txn_available[idit->second] = domain::chain::transaction{};
                     --mempool_count;
                 }
             }
@@ -1543,7 +1542,7 @@ void block_chain::fill_tx_list_from_mempool(message::compact_block const& block,
 
 }
 
-safe_chain::mempool_mini_hash_map block_chain::get_mempool_mini_hash_map(message::compact_block const& block) const {
+safe_chain::mempool_mini_hash_map block_chain::get_mempool_mini_hash_map(domain::message::compact_block const& block) const {
 #ifdef KTH_CURRENCY_BCH
      bool witness = false;
 #else
@@ -1698,7 +1697,7 @@ std::vector<kth::blockchain::mempool_transaction_summary> block_chain::get_mempo
 }
 
 // Precondition: valid payment addresses
-std::vector<chain::transaction> block_chain::get_mempool_transactions_from_wallets(std::vector<wallet::payment_address> const& payment_addresses, bool use_testnet_rules, bool witness) const {
+std::vector<domain::chain::transaction> block_chain::get_mempool_transactions_from_wallets(std::vector<wallet::payment_address> const& payment_addresses, bool use_testnet_rules, bool witness) const {
 
 #ifdef KTH_CURRENCY_BCH
     witness = false;
@@ -1714,7 +1713,7 @@ std::vector<chain::transaction> block_chain::get_mempool_transactions_from_walle
         encoding_p2sh = kth::wallet::payment_address::mainnet_p2sh;
     }
 
-    std::vector<chain::transaction> ret;
+    std::vector<domain::chain::transaction> ret;
 
     database_.transactions_unconfirmed().for_each_result([&](kth::database::transaction_unconfirmed_result const &tx_res) {
         auto tx = tx_res.transaction(witness);
@@ -1769,7 +1768,7 @@ std::vector<chain::transaction> block_chain::get_mempool_transactions_from_walle
 */
 
 
-void block_chain::fill_tx_list_from_mempool(message::compact_block const& block, size_t& mempool_count, std::vector<chain::transaction>& txn_available, std::unordered_map<uint64_t, uint16_t> const& shorttxids) const {
+void block_chain::fill_tx_list_from_mempool(domain::message::compact_block const& block, size_t& mempool_count, std::vector<domain::chain::transaction>& txn_available, std::unordered_map<uint64_t, uint16_t> const& shorttxids) const {
     
     std::vector<bool> have_txn(txn_available.size());
     
@@ -1784,7 +1783,7 @@ void block_chain::fill_tx_list_from_mempool(message::compact_block const& block,
     //<< " k1 " << k1);
             
 
-    database_.transactions_unconfirmed().for_each([&](chain::transaction const &tx) {
+    database_.transactions_unconfirmed().for_each([&](domain::chain::transaction const &tx) {
 #ifdef KTH_CURRENCY_BCH
         bool witness = false;
 #else
@@ -1809,7 +1808,7 @@ void block_chain::fill_tx_list_from_mempool(message::compact_block const& block,
                 // FillBlock failure would be annoying.
                 if (txn_available[idit->second].is_valid()) {
                     //txn_available[idit->second].reset();
-                    txn_available[idit->second] = chain::transaction{};
+                    txn_available[idit->second] = domain::chain::transaction{};
                     --mempool_count;
                 }
             }
@@ -1825,7 +1824,7 @@ void block_chain::fill_tx_list_from_mempool(message::compact_block const& block,
     });
 }
 
-safe_chain::mempool_mini_hash_map block_chain::get_mempool_mini_hash_map(message::compact_block const& block) const {
+safe_chain::mempool_mini_hash_map block_chain::get_mempool_mini_hash_map(domain::message::compact_block const& block) const {
 #ifdef KTH_CURRENCY_BCH
      bool witness = false;
 #else
@@ -1843,7 +1842,7 @@ safe_chain::mempool_mini_hash_map block_chain::get_mempool_mini_hash_map(message
 
     safe_chain::mempool_mini_hash_map mempool;
    
-    database_.transactions_unconfirmed().for_each([&](chain::transaction const &tx) {
+    database_.transactions_unconfirmed().for_each([&](domain::chain::transaction const &tx) {
     
         auto sh = sip_hash_uint256(k0, k1, tx.hash(witness));
         
@@ -2312,7 +2311,7 @@ void block_chain::fetch_block_locator(block::indexes const& heights, block_locat
 //-----------------------------------------------------------------------------
 
 #if defined(KTH_DB_SPENDS) || defined(KTH_DB_NEW_FULL)
-void block_chain::fetch_spend(const chain::output_point& outpoint, spend_fetch_handler handler) const {
+void block_chain::fetch_spend(const domain::chain::output_point& outpoint, spend_fetch_handler handler) const {
     if (stopped())
     {
         handler(error::service_stopped, {});
@@ -2586,7 +2585,7 @@ bool block_chain::is_stale() const {
     if ( ! top) {
         size_t last_height;
         if (get_last_height(last_height)) {
-            chain::header last_header;
+            domain::chain::header last_header;
             if (get_header(last_header, last_height)) {
                 last_timestamp = last_header.timestamp();
             }

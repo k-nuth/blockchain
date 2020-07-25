@@ -11,11 +11,10 @@
 #include <kth/blockchain/interface/fast_chain.hpp>
 #include <kth/blockchain/pools/branch.hpp>
 
-namespace kth {
-namespace blockchain {
+namespace kth::blockchain {
 
-using namespace bc::chain;
-using namespace bc::machine;
+using namespace kd::chain;
+using namespace kd::machine;
 
 #define NAME "populate_block"
 
@@ -100,7 +99,7 @@ void populate_block::populate_coinbase(branch::const_ptr branch, block_const_ptr
     prevout.confirmed = true;
 
     // A coinbase does not spend a previous output so these are unused/default.
-    prevout.cache = chain::output{};
+    prevout.cache = domain::chain::output{};
     prevout.coinbase = false;
     prevout.height = 0;
     prevout.median_time_past = 0;
@@ -110,14 +109,14 @@ void populate_block::populate_coinbase(branch::const_ptr branch, block_const_ptr
     // hard fork that destroys unspent outputs in case of hash collision.
     // The tx duplicate check must apply to coinbase txs, handled here.
     //*************************************************************************
-    if ( ! state->is_enabled(rule_fork::allow_collisions)) {
+    if ( ! state->is_enabled(domain::machine::rule_fork::allow_collisions)) {
         populate_base::populate_duplicate(branch->height(), coinbase, true);
         ////populate_duplicate(branch, coinbase);
     }
 }
 
 ////void populate_block::populate_duplicate(branch::const_ptr branch,
-////    const chain::transaction& tx) const
+////    const domain::chain::transaction& tx) const
 ////{
 ////    if (!tx.validation.duplicate)
 ////        branch->populate_duplicate(tx);
@@ -147,9 +146,9 @@ populate_block::utxo_pool_t populate_block::get_reorg_subset_conditionally(size_
 
 
 #if defined(KTH_DB_NEW)
-void populate_block::populate_transaction_inputs(branch::const_ptr branch, chain::input::list const& inputs, size_t bucket, size_t buckets, size_t input_position, local_utxo_set_t const& branch_utxo, size_t first_height, size_t chain_top, utxo_pool_t const& reorg_subset) const {
+void populate_block::populate_transaction_inputs(branch::const_ptr branch, domain::chain::input::list const& inputs, size_t bucket, size_t buckets, size_t input_position, local_utxo_set_t const& branch_utxo, size_t first_height, size_t chain_top, utxo_pool_t const& reorg_subset) const {
 #else
-void populate_block::populate_transaction_inputs(branch::const_ptr branch, chain::input::list const& inputs, size_t bucket, size_t buckets, size_t input_position, local_utxo_set_t const& branch_utxo) const {
+void populate_block::populate_transaction_inputs(branch::const_ptr branch, domain::chain::input::list const& inputs, size_t bucket, size_t buckets, size_t input_position, local_utxo_set_t const& branch_utxo) const {
 #endif
 
     auto const branch_height = branch->height();
@@ -188,7 +187,7 @@ void populate_block::populate_transactions(branch::const_ptr branch, size_t buck
 
     auto const state = block->validation.state;
     auto const forks = state->enabled_forks();
-    auto const collide = state->is_enabled(rule_fork::allow_collisions);
+    auto const collide = state->is_enabled(domain::machine::rule_fork::allow_collisions);
 
     // Must skip coinbase here as it is already accounted for.
     auto const first = bucket == 0 ? buckets : bucket;
@@ -294,5 +293,4 @@ void populate_block::populate_prevout(branch::const_ptr branch, output_point con
     }
 }
 
-} // namespace blockchain
-} // namespace kth
+} // namespace kth::blockchain

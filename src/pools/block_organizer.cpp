@@ -16,11 +16,10 @@
 #include <kth/blockchain/settings.hpp>
 #include <kth/blockchain/validate/validate_block.hpp>
 
-namespace kth {
-namespace blockchain {
+namespace kth::blockchain {
 
-using namespace bc::chain;
-using namespace bc::config;
+using namespace kd::chain;
+using namespace kd::config;
 using namespace std::placeholders;
 
 #define NAME "block_organizer"
@@ -81,7 +80,7 @@ bool block_organizer::stop() {
 // Organize sequence.
 //-----------------------------------------------------------------------------
 
-// This is called from block_chain::organize.
+// This is called from blockchain::organize.
 void block_organizer::organize(block_const_ptr block, result_handler handler) {
     // Critical Section
     ///////////////////////////////////////////////////////////////////////////
@@ -216,7 +215,7 @@ bool block_organizer::is_branch_double_spend(branch::ptr const& branch) const {
 #if defined(KTH_WITH_MEMPOOL)
 
 //TODO(fernando): similar function in populate_block class
-void block_organizer::populate_prevout_1(branch::const_ptr branch, chain::output_point const& outpoint, bool require_confirmed) const {
+void block_organizer::populate_prevout_1(branch::const_ptr branch, domain::chain::output_point const& outpoint, bool require_confirmed) const {
     // The previous output will be cached on the input's outpoint.
     auto& prevout = outpoint.validation;
 
@@ -224,7 +223,7 @@ void block_organizer::populate_prevout_1(branch::const_ptr branch, chain::output
 
     prevout.spent = false;
     prevout.confirmed = false;
-    prevout.cache = chain::output{};
+    prevout.cache = domain::chain::output{};
     prevout.from_mempool = false;
 
     // If the input is a coinbase there is no prevout to populate.
@@ -268,7 +267,7 @@ void block_organizer::populate_prevout_1(branch::const_ptr branch, chain::output
     if ((spend_height <= branch_height) && (spend_height != output::validation::not_spent)) {
         prevout.spent = true;
         prevout.confirmed = true;
-        prevout.cache = chain::output{};
+        prevout.cache = domain::chain::output{};
     }
 }
 
@@ -285,7 +284,7 @@ void block_organizer::populate_prevout_2(branch::const_ptr branch, output_point 
 }
 
 //TODO(fernando): similar function in populate_block class
-void block_organizer::populate_transaction_inputs(branch::const_ptr branch, chain::input::list const& inputs, local_utxo_set_t const& branch_utxo) const {
+void block_organizer::populate_transaction_inputs(branch::const_ptr branch, domain::chain::input::list const& inputs, local_utxo_set_t const& branch_utxo) const {
     // auto const branch_height = branch->height();
 
     for (auto const& input : inputs) {
@@ -296,7 +295,7 @@ void block_organizer::populate_transaction_inputs(branch::const_ptr branch, chai
 }
 
 //TODO(fernando): similar function in populate_block class
-void block_organizer::populate_transactions(branch::const_ptr branch, chain::block const& block, local_utxo_set_t const& branch_utxo) const {
+void block_organizer::populate_transactions(branch::const_ptr branch, domain::chain::block const& block, local_utxo_set_t const& branch_utxo) const {
 
     auto const& txs = block.transactions();
 
@@ -322,7 +321,7 @@ local_utxo_set_t create_outgoing_utxo_set(block_const_ptr_list_ptr const& outgoi
 void block_organizer::organize_mempool(branch::const_ptr branch, block_const_ptr_list_const_ptr const& incoming_blocks, block_const_ptr_list_ptr const& outgoing_blocks) {
 
     std::unordered_set<hash_digest> txs_in;
-    std::unordered_set<chain::point> prevouts_in;
+    std::unordered_set<domain::chain::point> prevouts_in;
 
     for (auto const& block : *incoming_blocks) {
         if (block->transactions().size() > 1) {
@@ -336,7 +335,7 @@ void block_organizer::organize_mempool(branch::const_ptr branch, block_const_ptr
             mempool_.remove(block->transactions().begin() + 1, block->transactions().end(), block->non_coinbase_input_count());
 
             if ( ! fast_chain_.is_stale_fast() && ! outgoing_blocks->empty()) {
-                std::for_each(block->transactions().begin() + 1, block->transactions().end(), [&txs_in, &prevouts_in](chain::transaction const& tx){
+                std::for_each(block->transactions().begin() + 1, block->transactions().end(), [&txs_in, &prevouts_in](domain::chain::transaction const& tx){
                     txs_in.insert(tx.hash());
 
                     for (auto const& input : tx.inputs()) {
@@ -356,12 +355,12 @@ void block_organizer::organize_mempool(branch::const_ptr branch, block_const_ptr
 
             if (block->transactions().size() > 1) {
                 std::for_each(block->transactions().begin() + 1, block->transactions().end(), 
-                [this, branch, &txs_in, &prevouts_in, &branch_utxo](chain::transaction const& tx) {
+                [this, branch, &txs_in, &prevouts_in, &branch_utxo](domain::chain::transaction const& tx) {
                     auto it = txs_in.find(tx.hash());
                     if (it == txs_in.end()) {
 
 
-                        auto double_spend = std::any_of(tx.inputs().begin(), tx.inputs().end(), [this, &prevouts_in](chain::input const& in) {
+                        auto double_spend = std::any_of(tx.inputs().begin(), tx.inputs().end(), [this, &prevouts_in](domain::chain::input const& in) {
                             return prevouts_in.find(in.previous_output()) != prevouts_in.end();
                         });
 
@@ -526,5 +525,4 @@ bool block_organizer::set_branch_height(branch::ptr branch) {
     return true;
 }
 
-} // namespace blockchain
-} // namespace kth
+} // namespace kth::blockchain

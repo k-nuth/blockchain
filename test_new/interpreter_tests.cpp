@@ -16,22 +16,22 @@
 #include <kth/keoken/transaction_extractor.hpp>
 
 using namespace knuth::keoken;
-using bc::hash_digest;
-using bc::hash_literal;
-using bc::wallet::payment_address;
+using kth::hash_digest;
+using kth::hash_literal;
+using kd::wallet::payment_address;
 
-using bc::data_chunk;
-using bc::to_chunk;
-using bc::base16_literal;
-using bc::data_source;
-using bc::istream_reader;
+using kth::data_chunk;
+using kth::to_chunk;
+using kth::base16_literal;
+using kth::data_source;
+using kth::istream_reader;
 
 class fast_chain_dummy_return_false {
 public:
     /// Get the output that is referenced by the outpoint.
-    bool get_output(bc::chain::output& out_output, size_t& out_height,
+    bool get_output(kd::domain::chain::output& out_output, size_t& out_height,
         uint32_t& out_median_time_past, bool& out_coinbase, 
-        const bc::chain::output_point& outpoint, size_t branch_height,
+        const kd::domain::chain::output_point& outpoint, size_t branch_height,
         bool require_confirmed) const { 
 
         return false;
@@ -40,14 +40,14 @@ public:
 
 class fast_chain_dummy_return_true {
 public:
-    fast_chain_dummy_return_true(bc::chain::transaction& tx)
+    fast_chain_dummy_return_true(kd::domain::chain::transaction& tx)
         :tx_(tx) 
     {}
 
     /// Get the output that is referenced by the outpoint.
-    bool get_output(bc::chain::output& out_output, size_t& out_height,
+    bool get_output(kd::domain::chain::output& out_output, size_t& out_height,
         uint32_t& out_median_time_past, bool& out_coinbase, 
-        const bc::chain::output_point& outpoint, size_t branch_height,
+        const kd::domain::chain::output_point& outpoint, size_t branch_height,
         bool require_confirmed) const { 
             
         out_output = tx_.outputs()[0];
@@ -58,7 +58,7 @@ public:
         return true;
     }
 private:
-    bc::chain::transaction& tx_;
+    kd::domain::chain::transaction& tx_;
 };
 
 
@@ -83,7 +83,7 @@ TEST_CASE("[interpreter_tx_without_output] ") {
         "0000001976a9141ee32412020a324b93b1a1acfdfff6ab9ca8fac288ac000000"
         "00"));
 
-    bc::chain::transaction tx;
+    kd::domain::chain::transaction tx;
     tx.from_data(raw_tx);
 
     REQUIRE(interpreter.process(1550,tx) == error::not_keoken_tx);
@@ -101,7 +101,7 @@ TEST_CASE("[interpreter_tx_create_asset_invalid] ") {
 
     data_chunk raw_tx = to_chunk(base16_literal("01000000016ef955ef813fd167438ef35d862d9dcb299672b22ccbc20da598f5ddc59d69aa000000006a473044022056f0511deaaf7485d7f17ec953ad7f6ede03a73c957f98629d290f890aee165602207f1f1a4c04eadeafcd3f4eacd0bb85a45803ef715bfc9a3375fed472212b67fb4121036735a1fe1b39fbe39e629a6dd680bf00b13aefe40d9f3bb6f863d2c4094ddd0effffffff02a007052a010000001976a9140ef6dfde07323619edd2440ca0a54d311df1ee8b88ac00000000000000001b6a0400004b5014000000004269747072696d0000000000000f424000000000"));
 
-    bc::chain::transaction tx;
+    kd::domain::chain::transaction tx;
     tx.from_data(raw_tx);
 
     REQUIRE(interpreter.process(1550,tx) == error::invalid_asset_creator);
@@ -112,7 +112,7 @@ TEST_CASE("[interpreter_tx_create_asset_valid] ") {
 
     data_chunk raw_tx = to_chunk(base16_literal("01000000016ef955ef813fd167438ef35d862d9dcb299672b22ccbc20da598f5ddc59d69aa000000006a473044022056f0511deaaf7485d7f17ec953ad7f6ede03a73c957f98629d290f890aee165602207f1f1a4c04eadeafcd3f4eacd0bb85a45803ef715bfc9a3375fed472212b67fb4121036735a1fe1b39fbe39e629a6dd680bf00b13aefe40d9f3bb6f863d2c4094ddd0effffffff02a007052a010000001976a9140ef6dfde07323619edd2440ca0a54d311df1ee8b88ac00000000000000001b6a0400004b5014000000004269747072696d0000000000000f424000000000"));
 
-    bc::chain::transaction tx;
+    kd::domain::chain::transaction tx;
     tx.from_data(raw_tx);
 
     blk_t chain(tx);
@@ -142,7 +142,7 @@ TEST_CASE("[interpreter_tx_send_token_insufficient_money] ") {
 
 
     data_chunk raw_tx = to_chunk(base16_literal("01000000016ef955ef813fd167438ef35d862d9dcb299672b22ccbc20da598f5ddc59d69aa000000006a473044022056f0511deaaf7485d7f17ec953ad7f6ede03a73c957f98629d290f890aee165602207f1f1a4c04eadeafcd3f4eacd0bb85a45803ef715bfc9a3375fed472212b67fb4121036735a1fe1b39fbe39e629a6dd680bf00b13aefe40d9f3bb6f863d2c4094ddd0effffffff02a007052a010000001976a9140ef6dfde07323619edd2440ca0a54d311df1ee8b88ac00000000000000001b6a0400004b5014000000004269747072696d0000000000000f424000000000"));
-    bc::chain::transaction tx;
+    kd::domain::chain::transaction tx;
     tx.from_data(raw_tx);
 
     blk_t chain1(tx);
@@ -150,7 +150,7 @@ TEST_CASE("[interpreter_tx_send_token_insufficient_money] ") {
     interpreter1_.process(1550,tx);
 
     data_chunk raw_send_tx = to_chunk(base16_literal("01000000011e572671f2cff67190785b52e72dc221b1c3a092159b70ec14bc2f433c4dcb2f000000006b48304502210084c05aa0d2a60f69045b46179cff207fde8003ea07a90a75d934ec35d6a46a3a02205b328724e736d9400b3f13ac6e0e49462048dfc2c9a7bd1be9944aa9baa455144121036735a1fe1b39fbe39e629a6dd680bf00b13aefe40d9f3bb6f863d2c4094ddd0effffffff03204e0000000000001976a914071ed73aa65c19f86c88a29a789210fafc8d675188ac606b042a010000001976a9140ef6dfde07323619edd2440ca0a54d311df1ee8b88ac0000000000000000176a0400004b50100000000100000002000000000000006400000000"));
-    bc::chain::transaction tx_send;
+    kd::domain::chain::transaction tx_send;
     tx_send.from_data(raw_send_tx);
 
     blk_t chain2(tx_send);

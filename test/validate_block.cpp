@@ -5,10 +5,10 @@
 #include <boost/test/unit_test.hpp>
 #include <kth/blockchain.hpp>
 
-using namespace bc;
-using namespace bc::chain;
-using namespace bc::blockchain;
-using namespace bc::machine;
+using namespace kth;
+using namespace kd::chain;
+using namespace kth::blockchain;
+using namespace kd::machine;
 
 BOOST_AUTO_TEST_SUITE(validate_block_tests)
 
@@ -32,13 +32,14 @@ BOOST_AUTO_TEST_CASE(validate_block__native__block_438513_tx__valid) {
     BOOST_REQUIRE(decode_base16(decoded_script, encoded_script));
 
     transaction tx;
-    BOOST_REQUIRE(tx.from_data(decoded_tx));
+    BOOST_REQUIRE(kd::entity_from_data(tx, decoded_tx));
 
     auto const& input = tx.inputs()[index];
     auto& prevout = input.previous_output().validation.cache;
 
     prevout.set_value(0);
-    prevout.set_script(script::factory_from_data(decoded_script, false));
+    prevout.set_script(kd::create<script>(decoded_script, false));
+    
     BOOST_REQUIRE(prevout.script().is_valid());
 
     auto const result = validate_input::verify_script(tx, index, forks);
@@ -46,6 +47,7 @@ BOOST_AUTO_TEST_CASE(validate_block__native__block_438513_tx__valid) {
     BOOST_REQUIRE_EQUAL(result.value(), error::success);
 
 }
+
 #ifdef KTH_CURRENCY_BCH
 BOOST_AUTO_TEST_CASE(validate_block__native__block_520679_tx__valid) {
     //// DEBUG [blockchain] Input validation failed (stack false)
@@ -60,12 +62,12 @@ BOOST_AUTO_TEST_CASE(validate_block__native__block_520679_tx__valid) {
     static auto const encoded_tx = "01000000013cd8d60935ea68f2ef238d983174f81aa96766ac24e9cf4151e9008ac852e8da010000006a47304402206ccfd8739b2f98350d91ff7fec529f8bc085459b36cf26a22d95606737d4381002204429c60535745ef0b71c14bf0a9df565e8c87b934ee0b2766971cf5b15d085c04121020f123b05aadc865fd60d1513144f48f5d8de3403d3c3f00ce233d53329f10ccaffffffff0156998501000000001976a914bf4679910a2ba81b7f3f2ee03fc77847dc673b2288ac00000000";
 
     //This value after conversion its equal to the above code.
-    uint32_t native_forks = rule_fork::bip16_rule;
-    native_forks |= rule_fork::bip65_rule;
-    native_forks |= rule_fork::bip66_rule;
-    native_forks |= rule_fork::bip112_rule;
-    native_forks |= rule_fork::cash_verify_flags_script_enable_sighash_forkid;
-    native_forks |= rule_fork::cash_low_s_rule;
+    uint32_t native_forks = domain::machine::rule_fork::bip16_rule;
+    native_forks |= domain::machine::rule_fork::bip65_rule;
+    native_forks |= domain::machine::rule_fork::bip66_rule;
+    native_forks |= domain::machine::rule_fork::bip112_rule;
+    native_forks |= domain::machine::rule_fork::bch_uahf;
+    native_forks |= domain::machine::rule_fork::bch_daa_cw144;
 
     data_chunk decoded_tx;
     BOOST_REQUIRE(decode_base16(decoded_tx, encoded_tx));
@@ -74,13 +76,13 @@ BOOST_AUTO_TEST_CASE(validate_block__native__block_520679_tx__valid) {
     BOOST_REQUIRE(decode_base16(decoded_script, encoded_script));
 
     transaction tx;
-    BOOST_REQUIRE(tx.from_data(decoded_tx));
+    BOOST_REQUIRE(kd::entity_from_data(tx, decoded_tx));
 
     auto const& input = tx.inputs()[index];
     auto& prevout = input.previous_output().validation.cache;
 
     prevout.set_value(25533210);
-    prevout.set_script(script::factory_from_data(decoded_script, false));
+    prevout.set_script(kd::create<script>(decoded_script, false));
     BOOST_REQUIRE(prevout.script().is_valid());
 
     auto const result = validate_input::verify_script(tx, index, native_forks);
@@ -106,16 +108,15 @@ BOOST_AUTO_TEST_CASE(validate_block__2018NOV__block_520679_tx__valid) {
 
     //This value after conversion its equal to the above code.
     // static const uint32_t branches = 296831u;
-    uint32_t native_forks = rule_fork::bip16_rule;
-    native_forks |= rule_fork::bip65_rule;
-    native_forks |= rule_fork::bip66_rule;
-    native_forks |= rule_fork::bip112_rule;
-    native_forks |= rule_fork::cash_verify_flags_script_enable_sighash_forkid;
-    native_forks |= rule_fork::cash_low_s_rule;
-    native_forks |= rule_fork::cash_checkdatasig;
-    native_forks |= rule_fork::cash_schnorr;
-    native_forks |= rule_fork::cash_segwit_recovery;
-
+    uint32_t native_forks = domain::machine::rule_fork::bip16_rule;
+    native_forks |= domain::machine::rule_fork::bip65_rule;
+    native_forks |= domain::machine::rule_fork::bip66_rule;
+    native_forks |= domain::machine::rule_fork::bip112_rule;
+    native_forks |= domain::machine::rule_fork::bch_uahf;
+    native_forks |= domain::machine::rule_fork::bch_daa_cw144;
+    native_forks |= domain::machine::rule_fork::bch_magnetic_anomaly;
+    native_forks |= domain::machine::rule_fork::bch_great_wall;
+    // native_forks |= domain::machine::rule_fork::cash_segwit_recovery;
 
     data_chunk decoded_tx;
     BOOST_REQUIRE(decode_base16(decoded_tx, encoded_tx));
@@ -124,13 +125,13 @@ BOOST_AUTO_TEST_CASE(validate_block__2018NOV__block_520679_tx__valid) {
     BOOST_REQUIRE(decode_base16(decoded_script, encoded_script));
 
     transaction tx;
-    BOOST_REQUIRE(tx.from_data(decoded_tx));
+    BOOST_REQUIRE(kd::entity_from_data(tx, decoded_tx));
 
     auto const& input = tx.inputs()[index];
     auto& prevout = input.previous_output().validation.cache;
 
     prevout.set_value(value);
-    prevout.set_script(script::factory_from_data(decoded_script, false));
+    prevout.set_script(kd::create<script>(decoded_script, false));
     BOOST_REQUIRE(prevout.script().is_valid());
 
     auto const result = validate_input::verify_script(tx, index, native_forks);

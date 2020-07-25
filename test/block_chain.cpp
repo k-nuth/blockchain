@@ -9,8 +9,8 @@
 #include <string>
 #include <kth/blockchain.hpp>
 
-using namespace bc;
-using namespace bc::blockchain;
+using namespace kth;
+using namespace kth::blockchain;
 using namespace boost::system;
 using namespace std::filesystem;
 
@@ -55,14 +55,14 @@ using namespace std::filesystem;
     BOOST_REQUIRE(name.start())
 
 #define NEW_BLOCK(height) \
-    std::make_shared<const message::block>(read_block(MAINNET_BLOCK##height))
+    std::make_shared<const domain::message::block>(read_block(MAINNET_BLOCK##height))
 
 static const uint64_t genesis_mainnet_work = 0x0000000100010001;
 
 static 
 void print_headers(std::string const& test) {
     auto const header = "=========== " + test + " ==========";
-    LOG_INFO(TEST_SET_NAME) << header;
+    LOG_INFO(TEST_SET_NAME, header);
 }
 
 bool create_database(database::settings& out_database) {
@@ -87,18 +87,17 @@ bool create_database(database::settings& out_database) {
     out_database.transaction_unconfirmed_table_buckets = 42;
 #endif // KTH_DB_TRANSACTION_UNCONFIRMED
 
-    error_code ec;
+    std::error_code ec;
     remove_all(out_database.directory, ec);
     database::data_base database(out_database);
-    return create_directories(out_database.directory, ec) 
-            && database.create(chain::block::genesis_mainnet());
+    return create_directories(out_database.directory, ec) && database.create(domain::chain::block::genesis_mainnet());
 }
 
-chain::block read_block(const std::string hex) {
+domain::chain::block read_block(const std::string hex) {
     data_chunk data;
     BOOST_REQUIRE(decode_base16(data, hex));
-    chain::block result;
-    BOOST_REQUIRE(result.from_data(data));
+    domain::chain::block result;
+    BOOST_REQUIRE(kd::entity_from_data(result, data));
     return result;
 }
 
@@ -111,7 +110,7 @@ BOOST_AUTO_TEST_CASE(block_chain__insert__flushed__expected) {
     auto const block1 = NEW_BLOCK(1);
     BOOST_REQUIRE(instance.insert(block1, 1));
     BOOST_REQUIRE(instance.get_block_exists(block1->hash()));
-    BOOST_REQUIRE(instance.get_block_exists(chain::block::genesis_mainnet().hash()));
+    BOOST_REQUIRE(instance.get_block_exists(domain::chain::block::genesis_mainnet().hash()));
 }
 
 BOOST_AUTO_TEST_CASE(block_chain__insert__unflushed__expected_block) {
@@ -120,7 +119,7 @@ BOOST_AUTO_TEST_CASE(block_chain__insert__unflushed__expected_block) {
     auto const block1 = NEW_BLOCK(1);
     BOOST_REQUIRE(instance.insert(block1, 1));
     BOOST_REQUIRE(instance.get_block_exists(block1->hash()));
-    BOOST_REQUIRE(instance.get_block_exists(chain::block::genesis_mainnet().hash()));
+    BOOST_REQUIRE(instance.get_block_exists(domain::chain::block::genesis_mainnet().hash()));
 }
 
 BOOST_AUTO_TEST_CASE(block_chain__get_gaps__none__none) {
@@ -218,7 +217,7 @@ BOOST_AUTO_TEST_CASE(block_chain__get_branch_work__unbounded__true) {
 BOOST_AUTO_TEST_CASE(block_chain__get_header__not_found__false) {
     START_BLOCKCHAIN(instance, false);
 
-    chain::header header;
+    domain::chain::header header;
     BOOST_REQUIRE(!instance.get_header(header, 1));
 }
 
@@ -228,7 +227,7 @@ BOOST_AUTO_TEST_CASE(block_chain__get_header__found__true) {
     auto const block1 = NEW_BLOCK(1);
     BOOST_REQUIRE(instance.insert(block1, 1));
 
-    chain::header header;
+    domain::chain::header header;
     BOOST_REQUIRE(instance.get_header(header, 1));
     BOOST_REQUIRE(header == block1->header());
 }
@@ -332,11 +331,11 @@ BOOST_AUTO_TEST_CASE(block_chain__get_last_height__gap__last_block) {
 BOOST_AUTO_TEST_CASE(block_chain__get_output__not_found__false) {
     START_BLOCKCHAIN(instance, false);
 
-    chain::output output;
+    domain::chain::output output;
     size_t height;
     uint32_t median_time_past;
     bool coinbase;
-    const chain::output_point outpoint{ null_hash, 42 };
+    const domain::chain::output_point outpoint{ null_hash, 42 };
     size_t branch_height = 0;
     BOOST_REQUIRE(!instance.get_output(output, height, median_time_past, coinbase, outpoint, branch_height, true));
 }
@@ -349,11 +348,11 @@ BOOST_AUTO_TEST_CASE(block_chain__get_output__found__expected) {
     BOOST_REQUIRE(instance.insert(block1, 1));
     BOOST_REQUIRE(instance.insert(block2, 2));
 
-    chain::output output;
+    domain::chain::output output;
     size_t height;
     uint32_t median_time_past;
     bool coinbase;
-    const chain::output_point outpoint{ block2->transactions()[0].hash(), 0 };
+    const domain::chain::output_point outpoint{ block2->transactions()[0].hash(), 0 };
     auto const expected_value = initial_block_subsidy_satoshi();
     auto const expected_script = block2->transactions()[0].outputs()[0].script().to_string(0);
     BOOST_REQUIRE(instance.get_output(output, height, median_time_past, coinbase, outpoint, 2, true));
@@ -371,11 +370,11 @@ BOOST_AUTO_TEST_CASE(block_chain__get_output__above_fork__false) {
     BOOST_REQUIRE(instance.insert(block1, 1));
     BOOST_REQUIRE(instance.insert(block2, 2));
 
-    chain::output output;
+    domain::chain::output output;
     size_t height;
     uint32_t median_time_past;
     bool coinbase;
-    const chain::output_point outpoint{ block2->transactions()[0].hash(), 0 };
+    const domain::chain::output_point outpoint{ block2->transactions()[0].hash(), 0 };
     BOOST_REQUIRE(!instance.get_output(output, height, median_time_past, coinbase, outpoint, 1, true));
 }
 
@@ -612,7 +611,7 @@ int fetch_merkle_block_by_height_result(block_chain& instance,
         }
 
         auto const match = result_height == height &&
-            *result_merkle == message::merkle_block(*block);
+            *result_merkle == domain::message::merkle_block(*block);
         promise.set_value(match ? error::success : error::operation_failed_28);
     };
     instance.fetch_merkle_block(height, handler);
@@ -648,7 +647,7 @@ int fetch_merkle_block_by_hash_result(block_chain& instance,
         }
 
         auto const match = result_height == height &&
-            *result_merkle == message::merkle_block(*block);
+            *result_merkle == domain::message::merkle_block(*block);
         promise.set_value(match ? error::success : error::operation_failed_29);
     };
     instance.fetch_merkle_block(block->hash(), handler);
@@ -714,7 +713,7 @@ BOOST_AUTO_TEST_CASE(block_chain__fetch_locator_block_headers__empty__sequential
     BOOST_REQUIRE(instance.insert(block2, 2));
     BOOST_REQUIRE(instance.insert(block3, 3));
 
-    auto const locator = std::make_shared<const message::get_headers>();
+    auto const locator = std::make_shared<const domain::message::get_headers>();
     BOOST_REQUIRE_EQUAL(fetch_locator_block_headers(instance, locator, null_hash, 0), error::success);
 }
 
@@ -730,7 +729,7 @@ BOOST_AUTO_TEST_CASE(block_chain__fetch_locator_block_headers__full__sequential)
 
     const size_t limit = 3;
     auto const threshold = null_hash;
-    auto const locator = std::make_shared<const message::get_headers>();
+    auto const locator = std::make_shared<const domain::message::get_headers>();
     BOOST_REQUIRE_EQUAL(fetch_locator_block_headers(instance, locator, null_hash, 3), error::success);
 }
 
@@ -746,7 +745,7 @@ BOOST_AUTO_TEST_CASE(block_chain__fetch_locator_block_headers__limited__sequenti
 
     const size_t limit = 3;
     auto const threshold = null_hash;
-    auto const locator = std::make_shared<const message::get_headers>();
+    auto const locator = std::make_shared<const domain::message::get_headers>();
     BOOST_REQUIRE_EQUAL(fetch_locator_block_headers(instance, locator, null_hash, 2), error::success);
 }
 #endif // KTH_DB_LEGACY

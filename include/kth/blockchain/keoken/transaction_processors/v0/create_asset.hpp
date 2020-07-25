@@ -15,8 +15,8 @@ struct create_asset {
     static constexpr message_type_t message_type = message_type_t::create_asset;
 
     template <typename State, typename Fastchain, Reader R, KTH_IS_READER(R)>
-    error::error_code_t operator()(State& state, Fastchain const& fast_chain, size_t block_height, bc::chain::transaction const& tx, R& source) const {
-        auto msg = message::create_asset::factory_from_data(source);
+    error::error_code_t operator()(State& state, Fastchain const& fast_chain, size_t block_height, kd::domain::chain::transaction const& tx, R& source) const {
+        auto msg = domain::message::create_asset::factory_from_data(source);
         if ( ! source) return error::invalid_create_asset_message;
 
         if (msg.amount() <= 0) {

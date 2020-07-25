@@ -9,12 +9,14 @@
 #include <cstdint>
 #include <memory>
 #include <vector>
+
 #include <kth/domain.hpp>
+
 #include <kth/blockchain/define.hpp>
 
 namespace kth::blockchain {
 
-using local_utxo_t = std::unordered_map<chain::point, chain::output const*>;
+using local_utxo_t = std::unordered_map<domain::chain::point, domain::chain::output const*>;
 using local_utxo_set_t = std::vector<local_utxo_t>;
 
 /// This class is not thread safe.
@@ -39,14 +41,14 @@ public:
     size_t top_height() const;
 
     /////// Populate unspent duplicate state in the context of the branch.
-    ////void populate_duplicate(const chain::transaction& tx) const;
+    ////void populate_duplicate(const domain::chain::transaction& tx) const;
 
     /// Populate prevout validation spend state in the context of the branch.
-    void populate_spent(const chain::output_point& outpoint) const;
+    void populate_spent(const domain::chain::output_point& outpoint) const;
 
     /// Populate prevout validation output state in the context of the branch.
-    void populate_prevout(chain::output_point const& outpoint) const;
-    void populate_prevout(chain::output_point const& outpoint, std::vector<std::unordered_map<chain::point, chain::output const*>> const& branch_utxo) const;
+    void populate_prevout(domain::chain::output_point const& outpoint) const;
+    void populate_prevout(domain::chain::output_point const& outpoint, std::vector<std::unordered_map<domain::chain::point, domain::chain::output const*>> const& branch_utxo) const;
 
     /// The member block pointer list.
     block_const_ptr_list_const_ptr blocks() const;
@@ -67,7 +69,7 @@ public:
     size_t height() const;
 
     /// A checkpoint of the fork point, identical to { hash(), height() }.
-    config::checkpoint fork_point() const;
+    infrastructure::config::checkpoint fork_point() const;
 
     /// The bits of the block at the given height in the branch.
     bool get_bits(uint32_t& out_bits, size_t height) const;
@@ -93,7 +95,7 @@ private:
     block_const_ptr_list_ptr blocks_;
 };
 
-local_utxo_t create_local_utxo_set(chain::block const& block);
+local_utxo_t create_local_utxo_set(domain::chain::block const& block);
 local_utxo_set_t create_branch_utxo_set(branch::const_ptr const& branch);
 
 } // namespace kth::blockchain

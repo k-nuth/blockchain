@@ -13,8 +13,7 @@
 // Atomicity is not required for these operations as each validation call is
 // sequenced. Locking is performed only to guard concurrent filtering.
 
-namespace kth {
-namespace blockchain {
+namespace kth::blockchain {
 
 using namespace boost;
 
@@ -264,5 +263,4 @@ branch::ptr block_pool::get_path(block_const_ptr block) const
 ////    }
 ////}
 
-} // namespace blockchain
-} // namespace kth
+} // namespace kth::blockchain

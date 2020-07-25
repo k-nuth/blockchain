@@ -12,13 +12,12 @@
 #include <kth/domain.hpp>
 #include <kth/blockchain/define.hpp>
 
-namespace kth {
-namespace blockchain {
+namespace kth::blockchain {
 
-using namespace bc::chain;
-using namespace bc::config;
+using namespace kd::chain;
+using namespace kd::config;
 
-local_utxo_t create_local_utxo_set(chain::block const& block) {
+local_utxo_t create_local_utxo_set(domain::chain::block const& block) {
     //TODO(fernando): confirm if there is a validation to check that the coinbase tx is not spend, before this.
     //                we avoid to insert the coinbase in the local utxo set
 
@@ -104,7 +103,7 @@ hash_digest branch::hash() const {
     return empty() ? null_hash : blocks_->front()->header().previous_block_hash();
 }
 
-config::checkpoint branch::fork_point() const {
+infrastructure::config::checkpoint branch::fork_point() const {
     return {hash(), height()};
 }
 
@@ -153,7 +152,7 @@ uint256_t branch::work() const {
 // Otherwise it could reject a spent duplicate. Given that collisions must be
 // rejected at least prior to the BIP34 checkpoint this is technically a
 // consensus break which would only apply to a reorg at height less than BIP34.
-////void branch::populate_duplicate(const chain::transaction& tx) const
+////void branch::populate_duplicate(const domain::chain::transaction& tx) const
 ////{
 ////    auto const outer = [&tx](size_t total, block_const_ptr block)
 ////    {
@@ -215,7 +214,7 @@ void branch::populate_prevout(output_point const& outpoint) const {
     auto& prevout = outpoint.validation;
 
     // In case this input is a coinbase or the prevout is spent.
-    prevout.cache = chain::output{};
+    prevout.cache = domain::chain::output{};
     prevout.coinbase = false;
     prevout.height = 0;
     prevout.median_time_past = 0;
@@ -255,7 +254,7 @@ void branch::populate_prevout(output_point const& outpoint, std::vector<std::uno
     auto& prevout = outpoint.validation;
 
     // In case this input is a coinbase or the prevout is spent.
-    prevout.cache = chain::output{};
+    prevout.cache = domain::chain::output{};
     prevout.coinbase = false;
     prevout.height = 0;
     prevout.median_time_past = 0;
@@ -378,5 +377,4 @@ bool branch::get_block_hash(hash_digest& out_hash, size_t height) const {
     return true;
 }
 
-} // namespace blockchain
-} // namespace kth
+} // namespace kth::blockchain

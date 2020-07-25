@@ -8,11 +8,10 @@
 #include <kth/keoken/transaction_extractor.hpp>
 #endif
 
-namespace kth {
-namespace blockchain {
+namespace kth::blockchain {
 
 #ifdef KTH_DB_LEGACY
-void block_chain::for_each_transaction(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const {
+void blockchain::for_each_transaction(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const {
 #ifdef KTH_CURRENCY_BCH
     witness = false;    //TODO(fernando): see what to do with those things!
 #endif
@@ -21,14 +20,14 @@ void block_chain::for_each_transaction(size_t from, size_t to, bool witness, for
     while (from <= to) {
 
         if (stopped()) {
-            handler(error::service_stopped, 0, chain::transaction{});
+            handler(error::service_stopped, 0, domain::chain::transaction{});
             return;
         }
     
         auto const block_result = database_.blocks().get(from);
 
         if ( ! block_result) {
-            handler(error::not_found, 0, chain::transaction{});
+            handler(error::not_found, 0, domain::chain::transaction{});
             return;
         }
         KTH_ASSERT(block_result.height() == from);
@@ -42,7 +41,7 @@ void block_chain::for_each_transaction(size_t from, size_t to, bool witness, for
     }
 }
 
-void block_chain::for_each_transaction_non_coinbase(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const {
+void blockchain::for_each_transaction_non_coinbase(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const {
 #ifdef KTH_CURRENCY_BCH
     witness = false;    //TODO(fernando): see what to do with those things!
 #endif
@@ -51,14 +50,14 @@ void block_chain::for_each_transaction_non_coinbase(size_t from, size_t to, bool
     while (from <= to) {
 
         if (stopped()) {
-            handler(error::service_stopped, 0, chain::transaction{});
+            handler(error::service_stopped, 0, domain::chain::transaction{});
             return;
         }
     
         auto const block_result = database_.blocks().get(from);
 
         if ( ! block_result) {
-            handler(error::not_found, 0, chain::transaction{});
+            handler(error::not_found, 0, domain::chain::transaction{});
             return;
         }
         KTH_ASSERT(block_result.height() == from);
@@ -75,7 +74,7 @@ void block_chain::for_each_transaction_non_coinbase(size_t from, size_t to, bool
 
 
 #ifdef KTH_DB_NEW_FULL
-void block_chain::for_each_transaction(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const {
+void blockchain::for_each_transaction(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const {
 #ifdef KTH_CURRENCY_BCH
     witness = false;    //TODO(fernando): see what to do with those things!
 #endif
@@ -83,14 +82,14 @@ void block_chain::for_each_transaction(size_t from, size_t to, bool witness, for
     while (from <= to) {
 
         if (stopped()) {
-            handler(error::service_stopped, 0, chain::transaction{});
+            handler(error::service_stopped, 0, domain::chain::transaction{});
             return;
         }
     
         auto const block_result = database_.internal_db().get_block(from);
 
         if ( ! block_result.is_valid()) {
-            handler(error::not_found, 0, chain::transaction{});
+            handler(error::not_found, 0, domain::chain::transaction{});
             return;
         }
 
@@ -104,7 +103,7 @@ void block_chain::for_each_transaction(size_t from, size_t to, bool witness, for
     }
 }
 
-void block_chain::for_each_transaction_non_coinbase(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const {
+void blockchain::for_each_transaction_non_coinbase(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const {
 #ifdef KTH_CURRENCY_BCH
     witness = false;    //TODO(fernando): see what to do with those things!
 #endif
@@ -113,14 +112,14 @@ void block_chain::for_each_transaction_non_coinbase(size_t from, size_t to, bool
     while (from <= to) {
 
         if (stopped()) {
-            handler(error::service_stopped, 0, chain::transaction{});
+            handler(error::service_stopped, 0, domain::chain::transaction{});
             return;
         }
     
         auto const block_result = database_.internal_db().get_block(from);
 
         if ( ! block_result.is_valid()) {
-            handler(error::not_found, 0, chain::transaction{});
+            handler(error::not_found, 0, domain::chain::transaction{});
             return;
         }
         //KTH_ASSERT(block_result.height() == from);
@@ -136,7 +135,7 @@ void block_chain::for_each_transaction_non_coinbase(size_t from, size_t to, bool
 
 #if defined(KTH_WITH_KEOKEN)
 
-void block_chain::convert_to_keo_transaction(const kth::hash_digest& hash, std::shared_ptr<std::vector<transaction_const_ptr>> keoken_txs) const {
+void blockchain::convert_to_keo_transaction(const kth::hash_digest& hash, std::shared_ptr<std::vector<transaction_const_ptr>> keoken_txs) const {
    fetch_transaction(hash, true, false,
               [&](const kth::code &ec,
                   kth::transaction_const_ptr tx_ptr, size_t index,
@@ -153,7 +152,7 @@ void block_chain::convert_to_keo_transaction(const kth::hash_digest& hash, std::
 
 #if defined(KTH_DB_LEGACY)
 
-void block_chain::fetch_keoken_history(const short_hash& address_hash, size_t limit,
+void blockchain::fetch_keoken_history(const short_hash& address_hash, size_t limit,
     size_t from_height, keoken_history_fetch_handler handler) const
 {
     auto keoken_txs = std::make_shared<std::vector<transaction_const_ptr>>();
@@ -184,7 +183,7 @@ void block_chain::fetch_keoken_history(const short_hash& address_hash, size_t li
 }
 
 
-void block_chain::fetch_block_keoken(hash_digest const& hash, bool witness,
+void blockchain::fetch_block_keoken(hash_digest const& hash, bool witness,
     block_keoken_fetch_handler handler) const
 {
 #ifdef KTH_CURRENCY_BCH
@@ -207,7 +206,7 @@ void block_chain::fetch_block_keoken(hash_digest const& hash, bool witness,
     }
 
     auto const height = block_result.height();
-    auto const message = std::make_shared<const kth::message::header>(block_result.header());
+    auto const message = std::make_shared<const kth::domain::message::header>(block_result.header());
     auto const tx_hashes = block_result.transaction_hashes();
     auto const& tx_store = database_.transactions();
     DEBUG_ONLY(size_t position = 0;)
@@ -226,10 +225,10 @@ void block_chain::fetch_block_keoken(hash_digest const& hash, bool witness,
 
         KTH_ASSERT(tx_result.height() == height);
         KTH_ASSERT(tx_result.position() == position++);
-        const kth::chain::transaction& tx_ptr = tx_result.transaction(witness);
+        const kth::domain::chain::transaction& tx_ptr = tx_result.transaction(witness);
         auto keoken_data = knuth::keoken::first_keoken_output(tx_ptr);
         if (!keoken_data.empty()) {
-            (*keoken_txs).push_back(std::make_shared<const kth::message::transaction>(tx_result.transaction(witness)));
+            (*keoken_txs).push_back(std::make_shared<const kth::domain::message::transaction>(tx_result.transaction(witness)));
         }
     }
 
@@ -242,7 +241,7 @@ void block_chain::fetch_block_keoken(hash_digest const& hash, bool witness,
 
 #if defined(KTH_DB_NEW_FULL)
 
-void block_chain::fetch_keoken_history(const short_hash& address_hash, size_t limit,
+void blockchain::fetch_keoken_history(const short_hash& address_hash, size_t limit,
     size_t from_height, keoken_history_fetch_handler handler) const
 {
     auto keoken_txs = std::make_shared<std::vector<transaction_const_ptr>>();
@@ -273,7 +272,7 @@ void block_chain::fetch_keoken_history(const short_hash& address_hash, size_t li
 }
 
 
-void block_chain::fetch_block_keoken(hash_digest const& hash, bool witness,
+void blockchain::fetch_block_keoken(hash_digest const& hash, bool witness,
     block_keoken_fetch_handler handler) const
 {
 #ifdef KTH_CURRENCY_BCH
@@ -296,7 +295,7 @@ void block_chain::fetch_block_keoken(hash_digest const& hash, bool witness,
     }
 
     auto const height = block_result.second;
-    auto const message = std::make_shared<const kth::message::header>(block_result.first.header());
+    auto const message = std::make_shared<const kth::domain::message::header>(block_result.first.header());
     //auto const tx_hashes = block_result.first.transaction_hashes();
     
     DEBUG_ONLY(size_t position = 0;)
@@ -313,10 +312,10 @@ void block_chain::fetch_block_keoken(hash_digest const& hash, bool witness,
 
         //KTH_ASSERT(tx_result.height() == height);
         //KTH_ASSERT(tx_result.position() == position++);
-        const kth::chain::transaction& tx_ptr = tx_result;
+        const kth::domain::chain::transaction& tx_ptr = tx_result;
         auto keoken_data = knuth::keoken::first_keoken_output(tx_ptr);
         if (!keoken_data.empty()) {
-            (*keoken_txs).push_back(std::make_shared<const kth::message::transaction>(tx_result));
+            (*keoken_txs).push_back(std::make_shared<const kth::domain::message::transaction>(tx_result));
         }
     }
 
@@ -328,5 +327,4 @@ void block_chain::fetch_block_keoken(hash_digest const& hash, bool witness,
 
 #endif //KTH_WITH_KEOKEN
 
-} // namespace blockchain
-} // namespace kth
+} // namespace kth::blockchain
