@@ -235,7 +235,7 @@ chain_state::ptr populate_chain_state::populate(chain_state::ptr pool, branch::c
             // , settings_.magnetic_anomaly_activation_time
             // , settings_.great_wall_activation_time
             // , settings_.graviton_activation_time
-            , phonon_t(settings_.phonon_activation_time)
+            // , phonon_t(settings_.phonon_activation_time)
             , axion_t(settings_.axion_activation_time)
 #endif //KTH_CURRENCY_BCH
     );
