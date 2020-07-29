@@ -140,7 +140,7 @@ TEST_CASE("branch  empty  push one  false", "[branch tests]") {
     branch instance;
     DECLARE_BLOCK(block, 0);
     REQUIRE(instance.push_front(block0));
-    REQUIRE(!instance.empty());
+    REQUIRE( ! instance.empty());
 }
 
 // blocks
@@ -154,7 +154,7 @@ TEST_CASE("branch  blocks  one  empty", "[branch tests]") {
     branch instance;
     DECLARE_BLOCK(block, 0);
     REQUIRE(instance.push_front(block0));
-    REQUIRE(!instance.empty());
+    REQUIRE( ! instance.empty());
     REQUIRE(instance.blocks()->size() == 1u);
 }
 
@@ -164,7 +164,7 @@ TEST_CASE("branch  push front  one  success", "[branch tests]") {
     branch_fixture instance;
     DECLARE_BLOCK(block, 0);
     REQUIRE(instance.push_front(block0));
-    REQUIRE(!instance.empty());
+    REQUIRE( ! instance.empty());
     REQUIRE(instance.size() == 1u);
     REQUIRE((*instance.blocks())[0] == block0);
 }
@@ -193,7 +193,7 @@ TEST_CASE("branch  push front  two unlinked  link failure", "[branch tests]") {
     block1->header().set_previous_block_hash(null_hash);
 
     REQUIRE(instance.push_front(block1));
-    REQUIRE(!instance.push_front(block0));
+    REQUIRE( ! instance.push_front(block0));
     REQUIRE(instance.size() == 1u);
     REQUIRE((*instance.blocks())[0] == block1);
 }
@@ -202,7 +202,7 @@ TEST_CASE("branch  push front  two unlinked  link failure", "[branch tests]") {
 
 TEST_CASE("branch  top  default  nullptr", "[branch tests]") {
     branch instance;
-    REQUIRE(!instance.top());
+    REQUIRE( ! instance.top());
 }
 
 TEST_CASE("branch  top  two blocks  expected", "[branch tests]") {

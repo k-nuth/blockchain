@@ -16,11 +16,9 @@ using namespace kth::blockchain;
 class block_pool_fixture : public block_pool {
 public:
     block_pool_fixture(size_t maximum_depth)
-        : block_pool(maximum_depth)
-    {}
+        : block_pool(maximum_depth) {}
 
-    void prune(size_t top_height)
-    {
+    void prune(size_t top_height) {
         block_pool::prune(top_height);
     }
 
@@ -39,8 +37,7 @@ public:
         return maximum_depth_;
     }
 
-    block_entries& blocks()
-    {
+    block_entries& blocks() {
         return blocks_;
     }
 };
@@ -424,7 +421,7 @@ TEST_CASE("block pool  filter  matched blocks  non blocks and mismatches remain"
 TEST_CASE("block pool  exists  empty  false", "[block pool tests]") {
     block_pool_fixture instance(0);
     auto const block1 = make_block(1, 42);
-    REQUIRE(!instance.exists(block1));
+    REQUIRE( ! instance.exists(block1));
 }
 
 TEST_CASE("block pool  exists  not empty mismatch  false", "[block pool tests]") {
@@ -432,7 +429,7 @@ TEST_CASE("block pool  exists  not empty mismatch  false", "[block pool tests]")
     auto const block1 = make_block(1, 42);
     auto const block2 = make_block(2, 43, block1);
     instance.add(block1);
-    REQUIRE(!instance.exists(block2));
+    REQUIRE( ! instance.exists(block2));
 }
 
 TEST_CASE("block pool  exists  match  true", "[block pool tests]") {
@@ -447,7 +444,7 @@ TEST_CASE("block pool  exists  match  true", "[block pool tests]") {
 TEST_CASE("block pool  parent  empty  false", "[block pool tests]") {
     block_pool_fixture instance(0);
     auto const block1 = make_block(1, 42);
-    REQUIRE(!instance.parent(block1));
+    REQUIRE( ! instance.parent(block1));
 }
 
 TEST_CASE("block pool  parent  nonempty mismatch   false", "[block pool tests]") {
@@ -456,7 +453,7 @@ TEST_CASE("block pool  parent  nonempty mismatch   false", "[block pool tests]")
     auto const block2 = make_block(2, 43);
     instance.add(block1);
     instance.add(block2);
-    REQUIRE(!instance.parent(block2));
+    REQUIRE( ! instance.parent(block2));
 }
 
 TEST_CASE("block pool  parent  match   true", "[block pool tests]") {

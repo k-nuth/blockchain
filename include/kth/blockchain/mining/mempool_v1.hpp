@@ -332,8 +332,7 @@ public:
         : max_template_size_(max_template_size)
         // , mempool_size_multiplier_(mempool_size_multiplier)
         , mempool_total_size_(get_max_block_weight() * mempool_size_multiplier)
-        // , sorted_(false)
-    {
+        // , sorted_(false) {
         BOOST_ASSERT(max_template_size <= get_max_block_weight()); //TODO(fernando): what happend in BTC with SegWit.
 
         size_t const candidates_capacity = max_template_size_ / min_transaction_size_for_capacity;
@@ -965,7 +964,7 @@ public:
 
                 auto res = std::is_sorted(std::begin(candidate_transactions_), std::end(candidate_transactions_), cmp);
 
-                // if (! res) {
+                // if ( !  res) {
                     // auto res2 = std::is_sorted(candidate_transactions_.begin(), candidate_transactions_.end(), cmp);
                     // std::cout << res2;
                 // }

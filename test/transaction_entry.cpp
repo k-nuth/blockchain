@@ -59,7 +59,7 @@ TEST_CASE("transaction entry  construct1  default tx  expected values", "[transa
     REQUIRE(instance.sigops() == 0);
     REQUIRE(instance.size() == 10u);
     REQUIRE(instance.hash() == default_tx_hash);
-    REQUIRE(!instance.is_marked());
+    REQUIRE( ! instance.is_marked());
     REQUIRE(instance.parents().empty());
     REQUIRE(instance.children().empty());
 }
@@ -74,7 +74,7 @@ TEST_CASE("transaction entry  construct1  default block hash  expected values", 
     REQUIRE(instance.sigops() == 0);
     REQUIRE(instance.size() == 0);
     REQUIRE(instance.hash() == default_tx_hash);
-    REQUIRE(!instance.is_marked());
+    REQUIRE( ! instance.is_marked());
     REQUIRE(instance.parents().empty());
     REQUIRE(instance.children().empty());
 }
@@ -85,7 +85,7 @@ TEST_CASE("transaction entry  is anchor  parents  false", "[transaction entry te
     transaction_entry instance(make_tx());
     auto const parent = make_instance();
     instance.add_parent(parent);
-    REQUIRE(!instance.is_anchor());
+    REQUIRE( ! instance.is_anchor());
 }
 
 TEST_CASE("transaction entry  is anchor  children  true", "[transaction entry tests]") {
@@ -107,14 +107,14 @@ TEST_CASE("transaction entry  mark  true false  expected", "[transaction entry t
     transaction_entry instance(make_tx());
     instance.mark(true);
     instance.mark(false);
-    REQUIRE(!instance.is_marked());
+    REQUIRE( ! instance.is_marked());
 }
 
 // is_marked
 
 TEST_CASE("transaction entry  mark  default  false", "[transaction entry tests]") {
     const transaction_entry instance(make_tx());
-    REQUIRE(!instance.is_marked());
+    REQUIRE( ! instance.is_marked());
 }
 
 TEST_CASE("transaction entry  is marked  true  true", "[transaction entry tests]") {

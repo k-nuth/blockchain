@@ -89,7 +89,7 @@ TEST_CASE("block entry  equality  different  false", "[block entry tests]")
     auto const block = std::make_shared<const domain::message::block>();
     block_entry instance1(block);
     block_entry instance2(null_hash);
-    REQUIRE(!(instance1 == instance2));
+    REQUIRE( ! (instance1 == instance2));
 }
 
 // End Boost Suite

@@ -83,7 +83,7 @@ void populate_block::populate(branch::const_ptr branch, result_handler&& handler
 void populate_block::populate_coinbase(branch::const_ptr branch, block_const_ptr block) const {
     auto const& txs = block->transactions();
     auto const state = block->validation.state;
-    KTH_ASSERT(!txs.empty());
+    KTH_ASSERT( ! txs.empty());
 
     auto const& coinbase = txs.front();
     KTH_ASSERT(coinbase.is_coinbase());
@@ -118,7 +118,7 @@ void populate_block::populate_coinbase(branch::const_ptr branch, block_const_ptr
 ////void populate_block::populate_duplicate(branch::const_ptr branch,
 ////    const domain::chain::transaction& tx) const
 ////{
-////    if (!tx.validation.duplicate)
+////    if ( ! tx.validation.duplicate)
 ////        branch->populate_duplicate(tx);
 ////}
 

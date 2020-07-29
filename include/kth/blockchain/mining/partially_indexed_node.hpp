@@ -23,13 +23,11 @@ public:
 
     partially_indexed_node(I index, T const& x) 
         : index_(index)
-        , x_(x)
-    {}
+        , x_(x) {}
 
     partially_indexed_node(I index, T&& x) 
         : index_(index)
-        , x_(std::move(x))
-    {}
+        , x_(std::move(x)) {}
 
     // template <typename... Args>
     // partially_indexed_node(std::piecewise_construct_t, I index, Args&&... args)
@@ -40,8 +38,7 @@ public:
     template <typename... Args>
     partially_indexed_node(I index, Args&&... args)
         : index_(index)
-        , x_(std::forward<Args>(args)...)
-    {}
+        , x_(std::forward<Args>(args)...) {}
 
     I const& index() const {
         return index_;

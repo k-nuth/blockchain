@@ -169,8 +169,7 @@ public:
         : max_template_size_(max_template_size)
         , mempool_total_size_(get_max_block_weight() * mempool_size_multiplier)
         // partially_indexed<node, fee_per_size_cmp, has_room_for> data{fee_per_size_cmp{}, roomer};
-        , data_(fee_per_size_cmp{}, *this)
-    {
+        , data_(fee_per_size_cmp{}, *this) {
         BOOST_ASSERT(max_template_size <= get_max_block_weight()); //TODO(fernando): what happend in BTC with SegWit.
 
         // size_t const candidates_capacity = max_template_size_ / min_transaction_size_for_capacity;

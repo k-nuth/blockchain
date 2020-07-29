@@ -69,144 +69,10 @@ uint32_t validate_input::convert_flags(uint32_t native_forks) {
         flags |= verify_flags_zero_sigops;
     }
 
-    // We make sure this node will have replay protection during the next hard fork.
-    if (script::is_enabled(native_forks, domain::machine::rule_fork::bch_replay_protection)) {
-        flags |= verify_flags_enable_replay_protection;
-    }
-
-                // // Returns the script flags which should be checked for the block after
-                // // the given block.
-                // static uint32_t GetNextBlockScriptFlags(const Consensus::Params &params,
-                //                                         const CBlockIndex *pindex) {
-                //     uint32_t flags = SCRIPT_VERIFY_NONE;
-
-                //     // Start enforcing P2SH (BIP16)
-                //     if ((pindex->nHeight + 1) >= params.BIP16Height) {
-                //         flags |= SCRIPT_VERIFY_P2SH;
-                //     }
-
-                //     // Start enforcing the DERSIG (BIP66) rule.
-                //     if ((pindex->nHeight + 1) >= params.BIP66Height) {
-                //         flags |= SCRIPT_VERIFY_DERSIG;
-                //     }
-
-                //     // Start enforcing CHECKLOCKTIMEVERIFY (BIP65) rule.
-                //     if ((pindex->nHeight + 1) >= params.BIP65Height) {
-                //         flags |= SCRIPT_VERIFY_CHECKLOCKTIMEVERIFY;
-                //     }
-
-                //     // Start enforcing CSV (BIP68, BIP112 and BIP113) rule.
-                //     if ((pindex->nHeight + 1) >= params.CSVHeight) {
-                //         flags |= SCRIPT_VERIFY_CHECKSEQUENCEVERIFY;
-                //     }
-
-                //     // If the UAHF is enabled, we start accepting replay protected txns
-                //     if (IsUAHFenabled(params, pindex)) {
-                //         flags |= SCRIPT_VERIFY_STRICTENC;
-                //         flags |= SCRIPT_ENABLE_SIGHASH_FORKID;
-                //     }
-
-                //     // If the DAA HF is enabled, we start rejecting transaction that use a high
-                //     // s in their signature. We also make sure that signature that are supposed
-                //     // to fail (for instance in multisig or other forms of smart contracts) are
-                //     // null.
-                //     if (IsDAAEnabled(params, pindex)) {
-                //         flags |= SCRIPT_VERIFY_LOW_S;
-                //         flags |= SCRIPT_VERIFY_NULLFAIL;
-                //     }
-
-                //     // When the magnetic anomaly fork is enabled, we start accepting
-                //     // transactions using the OP_CHECKDATASIG opcode and it's verify
-                //     // alternative. We also start enforcing push only signatures and
-                //     // clean stack.
-                //     if (IsMagneticAnomalyEnabled(params, pindex)) {
-                //         flags |= SCRIPT_VERIFY_CHECKDATASIG_SIGOPS;
-                //         flags |= SCRIPT_VERIFY_SIGPUSHONLY;
-                //         flags |= SCRIPT_VERIFY_CLEANSTACK;
-                //     }
-
-                //     if (IsGravitonEnabled(params, pindex)) {
-                //         flags |= SCRIPT_ENABLE_SCHNORR_MULTISIG;
-                //         flags |= SCRIPT_VERIFY_MINIMALDATA;
-                //     }
-
-                //     // We make sure this node will have replay protection during the next hard
-                //     // fork.
-                //     if (IsReplayProtectionEnabled(params, pindex)) {
-                //         flags |= SCRIPT_ENABLE_REPLAY_PROTECTION;
-                //     }
-
-                //     return flags;
-                // }
-
-
-    // ------------------------------------------------------------
-    // Old ABC code
-    // ------------------------------------------------------------
-
-    // if (IsReplayProtectionEnabledForCurrentBlock(config)) {
-    //     extraFlags |= SCRIPT_ENABLE_REPLAY_PROTECTION;
+    // // We make sure this node will have replay protection during the next hard fork.
+    // if (script::is_enabled(native_forks, domain::machine::rule_fork::bch_replay_protection)) {
+    //     flags |= verify_flags_enable_replay_protection;
     // }
-
-    // if (IsMagneticAnomalyEnabledForCurrentBlock(config)) {
-    //     extraFlags |= SCRIPT_ENABLE_CHECKDATASIG;
-    // }
-
-    // if (IsGreatWallEnabledForCurrentBlock(config)) {
-    //     if (!fRequireStandard) {
-    //         extraFlags |= SCRIPT_ALLOW_SEGWIT_RECOVERY;
-    //     }
-    //     extraFlags |= SCRIPT_ENABLE_SCHNORR;
-    // }
-
-
-
-
-//     // BCH UAHF (FORKID on txns)
-//     if (script::is_enabled(native_forks, domain::machine::rule_fork::cash_verify_flags_script_enable_sighash_forkid)) {
-//         flags |= verify_flags_script_enable_sighash_forkid;
-//     }
-
-//     // Obligatory flags used on the 2017-Nov-13 BCH hard fork
-//     if (script::is_enabled(native_forks, domain::machine::rule_fork::cash_low_s_rule)) {
-//         flags |= verify_flags_low_s;
-//     }
-
-//     // // Obligatory flags used on the 2018-May-15 BCH hard fork
-//     // if (script::is_enabled(native_forks, domain::machine::rule_fork::cash_monolith_opcodes)) {
-//     //     flags |= verify_flags_script_enable_monolith_opcodes;
-//     // }
-
-//     // We make sure this node will have replay protection during the next hard fork.
-//     if (script::is_enabled(native_forks, domain::machine::rule_fork::cash_replay_protection)) {
-//         flags |= verify_flags_script_enable_replay_protection;
-//     }
-
-//     if (script::is_enabled(native_forks, domain::machine::rule_fork::cash_checkdatasig)) {
-//         flags |= verify_flags_script_enable_checkdatasig_sigops;
-//     }
-
-//     if (script::is_enabled(native_forks, domain::machine::rule_fork::cash_schnorr)) {
-//         flags |= verify_flags_script_script_enable_schnorr_multisig;
-//     }
-
-//     if (script::is_enabled(native_forks, domain::machine::rule_fork::cash_segwit_recovery)) {
-//         flags |= verify_flags_script_disallow_segwit_recovery;
-//     }
-
-
-//     //TODO(fernando): check what to do with these flags... taken from Consensus code
-
-// //     if ((flags & verify_flags_script_verify_compressed_pubkeytype) != 0)
-// //         script_flags |= SCRIPT_VERIFY_COMPRESSED_PUBKEYTYPE;
-
-// //     if ((flags & verify_flags_script_verify_input_sigchecks) != 0)
-// //         script_flags |= SCRIPT_VERIFY_INPUT_SIGCHECKS;
-
-// //     if ((flags & verify_flags_script_report_sigchecks) != 0)
-// //         script_flags |= SCRIPT_REPORT_SIGCHECKS;
-
-
 
 #else
     if (script::is_enabled(native_forks, domain::machine::rule_fork::bip141_rule)) {
@@ -229,8 +95,7 @@ uint32_t validate_input::convert_flags(uint32_t native_forks) {
 
 // TODO: map to corresponding kd::error codes.
 code validate_input::convert_result(verify_result_type result) {
-    switch (result)
-    {
+    switch (result) {
         // Logical true result.
         case verify_result_type::verify_result_eval_true:
             return error::success;
@@ -323,8 +188,7 @@ code validate_input::convert_result(verify_result_type result) {
 }
 
 // TODO: cache transaction wire serialization.
-code validate_input::verify_script(const transaction& tx, uint32_t input_index,
-    uint32_t branches) {
+std::pair<code, size_t> validate_input::verify_script(transaction const& tx, uint32_t input_index, uint32_t branches) {
 
 #ifdef KTH_CURRENCY_BCH
     bool witness = false;
@@ -348,26 +212,25 @@ code validate_input::verify_script(const transaction& tx, uint32_t input_index,
     auto const tx_data = tx.to_data(true, witness);
 
 #ifdef KTH_CURRENCY_BCH
+    size_t sig_checks;
     auto res = consensus::verify_script(tx_data.data(),
         tx_data.size(), script_data.data(), script_data.size(), input_index,
-        convert_flags(branches), amount);
+        convert_flags(branches), sig_checks, amount);
 
-    return convert_result(res);
+    return {convert_result(res), sig_checks};
 
-#else // KTH_CURRENCY_BCH
-
+#else
     auto res = consensus::verify_script(tx_data.data(),
         tx_data.size(), script_data.data(), script_data.size(), amount,
         input_index, convert_flags(branches));
 
-    return convert_result(res);
-
+    return {convert_result(res), 0};
 #endif // KTH_CURRENCY_BCH
 }
 
 #else //WITH_CONSENSUS
 
-code validate_input::verify_script(transaction const& tx, uint32_t input_index, uint32_t forks) {
+std::pair<code, size_t> validate_input::verify_script(transaction const& tx, uint32_t input_index, uint32_t forks) {
 
 #error Not supported, build using -o consensus=True
 
@@ -375,7 +238,7 @@ code validate_input::verify_script(transaction const& tx, uint32_t input_index, 
     //     return error::operation_failed_22;
     // }
 
-    return script::verify(tx, input_index, forks);
+    return {script::verify(tx, input_index, forks), 0};
 }
 
 #endif //WITH_CONSENSUS

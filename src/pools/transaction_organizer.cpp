@@ -53,8 +53,7 @@ transaction_organizer::transaction_organizer(prioritized_mutex& mutex, dispatche
 // Properties.
 //-----------------------------------------------------------------------------
 
-bool transaction_organizer::stopped() const
-{
+bool transaction_organizer::stopped() const {
     return stopped_;
 }
 
@@ -160,8 +159,7 @@ void transaction_organizer::organize(transaction_const_ptr tx, result_handler ha
     ///////////////////////////////////////////////////////////////////////////
     mutex_.lock_low_priority();
 
-    if (stopped())
-    {
+    if (stopped()) {
         mutex_.unlock_low_priority();
         handler(error::service_stopped);
         return;
@@ -208,14 +206,12 @@ void transaction_organizer::signal_completion(code const& ec)
 void transaction_organizer::handle_check(code const& ec,
     transaction_const_ptr tx, result_handler handler)
 {
-    if (stopped())
-    {
+    if (stopped()) {
         handler(error::service_stopped);
         return;
     }
 
-    if (ec)
-    {
+    if (ec) {
         handler(ec);
         return;
     }
@@ -232,26 +228,22 @@ void transaction_organizer::handle_check(code const& ec,
 void transaction_organizer::handle_accept(code const& ec,
     transaction_const_ptr tx, result_handler handler)
 {
-    if (stopped())
-    {
+    if (stopped()) {
         handler(error::service_stopped);
         return;
     }
 
-    if (ec)
-    {
+    if (ec) {
         handler(ec);
         return;
     }
 
-    if (tx->fees() < price(tx))
-    {
+    if (tx->fees() < price(tx)) {
         handler(error::insufficient_fee);
         return;
     }
 
-    if (tx->is_dusty(settings_.minimum_output_satoshis))
-    {
+    if (tx->is_dusty(settings_.minimum_output_satoshis)) {
         handler(error::dusty_transaction);
         return;
     }

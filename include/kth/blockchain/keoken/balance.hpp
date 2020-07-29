@@ -44,8 +44,7 @@ namespace keoken {
 
 struct balance_entry {
     balance_entry(amount_t amount, size_t block_height, kth::hash_digest const& txid)
-        : amount(amount), block_height(block_height), txid(txid)
-    {}
+        : amount(amount), block_height(block_height), txid(txid) {}
 
     // balance_entry() = default;
     // balance_entry(balance_entry const& x) = default;

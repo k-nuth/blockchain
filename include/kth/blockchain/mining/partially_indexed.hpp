@@ -34,8 +34,7 @@ public:
         : null_index_(std::end(candidate_elements_))
         , sorted_(false)
         , cmp_(cmp)
-        , state_(state)
-    {}
+        , state_(state) {}
 
     void reserve(size_t all) {
         all_elements_.reserve(all);
@@ -133,7 +132,7 @@ public:
     template <typename F>
     void for_each(F f) {
         for (auto& node : all_elements_) {
-            if (! f(node.element())) {
+            if ( !  f(node.element())) {
                 break;
             }
         }        
@@ -142,7 +141,7 @@ public:
     template <typename F>
     void for_each(F f) const {
         for (auto const& node : all_elements_) {
-            if (! f(node.element())) {
+            if ( !  f(node.element())) {
                 break;
             }
         }        

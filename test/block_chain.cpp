@@ -149,7 +149,7 @@ TEST_CASE("block chain  get block hash  not found  false", "[fast chain tests]")
     START_BLOCKCHAIN(instance, false);
 
     hash_digest hash;
-    REQUIRE(!instance.get_block_hash(hash, 1));
+    REQUIRE( ! instance.get_block_hash(hash, 1));
 }
 
 TEST_CASE("block chain  get block hash  found  true", "[fast chain tests]") {
@@ -218,7 +218,7 @@ TEST_CASE("block chain  get header  not found  false", "[fast chain tests]") {
     START_BLOCKCHAIN(instance, false);
 
     domain::chain::header header;
-    REQUIRE(!instance.get_header(header, 1));
+    REQUIRE( ! instance.get_header(header, 1));
 }
 
 TEST_CASE("block chain  get header  found  true", "[fast chain tests]") {
@@ -236,7 +236,7 @@ TEST_CASE("block chain  get height  not found  false", "[fast chain tests]") {
     START_BLOCKCHAIN(instance, false);
 
     size_t height;
-    REQUIRE(!instance.get_height(height, null_hash));
+    REQUIRE( ! instance.get_height(height, null_hash));
 }
 
 TEST_CASE("block chain  get height  found  true", "[fast chain tests]") {
@@ -254,7 +254,7 @@ TEST_CASE("block chain  get bits  not found  false", "[fast chain tests]") {
     START_BLOCKCHAIN(instance, false);
 
     uint32_t bits;
-    REQUIRE(!instance.get_bits(bits, 1));
+    REQUIRE( ! instance.get_bits(bits, 1));
 }
 
 TEST_CASE("block chain  get bits  found  true", "[fast chain tests]") {
@@ -272,7 +272,7 @@ TEST_CASE("block chain  get timestamp  not found  false", "[fast chain tests]") 
     START_BLOCKCHAIN(instance, false);
 
     uint32_t timestamp;
-    REQUIRE(!instance.get_timestamp(timestamp, 1));
+    REQUIRE( ! instance.get_timestamp(timestamp, 1));
 }
 
 TEST_CASE("block chain  get timestamp  found  true", "[fast chain tests]") {
@@ -290,7 +290,7 @@ TEST_CASE("block chain  get version  not found  false", "[fast chain tests]") {
     START_BLOCKCHAIN(instance, false);
 
     uint32_t version;
-    REQUIRE(!instance.get_version(version, 1));
+    REQUIRE( ! instance.get_version(version, 1));
 }
 
 TEST_CASE("block chain  get version  found  true", "[fast chain tests]") {
@@ -337,7 +337,7 @@ TEST_CASE("block chain  get output  not found  false", "[fast chain tests]") {
     bool coinbase;
     const domain::chain::output_point outpoint{ null_hash, 42 };
     size_t branch_height = 0;
-    REQUIRE(!instance.get_output(output, height, median_time_past, coinbase, outpoint, branch_height, true));
+    REQUIRE( ! instance.get_output(output, height, median_time_past, coinbase, outpoint, branch_height, true));
 }
 
 TEST_CASE("block chain  get output  found  expected", "[fast chain tests]") {
@@ -375,7 +375,7 @@ TEST_CASE("block chain  get output  above fork  false", "[fast chain tests]") {
     uint32_t median_time_past;
     bool coinbase;
     const domain::chain::output_point outpoint{ block2->transactions()[0].hash(), 0 };
-    REQUIRE(!instance.get_output(output, height, median_time_past, coinbase, outpoint, 1, true));
+    REQUIRE( ! instance.get_output(output, height, median_time_past, coinbase, outpoint, 1, true));
 }
 
 TEST_CASE("block chain  get is unspent transaction  unspent at fork  true", "[fast chain tests]") {
@@ -399,7 +399,7 @@ TEST_CASE("block chain  get is unspent transaction  unspent above fork  false", 
     REQUIRE(instance.insert(block2, 2));
 
     auto const hash = block2->transactions()[0].hash();
-    REQUIRE(!instance.get_is_unspent_transaction(hash, 1, true));
+    REQUIRE( ! instance.get_is_unspent_transaction(hash, 1, true));
 }
 
 TEST_CASE("block chain  get is unspent transaction  spent below fork  false", "[fast chain tests]") {
@@ -432,7 +432,7 @@ TEST_CASE("block chain  get is unspent transaction  spent below fork  false", "[
 ////
 ////    size_t height;
 ////    auto const hash = block1->transactions()[0].hash();
-////    REQUIRE(!instance.get_transaction(height, hash, false));
+////    REQUIRE( ! instance.get_transaction(height, hash, false));
 ////}
 
 // End Boost Suite

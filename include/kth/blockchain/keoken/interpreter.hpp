@@ -26,8 +26,7 @@ class interpreter {
 public:
     interpreter(State& st, Fastchain& fast_chain)
         : state_(st)
-        , fast_chain_(fast_chain)
-    {}
+        , fast_chain_(fast_chain) {}
 
     // non-copyable and non-movable class
     interpreter(interpreter const&) = delete;

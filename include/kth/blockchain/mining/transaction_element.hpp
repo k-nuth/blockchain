@@ -34,8 +34,7 @@ public:
         , fee_(fee)
         , sigops_(sigops)
         , output_count_(output_count)
-        // , previous_outputs_(previous_outputs)
-    {}
+        // , previous_outputs_(previous_outputs) {}
 
     transaction_element(hash_digest const& txid,
 #if ! defined(KTH_CURRENCY_BCH)
@@ -55,8 +54,7 @@ public:
         , fee_(fee)
         , sigops_(sigops)
         , output_count_(output_count)
-        // , previous_outputs_(std::move(previous_outputs))
-    {}
+        // , previous_outputs_(std::move(previous_outputs)) {}
 
     hash_digest const& txid() const {
         return txid_;

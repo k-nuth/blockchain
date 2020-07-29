@@ -68,8 +68,7 @@ struct rollback_pred {
 
     explicit
     rollback_pred(size_t height)
-        : height(height)
-    {}
+        : height(height) {}
 
     template <typename Entry>
     bool operator()(Entry const& entry) const {

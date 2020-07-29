@@ -87,11 +87,10 @@ bool populate_chain_state::populate_versions(chain_state::data& data, const chai
     auto height = map.version.high - map.version.count;
 
     for (auto& version: versions)
-        if (!get_version(version, ++height, branch))
+        if ( ! get_version(version, ++height, branch))
             return false;
 
-    if (is_transaction_pool(branch))
-    {
+    if (is_transaction_pool(branch)) {
         data.version.self = chain_state::signal_version(configured_forks_);
         return true;
     }
@@ -106,7 +105,7 @@ bool populate_chain_state::populate_timestamps(chain_state::data& data, const ch
     auto height = map.timestamp.high - map.timestamp.count;
 
     for (auto& timestamp: timestamps)
-        if (!get_timestamp(timestamp, ++height, branch))
+        if ( ! get_timestamp(timestamp, ++height, branch))
             return false;
 
     // Retarget is required if timestamp_retarget is not unrequested.
@@ -153,10 +152,8 @@ bool populate_chain_state::populate_bip9_bit0(chain_state::data& data, const cha
 }
 
 bool populate_chain_state::populate_bip9_bit1(chain_state::data& data,
-    const chain_state::map& map, branch::const_ptr branch) const
-{
-    if (map.bip9_bit1_height == chain_state::map::unrequested)
-    {
+    const chain_state::map& map, branch::const_ptr branch) const {
+    if (map.bip9_bit1_height == chain_state::map::unrequested) {
         data.bip9_bit1_hash = null_hash;
         return true;
     }
@@ -166,8 +163,7 @@ bool populate_chain_state::populate_bip9_bit1(chain_state::data& data,
 }
 
 bool populate_chain_state::populate_all(chain_state::data& data,
-    branch::const_ptr branch) const
-{
+    branch::const_ptr branch) const {
     // Critical Section
     ///////////////////////////////////////////////////////////////////////////
     unique_lock lock(mutex_);
@@ -209,7 +205,7 @@ chain_state::ptr populate_chain_state::populate() const {
         // , settings_.magnetic_anomaly_activation_time
         // , settings_.great_wall_activation_time
         // , settings_.graviton_activation_time
-        , phonon_t(settings_.phonon_activation_time)
+        // , phonon_t(settings_.phonon_activation_time)
         , axion_t(settings_.axion_activation_time)
 #endif //KTH_CURRENCY_BCH
     );

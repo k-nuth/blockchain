@@ -66,9 +66,7 @@ void validate_transaction::stop()
 //-----------------------------------------------------------------------------
 // These checks are context free.
 
-void validate_transaction::check(transaction_const_ptr tx,
-    result_handler handler) const
-{
+void validate_transaction::check(transaction_const_ptr tx, result_handler handler) const {
     // Run context free checks.
     handler(tx->check(true, retarget_));
 }
@@ -77,34 +75,25 @@ void validate_transaction::check(transaction_const_ptr tx,
 //-----------------------------------------------------------------------------
 // These checks require chain and tx state (net height and enabled forks).
 
-void validate_transaction::accept(transaction_const_ptr tx,
-    result_handler handler) const
-{
+void validate_transaction::accept(transaction_const_ptr tx, result_handler handler) const {
     // Populate chain state of the next block (tx pool).
     tx->validation.state = fast_chain_.chain_state();
 
-    if (!tx->validation.state)
-    {
+    if ( ! tx->validation.state) {
         handler(error::operation_failed_23);
         return;
     }
 
-    transaction_populator_.populate(tx,
-        std::bind(&validate_transaction::handle_populated,
-            this, _1, tx, handler));
+    transaction_populator_.populate(tx, std::bind(&validate_transaction::handle_populated, this, _1, tx, handler));
 }
 
-void validate_transaction::handle_populated(code const& ec,
-    transaction_const_ptr tx, result_handler handler) const
-{
-    if (stopped())
-    {
+void validate_transaction::handle_populated(code const& ec, transaction_const_ptr tx, result_handler handler) const {
+    if (stopped()) {
         handler(error::service_stopped);
         return;
     }
 
-    if (ec)
-    {
+    if (ec) {
         handler(ec);
         return;
     }
@@ -119,15 +108,12 @@ void validate_transaction::handle_populated(code const& ec,
 //-----------------------------------------------------------------------------
 // These checks require chain state, block state and perform script validation.
 
-void validate_transaction::connect(transaction_const_ptr tx,
-    result_handler handler) const
-{
+void validate_transaction::connect(transaction_const_ptr tx, result_handler handler) const {
     KTH_ASSERT(tx->validation.state);
     auto const total_inputs = tx->inputs().size();
 
     // Return if there are no inputs to validate (will fail later).
-    if (total_inputs == 0)
-    {
+    if (total_inputs == 0) {
         handler(error::success);
         return;
     }
@@ -138,37 +124,49 @@ void validate_transaction::connect(transaction_const_ptr tx,
 
     // If the priority threadpool is shut down when this is called the handler
     // will never be invoked, resulting in a threadpool.join indefinite hang.
-    for (size_t bucket = 0; bucket < buckets; ++bucket)
-        dispatch_.concurrent(&validate_transaction::connect_inputs,
-            this, tx, bucket, buckets, join_handler);
+    for (size_t bucket = 0; bucket < buckets; ++bucket) {
+        dispatch_.concurrent(&validate_transaction::connect_inputs, this, tx, bucket, buckets, join_handler);
+    }
 }
 
-void validate_transaction::connect_inputs(transaction_const_ptr tx, size_t bucket, size_t buckets, result_handler handler) const
-{
+void validate_transaction::connect_inputs(transaction_const_ptr tx, size_t bucket, size_t buckets, result_handler handler) const {
     KTH_ASSERT(bucket < buckets);
-    code ec(error::success);
+
+#if defined(KTH_CURRENCY_BCH)
+    size_t tx_sigchecks = 0;
+#endif
+
     auto const forks = tx->validation.state->enabled_forks();
     auto const& inputs = tx->inputs();
 
     for (auto input_index = bucket; input_index < inputs.size(); input_index = ceiling_add(input_index, buckets)) {
         if (stopped()) {
-            ec = error::service_stopped;
-            break;
+            handler(error::service_stopped);
+            return;
         }
 
         auto const& prevout = inputs[input_index].previous_output();
 
-        if (!prevout.validation.cache.is_valid()) {
-            ec = error::missing_previous_output;
-            break;
+        if ( ! prevout.validation.cache.is_valid()) {
+            handler(error::missing_previous_output);
+            return;
         }
 
-        if ((ec = validate_input::verify_script(*tx, input_index, forks))) {
-            break;
+        auto res = validate_input::verify_script(*tx, input_index, forks);
+        if (res.first != error::success) {
+            handler(res.first);
+            return;
         }
+
+#if defined(KTH_CURRENCY_BCH)
+        tx_sigchecks += res.second;
+        if (tx_sigchecks > max_tx_sigchecks) {
+            handler(error::transaction_sigchecks_limit);
+            return;
+        }
+#endif
     }
-
-    handler(ec);
+    handler(error::success);
 }
 
 } // namespace kth::blockchain

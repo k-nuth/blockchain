@@ -110,27 +110,23 @@ inline
 void block_chain::set_database_flags() {}
 */
 
-bool block_chain::get_gaps(block_database::heights& out_gaps) const
-{
+bool block_chain::get_gaps(block_database::heights& out_gaps) const {
     database_.blocks().gaps(out_gaps);
     return true;
 }
 
-bool block_chain::get_block_exists(hash_digest const& block_hash) const
-{
+bool block_chain::get_block_exists(hash_digest const& block_hash) const {
     return database_.blocks().get(block_hash);
 }
 
-bool block_chain::get_block_exists_safe(hash_digest const& block_hash) const
-{
+bool block_chain::get_block_exists_safe(hash_digest const& block_hash) const {
     return get_block_exists(block_hash);
 }
 
-bool block_chain::get_block_hash(hash_digest& out_hash, size_t height) const
-{
+bool block_chain::get_block_hash(hash_digest& out_hash, size_t height) const {
     auto const result = database_.blocks().get(height);
 
-    if (!result)
+    if ( ! result)
         return false;
 
     out_hash = result.hash();
@@ -138,18 +134,16 @@ bool block_chain::get_block_hash(hash_digest& out_hash, size_t height) const
 }
 
 bool block_chain::get_branch_work(uint256_t& out_work,
-    const uint256_t& maximum, size_t from_height) const
-{
+    const uint256_t& maximum, size_t from_height) const {
     size_t top;
-    if (!database_.blocks().top(top))
+    if ( ! database_.blocks().top(top))
         return false;
 
     out_work = 0;
     for (auto height = from_height; height <= top && out_work < maximum;
-        ++height)
-    {
+        ++height) {
         auto const result = database_.blocks().get(height);
-        if (!result)
+        if ( ! result)
             return false;
 
         out_work += domain::chain::header::proof(result.bits());
@@ -158,10 +152,9 @@ bool block_chain::get_branch_work(uint256_t& out_work,
     return true;
 }
 
-bool block_chain::get_header(domain::chain::header& out_header, size_t height) const
-{
+bool block_chain::get_header(domain::chain::header& out_header, size_t height) const {
     auto result = database_.blocks().get(height);
-    if (!result)
+    if ( ! result)
         return false;
 
     out_header = result.header();
@@ -169,10 +162,9 @@ bool block_chain::get_header(domain::chain::header& out_header, size_t height) c
 }
 
 bool block_chain::get_height(size_t& out_height,
-    hash_digest const& block_hash) const
-{
+    hash_digest const& block_hash) const {
     auto result = database_.blocks().get(block_hash);
-    if (!result)
+    if ( ! result)
         return false;
 
     out_height = result.height();
@@ -181,7 +173,7 @@ bool block_chain::get_height(size_t& out_height,
 
 bool block_chain::get_bits(uint32_t& out_bits, size_t height) const {
     auto result = database_.blocks().get(height);
-    if (!result)
+    if ( ! result)
         return false;
 
     out_bits = result.bits();
@@ -190,7 +182,7 @@ bool block_chain::get_bits(uint32_t& out_bits, size_t height) const {
 
 bool block_chain::get_timestamp(uint32_t& out_timestamp, size_t height) const {
     auto result = database_.blocks().get(height);
-    if (!result)
+    if ( ! result)
         return false;
 
     out_timestamp = result.timestamp();
@@ -199,15 +191,14 @@ bool block_chain::get_timestamp(uint32_t& out_timestamp, size_t height) const {
 
 bool block_chain::get_version(uint32_t& out_version, size_t height) const {
     auto result = database_.blocks().get(height);
-    if (!result)
+    if ( ! result)
         return false;
 
     out_version = result.version();
     return true;
 }
 
-bool block_chain::get_last_height(size_t& out_height) const
-{
+bool block_chain::get_last_height(size_t& out_height) const {
     return database_.blocks().top(out_height);
 }
 
@@ -215,8 +206,7 @@ bool block_chain::get_last_height(size_t& out_height) const
 
 bool block_chain::get_output_is_confirmed(domain::chain::output& out_output, size_t& out_height,
                              bool& out_coinbase, bool& out_is_confirmed, const domain::chain::output_point& outpoint,
-                             size_t branch_height, bool require_confirmed) const
-{
+                             size_t branch_height, bool require_confirmed) const {
     // This includes a cached value for spender height (or not_spent).
     // Get the highest tx with matching hash, at or below the branch height.
     return database_.transactions().get_output_is_confirmed(out_output, out_height,
@@ -237,8 +227,7 @@ bool block_chain::get_is_unspent_transaction(hash_digest const& hash, size_t bra
 bool block_chain::get_output(domain::chain::output& out_output, size_t& out_height,
     uint32_t& out_median_time_past, bool& out_coinbase,
     const domain::chain::output_point& outpoint, size_t branch_height,
-    bool require_confirmed) const
-{
+    bool require_confirmed) const {
 
 #if defined(KTH_DB_LEGACY)
 
@@ -252,7 +241,7 @@ bool block_chain::get_output(domain::chain::output& out_output, size_t& out_heig
 
     auto const tx = database_.internal_db().get_transaction(outpoint.hash(), branch_height);
 
-    if (!tx.is_valid()) {
+    if ( ! tx.is_valid()) {
         return false;
     }
     
@@ -452,7 +441,7 @@ std::pair<bool, database::internal_database::utxo_pool_t> block_chain::get_utxo_
 ////    auto const result = database_.transactions().get(hash, max_size_t,
 ////        require_confirmed);
 ////
-////    if (!result)
+////    if ( ! result)
 ////        return nullptr;
 ////
 ////    out_block_height = result.height();
@@ -489,18 +478,15 @@ void block_chain::push(transaction_const_ptr tx, dispatcher&, result_handler han
 #endif // ! defined(KTH_DB_READONLY)
 
 #ifdef KTH_DB_TRANSACTION_UNCONFIRMED
-void block_chain::fetch_unconfirmed_transaction(hash_digest const& hash, transaction_unconfirmed_fetch_handler handler) const
-{
-    if (stopped())
-    {
+void block_chain::fetch_unconfirmed_transaction(hash_digest const& hash, transaction_unconfirmed_fetch_handler handler) const {
+    if (stopped()) {
         handler(error::service_stopped, nullptr);
         return;
     }
 
     auto const result = database_.transactions_unconfirmed().get(hash);
 
-    if (!result)
-    {
+    if ( ! result) {
         handler(error::not_found, nullptr);
         return;
     }
@@ -790,16 +776,14 @@ void block_chain::fetch_block_header(size_t height, block_header_fetch_handler h
 }
 
 void block_chain::fetch_block_header(hash_digest const& hash, block_header_fetch_handler handler) const {
-    if (stopped())
-    {
+    if (stopped()) {
         handler(error::service_stopped, nullptr, 0);
         return;
     }
 
     auto const result = database_.blocks().get(hash);
 
-    if (!result)
-    {
+    if ( ! result) {
         handler(error::not_found, nullptr, 0);
         return;
     }
@@ -809,18 +793,15 @@ void block_chain::fetch_block_header(hash_digest const& hash, block_header_fetch
 }
 
 // void block_chain::fetch_merkle_block(size_t height, transaction_hashes_fetch_handler handler) const
-void block_chain::fetch_merkle_block(size_t height, merkle_block_fetch_handler handler) const
-{
-    if (stopped())
-    {
+void block_chain::fetch_merkle_block(size_t height, merkle_block_fetch_handler handler) const {
+    if (stopped()) {
         handler(error::service_stopped, nullptr, 0);
         return;
     }
 
     auto const result = database_.blocks().get(height);
 
-    if (!result)
-    {
+    if ( ! result) {
         handler(error::not_found, nullptr, 0);
         return;
     }
@@ -831,18 +812,15 @@ void block_chain::fetch_merkle_block(size_t height, merkle_block_fetch_handler h
 }
 
 void block_chain::fetch_merkle_block(hash_digest const& hash,
-    merkle_block_fetch_handler handler) const
-{
-    if (stopped())
-    {
+    merkle_block_fetch_handler handler) const {
+    if (stopped()) {
         handler(error::service_stopped, nullptr, 0);
         return;
     }
 
     auto const result = database_.blocks().get(hash);
 
-    if (!result)
-    {
+    if ( ! result) {
         handler(error::not_found, nullptr, 0);
         return;
     }
@@ -879,18 +857,15 @@ void block_chain::fetch_compact_block(hash_digest const& hash, compact_block_fet
 }
 
 void block_chain::fetch_block_height(hash_digest const& hash,
-    block_height_fetch_handler handler) const
-{
-    if (stopped())
-    {
+    block_height_fetch_handler handler) const {
+    if (stopped()) {
         handler(error::service_stopped, {});
         return;
     }
 
     auto const result = database_.blocks().get(hash);
 
-    if (!result)
-    {
+    if ( ! result) {
         handler(error::not_found, 0);
         return;
     }
@@ -898,18 +873,15 @@ void block_chain::fetch_block_height(hash_digest const& hash,
     handler(error::success, result.height());
 }
 
-void block_chain::fetch_last_height(last_height_fetch_handler handler) const
-{
-    if (stopped())
-    {
+void block_chain::fetch_last_height(last_height_fetch_handler handler) const {
+    if (stopped()) {
         handler(error::service_stopped, {});
         return;
     }
 
     size_t last_height;
 
-    if (!database_.blocks().top(last_height))
-    {
+    if ( ! database_.blocks().top(last_height)) {
         handler(error::not_found, 0);
         return;
     }
@@ -919,19 +891,17 @@ void block_chain::fetch_last_height(last_height_fetch_handler handler) const
 
 void block_chain::fetch_transaction(hash_digest const& hash,
     bool require_confirmed, bool witness,
-    transaction_fetch_handler handler) const
-{
+    transaction_fetch_handler handler) const {
 #ifdef KTH_CURRENCY_BCH
     witness = false;
 #endif
-    if (stopped())
-    {
+    if (stopped()) {
         handler(error::service_stopped, nullptr, 0, 0);
         return;
     }
 //TODO(kth):  dissabled this tx cache because we don't want special treatment for the last txn, it affects the explorer rpc methods
 //    // Try the cached block first if confirmation is not required.
-//    if (!require_confirmed)
+//    if ( ! require_confirmed)
 //    {
 //        auto const cached = last_transaction_.load();
 //
@@ -950,8 +920,7 @@ void block_chain::fetch_transaction(hash_digest const& hash,
     auto const result = database_.transactions().get(hash, max_size_t,
         require_confirmed);
 
-    if (!result)
-    {
+    if ( ! result) {
         handler(error::not_found, nullptr, 0, 0);
         return;
     }
@@ -965,13 +934,11 @@ void block_chain::fetch_transaction(hash_digest const& hash,
 #if defined(KTH_DB_NEW) || defined(KTH_DB_NEW_BLOCKS) || defined(KTH_DB_NEW_FULL)
 
 void block_chain::fetch_block(size_t height, bool witness,
-    block_fetch_handler handler) const
-{
+    block_fetch_handler handler) const {
 #ifdef KTH_CURRENCY_BCH
     witness = false;
 #endif
-    if (stopped())
-    {
+    if (stopped()) {
         handler(error::service_stopped, nullptr, 0);
         return;
     }
@@ -980,16 +947,14 @@ void block_chain::fetch_block(size_t height, bool witness,
 
     // Try the cached block first.
     if (cached && cached->validation.state &&
-        cached->validation.state->height() == height)
-    {
+        cached->validation.state->height() == height) {
         handler(error::success, cached, height);
         return;
     }
 
     auto const block_result = database_.internal_db().get_block(height);
 
-    if (!block_result.is_valid())
-    {
+    if ( ! block_result.is_valid()) {
         handler(error::not_found, nullptr, 0);
         return;
     }
@@ -1000,13 +965,11 @@ void block_chain::fetch_block(size_t height, bool witness,
 }
 
 void block_chain::fetch_block(hash_digest const& hash, bool witness,
-    block_fetch_handler handler) const
-{
+    block_fetch_handler handler) const {
 #ifdef KTH_CURRENCY_BCH
     witness = false;
 #endif
-    if (stopped())
-    {
+    if (stopped()) {
         handler(error::service_stopped, nullptr, 0);
         return;
     }
@@ -1014,16 +977,14 @@ void block_chain::fetch_block(hash_digest const& hash, bool witness,
     auto const cached = last_block_.load();
 
     // Try the cached block first.
-    if (cached && cached->validation.state && cached->hash() == hash)
-    {
+    if (cached && cached->validation.state && cached->hash() == hash) {
         handler(error::success, cached, cached->validation.state->height());
         return;
     }
 
     auto const block_result = database_.internal_db().get_block(hash);
 
-    if (!block_result.first.is_valid())
-    {
+    if ( ! block_result.first.is_valid()) {
         handler(error::not_found, nullptr, 0);
         return;
     }
@@ -1038,18 +999,15 @@ void block_chain::fetch_block(hash_digest const& hash, bool witness,
 
 #if defined(KTH_DB_NEW_BLOCKS) || defined(KTH_DB_NEW_FULL)
 void block_chain::fetch_block_header_txs_size(hash_digest const& hash,
-    block_header_txs_size_fetch_handler handler) const
-{
-    if (stopped())
-    {
+    block_header_txs_size_fetch_handler handler) const {
+    if (stopped()) {
         handler(error::service_stopped, nullptr, 0, std::make_shared<hash_list>(hash_list()),0);
         return;
     }
 
     auto const block_result = database_.internal_db().get_block(hash);
 
-    if (!block_result.first.is_valid())
-    {
+    if ( ! block_result.first.is_valid()) {
         handler(error::not_found, nullptr, 0, std::make_shared<hash_list>(hash_list()),0);
         return;
     }
@@ -1063,18 +1021,15 @@ void block_chain::fetch_block_header_txs_size(hash_digest const& hash,
 
 
 // void block_chain::fetch_merkle_block(size_t height, transaction_hashes_fetch_handler handler) const
-void block_chain::fetch_merkle_block(size_t height, merkle_block_fetch_handler handler) const
-{
-    if (stopped())
-    {
+void block_chain::fetch_merkle_block(size_t height, merkle_block_fetch_handler handler) const {
+    if (stopped()) {
         handler(error::service_stopped, nullptr, 0);
         return;
     }
 
     auto const block_result = database_.internal_db().get_block(height);
 
-    if (!block_result.is_valid())
-    {
+    if ( ! block_result.is_valid()) {
         handler(error::not_found, nullptr, 0);
         return;
     }
@@ -1085,18 +1040,15 @@ void block_chain::fetch_merkle_block(size_t height, merkle_block_fetch_handler h
 }
 
 void block_chain::fetch_merkle_block(hash_digest const& hash,
-    merkle_block_fetch_handler handler) const
-{
-    if (stopped())
-    {
+    merkle_block_fetch_handler handler) const {
+    if (stopped()) {
         handler(error::service_stopped, nullptr, 0);
         return;
     }
 
     auto const block_result = database_.internal_db().get_block(hash);
 
-    if (!block_result.first.is_valid())
-    {
+    if ( ! block_result.first.is_valid()) {
         handler(error::not_found, nullptr, 0);
         return;
     }
@@ -1137,10 +1089,8 @@ void block_chain::fetch_compact_block(hash_digest const& hash, compact_block_fet
 // This may execute over 500 queries.
 void block_chain::fetch_locator_block_hashes(get_blocks_const_ptr locator,
     hash_digest const& threshold, size_t limit,
-    inventory_fetch_handler handler) const
-{
-    if (stopped())
-    {
+    inventory_fetch_handler handler) const {
+    if (stopped()) {
         handler(error::service_stopped, nullptr);
         return;
     }
@@ -1151,8 +1101,7 @@ void block_chain::fetch_locator_block_hashes(get_blocks_const_ptr locator,
     // Find the start block height.
     // If no start block is on our chain we start with block 0.
     uint32_t start = 0;
-    for (auto const& hash: locator->start_hashes())
-    {
+    for (auto const& hash: locator->start_hashes()) {
         auto const result = database_.internal_db().get_block(hash);
         if (result.first.is_valid())
         {
@@ -1168,8 +1117,7 @@ void block_chain::fetch_locator_block_hashes(get_blocks_const_ptr locator,
     auto end = safe_add(begin, uint32_t(limit));
 
     // Find the upper threshold block height (peer-specified).
-    if (locator->stop_hash() != null_hash)
-    {
+    if (locator->stop_hash() != null_hash) {
         // If the stop block is not on chain we treat it as a null stop.
         auto const result = database_.internal_db().get_block(locator->stop_hash());
 
@@ -1180,8 +1128,7 @@ void block_chain::fetch_locator_block_hashes(get_blocks_const_ptr locator,
     }
 
     // Find the lower threshold block height (self-specified).
-    if (threshold != null_hash)
-    {
+    if (threshold != null_hash) {
         // If the threshold is not on chain we ignore it.
         auto const result = database_.internal_db().get_block(threshold);
 
@@ -1195,12 +1142,11 @@ void block_chain::fetch_locator_block_hashes(get_blocks_const_ptr locator,
     hashes->inventories().reserve(floor_subtract(end, begin));
 
     // Build the hash list until we hit end or the blockchain top.
-    for (auto height = begin; height < end; ++height)
-    {
+    for (auto height = begin; height < end; ++height) {
         auto const result = database_.internal_db().get_block(height);
 
         // If not found then we are at our top.
-        if (!result.is_valid())
+        if ( ! result.is_valid())
         {
             hashes->inventories().shrink_to_fit();
             break;
@@ -1219,19 +1165,17 @@ void block_chain::fetch_locator_block_hashes(get_blocks_const_ptr locator,
 
 #if defined(KTH_DB_NEW_FULL)
 
-void block_chain::fetch_transaction(hash_digest const& hash, bool require_confirmed, bool witness, transaction_fetch_handler handler) const
-{
+void block_chain::fetch_transaction(hash_digest const& hash, bool require_confirmed, bool witness, transaction_fetch_handler handler) const {
 #ifdef KTH_CURRENCY_BCH
     witness = false;
 #endif
-    if (stopped())
-    {
+    if (stopped()) {
         handler(error::service_stopped, nullptr, 0, 0);
         return;
     }
 //TODO(kth):  dissabled this tx cache because we don't want special treatment for the last txn, it affects the explorer rpc methods
 //    // Try the cached block first if confirmation is not required.
-//    if (!require_confirmed)
+//    if ( ! require_confirmed)
 //    {
 //        auto const cached = last_transaction_.load();
 //
@@ -1248,8 +1192,7 @@ void block_chain::fetch_transaction(hash_digest const& hash, bool require_confir
   
 
     auto const result = database_.internal_db().get_transaction(hash, max_size_t);
-    if ( result.is_valid() )
-    {
+    if ( result.is_valid() ) {
         auto const tx = std::make_shared<const transaction>(result.transaction());
         handler(error::success, tx, result.position(), result.height());    
         return;
@@ -1261,8 +1204,7 @@ void block_chain::fetch_transaction(hash_digest const& hash, bool require_confir
     }
 
     auto const result2 = database_.internal_db().get_transaction_unconfirmed(hash);
-    if (! result2.is_valid() )
-    {
+    if ( !  result2.is_valid() ) {
         handler(error::not_found, nullptr, 0, 0);
         return;
     }
@@ -1272,18 +1214,15 @@ void block_chain::fetch_transaction(hash_digest const& hash, bool require_confir
 }
 
 // This is same as fetch_transaction but skips deserializing the tx payload.
-void block_chain::fetch_transaction_position(hash_digest const& hash, bool require_confirmed, transaction_index_fetch_handler handler) const
-{
-    if (stopped())
-    {
+void block_chain::fetch_transaction_position(hash_digest const& hash, bool require_confirmed, transaction_index_fetch_handler handler) const {
+    if (stopped()) {
         handler(error::service_stopped, 0, 0);
         return;
     }
 
     auto const result = database_.internal_db().get_transaction(hash, max_size_t);
 
-    if ( result.is_valid() )
-    {
+    if ( result.is_valid() ) {
         handler(error::success, result.position(), result.height());
         return;
     }
@@ -1294,7 +1233,7 @@ void block_chain::fetch_transaction_position(hash_digest const& hash, bool requi
     }
 
     auto const result2 = database_.internal_db().get_transaction_unconfirmed(hash);
-    if (! result2.is_valid() ) {
+    if ( !  result2.is_valid() ) {
         handler(error::not_found, 0, 0);
         return;
     }
@@ -1312,8 +1251,7 @@ hash_digest generate_merkle_root(std::vector<domain::chain::transaction> transac
 
     hash_list merkle, update;
 
-    auto hasher = [&merkle](const transaction& tx)
-    {
+    auto hasher = [&merkle](transaction const& tx) {
         merkle.push_back(tx.hash());
     };
 
@@ -1323,8 +1261,7 @@ hash_digest generate_merkle_root(std::vector<domain::chain::transaction> transac
     // Initial capacity is half of the original list (clear doesn't reset).
     update.reserve((merkle.size() + 1) / 2);
 
-    while (merkle.size() > 1)
-    {
+    while (merkle.size() > 1) {
         // If number of hashes is odd, duplicate last hash in the list.
         if (merkle.size() % 2 != 0)
             merkle.push_back(merkle.back());
@@ -1512,7 +1449,7 @@ void block_chain::fill_tx_list_from_mempool(domain::message::compact_block const
         
         auto idit = shorttxids.find(shortid);
         if (idit != shorttxids.end()) {
-            if (!have_txn[idit->second]) {
+            if ( ! have_txn[idit->second]) {
                 txn_available[idit->second] = tx;
                 have_txn[idit->second] = true;
                 ++mempool_count;
@@ -1589,18 +1526,15 @@ std::vector<kth::blockchain::mempool_transaction_summary> block_chain::get_mempo
 }
 
 
-void block_chain::fetch_unconfirmed_transaction(hash_digest const& hash, transaction_unconfirmed_fetch_handler handler) const
-{
-    if (stopped())
-    {
+void block_chain::fetch_unconfirmed_transaction(hash_digest const& hash, transaction_unconfirmed_fetch_handler handler) const {
+    if (stopped()) {
         handler(error::service_stopped, nullptr);
         return;
     }
 
     auto const result = database_.internal_db().get_transaction_unconfirmed(hash);
 
-    if ( ! result.is_valid())
-    {
+    if ( ! result.is_valid()) {
         handler(error::not_found, nullptr);
         return;
     }
@@ -1797,7 +1731,7 @@ void block_chain::fill_tx_list_from_mempool(domain::message::compact_block const
       */      
         auto idit = shorttxids.find(shortid);
         if (idit != shorttxids.end()) {
-            if (!have_txn[idit->second]) {
+            if ( ! have_txn[idit->second]) {
                 txn_available[idit->second] = tx;
                 have_txn[idit->second] = true;
                 ++mempool_count;
@@ -1868,18 +1802,15 @@ std::vector<kth::blockchain::mempool_transaction_summary> block_chain::get_mempo
 
 
 
-void block_chain::fetch_unconfirmed_transaction(hash_digest const& hash, transaction_unconfirmed_fetch_handler handler) const
-{
-    if (stopped())
-    {
+void block_chain::fetch_unconfirmed_transaction(hash_digest const& hash, transaction_unconfirmed_fetch_handler handler) const {
+    if (stopped()) {
         handler(error::service_stopped, nullptr);
         return;
     }
 
     auto const result = database_.transactions_unconfirmed().get(hash);
 
-    if (!result)
-    {
+    if ( ! result) {
         handler(error::not_found, nullptr);
         return;
     }
@@ -1894,10 +1825,8 @@ void block_chain::fetch_unconfirmed_transaction(hash_digest const& hash, transac
 #ifdef KTH_DB_LEGACY
 // This is same as fetch_transaction but skips deserializing the tx payload.
 void block_chain::fetch_transaction_position(hash_digest const& hash,
-    bool require_confirmed, transaction_index_fetch_handler handler) const
-{
-    if (stopped())
-    {
+    bool require_confirmed, transaction_index_fetch_handler handler) const {
+    if (stopped()) {
         handler(error::service_stopped, 0, 0);
         return;
     }
@@ -1905,8 +1834,7 @@ void block_chain::fetch_transaction_position(hash_digest const& hash,
     auto const result = database_.transactions().get(hash, max_size_t,
         require_confirmed);
 
-    if (!result)
-    {
+    if ( ! result) {
         handler(error::not_found, 0, 0);
         return;
     }
@@ -1917,10 +1845,8 @@ void block_chain::fetch_transaction_position(hash_digest const& hash,
 // This may execute over 500 queries.
 void block_chain::fetch_locator_block_hashes(get_blocks_const_ptr locator,
     hash_digest const& threshold, size_t limit,
-    inventory_fetch_handler handler) const
-{
-    if (stopped())
-    {
+    inventory_fetch_handler handler) const {
+    if (stopped()) {
         handler(error::service_stopped, nullptr);
         return;
     }
@@ -1931,8 +1857,7 @@ void block_chain::fetch_locator_block_hashes(get_blocks_const_ptr locator,
     // Find the start block height.
     // If no start block is on our chain we start with block 0.
     size_t start = 0;
-    for (auto const& hash: locator->start_hashes())
-    {
+    for (auto const& hash: locator->start_hashes()) {
         auto const result = database_.blocks().get(hash);
         if (result)
         {
@@ -1948,8 +1873,7 @@ void block_chain::fetch_locator_block_hashes(get_blocks_const_ptr locator,
     auto end = safe_add(begin, limit);
 
     // Find the upper threshold block height (peer-specified).
-    if (locator->stop_hash() != null_hash)
-    {
+    if (locator->stop_hash() != null_hash) {
         // If the stop block is not on chain we treat it as a null stop.
         auto const result = database_.blocks().get(locator->stop_hash());
 
@@ -1960,8 +1884,7 @@ void block_chain::fetch_locator_block_hashes(get_blocks_const_ptr locator,
     }
 
     // Find the lower threshold block height (self-specified).
-    if (threshold != null_hash)
-    {
+    if (threshold != null_hash) {
         // If the threshold is not on chain we ignore it.
         auto const result = database_.blocks().get(threshold);
 
@@ -1975,12 +1898,11 @@ void block_chain::fetch_locator_block_hashes(get_blocks_const_ptr locator,
     hashes->inventories().reserve(floor_subtract(end, begin));
 
     // Build the hash list until we hit end or the blockchain top.
-    for (auto height = begin; height < end; ++height)
-    {
+    for (auto height = begin; height < end; ++height) {
         auto const result = database_.blocks().get(height);
 
         // If not found then we are at our top.
-        if (!result)
+        if ( ! result)
         {
             hashes->inventories().shrink_to_fit();
             break;
@@ -1996,10 +1918,8 @@ void block_chain::fetch_locator_block_hashes(get_blocks_const_ptr locator,
 // This may execute over 2000 queries.
 void block_chain::fetch_locator_block_headers(get_headers_const_ptr locator,
     hash_digest const& threshold, size_t limit,
-    locator_block_headers_fetch_handler handler) const
-{
-    if (stopped())
-    {
+    locator_block_headers_fetch_handler handler) const {
+    if (stopped()) {
         handler(error::service_stopped, nullptr);
         return;
     }
@@ -2010,8 +1930,7 @@ void block_chain::fetch_locator_block_headers(get_headers_const_ptr locator,
     // Find the start block height.
     // If no start block is on our chain we start with block 0.
     size_t start = 0;
-    for (auto const& hash: locator->start_hashes())
-    {
+    for (auto const& hash: locator->start_hashes()) {
         auto const result = database_.blocks().get(hash);
         if (result)
         {
@@ -2027,8 +1946,7 @@ void block_chain::fetch_locator_block_headers(get_headers_const_ptr locator,
     auto end = safe_add(begin, limit);
 
     // Find the upper threshold block height (peer-specified).
-    if (locator->stop_hash() != null_hash)
-    {
+    if (locator->stop_hash() != null_hash) {
         // If the stop block is not on chain we treat it as a null stop.
         auto const result = database_.blocks().get(locator->stop_hash());
 
@@ -2039,8 +1957,7 @@ void block_chain::fetch_locator_block_headers(get_headers_const_ptr locator,
     }
 
     // Find the lower threshold block height (self-specified).
-    if (threshold != null_hash)
-    {
+    if (threshold != null_hash) {
         // If the threshold is not on chain we ignore it.
         auto const result = database_.blocks().get(threshold);
 
@@ -2054,12 +1971,11 @@ void block_chain::fetch_locator_block_headers(get_headers_const_ptr locator,
     message->elements().reserve(floor_subtract(end, begin));
 
     // Build the hash list until we hit end or the blockchain top.
-    for (auto height = begin; height < end; ++height)
-    {
+    for (auto height = begin; height < end; ++height) {
         auto const result = database_.blocks().get(height);
 
         // If not found then we are at our top.
-        if (!result)
+        if ( ! result)
         {
             message->elements().shrink_to_fit();
             break;
@@ -2074,8 +1990,7 @@ void block_chain::fetch_locator_block_headers(get_headers_const_ptr locator,
 // This may generally execute 29+ queries.
 void block_chain::fetch_block_locator(const block::indexes& heights, block_locator_fetch_handler handler) const {
 
-    if (stopped())
-    {
+    if (stopped()) {
         handler(error::service_stopped, nullptr);
         return;
     }
@@ -2085,11 +2000,10 @@ void block_chain::fetch_block_locator(const block::indexes& heights, block_locat
     auto& hashes = message->start_hashes();
     hashes.reserve(heights.size());
 
-    for (auto const height: heights)
-    {
+    for (auto const height: heights) {
         auto const result = database_.blocks().get(height);
 
-        if (!result)
+        if ( ! result)
         {
             handler(error::not_found, nullptr);
             break;
@@ -2105,18 +2019,15 @@ void block_chain::fetch_block_locator(const block::indexes& heights, block_locat
 #ifdef KTH_DB_NEW
 
 
-void block_chain::fetch_block_hash_timestamp(size_t height, block_hash_time_fetch_handler handler) const
-{
-    if (stopped())
-    {
+void block_chain::fetch_block_hash_timestamp(size_t height, block_hash_time_fetch_handler handler) const {
+    if (stopped()) {
         handler(error::service_stopped, null_hash, 0, 0);
         return;
     }
 
     auto const result = database_.internal_db().get_header(height);
 
-    if ( ! result.is_valid() )
-    {
+    if ( ! result.is_valid() ) {
         handler(error::not_found, null_hash, 0, 0);
         return;
     }
@@ -2127,18 +2038,15 @@ void block_chain::fetch_block_hash_timestamp(size_t height, block_hash_time_fetc
 
 
 void block_chain::fetch_block_height(hash_digest const& hash,
-    block_height_fetch_handler handler) const
-{
-    if (stopped())
-    {
+    block_height_fetch_handler handler) const {
+    if (stopped()) {
         handler(error::service_stopped, {});
         return;
     }
 
     auto const result = database_.internal_db().get_header(hash);
 
-    if ( ! result.first.is_valid() )
-    {
+    if ( ! result.first.is_valid() ) {
         handler(error::not_found, 0);
         return;
     }
@@ -2148,18 +2056,15 @@ void block_chain::fetch_block_height(hash_digest const& hash,
 
 
 void block_chain::fetch_block_header(size_t height,
-    block_header_fetch_handler handler) const
-{
-    if (stopped())
-    {
+    block_header_fetch_handler handler) const {
+    if (stopped()) {
         handler(error::service_stopped, nullptr, 0);
         return;
     }
 
     auto const result = database_.internal_db().get_header(height);
 
-    if (!result.is_valid())
-    {
+    if ( ! result.is_valid()) {
         handler(error::not_found, nullptr, 0);
         return;
     }
@@ -2169,18 +2074,15 @@ void block_chain::fetch_block_header(size_t height,
 }
 
 void block_chain::fetch_block_header(hash_digest const& hash,
-    block_header_fetch_handler handler) const
-{
-    if (stopped())
-    {
+    block_header_fetch_handler handler) const {
+    if (stopped()) {
         handler(error::service_stopped, nullptr, 0);
         return;
     }
     
     auto const result = database_.internal_db().get_header(hash);
 
-    if ( ! result.first.is_valid() )
-    {
+    if ( ! result.first.is_valid() ) {
         handler(error::not_found, nullptr, 0);
         return;
     }
@@ -2190,18 +2092,15 @@ void block_chain::fetch_block_header(hash_digest const& hash,
 }
 
 
-void block_chain::fetch_last_height(last_height_fetch_handler handler) const
-{
-    if (stopped())
-    {
+void block_chain::fetch_last_height(last_height_fetch_handler handler) const {
+    if (stopped()) {
         handler(error::service_stopped, {});
         return;
     }
 
     uint32_t last_height;
 
-    if ( database_.internal_db().get_last_height(last_height) != database::result_code::success )
-    {
+    if ( database_.internal_db().get_last_height(last_height) != database::result_code::success ) {
         handler(error::not_found, 0);
         return;
     }
@@ -2312,8 +2211,7 @@ void block_chain::fetch_block_locator(block::indexes const& heights, block_locat
 
 #if defined(KTH_DB_SPENDS) || defined(KTH_DB_NEW_FULL)
 void block_chain::fetch_spend(const domain::chain::output_point& outpoint, spend_fetch_handler handler) const {
-    if (stopped())
-    {
+    if (stopped()) {
         handler(error::service_stopped, {});
         return;
     }
@@ -2324,8 +2222,7 @@ void block_chain::fetch_spend(const domain::chain::output_point& outpoint, spend
         auto point = database_.internal_db().get_spend(outpoint);
     #endif
 
-    if (point.hash() == null_hash)
-    {
+    if (point.hash() == null_hash) {
         handler(error::not_found, {});
         return;
     }
@@ -2366,8 +2263,7 @@ void block_chain::fetch_confirmed_transactions(const short_hash& address_hash, s
 #endif // KTH_DB_HISTORY
 
 #ifdef KTH_DB_STEALTH
-void block_chain::fetch_stealth(const binary& filter, size_t from_height, stealth_fetch_handler handler) const
-{
+void block_chain::fetch_stealth(const binary& filter, size_t from_height, stealth_fetch_handler handler) const {
     if (stopped()) {
         handler(error::service_stopped, {});
         return;
@@ -2382,8 +2278,7 @@ void block_chain::fetch_stealth(const binary& filter, size_t from_height, stealt
 
 // Same as fetch_mempool but also optimized for maximum possible block fee as
 // limited by total bytes and signature operations.
-void block_chain::fetch_template(merkle_block_fetch_handler handler) const
-{
+void block_chain::fetch_template(merkle_block_fetch_handler handler) const {
     transaction_organizer_.fetch_template(handler);
 }
 
@@ -2392,8 +2287,7 @@ void block_chain::fetch_template(merkle_block_fetch_handler handler) const
 // The set of blocks is limited in count to size. The set may have internal
 // dependencies but all inputs must be satisfied at the current height.
 void block_chain::fetch_mempool(size_t count_limit, uint64_t minimum_fee,
-    inventory_fetch_handler handler) const
-{
+    inventory_fetch_handler handler) const {
     transaction_organizer_.fetch_mempool(count_limit, handler);
 }
 
@@ -2405,8 +2299,7 @@ void block_chain::fetch_mempool(size_t count_limit, uint64_t minimum_fee,
 // This filters against the block pool and then the block chain.
 void block_chain::filter_blocks(get_data_ptr message, result_handler handler) const {
     
-    if (stopped())
-    {
+    if (stopped()) {
         handler(error::service_stopped);
         return;
     }
@@ -2416,8 +2309,7 @@ void block_chain::filter_blocks(get_data_ptr message, result_handler handler) co
     auto& inventories = message->inventories();
     auto const& blocks = database_.blocks();
 
-    for (auto it = inventories.begin(); it != inventories.end();)
-    {
+    for (auto it = inventories.begin(); it != inventories.end();) {
         if (it->is_block_type() && blocks.get(it->hash()))
             it = inventories.erase(it);
         else
@@ -2595,14 +2487,12 @@ bool block_chain::is_stale() const {
     return timestamp < floor_subtract(zulu_time(), notify_limit_seconds_);
 }
 
-const settings& block_chain::chain_settings() const
-{
+const settings& block_chain::chain_settings() const {
     return settings_;
 }
 
 // protected
-bool block_chain::stopped() const
-{
+bool block_chain::stopped() const {
     return stopped_;
 }
 

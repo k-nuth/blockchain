@@ -156,7 +156,7 @@ uint256_t branch::work() const {
 ////{
 ////    auto const outer = [&tx](size_t total, block_const_ptr block)
 ////    {
-////        auto const hashes = [&tx](const transaction& block_tx)
+////        auto const hashes = [&tx](transaction const& block_tx)
 ////        {
 ////            return block_tx.hash() == tx.hash();
 ////        };
@@ -190,7 +190,7 @@ void branch::populate_spent(output_point const& outpoint) const {
 
     // TODO: use hash table storage of block's inputs for block pool entries.
     auto const blocks = [&outpoint](block_const_ptr block) {
-        auto const transactions = [&outpoint](const transaction& tx) {
+        auto const transactions = [&outpoint](transaction const& tx) {
             auto const prevout_match = [&outpoint](const input& input) {
                 return input.previous_output() == outpoint;
             };
@@ -200,7 +200,7 @@ void branch::populate_spent(output_point const& outpoint) const {
         };
 
         auto const& txs = block->transactions();
-        KTH_ASSERT_MSG(!txs.empty(), "empty block in branch");
+        KTH_ASSERT_MSG( ! txs.empty(), "empty block in branch");
         return std::any_of(txs.begin() + 1, txs.end(), transactions);
     };
 

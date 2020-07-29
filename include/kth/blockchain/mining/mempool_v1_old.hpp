@@ -136,8 +136,7 @@ public:
     mempool(size_t max_template_size = max_template_size_default, size_t mempool_size_multiplier = mempool_size_multiplier_default) 
         : max_template_size_(max_template_size)
         // , mempool_size_multiplier_(mempool_size_multiplier)
-        , mempool_total_size_(get_max_block_weight() * mempool_size_multiplier)
-    {
+        , mempool_total_size_(get_max_block_weight() * mempool_size_multiplier) {
         BOOST_ASSERT(max_template_size <= get_max_block_weight()); //TODO(fernando): what happend in BTC with SegWit.
 
         size_t const candidates_capacity = max_template_size_ / min_transaction_size_for_capacity;
@@ -268,7 +267,7 @@ public:
 
             auto res = std::is_sorted(candidate_transactions_.begin(), candidate_transactions_.end(), cmp);
 
-            // if (! res) {
+            // if ( !  res) {
                 // auto res2 = std::is_sorted(candidate_transactions_.begin(), candidate_transactions_.end(), cmp);
                 // std::cout << res2;
             // }
@@ -1597,7 +1596,7 @@ private:
         //         // BOOST_ASSERT(a < b && b > c);
         //         // BOOST_ASSERT(node_benefit < accum_benefit && accum_benefit > node_accum_benefit);
 
-        //         if (!(node_benefit < accum_benefit && accum_benefit > node_accum_benefit)) {
+        //         if ( ! (node_benefit < accum_benefit && accum_benefit > node_accum_benefit)) {
         //             std::cout << "aaa\n";
         //         }
 

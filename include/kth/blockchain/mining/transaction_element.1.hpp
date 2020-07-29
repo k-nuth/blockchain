@@ -24,8 +24,7 @@ public:
 #endif
         , raw_(transaction_.to_data(true, KTH_WITNESS_DEFAULT))
         , fee_(transaction_.fees())
-        , sigops_(transaction_.signature_operations())
-    {}
+        , sigops_(transaction_.signature_operations()) {}
 
     transaction_element(domain::chain::transaction&& tx)
         : transaction_(std::move(tx))
@@ -35,8 +34,7 @@ public:
 #endif
         , raw_(transaction_.to_data(true, KTH_WITNESS_DEFAULT))
         , fee_(transaction_.fees())
-        , sigops_(transaction_.signature_operations())
-    {}
+        , sigops_(transaction_.signature_operations()) {}
 
     domain::chain::transaction const& transaction() const {
         return transaction_;

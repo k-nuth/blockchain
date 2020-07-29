@@ -22,15 +22,14 @@ block_pool::block_pool(size_t maximum_depth)
 {
 }
 
-size_t block_pool::size() const
-{
+size_t block_pool::size() const {
     return blocks_.size();
 }
 
 void block_pool::add(block_const_ptr valid_block)
 {
     // The block must be successfully validated.
-    ////KTH_ASSERT(!block->validation.error);
+    ////KTH_ASSERT( ! block->validation.error);
     block_entry entry{ valid_block };
 
     // Not all blocks will have validation state.
@@ -46,8 +45,7 @@ void block_pool::add(block_const_ptr valid_block)
     const block_entry parent{ valid_block->header().previous_block_hash() };
     auto const it = left.find(parent);
 
-    if (it != left.end())
-    {
+    if (it != left.end()) {
         height = 0;
         it->first.add_child(valid_block);
     }
@@ -74,8 +72,7 @@ void block_pool::remove(block_const_ptr_list_const_ptr accepted_blocks)
     auto saver = [&](hash_digest const& hash){ child_hashes.push_back(hash); };
     auto& left = blocks_.left;
 
-    for (auto block: *accepted_blocks)
-    {
+    for (auto block: *accepted_blocks) {
         auto it = left.find(block_entry{ block->hash() });
 
         if (it == left.end())
@@ -93,8 +90,7 @@ void block_pool::remove(block_const_ptr_list_const_ptr accepted_blocks)
     }
 
     // Move all children that we have orphaned to the root (give them height).
-    for (auto child: child_hashes)
-    {
+    for (auto child: child_hashes) {
         auto it = left.find(block_entry{ child });
 
         // Except for sub-branches all children should have been deleted above.
@@ -122,8 +118,7 @@ void block_pool::prune(hash_list const& hashes, size_t minimum_height)
     auto saver = [&](hash_digest const& hash){ child_hashes.push_back(hash); };
     auto& left = blocks_.left;
 
-    for (auto& hash: hashes)
-    {
+    for (auto& hash: hashes) {
         auto const it = left.find(block_entry{ hash });
         KTH_ASSERT(it != left.end());
 
@@ -157,7 +152,7 @@ void block_pool::prune(hash_list const& hashes, size_t minimum_height)
     }
 
     // Recurse the children to span the tree.
-    if (!child_hashes.empty())
+    if ( ! child_hashes.empty())
         prune(child_hashes, minimum_height);
 }
 
@@ -173,18 +168,16 @@ void block_pool::prune(size_t top_height)
             hashes.push_back(it.second.hash());
 
     // Get outside of the hash table iterator before deleting.
-    if (!hashes.empty())
+    if ( ! hashes.empty())
         prune(hashes, minimum_height);
 }
 
-void block_pool::filter(get_data_ptr message) const
-{
+void block_pool::filter(get_data_ptr message) const {
     auto& inventories = message->inventories();
     auto const& left = blocks_.left;
 
-    for (auto it = inventories.begin(); it != inventories.end();)
-    {
-        if (!it->is_block_type())
+    for (auto it = inventories.begin(); it != inventories.end();) {
+        if ( ! it->is_block_type())
         {
             ++it;
             continue;
@@ -205,8 +198,7 @@ void block_pool::filter(get_data_ptr message) const
 }
 
 // protected
-bool block_pool::exists(block_const_ptr candidate_block) const
-{
+bool block_pool::exists(block_const_ptr candidate_block) const {
     // The block must not yet be successfully validated.
     ////KTH_ASSERT(candidate_block->validation.error);
     auto const& left = blocks_.left;
@@ -219,8 +211,7 @@ bool block_pool::exists(block_const_ptr candidate_block) const
 }
 
 // protected
-block_const_ptr block_pool::parent(block_const_ptr block) const
-{
+block_const_ptr block_pool::parent(block_const_ptr block) const {
     // The block may be validated (pool) or not (new).
     const block_entry parent_entry{ block->header().previous_block_hash() };
     auto const& left = blocks_.left;
@@ -233,16 +224,14 @@ block_const_ptr block_pool::parent(block_const_ptr block) const
     ///////////////////////////////////////////////////////////////////////////
 }
 
-branch::ptr block_pool::get_path(block_const_ptr block) const
-{
+branch::ptr block_pool::get_path(block_const_ptr block) const {
     ////log_content();
     auto const trace = std::make_shared<branch>();
 
     if (exists(block))
         return trace;
 
-    while (block)
-    {
+    while (block) {
         trace->push_front(block);
         block = parent(block);
     }

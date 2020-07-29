@@ -20,15 +20,13 @@ public:
         : te_(te)
         , children_fees_(te_.fee())
         , children_size_(te_.size())
-        , children_sigops_(te_.sigops())
-    {}
+        , children_sigops_(te_.sigops()) {}
 
     node(transaction_element&& te) 
         : te_(std::move(te))
         , children_fees_(te_.fee())
         , children_size_(te_.size())
-        , children_sigops_(te_.sigops())
-    {}
+        , children_sigops_(te_.sigops()) {}
 
     transaction_element&& element() {
         return std::move(te_);

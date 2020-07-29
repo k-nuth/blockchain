@@ -78,8 +78,8 @@ public:
     // //2019-May-15 hard fork, defaults to 1573819200: Nov 15, 2019 12:00:00 UTC protocol upgrade
     // uint64_t graviton_activation_time = bch_graviton_activation_time;
 
-    //2020-May-15 hard fork, defaults to 1589544000: May 15, 2020 12:00:00 UTC protocol upgrade
-    uint64_t phonon_activation_time = to_underlying(bch_phonon_activation_time);
+    // //2020-May-15 hard fork, defaults to 1589544000: May 15, 2020 12:00:00 UTC protocol upgrade
+    // uint64_t phonon_activation_time = to_underlying(bch_phonon_activation_time);
     
     //2020-Nov-15 hard fork, defaults to 1605441600: Nov 15, 2020 12:00:00 UTC protocol upgrade
     uint64_t axion_activation_time = to_underlying(bch_axion_activation_time);

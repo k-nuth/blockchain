@@ -129,7 +129,7 @@ void validate_block::accept(branch::const_ptr branch, result_handler handler) co
     // Populate chain state for the next block.
     block->validation.state = fast_chain_.chain_state(branch);
 
-    if (!block->validation.state) {
+    if ( ! block->validation.state) {
         handler(error::operation_failed_19);
         return;
     }
@@ -288,6 +288,12 @@ void validate_block::connect_inputs(block_const_ptr block, size_t bucket, size_t
     auto const& txs = block->transactions();
     size_t position = 0;
 
+#if defined(KTH_CURRENCY_BCH)
+    size_t block_sigchecks = 0;
+#endif
+
+    //TODO(fernando): count the coinbase sigchecks
+
     // Must skip coinbase here as it is already accounted for.
     for (auto tx = txs.begin() + 1; tx != txs.end(); ++tx) {
         ++queries_;
@@ -310,8 +316,9 @@ void validate_block::connect_inputs(block_const_ptr block, size_t bucket, size_t
         auto const& inputs = tx->inputs();
 
         for (input_index = 0; input_index < inputs.size(); ++input_index, ++position) {
-            if (position % buckets != bucket)
+            if (position % buckets != bucket) {
                 continue;
+            }
 
             if (stopped()) {
                 handler(error::service_stopped);
@@ -320,14 +327,24 @@ void validate_block::connect_inputs(block_const_ptr block, size_t bucket, size_t
 
             auto const& prevout = inputs[input_index].previous_output();
 
-            if (!prevout.validation.cache.is_valid()) {
+            if ( ! prevout.validation.cache.is_valid()) {
                 ec = error::missing_previous_output;
                 break;
             }
 
-            if ((ec = validate_input::verify_script(*tx, input_index, forks))) {
+            size_t sigchecks;
+            std::tie(ec, sigchecks) = validate_input::verify_script(*tx, input_index, forks);
+            if (ec != error::success) {
                 break;
             }
+
+#if defined(KTH_CURRENCY_BCH)
+            block_sigchecks += sigchecks;
+            if (block_sigchecks > max_block_sigchecks) {
+                ec = error::block_sigchecks_limit;
+                break;
+            }
+#endif
         }
 
         if (ec) {
@@ -354,7 +371,7 @@ void validate_block::handle_connected(code const& ec, block_const_ptr block, res
 // Utility.
 //-----------------------------------------------------------------------------
 
-void validate_block::dump(code const& ec, const transaction& tx, uint32_t input_index, uint32_t forks, size_t height) {
+void validate_block::dump(code const& ec, transaction const& tx, uint32_t input_index, uint32_t forks, size_t height) {
     auto const& prevout = tx.inputs()[input_index].previous_output();
     auto const script = prevout.validation.cache.script().to_data(false);
     auto const hash = encode_hash(prevout.hash());

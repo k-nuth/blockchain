@@ -30,7 +30,7 @@ public:
 
 #ifndef NDEBUG    
     ~prioritizer() { 
-        assert(!waiting_); 
+        assert( ! waiting_); 
     }
 #endif
 
