@@ -190,6 +190,16 @@ bool populate_chain_state::populate_all(chain_state::data& data, branch::const_p
 
 #if defined(KTH_CURRENCY_BCH)
 
+template <typename I>
+// requires(RandomAccessIterator<I>)
+uint32_t get_mtp(I it) {
+    constexpr size_t len = 11;
+    std::array<uint32_t, len> subset;
+    std::copy_n(std::prev(it, len - 1), len, std::begin(subset));
+    std::sort(std::begin(subset), std::end(subset));
+    return subset[len / 2];
+};
+
 chain_state::assert_anchor_block_info_t populate_chain_state::find_assert_anchor_block(size_t height, uint32_t forks, data const& data, branch_ptr branch) const {
     using tao::algorithm::partition_point_variant_n;
 
@@ -210,22 +220,12 @@ chain_state::assert_anchor_block_info_t populate_chain_state::find_assert_anchor
         return h.timestamp();
     });
 
-    constexpr size_t subset_len = 11;
-    auto const get_mtp = [&subset_len](auto const& it) {
-        std::array<uint32_t, subset_len> subset = {};
-        auto f = std::prev(it, subset_len - 1);
-        auto l = std::next(it);
-        std::copy_n(f, subset_len, std::begin(subset));
-        std::sort(std::begin(subset), std::end(subset));
-        auto mtp = subset[subset_len / 2];
-        return mtp;
-    };
-
-    auto const is_axion_enabled = [this, &get_mtp](auto const& it) {
+    constexpr size_t len = 11;
+    auto const is_axion_enabled = [this](auto const& it) {
         auto mtp = get_mtp(it);
         return domain::chain::chain_state::is_mtp_activated(mtp, settings_.axion_activation_time);
     };
-    auto p = partition_point_variant_n(std::next(std::begin(timestamps), subset_len), 
+    auto p = partition_point_variant_n(std::next(std::begin(timestamps), len), 
                                        std::size(timestamps), is_axion_enabled);
 
     //TODO(fernando): what to do if p == std::end(timestamps)?
