@@ -27,9 +27,9 @@ public:
     using result_handler = handle0;
 
 #if defined(KTH_WITH_MEMPOOL)
-    validate_transaction(dispatcher& dispatch, const fast_chain& chain, const settings& settings, mining::mempool const& mp);
+    validate_transaction(dispatcher& dispatch, fast_chain const& chain, settings const& settings, mining::mempool const& mp);
 #else
-    validate_transaction(dispatcher& dispatch, const fast_chain& chain, const settings& settings);
+    validate_transaction(dispatcher& dispatch, fast_chain const& chain, settings const& settings);
 #endif
 
     void start();

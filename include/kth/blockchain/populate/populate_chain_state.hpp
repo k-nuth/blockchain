@@ -43,12 +43,18 @@ private:
     bool populate_bip9_bit0(data& data, map const& map, branch_ptr branch) const;
     bool populate_bip9_bit1(data& data, map const& map, branch_ptr branch) const;
 
+
+#if defined(KTH_CURRENCY_BCH)
+    domain::chain::chain_state::assert_anchor_block_info_t find_assert_anchor_block(size_t height, uint32_t forks, data const& data, branch_ptr branch) const;
+#endif
+
+
     bool get_bits(uint32_t& out_bits, size_t height, branch_ptr branch) const;
     bool get_version(uint32_t& out_version, size_t height, branch_ptr branch) const;
     bool get_timestamp(uint32_t& out_timestamp, size_t height, branch_ptr branch) const;
     bool get_block_hash(hash_digest& out_hash, size_t height, branch_ptr branch) const;
 
-#ifdef KTH_CURRENCY_BCH
+#if defined(KTH_CURRENCY_BCH)
     settings const& settings_;
 #endif //KTH_CURRENCY_BCH
 

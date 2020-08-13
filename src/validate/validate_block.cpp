@@ -34,9 +34,9 @@ using namespace std::placeholders;
 // will never be invoked, resulting in a threadpool.join indefinite hang.
 
 #if defined(KTH_WITH_MEMPOOL)
-validate_block::validate_block(dispatcher& dispatch, const fast_chain& chain, const settings& settings, bool relay_transactions, mining::mempool const& mp)
+validate_block::validate_block(dispatcher& dispatch, fast_chain const& chain, settings const& settings, bool relay_transactions, mining::mempool const& mp)
 #else
-validate_block::validate_block(dispatcher& dispatch, const fast_chain& chain, const settings& settings, bool relay_transactions)
+validate_block::validate_block(dispatcher& dispatch, fast_chain const& chain, settings const& settings, bool relay_transactions)
 #endif    
     : stopped_(true)
     , fast_chain_(chain)
@@ -170,7 +170,7 @@ void validate_block::handle_populated(code const& ec, block_const_ptr block, res
     auto const sigops = std::make_shared<atomic_counter>(0);
     auto const state = block->validation.state;
     KTH_ASSERT(state);
-#ifdef KTH_CURRENCY_BCH
+#if defined(KTH_CURRENCY_BCH)
     const bool bip141 = false;
 #else
     auto const bip141 = state->is_enabled(domain::machine::rule_fork::bip141_rule);
@@ -196,7 +196,7 @@ void validate_block::handle_populated(code const& ec, block_const_ptr block, res
 }
 
 void validate_block::accept_transactions(block_const_ptr block, size_t bucket, size_t buckets, atomic_counter_ptr sigops, bool bip16, bool bip141, result_handler handler) const {
-#ifdef KTH_CURRENCY_BCH
+#if defined(KTH_CURRENCY_BCH)
     bip141 = false;
 #endif
     if (stopped()) {
@@ -230,7 +230,7 @@ void validate_block::handle_accepted(code const& ec, block_const_ptr block, atom
         return;
     }
 
-#ifdef KTH_CURRENCY_BCH
+#if defined(KTH_CURRENCY_BCH)
     size_t allowed_sigops = get_allowed_sigops(block->serialized_size(1));
     auto const exceeded = *sigops > allowed_sigops;
 #else

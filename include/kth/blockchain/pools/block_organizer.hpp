@@ -31,9 +31,9 @@ public:
 
     /// Construct an instance.
 #if defined(KTH_WITH_MEMPOOL)
-    block_organizer(prioritized_mutex& mutex, dispatcher& dispatch, threadpool& thread_pool, fast_chain& chain, const settings& settings, bool relay_transactions, mining::mempool& mp);
+    block_organizer(prioritized_mutex& mutex, dispatcher& dispatch, threadpool& thread_pool, fast_chain& chain, settings const& settings, bool relay_transactions, mining::mempool& mp);
 #else
-    block_organizer(prioritized_mutex& mutex, dispatcher& dispatch, threadpool& thread_pool, fast_chain& chain, const settings& settings, bool relay_transactions);
+    block_organizer(prioritized_mutex& mutex, dispatcher& dispatch, threadpool& thread_pool, fast_chain& chain, settings const& settings, bool relay_transactions);
 #endif
 
     bool start();

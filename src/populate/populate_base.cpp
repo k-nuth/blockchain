@@ -21,7 +21,7 @@ using namespace kth::database;
 // spend: { spender }
 // transaction: { exists, height, position, output }
 
-populate_base::populate_base(dispatcher& dispatch, const fast_chain& chain)
+populate_base::populate_base(dispatcher& dispatch, fast_chain const& chain)
     : dispatch_(dispatch)
     , fast_chain_(chain)
 {}

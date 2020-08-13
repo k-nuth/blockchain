@@ -20,7 +20,7 @@ public:
     using inventory_fetch_handler = safe_chain::inventory_fetch_handler;
     using merkle_block_fetch_handler = safe_chain::merkle_block_fetch_handler;
 
-    transaction_pool(const settings& settings);
+    transaction_pool(settings const& settings);
 
     void fetch_template(merkle_block_fetch_handler) const;
     void fetch_mempool(size_t maximum, inventory_fetch_handler) const;

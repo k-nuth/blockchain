@@ -40,7 +40,7 @@ uint32_t validate_input::convert_flags(uint32_t native_forks) {
         flags |= verify_flags_checksequenceverify;
     }
 
-#ifdef KTH_CURRENCY_BCH
+#if defined(KTH_CURRENCY_BCH)
 
     if (script::is_enabled(native_forks, domain::machine::rule_fork::bch_uahf)) {
         flags |= verify_flags_strictenc;
@@ -132,7 +132,7 @@ code validate_input::convert_result(verify_result_type result) {
         // Softfork safeness (should not see).
         case verify_result_type::verify_result_discourage_upgradable_nops:
             return error::operation_failed;
-#ifndef KTH_CURRENCY_BCH
+#if ! defined(KTH_CURRENCY_BCH)
         case verify_result_type::verify_result_discourage_upgradable_witness_program:
             return error::operation_failed;
 
@@ -164,7 +164,7 @@ code validate_input::convert_result(verify_result_type result) {
         case verify_result_type::verify_result_unknown_error:
             return error::invalid_script;
 
-#ifndef KTH_CURRENCY_BCH
+#if ! defined(KTH_CURRENCY_BCH)
         // Segregated witness.
         case verify_result_type::verify_result_witness_program_wrong_length:
         case verify_result_type::verify_result_witness_program_empty_witness:
@@ -190,7 +190,7 @@ code validate_input::convert_result(verify_result_type result) {
 // TODO: cache transaction wire serialization.
 std::pair<code, size_t> validate_input::verify_script(transaction const& tx, uint32_t input_index, uint32_t branches) {
 
-#ifdef KTH_CURRENCY_BCH
+#if defined(KTH_CURRENCY_BCH)
     bool witness = false;
 #else
     bool witness = true;
@@ -211,7 +211,7 @@ std::pair<code, size_t> validate_input::verify_script(transaction const& tx, uin
     // auto const tx_data = tx.to_data(true, witness, false);
     auto const tx_data = tx.to_data(true, witness);
 
-#ifdef KTH_CURRENCY_BCH
+#if defined(KTH_CURRENCY_BCH)
     size_t sig_checks;
     auto res = consensus::verify_script(tx_data.data(),
         tx_data.size(), script_data.data(), script_data.size(), input_index,

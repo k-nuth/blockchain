@@ -48,7 +48,7 @@ public:
     bool bip112 = true;
     bool bip113 = true;
 
-#ifdef KTH_CURRENCY_BCH
+#if defined(KTH_CURRENCY_BCH)
 
     bool bch_uahf = true;
     bool bch_daa_cw144 = true;
@@ -56,8 +56,8 @@ public:
     bool bch_magnetic_anomaly = true;
     bool bch_great_wall = true;
     bool bch_graviton = true;
-    bool bch_phonon = false;      // 2020-May
-    bool bch_axion = false;       // 2020-Nov
+    bool bch_phonon = true;      // 2020-May
+    bool bch_axion = false;      // 2020-Nov
     // bool bch_unnamed = false;     // 2021-May
     
     ////2017-Aug-01 hard fork, defaults to 478559 (Mainnet)
@@ -87,6 +87,9 @@ public:
     // //2021-May-15 hard fork, defaults to 9999999999: ???May 15, 2020 12:00:00 UTC protocol upgrade
     // uint64_t unnamed_activation_time = to_underlying(bch_unnamed_activation_time);
 
+    // The half life for the ASERTi3-2d DAA. For every (asert_half_life) seconds behind schedule the blockchain gets, difficulty is cut in half. 
+    // Doubled if blocks are ahead of schedule.
+    uint64_t asert_half_life = 2ull * 24 * 60 * 60;   //two days
 #else
     // Just for Segwit coins
     bool bip141 = true;

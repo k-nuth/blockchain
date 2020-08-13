@@ -48,7 +48,7 @@ TEST_CASE("validate block  native  block 438513 tx  valid", "[validate block tes
 
 }
 
-#ifdef KTH_CURRENCY_BCH
+#if defined(KTH_CURRENCY_BCH)
 TEST_CASE("validate block  native  block 520679 tx  valid", "[validate block tests]") {
     //// DEBUG [blockchain] Input validation failed (stack false)
     //// forks        : 62 (?)

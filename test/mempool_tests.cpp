@@ -29,7 +29,7 @@ static chain_state::data get_data() {
 
 void add_state(transaction& tx) {
     tx.validation.state = std::make_shared<chain_state>(
-#ifdef KTH_CURRENCY_BCH
+#if defined(KTH_CURRENCY_BCH)
         chain_state{ get_data(), {}, 0, 0, 0 });
 #else
         chain_state{ get_data(), {}, 0 });

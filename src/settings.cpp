@@ -16,7 +16,11 @@ namespace kth::blockchain {
 settings::settings(infrastructure::config::settings context) {
     switch (context) {
         case infrastructure::config::settings::mainnet: {
-            checkpoints.reserve(22);
+
+#if defined(KTH_CURRENCY_BCH)
+            asert_half_life = 2ull * 24 * 60 * 60;   // two days
+#endif
+            checkpoints.reserve(18);
             checkpoints.emplace_back("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f", 0);
             checkpoints.emplace_back("0000000069e244f73d78e8fd29ba2fd2ed618bd6fa2ee92559f542fdb26e7c1d", 11111);
             checkpoints.emplace_back("000000002dd5588a74784eaa7ab0507a18ad16a236e7b1ce69f00d7ddfb5d0a6", 33333);
@@ -40,6 +44,9 @@ settings::settings(infrastructure::config::settings context) {
         case infrastructure::config::settings::testnet: {
             easy_blocks = true;
 
+#if defined(KTH_CURRENCY_BCH)
+            asert_half_life = 60ull * 60;   // one hour
+#endif
             checkpoints.reserve(7);
             checkpoints.emplace_back("000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943", 0);
             checkpoints.emplace_back("00000000009e2958c15ff9290d571bf9459e93b19765c6801ddeccadbb160a1e", 100000);
@@ -53,6 +60,10 @@ settings::settings(infrastructure::config::settings context) {
         case infrastructure::config::settings::regtest: {
             easy_blocks = true;
             retarget = false;
+
+#if defined(KTH_CURRENCY_BCH)
+            asert_half_life = 2ull * 24 * 60 * 60;   // two days
+#endif
             checkpoints.emplace_back("06226e46111a0b59caaf126043eb5bbf28c34f3a5e332a1fc7b2b73cf188910f", 0);
             break;
         }
@@ -86,7 +97,7 @@ uint32_t settings::enabled_forks() const {
     forks |= (bch_great_wall       ? rule_fork::bch_great_wall : 0);
     forks |= (bch_graviton         ? rule_fork::bch_graviton : 0);
     forks |= (bch_phonon           ? rule_fork::bch_phonon : 0);
-    // forks |= (bch_axion           ? rule_fork::bch_axion : 0);
+    forks |= (bch_axion            ? rule_fork::bch_axion : 0);
     // forks |= (bch_unnamed           ? rule_fork::bch_unnamed : 0);
 #else
     forks |= (bip141 ? rule_fork::bip141_rule : 0);

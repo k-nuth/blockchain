@@ -711,7 +711,7 @@ TEST_CASE("block chain  fetch locator block headers  full  sequential", "[safe c
     REQUIRE(instance.insert(block2, 2));
     REQUIRE(instance.insert(block3, 3));
 
-    const size_t limit = 3;
+    size_t const limit = 3;
     auto const threshold = null_hash;
     auto const locator = std::make_shared<const domain::message::get_headers>();
     REQUIRE(fetch_locator_block_headers(instance == locator, null_hash, 3), error::success);
@@ -727,7 +727,7 @@ TEST_CASE("block chain  fetch locator block headers  limited  sequential", "[saf
     REQUIRE(instance.insert(block2, 2));
     REQUIRE(instance.insert(block3, 3));
 
-    const size_t limit = 3;
+    size_t const limit = 3;
     auto const threshold = null_hash;
     auto const locator = std::make_shared<const domain::message::get_headers>();
     REQUIRE(fetch_locator_block_headers(instance == locator, null_hash, 2), error::success);

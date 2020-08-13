@@ -161,6 +161,9 @@ bool block_chain::get_header(domain::chain::header& out_header, size_t height) c
     return true;
 }
 
+//TODO(fernando): implement get_headers using legacy DB.
+// domain::chain::header::list block_chain::get_headers(size_t from, size_t to) const;
+
 bool block_chain::get_height(size_t& out_height,
     hash_digest const& block_hash) const {
     auto result = database_.blocks().get(block_hash);
@@ -370,8 +373,11 @@ bool block_chain::get_header(domain::chain::header& out_header, size_t height) c
     return out_header.is_valid();
 }
 
+domain::chain::header::list block_chain::get_headers(size_t from, size_t to) const {
+    return database_.internal_db().get_headers(from, to);
+}
+
 bool block_chain::get_height(size_t& out_height, hash_digest const& block_hash) const {
-   
     auto result = database_.internal_db().get_header(block_hash);
     if ( ! result.first.is_valid()) return false;
     out_height = result.second;
@@ -379,7 +385,6 @@ bool block_chain::get_height(size_t& out_height, hash_digest const& block_hash) 
 }
 
 bool block_chain::get_bits(uint32_t& out_bits, size_t height) const {
-   
     auto result = database_.internal_db().get_header(height);
     if ( ! result.is_valid()) return false;
     out_bits = result.bits();
@@ -625,7 +630,7 @@ block_chain::~block_chain() {
 
 #ifdef KTH_DB_LEGACY
 void block_chain::fetch_block(size_t height, bool witness, block_fetch_handler handler) const {
-#ifdef KTH_CURRENCY_BCH
+#if defined(KTH_CURRENCY_BCH)
     witness = false;
 #endif
     if (stopped()) {
@@ -674,7 +679,7 @@ void block_chain::fetch_block(size_t height, bool witness, block_fetch_handler h
 }
 
 void block_chain::fetch_block(hash_digest const& hash, bool witness, block_fetch_handler handler) const {
-#ifdef KTH_CURRENCY_BCH
+#if defined(KTH_CURRENCY_BCH)
     witness = false;
 #endif
     if (stopped()) {
@@ -836,7 +841,7 @@ void block_chain::fetch_compact_block(size_t height, compact_block_fetch_handler
 }
 
 void block_chain::fetch_compact_block(hash_digest const& hash, compact_block_fetch_handler handler) const {
-#ifdef KTH_CURRENCY_BCH
+#if defined(KTH_CURRENCY_BCH)
     bool witness = false;
 #else
     bool witness = true;
@@ -892,7 +897,7 @@ void block_chain::fetch_last_height(last_height_fetch_handler handler) const {
 void block_chain::fetch_transaction(hash_digest const& hash,
     bool require_confirmed, bool witness,
     transaction_fetch_handler handler) const {
-#ifdef KTH_CURRENCY_BCH
+#if defined(KTH_CURRENCY_BCH)
     witness = false;
 #endif
     if (stopped()) {
@@ -935,7 +940,7 @@ void block_chain::fetch_transaction(hash_digest const& hash,
 
 void block_chain::fetch_block(size_t height, bool witness,
     block_fetch_handler handler) const {
-#ifdef KTH_CURRENCY_BCH
+#if defined(KTH_CURRENCY_BCH)
     witness = false;
 #endif
     if (stopped()) {
@@ -966,7 +971,7 @@ void block_chain::fetch_block(size_t height, bool witness,
 
 void block_chain::fetch_block(hash_digest const& hash, bool witness,
     block_fetch_handler handler) const {
-#ifdef KTH_CURRENCY_BCH
+#if defined(KTH_CURRENCY_BCH)
     witness = false;
 #endif
     if (stopped()) {
@@ -1064,7 +1069,7 @@ void block_chain::fetch_compact_block(size_t height, compact_block_fetch_handler
 }
 
 void block_chain::fetch_compact_block(hash_digest const& hash, compact_block_fetch_handler handler) const {
-#ifdef KTH_CURRENCY_BCH
+#if defined(KTH_CURRENCY_BCH)
     bool witness = false;
 #else
     bool witness = true;
@@ -1166,7 +1171,7 @@ void block_chain::fetch_locator_block_hashes(get_blocks_const_ptr locator,
 #if defined(KTH_DB_NEW_FULL)
 
 void block_chain::fetch_transaction(hash_digest const& hash, bool require_confirmed, bool witness, transaction_fetch_handler handler) const {
-#ifdef KTH_CURRENCY_BCH
+#if defined(KTH_CURRENCY_BCH)
     witness = false;
 #endif
     if (stopped()) {
@@ -1289,7 +1294,7 @@ std::vector<kth::blockchain::mempool_transaction_summary> block_chain::get_mempo
             "    \"prevout\"  (string) The previous transaction output index (if spending)\n"
 */
 
-#ifdef KTH_CURRENCY_BCH
+#if defined(KTH_CURRENCY_BCH)
     witness = false;
 #endif
 
@@ -1368,7 +1373,7 @@ std::vector<kth::blockchain::mempool_transaction_summary> block_chain::get_mempo
 // Precondition: valid payment addresses
 std::vector<domain::chain::transaction> block_chain::get_mempool_transactions_from_wallets(std::vector<wallet::payment_address> const& payment_addresses, bool use_testnet_rules, bool witness) const {
 
-#ifdef KTH_CURRENCY_BCH
+#if defined(KTH_CURRENCY_BCH)
     witness = false;
 #endif
 
@@ -1440,7 +1445,7 @@ void block_chain::fill_tx_list_from_mempool(domain::message::compact_block const
     for (auto const& tx_res : result) { 
         auto const& tx = tx_res.transaction();
 
-#ifdef KTH_CURRENCY_BCH
+#if defined(KTH_CURRENCY_BCH)
         bool witness = false;
 #else
         bool witness = true;
@@ -1480,7 +1485,7 @@ void block_chain::fill_tx_list_from_mempool(domain::message::compact_block const
 }
 
 safe_chain::mempool_mini_hash_map block_chain::get_mempool_mini_hash_map(domain::message::compact_block const& block) const {
-#ifdef KTH_CURRENCY_BCH
+#if defined(KTH_CURRENCY_BCH)
      bool witness = false;
 #else
      bool witness = true;
@@ -1558,7 +1563,7 @@ std::vector<kth::blockchain::mempool_transaction_summary> block_chain::get_mempo
             "    \"prevout\"  (string) The previous transaction output index (if spending)\n"
 */
 
-#ifdef KTH_CURRENCY_BCH
+#if defined(KTH_CURRENCY_BCH)
     witness = false;
 #endif
 
@@ -1633,7 +1638,7 @@ std::vector<kth::blockchain::mempool_transaction_summary> block_chain::get_mempo
 // Precondition: valid payment addresses
 std::vector<domain::chain::transaction> block_chain::get_mempool_transactions_from_wallets(std::vector<wallet::payment_address> const& payment_addresses, bool use_testnet_rules, bool witness) const {
 
-#ifdef KTH_CURRENCY_BCH
+#if defined(KTH_CURRENCY_BCH)
     witness = false;
 #endif
 
@@ -1718,7 +1723,7 @@ void block_chain::fill_tx_list_from_mempool(domain::message::compact_block const
             
 
     database_.transactions_unconfirmed().for_each([&](domain::chain::transaction const &tx) {
-#ifdef KTH_CURRENCY_BCH
+#if defined(KTH_CURRENCY_BCH)
         bool witness = false;
 #else
         bool witness = true;
@@ -1759,7 +1764,7 @@ void block_chain::fill_tx_list_from_mempool(domain::message::compact_block const
 }
 
 safe_chain::mempool_mini_hash_map block_chain::get_mempool_mini_hash_map(domain::message::compact_block const& block) const {
-#ifdef KTH_CURRENCY_BCH
+#if defined(KTH_CURRENCY_BCH)
      bool witness = false;
 #else
      bool witness = true;
@@ -1996,7 +2001,7 @@ void block_chain::fetch_block_locator(const block::indexes& heights, block_locat
     }
 
     // Caller can cast get_headers down to get_blocks.
-    auto message = std::make_shared<get_headers>();
+    auto message = std::make_shared<domain::message::get_headers>();
     auto& hashes = message->start_hashes();
     hashes.reserve(heights.size());
 
@@ -2189,7 +2194,7 @@ void block_chain::fetch_block_locator(block::indexes const& heights, block_locat
     }
 
     // Caller can cast get_headers down to get_blocks.
-    auto message = std::make_shared<get_headers>();
+    auto message = std::make_shared<domain::message::get_headers>();
     auto& hashes = message->start_hashes();
     hashes.reserve(heights.size());
 
@@ -2487,7 +2492,7 @@ bool block_chain::is_stale() const {
     return timestamp < floor_subtract(zulu_time(), notify_limit_seconds_);
 }
 
-const settings& block_chain::chain_settings() const {
+settings const& block_chain::chain_settings() const {
     return settings_;
 }
 

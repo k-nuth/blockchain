@@ -76,7 +76,6 @@ public:
     /// Get the output that is referenced by the outpoint in the UTXO Set.
     bool get_utxo(domain::chain::output& out_output, size_t& out_height, uint32_t& out_median_time_past, bool& out_coinbase, domain::chain::output_point const& outpoint, size_t branch_height) const override;
 
-    // std::pair<result_code, utxo_pool_t> get_utxo_pool_from(uint32_t from, uint32_t to) const {
     std::pair<bool, database::internal_database::utxo_pool_t> get_utxo_pool_from(uint32_t from, uint32_t to) const override;
 #endif// KTH_DB_NEW
 
@@ -91,6 +90,9 @@ public:
 
     /// Get the header of the block at the given height.
     bool get_header(domain::chain::header& out_header, size_t height) const override;
+
+    /// Get a sequence of block headers [from, to].
+    domain::chain::header::list get_headers(size_t from, size_t to) const override;
 
     /// Get the height of the block with the given hash.
     bool get_height(size_t& out_height, hash_digest const& block_hash) const override;
@@ -247,7 +249,7 @@ public:
     //-------------------------------------------------------------------------
     template <typename I>
     void for_each_tx_hash(I f, I l, database::transaction_database const& tx_store, size_t height, bool witness, for_each_tx_handler handler) const {
-    #ifdef KTH_CURRENCY_BCH
+    #if defined(KTH_CURRENCY_BCH)
         witness = false;    //TODO(fernando): check what to do here. I dont like it
     #endif
         while (f != l) {
@@ -272,7 +274,7 @@ public:
     
     template <typename I>
     void for_each_tx_hash(I f, I l, size_t height, bool witness, for_each_tx_handler handler) const {
-    #ifdef KTH_CURRENCY_BCH
+    #if defined(KTH_CURRENCY_BCH)
         witness = false;    //TODO(fernando): check what to do here. I dont like it
     #endif
         while (f != l) {
@@ -291,7 +293,7 @@ public:
     
     template <typename I>
     void for_each_tx_valid(I f, I l, size_t height, bool witness, for_each_tx_handler handler) const {
-    #ifdef KTH_CURRENCY_BCH
+    #if defined(KTH_CURRENCY_BCH)
         witness = false;    //TODO(fernando): check what to do here. I dont like it
     #endif
         while (f != l) {
@@ -447,14 +449,14 @@ private:
 
     // These are thread safe.
     std::atomic<bool> stopped_;
-    const settings& settings_;
+    settings const& settings_;
     const time_t notify_limit_seconds_;
     kth::atomic<block_const_ptr> last_block_;
 
     //TODO(kth):  dissabled this tx cache because we don't want special treatment for the last txn, it affects the explorer rpc methods
     //kth::atomic<transaction_const_ptr> last_transaction_;
     
-    const populate_chain_state chain_state_populator_;
+    populate_chain_state const chain_state_populator_;
     database::data_base database_;
 
     // This is protected by mutex.

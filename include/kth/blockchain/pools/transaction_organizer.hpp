@@ -39,9 +39,9 @@ public:
     /// Construct an instance.
 
 #if defined(KTH_WITH_MEMPOOL)
-    transaction_organizer(prioritized_mutex& mutex, dispatcher& dispatch, threadpool& thread_pool, fast_chain& chain, const settings& settings, mining::mempool& mp);
+    transaction_organizer(prioritized_mutex& mutex, dispatcher& dispatch, threadpool& thread_pool, fast_chain& chain, settings const& settings, mining::mempool& mp);
 #else
-    transaction_organizer(prioritized_mutex& mutex, dispatcher& dispatch, threadpool& thread_pool, fast_chain& chain, const settings& settings);
+    transaction_organizer(prioritized_mutex& mutex, dispatcher& dispatch, threadpool& thread_pool, fast_chain& chain, settings const& settings);
 #endif
 
     bool start();

@@ -30,7 +30,7 @@ protected:
     dispatcher& dispatch_;
 
     // The store is protected by caller not invoking populate concurrently.
-    const fast_chain& fast_chain_;
+    fast_chain const& fast_chain_;
 };
 
 } // namespace kth::blockchain

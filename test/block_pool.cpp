@@ -70,7 +70,7 @@ TEST_CASE("block pool  construct  zero depth  sets  maximum value", "[block pool
 }
 
 TEST_CASE("block pool  construct  nonzero depth  round trips", "[block pool tests]") {
-    static const size_t expected = 42;
+    static size_t const expected = 42;
     block_pool_fixture instance(expected);
     REQUIRE(instance.maximum_depth() == expected);
 }
@@ -79,7 +79,7 @@ TEST_CASE("block pool  construct  nonzero depth  round trips", "[block pool test
 
 TEST_CASE("block pool  add1  one  single", "[block pool tests]") {
     block_pool_fixture instance(0);
-    static const size_t height = 42;
+    static size_t const height = 42;
     auto const block1 = make_block(1, height);
 
     instance.add(block1);
@@ -103,7 +103,7 @@ TEST_CASE("block pool  add1  twice  single", "[block pool tests]") {
 
 TEST_CASE("block pool  add1  two different blocks with same hash  first retained", "[block pool tests]") {
     block_pool_fixture instance(0);
-    static const size_t height1a = 42;
+    static size_t const height1a = 42;
     auto const block1a = make_block(1, height1a);
     auto const block1b = make_block(1, height1a + 1u);
 
@@ -121,8 +121,8 @@ TEST_CASE("block pool  add1  two different blocks with same hash  first retained
 
 TEST_CASE("block pool  add1  two distinct hash  two", "[block pool tests]") {
     block_pool_fixture instance(0);
-    static const size_t height1 = 42;
-    static const size_t height2 = height1 + 1u;
+    static size_t const height1 = 42;
+    static size_t const height2 = height1 + 1u;
     auto const block1 = make_block(1, height1);
     auto const block2 = make_block(2, height2);
 

@@ -26,9 +26,9 @@ using namespace std::placeholders;
 // TODO: create priority pool at blockchain level and use in both organizers. 
 
 #if defined(KTH_WITH_MEMPOOL)
-transaction_organizer::transaction_organizer(prioritized_mutex& mutex, dispatcher& dispatch, threadpool& thread_pool, fast_chain& chain, const settings& settings, mining::mempool& mp)
+transaction_organizer::transaction_organizer(prioritized_mutex& mutex, dispatcher& dispatch, threadpool& thread_pool, fast_chain& chain, settings const& settings, mining::mempool& mp)
 #else
-transaction_organizer::transaction_organizer(prioritized_mutex& mutex, dispatcher& dispatch, threadpool& thread_pool, fast_chain& chain, const settings& settings)
+transaction_organizer::transaction_organizer(prioritized_mutex& mutex, dispatcher& dispatch, threadpool& thread_pool, fast_chain& chain, settings const& settings)
 #endif
     : fast_chain_(chain)
     , mutex_(mutex)

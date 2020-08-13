@@ -22,9 +22,9 @@ class BCB_API populate_transaction : public populate_base {
 public:
 
 #if defined(KTH_WITH_MEMPOOL)
-    populate_transaction(dispatcher& dispatch, const fast_chain& chain, mining::mempool const& mp);
+    populate_transaction(dispatcher& dispatch, fast_chain const& chain, mining::mempool const& mp);
 #else
-    populate_transaction(dispatcher& dispatch, const fast_chain& chain);
+    populate_transaction(dispatcher& dispatch, fast_chain const& chain);
 #endif
 
     /// Populate validation state for the transaction.

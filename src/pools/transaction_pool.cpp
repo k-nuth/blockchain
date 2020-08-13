@@ -17,7 +17,7 @@ namespace kth::blockchain {
 // exmaple implementation simply tests all txs in a new block against
 // transactions in previous blocks.
 
-transaction_pool::transaction_pool(const settings& settings)
+transaction_pool::transaction_pool(settings const& settings)
   ////: reject_conflicts_(settings.reject_conflicts),
   ////  minimum_fee_(settings.minimum_fee_satoshis)
 {
@@ -25,7 +25,7 @@ transaction_pool::transaction_pool(const settings& settings)
 
 // TODO: implement block template discovery.
 void transaction_pool::fetch_template(merkle_block_fetch_handler handler) const {
-    const size_t height = max_size_t;
+    size_t const height = max_size_t;
     auto const block = std::make_shared<domain::message::merkle_block>();
     handler(error::success, block, height);
 }

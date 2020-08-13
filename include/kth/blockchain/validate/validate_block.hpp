@@ -28,9 +28,9 @@ public:
     using result_handler = handle0;
 
 #if defined(KTH_WITH_MEMPOOL)
-    validate_block(dispatcher& dispatch, const fast_chain& chain, const settings& settings, bool relay_transactions, mining::mempool const& mp);
+    validate_block(dispatcher& dispatch, fast_chain const& chain, settings const& settings, bool relay_transactions, mining::mempool const& mp);
 #else
-    validate_block(dispatcher& dispatch, const fast_chain& chain, const settings& settings, bool relay_transactions);
+    validate_block(dispatcher& dispatch, fast_chain const& chain, settings const& settings, bool relay_transactions);
 #endif
 
     void start();

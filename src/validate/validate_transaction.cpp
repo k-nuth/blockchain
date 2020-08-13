@@ -32,9 +32,9 @@ using namespace std::placeholders;
 
 
 #if defined(KTH_WITH_MEMPOOL)
-validate_transaction::validate_transaction(dispatcher& dispatch, const fast_chain& chain, const settings& settings, mining::mempool const& mp)
+validate_transaction::validate_transaction(dispatcher& dispatch, fast_chain const& chain, settings const& settings, mining::mempool const& mp)
 #else
-validate_transaction::validate_transaction(dispatcher& dispatch, const fast_chain& chain, const settings& settings)
+validate_transaction::validate_transaction(dispatcher& dispatch, fast_chain const& chain, settings const& settings)
 #endif
   : stopped_(true),
     retarget_(settings.retarget),

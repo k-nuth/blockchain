@@ -76,7 +76,7 @@ TEST_CASE("branch  height  default  zero", "[branch tests]") {
 }
 
 TEST_CASE("branch  set height  round trip  unchanged", "[branch tests]") {
-    static const size_t expected = 42;
+    static size_t const expected = 42;
     branch instance;
     instance.set_height(expected);
     REQUIRE(instance.height() == expected);
@@ -231,7 +231,7 @@ TEST_CASE("branch  top height  two blocks  expected", "[branch tests]") {
     DECLARE_BLOCK(block, 0);
     DECLARE_BLOCK(block, 1);
 
-    static const size_t expected = 42;
+    static size_t const expected = 42;
     instance.set_height(expected - 2);
 
     // Link the blocks.
