@@ -211,7 +211,7 @@ chain_state::assert_anchor_block_info_t populate_chain_state::find_assert_anchor
     });
 
     constexpr size_t subset_len = 11;
-    auto const get_mtp = [=subset_len](auto const& it) {
+    auto const get_mtp = [&subset_len](auto const& it) {
         std::array<uint32_t, subset_len> subset = {};
         auto f = std::prev(it, subset_len - 1);
         auto l = std::next(it);
