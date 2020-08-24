@@ -10,7 +10,7 @@
 using namespace knuth::keoken;
 using kth::hash_digest;
 using kth::hash_literal;
-using kth::wallet::payment_address;
+using kth::domain::wallet::payment_address;
 
 TEST_CASE("[state_asset_id_exists_empty] ") {
 

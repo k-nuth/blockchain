@@ -8,8 +8,7 @@
 #include <kth/keoken/entities/asset.hpp>
 #include <kth/keoken/primitives.hpp>
 
-namespace kth {
-namespace keoken {
+namespace kth::keoken {
 
 struct asset_entry {
     asset_entry(entities::asset asset, size_t block_height, kth::hash_digest const& txid)
@@ -28,7 +27,6 @@ struct asset_entry {
     kth::hash_digest txid;
 };
 
-} // namespace keoken
-} // namespace kth
+} // namespace kth::keoken
 
 #endif //KTH_BLOCKCHAIN_KEOKEN_ASSET_ENTRY_HPP_

@@ -6,8 +6,7 @@
 #ifndef KTH_BLOCKCHAIN_KEOKEN_ERROR_HPP_
 #define KTH_BLOCKCHAIN_KEOKEN_ERROR_HPP_
 
-namespace kth {
-namespace keoken {
+namespace kth::keoken {
 namespace error {
 
 // The numeric values of these codes may change without notice.
@@ -32,7 +31,6 @@ enum error_code_t {
 };
 
 } // namespace error
-} // namespace keoken
-} // namespace kth
+} // namespace kth::keoken
 
 #endif //KTH_BLOCKCHAIN_KEOKEN_ERROR_HPP_

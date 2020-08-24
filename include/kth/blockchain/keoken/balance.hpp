@@ -10,13 +10,11 @@
 #include <kth/keoken/entities/asset.hpp>
 #include <kth/keoken/primitives.hpp>
 
-namespace kth {
-namespace keoken {
+namespace kth::keoken {
 
-using balance_key = std::tuple<asset_id_t, kth::wallet::payment_address>;
+using balance_key = std::tuple<asset_id_t, kth::domain::wallet::payment_address>;
 
-} // namespace keoken
-} // namespace kth
+} // namespace kth::keoken
 
 
 // Standard hash.
@@ -32,15 +30,14 @@ struct hash<knuth::keoken::balance_key> {
         // boost::hash_combine(seed, std::get<1>(key));
         // return seed;
         size_t h1 = std::hash<knuth::keoken::asset_id_t>{}(std::get<0>(key));
-        size_t h2 = std::hash<kth::wallet::payment_address>{}(std::get<1>(key));
+        size_t h2 = std::hash<kth::domain::wallet::payment_address>{}(std::get<1>(key));
         return h1 ^ (h2 << 1u);
     }
 };
 } // namespace std
 //-----------------------------------------------------------------------------
 
-namespace kth {
-namespace keoken {
+namespace kth::keoken {
 
 struct balance_entry {
     balance_entry(amount_t amount, size_t block_height, kth::hash_digest const& txid)
@@ -57,7 +54,6 @@ struct balance_entry {
     kth::hash_digest txid;
 };
 
-} // namespace keoken
-} // namespace kth
+} // namespace kth::keoken
 
 #endif //KTH_BLOCKCHAIN_KEOKEN_BALANCE_HPP_

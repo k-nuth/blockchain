@@ -18,15 +18,14 @@
 #include <kth/keoken/primitives.hpp>
 #include <kth/keoken/state_dto.hpp>
 
-namespace kth {
-namespace keoken {
+namespace kth::keoken {
 
 class memory_state {
 public:    
     using asset_list_t = std::vector<asset_entry>;
     using balance_value = std::vector<balance_entry>;
     using balance_t = std::unordered_map<balance_key, balance_value>;
-    using payment_address = kth::wallet::payment_address;
+    using payment_address = kth::domain::wallet::payment_address;
 
     using get_assets_by_address_list = std::vector<get_assets_by_address_data>;
     using get_assets_list = std::vector<get_assets_data>;
@@ -62,7 +61,7 @@ public:
     // ---------------------------------------------------------------------------------
     bool asset_id_exists(asset_id_t id) const;
     amount_t get_balance(asset_id_t id, payment_address const& addr) const;
-    get_assets_by_address_list get_assets_by_address(kth::wallet::payment_address const& addr) const;
+    get_assets_by_address_list get_assets_by_address(kth::domain::wallet::payment_address const& addr) const;
     get_assets_list get_assets() const;
     get_all_asset_addresses_list get_all_asset_addresses() const;
 
@@ -82,7 +81,6 @@ private:
     mutable boost::shared_mutex mutex_;
 };
 
-} // namespace keoken
-} // namespace kth
+} // namespace kth::keoken
 
 #endif //KTH_BLOCKCHAIN_KEOKEN_MEMORY_STATE_HPP_

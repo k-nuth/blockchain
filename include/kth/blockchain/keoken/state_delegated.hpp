@@ -12,8 +12,7 @@
 
 #include <kth/keoken/state_dto.hpp>
 
-namespace kth {
-namespace keoken {
+namespace kth::keoken {
 
 struct state_delegated {
     using payment_address = kd::wallet::payment_address;
@@ -79,7 +78,6 @@ void bind_to_state(State& st, state_delegated& st_del) {
     st_del.get_all_asset_addresses = std::bind(&State::get_all_asset_addresses, &st);
 }
 
-} // namespace keoken
-} // namespace kth
+} // namespace kth::keoken
 
 #endif //KTH_BLOCKCHAIN_KEOKEN_STATE_DELEGATED_HPP_
