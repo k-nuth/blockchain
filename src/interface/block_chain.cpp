@@ -71,8 +71,7 @@ block_chain::block_chain(threadpool& pool, const blockchain::settings& chain_set
     , chain_state_populator_(*this, chain_settings)
     , database_(database_settings)
     , validation_mutex_(database_settings.flush_writes && relay_transactions)
-    , priority_pool_(thread_ceiling(chain_settings.cores)
-    , priority(chain_settings.priority))
+    , priority_pool_("blockchain", thread_ceiling(chain_settings.cores), priority(chain_settings.priority))
     , dispatch_(priority_pool_, NAME "_priority")
 
 #if defined(KTH_WITH_MEMPOOL)
