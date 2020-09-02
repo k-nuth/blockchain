@@ -8,8 +8,7 @@
 
 #include <kth/domain/wallet/payment_address.hpp>
 
-namespace kth {
-namespace keoken {
+namespace kth::keoken {
 
 enum class message_type_t {
     create_asset = 0,

@@ -10,10 +10,9 @@
 
 using kth::data_chunk;
 using kth::hash_digest;
-using kth::wallet::payment_address;
+using kth::domain::wallet::payment_address;
 
-namespace kth {
-namespace keoken {
+namespace kth::keoken {
 
 // memory_state::memory_state(asset_id_t asset_id_initial)
 //     : asset_id_next_(asset_id_initial)
@@ -133,7 +132,7 @@ amount_t memory_state::get_balance_internal(balance_value const& entries) const 
     });
 }
 
-amount_t memory_state::get_balance(asset_id_t id, kth::wallet::payment_address const& addr) const {
+amount_t memory_state::get_balance(asset_id_t id, kth::domain::wallet::payment_address const& addr) const {
     boost::shared_lock<boost::shared_mutex> lock(mutex_);
     
     auto it = balance_.find(balance_key{id, addr});
@@ -144,13 +143,13 @@ amount_t memory_state::get_balance(asset_id_t id, kth::wallet::payment_address c
     return get_balance_internal(it->second);
 }
 
-memory_state::get_assets_by_address_list memory_state::get_assets_by_address(kth::wallet::payment_address const& addr) const {
+memory_state::get_assets_by_address_list memory_state::get_assets_by_address(kth::domain::wallet::payment_address const& addr) const {
     get_assets_by_address_list res;
 
     {
     boost::shared_lock<boost::shared_mutex> lock(mutex_);
     for (auto const& entry : asset_list_) {
-        // using balance_key = std::tuple<knuth::keoken::asset_id_t, kth::wallet::payment_address>;
+        // using balance_key = std::tuple<knuth::keoken::asset_id_t, kth::domain::wallet::payment_address>;
         balance_key key {entry.asset.id(), addr};
         auto it = balance_.find(key);
         if (it != balance_.end()) {
@@ -225,5 +224,4 @@ memory_state::get_all_asset_addresses_list memory_state::get_all_asset_addresses
     return res;
 }
 
-} // namespace keoken
-} // namespace kth
+} // namespace kth::keoken

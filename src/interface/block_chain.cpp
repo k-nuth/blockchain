@@ -23,7 +23,6 @@
 
 #include <boost/thread/latch.hpp>
 
-
 namespace kth::blockchain {
 
 using spent_value_type = std::pair<hash_digest, uint32_t>;
@@ -72,8 +71,7 @@ block_chain::block_chain(threadpool& pool, const blockchain::settings& chain_set
     , chain_state_populator_(*this, chain_settings)
     , database_(database_settings)
     , validation_mutex_(database_settings.flush_writes && relay_transactions)
-    , priority_pool_(thread_ceiling(chain_settings.cores)
-    , priority(chain_settings.priority))
+    , priority_pool_("blockchain", thread_ceiling(chain_settings.cores), priority(chain_settings.priority))
     , dispatch_(priority_pool_, NAME "_priority")
 
 #if defined(KTH_WITH_MEMPOOL)
@@ -1302,18 +1300,18 @@ std::vector<kth::blockchain::mempool_transaction_summary> block_chain::get_mempo
     uint8_t encoding_p2sh;
 
     if (use_testnet_rules) {
-        encoding_p2kh = kth::wallet::payment_address::testnet_p2kh;
-        encoding_p2sh = kth::wallet::payment_address::testnet_p2sh;
+        encoding_p2kh = kth::domain::wallet::payment_address::testnet_p2kh;
+        encoding_p2sh = kth::domain::wallet::payment_address::testnet_p2sh;
     } else {
-        encoding_p2kh = kth::wallet::payment_address::mainnet_p2kh;
-        encoding_p2sh = kth::wallet::payment_address::mainnet_p2sh;
+        encoding_p2kh = kth::domain::wallet::payment_address::mainnet_p2kh;
+        encoding_p2sh = kth::domain::wallet::payment_address::mainnet_p2sh;
     }
     
     std::vector<kth::blockchain::mempool_transaction_summary> ret;
     
-    std::unordered_set<kth::wallet::payment_address> addrs;
+    std::unordered_set<kth::domain::wallet::payment_address> addrs;
     for (auto const& payment_address : payment_addresses) {
-        kth::wallet::payment_address address(payment_address);
+        kth::domain::wallet::payment_address address(payment_address);
         if (address){
             addrs.insert(address);
         }
@@ -1326,7 +1324,7 @@ std::vector<kth::blockchain::mempool_transaction_summary> block_chain::get_mempo
         //tx.recompute_hash();
         size_t i = 0;
         for (auto const& output : tx.outputs()) {
-            auto const tx_addresses = kth::wallet::payment_address::extract(output.script(), encoding_p2kh, encoding_p2sh);
+            auto const tx_addresses = kth::domain::wallet::payment_address::extract(output.script(), encoding_p2kh, encoding_p2sh);
             for(auto const tx_address : tx_addresses) {
                 if (tx_address && addrs.find(tx_address) != addrs.end()) {
                     ret.push_back
@@ -1341,7 +1339,7 @@ std::vector<kth::blockchain::mempool_transaction_summary> block_chain::get_mempo
         for (auto const& input : tx.inputs()) {
             // TODO: payment_addrress::extract should use the prev_output script instead of the input script
             // see https://github.com/k-nuth/core/blob/v0.10.0/src/wallet/payment_address.cpp#L505
-            auto const tx_addresses = kth::wallet::payment_address::extract(input.script(), encoding_p2kh, encoding_p2sh);
+            auto const tx_addresses = kth::domain::wallet::payment_address::extract(input.script(), encoding_p2kh, encoding_p2sh);
             for(auto const tx_address : tx_addresses)
             if (tx_address && addrs.find(tx_address) != addrs.end()) {
                 boost::latch latch(2);
@@ -1371,7 +1369,7 @@ std::vector<kth::blockchain::mempool_transaction_summary> block_chain::get_mempo
 }
 
 // Precondition: valid payment addresses
-std::vector<domain::chain::transaction> block_chain::get_mempool_transactions_from_wallets(std::vector<wallet::payment_address> const& payment_addresses, bool use_testnet_rules, bool witness) const {
+std::vector<domain::chain::transaction> block_chain::get_mempool_transactions_from_wallets(std::vector<domain::wallet::payment_address> const& payment_addresses, bool use_testnet_rules, bool witness) const {
 
 #if defined(KTH_CURRENCY_BCH)
     witness = false;
@@ -1380,11 +1378,11 @@ std::vector<domain::chain::transaction> block_chain::get_mempool_transactions_fr
     uint8_t encoding_p2kh;
     uint8_t encoding_p2sh;
     if (use_testnet_rules){
-        encoding_p2kh = kth::wallet::payment_address::testnet_p2kh;
-        encoding_p2sh = kth::wallet::payment_address::testnet_p2sh;
+        encoding_p2kh = kth::domain::wallet::payment_address::testnet_p2kh;
+        encoding_p2sh = kth::domain::wallet::payment_address::testnet_p2sh;
     } else {
-        encoding_p2kh = kth::wallet::payment_address::mainnet_p2kh;
-        encoding_p2sh = kth::wallet::payment_address::mainnet_p2sh;
+        encoding_p2kh = kth::domain::wallet::payment_address::mainnet_p2kh;
+        encoding_p2sh = kth::domain::wallet::payment_address::mainnet_p2sh;
     }
 
     std::vector<domain::chain::transaction> ret;
@@ -1399,7 +1397,7 @@ std::vector<domain::chain::transaction> block_chain::get_mempool_transactions_fr
 
         for (auto iter_output = tx.outputs().begin(); (iter_output != tx.outputs().end() && !inserted); ++iter_output) {
         
-            auto const tx_addresses = kth::wallet::payment_address::extract((*iter_output).script(), encoding_p2kh, encoding_p2sh);
+            auto const tx_addresses = kth::domain::wallet::payment_address::extract((*iter_output).script(), encoding_p2kh, encoding_p2sh);
 
             for (auto iter_addr = tx_addresses.begin(); (iter_addr != tx_addresses.end() && !inserted); ++iter_addr) {
                 if (*iter_addr) {
@@ -1415,7 +1413,7 @@ std::vector<domain::chain::transaction> block_chain::get_mempool_transactions_fr
         for (auto iter_input = tx.inputs().begin(); (iter_input != tx.inputs().end() && !inserted); ++iter_input) {
             // TODO: payment_addrress::extract should use the prev_output script instead of the input script
             // see https://github.com/k-nuth/core/blob/v0.10.0/src/wallet/payment_address.cpp#L505
-            auto const tx_addresses = kth::wallet::payment_address::extract((*iter_input).script(), encoding_p2kh, encoding_p2sh);
+            auto const tx_addresses = kth::domain::wallet::payment_address::extract((*iter_input).script(), encoding_p2kh, encoding_p2sh);
             for (auto iter_addr = tx_addresses.begin(); (iter_addr != tx_addresses.end() && !inserted); ++iter_addr) {
                 if (*iter_addr) {
                     auto it = std::find(payment_addresses.begin(), payment_addresses.end(), *iter_addr);
@@ -1570,16 +1568,16 @@ std::vector<kth::blockchain::mempool_transaction_summary> block_chain::get_mempo
     uint8_t encoding_p2kh;
     uint8_t encoding_p2sh;
     if (use_testnet_rules){
-        encoding_p2kh = kth::wallet::payment_address::testnet_p2kh;
-        encoding_p2sh = kth::wallet::payment_address::testnet_p2sh;
+        encoding_p2kh = kth::domain::wallet::payment_address::testnet_p2kh;
+        encoding_p2sh = kth::domain::wallet::payment_address::testnet_p2sh;
     } else {
-        encoding_p2kh = kth::wallet::payment_address::mainnet_p2kh;
-        encoding_p2sh = kth::wallet::payment_address::mainnet_p2sh;
+        encoding_p2kh = kth::domain::wallet::payment_address::mainnet_p2kh;
+        encoding_p2sh = kth::domain::wallet::payment_address::mainnet_p2sh;
     }
     std::vector<kth::blockchain::mempool_transaction_summary> ret;
-    std::unordered_set<kth::wallet::payment_address> addrs;
+    std::unordered_set<kth::domain::wallet::payment_address> addrs;
     for (auto const & payment_address : payment_addresses) {
-        kth::wallet::payment_address address(payment_address);
+        kth::domain::wallet::payment_address address(payment_address);
         if (address){
             addrs.insert(address);
         }
@@ -1590,7 +1588,7 @@ std::vector<kth::blockchain::mempool_transaction_summary> block_chain::get_mempo
         tx.recompute_hash();
         size_t i = 0;
         for (auto const& output : tx.outputs()) {
-            auto const tx_addresses = kth::wallet::payment_address::extract(output.script(), encoding_p2kh, encoding_p2sh);
+            auto const tx_addresses = kth::domain::wallet::payment_address::extract(output.script(), encoding_p2kh, encoding_p2sh);
             for(auto const tx_address : tx_addresses) {
                 if (tx_address && addrs.find(tx_address) != addrs.end()) {
                     ret.push_back
@@ -1605,7 +1603,7 @@ std::vector<kth::blockchain::mempool_transaction_summary> block_chain::get_mempo
         for (auto const& input : tx.inputs()) {
             // TODO: payment_addrress::extract should use the prev_output script instead of the input script
             // see https://github.com/k-nuth/core/blob/v0.10.0/src/wallet/payment_address.cpp#L505
-            auto const tx_addresses = kth::wallet::payment_address::extract(input.script(), encoding_p2kh, encoding_p2sh);
+            auto const tx_addresses = kth::domain::wallet::payment_address::extract(input.script(), encoding_p2kh, encoding_p2sh);
             for(auto const tx_address : tx_addresses)
             if (tx_address && addrs.find(tx_address) != addrs.end()) {
                 boost::latch latch(2);
@@ -1636,7 +1634,7 @@ std::vector<kth::blockchain::mempool_transaction_summary> block_chain::get_mempo
 }
 
 // Precondition: valid payment addresses
-std::vector<domain::chain::transaction> block_chain::get_mempool_transactions_from_wallets(std::vector<wallet::payment_address> const& payment_addresses, bool use_testnet_rules, bool witness) const {
+std::vector<domain::chain::transaction> block_chain::get_mempool_transactions_from_wallets(std::vector<domain::wallet::payment_address> const& payment_addresses, bool use_testnet_rules, bool witness) const {
 
 #if defined(KTH_CURRENCY_BCH)
     witness = false;
@@ -1645,11 +1643,11 @@ std::vector<domain::chain::transaction> block_chain::get_mempool_transactions_fr
     uint8_t encoding_p2kh;
     uint8_t encoding_p2sh;
     if (use_testnet_rules){
-        encoding_p2kh = kth::wallet::payment_address::testnet_p2kh;
-        encoding_p2sh = kth::wallet::payment_address::testnet_p2sh;
+        encoding_p2kh = kth::domain::wallet::payment_address::testnet_p2kh;
+        encoding_p2sh = kth::domain::wallet::payment_address::testnet_p2sh;
     } else {
-        encoding_p2kh = kth::wallet::payment_address::mainnet_p2kh;
-        encoding_p2sh = kth::wallet::payment_address::mainnet_p2sh;
+        encoding_p2kh = kth::domain::wallet::payment_address::mainnet_p2kh;
+        encoding_p2sh = kth::domain::wallet::payment_address::mainnet_p2sh;
     }
 
     std::vector<domain::chain::transaction> ret;
@@ -1663,7 +1661,7 @@ std::vector<domain::chain::transaction> block_chain::get_mempool_transactions_fr
 
         for (auto iter_output = tx.outputs().begin(); (iter_output != tx.outputs().end() && !inserted); ++iter_output) {
         
-            auto const tx_addresses = kth::wallet::payment_address::extract((*iter_output).script(), encoding_p2kh, encoding_p2sh);
+            auto const tx_addresses = kth::domain::wallet::payment_address::extract((*iter_output).script(), encoding_p2kh, encoding_p2sh);
 
             for (auto iter_addr = tx_addresses.begin(); (iter_addr != tx_addresses.end() && !inserted); ++iter_addr) {
                 if (*iter_addr) {
@@ -1679,7 +1677,7 @@ std::vector<domain::chain::transaction> block_chain::get_mempool_transactions_fr
         for (auto iter_input = tx.inputs().begin(); (iter_input != tx.inputs().end() && !inserted); ++iter_input) {
             // TODO: payment_addrress::extract should use the prev_output script instead of the input script
             // see https://github.com/k-nuth/core/blob/v0.10.0/src/wallet/payment_address.cpp#L505
-            auto const tx_addresses = kth::wallet::payment_address::extract((*iter_input).script(), encoding_p2kh, encoding_p2sh);
+            auto const tx_addresses = kth::domain::wallet::payment_address::extract((*iter_input).script(), encoding_p2kh, encoding_p2sh);
             for (auto iter_addr = tx_addresses.begin(); (iter_addr != tx_addresses.end() && !inserted); ++iter_addr) {
                 if (*iter_addr) {
                     auto it = std::find(payment_addresses.begin(), payment_addresses.end(), *iter_addr);

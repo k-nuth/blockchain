@@ -15,8 +15,7 @@
 
 // #define Tuple typename
 
-namespace kth {
-namespace keoken {
+namespace kth::keoken {
 namespace detail {
 
 template <typename T, message_type_t x>

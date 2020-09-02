@@ -10,8 +10,11 @@
 
 namespace kth::blockchain {
 
+// using for_each_tx_handler = std::function<void(code const&, size_t, domain::chain::transaction const&)>;
+
 #ifdef KTH_DB_LEGACY
-void blockchain::for_each_transaction(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const {
+
+void block_chain::for_each_transaction(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const {
 #if defined(KTH_CURRENCY_BCH)
     witness = false;    //TODO(fernando): see what to do with those things!
 #endif
@@ -41,7 +44,7 @@ void blockchain::for_each_transaction(size_t from, size_t to, bool witness, for_
     }
 }
 
-void blockchain::for_each_transaction_non_coinbase(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const {
+void block_chain::for_each_transaction_non_coinbase(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const {
 #if defined(KTH_CURRENCY_BCH)
     witness = false;    //TODO(fernando): see what to do with those things!
 #endif
@@ -74,7 +77,7 @@ void blockchain::for_each_transaction_non_coinbase(size_t from, size_t to, bool 
 
 
 #ifdef KTH_DB_NEW_FULL
-void blockchain::for_each_transaction(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const {
+void block_chain::for_each_transaction(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const {
 #if defined(KTH_CURRENCY_BCH)
     witness = false;    //TODO(fernando): see what to do with those things!
 #endif
@@ -103,7 +106,7 @@ void blockchain::for_each_transaction(size_t from, size_t to, bool witness, for_
     }
 }
 
-void blockchain::for_each_transaction_non_coinbase(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const {
+void block_chain::for_each_transaction_non_coinbase(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const {
 #if defined(KTH_CURRENCY_BCH)
     witness = false;    //TODO(fernando): see what to do with those things!
 #endif
@@ -135,7 +138,7 @@ void blockchain::for_each_transaction_non_coinbase(size_t from, size_t to, bool 
 
 #if defined(KTH_WITH_KEOKEN)
 
-void blockchain::convert_to_keo_transaction(const kth::hash_digest& hash, std::shared_ptr<std::vector<transaction_const_ptr>> keoken_txs) const {
+void block_chain::convert_to_keo_transaction(const kth::hash_digest& hash, std::shared_ptr<std::vector<transaction_const_ptr>> keoken_txs) const {
    fetch_transaction(hash, true, false,
               [&](const kth::code &ec,
                   kth::transaction_const_ptr tx_ptr, size_t index,
@@ -152,7 +155,7 @@ void blockchain::convert_to_keo_transaction(const kth::hash_digest& hash, std::s
 
 #if defined(KTH_DB_LEGACY)
 
-void blockchain::fetch_keoken_history(const short_hash& address_hash, size_t limit,
+void block_chain::fetch_keoken_history(const short_hash& address_hash, size_t limit,
     size_t from_height, keoken_history_fetch_handler handler) const {
     auto keoken_txs = std::make_shared<std::vector<transaction_const_ptr>>();
     if (stopped()) {
@@ -181,7 +184,7 @@ void blockchain::fetch_keoken_history(const short_hash& address_hash, size_t lim
 }
 
 
-void blockchain::fetch_block_keoken(hash_digest const& hash, bool witness,
+void block_chain::fetch_block_keoken(hash_digest const& hash, bool witness,
     block_keoken_fetch_handler handler) const {
 #if defined(KTH_CURRENCY_BCH)
     witness = false;
@@ -235,7 +238,7 @@ void blockchain::fetch_block_keoken(hash_digest const& hash, bool witness,
 
 #if defined(KTH_DB_NEW_FULL)
 
-void blockchain::fetch_keoken_history(const short_hash& address_hash, size_t limit,
+void block_chain::fetch_keoken_history(const short_hash& address_hash, size_t limit,
     size_t from_height, keoken_history_fetch_handler handler) const {
     auto keoken_txs = std::make_shared<std::vector<transaction_const_ptr>>();
     if (stopped()) {
@@ -264,7 +267,7 @@ void blockchain::fetch_keoken_history(const short_hash& address_hash, size_t lim
 }
 
 
-void blockchain::fetch_block_keoken(hash_digest const& hash, bool witness,
+void block_chain::fetch_block_keoken(hash_digest const& hash, bool witness,
     block_keoken_fetch_handler handler) const {
 #if defined(KTH_CURRENCY_BCH)
     witness = false;

@@ -10,8 +10,7 @@
 #include <kth/keoken/transaction_processors/v0/create_asset.hpp>
 #include <kth/keoken/transaction_processors/v0/send_tokens.hpp>
 
-namespace kth {
-namespace keoken {
+namespace kth::keoken {
 namespace transaction_processors {
 namespace v0 {
 
