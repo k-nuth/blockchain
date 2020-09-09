@@ -41,7 +41,6 @@ class KnuthBlockchainConan(KnuthConanFile):
                "log": ["boost", "spdlog", "binlog"],
                "use_libmdbx": [True, False],
     }
-    # "with_remote_database": [True, False],
 
     default_options = {
         "shared": False,
@@ -68,8 +67,7 @@ class KnuthBlockchainConan(KnuthConanFile):
         "log": "boost",
         "use_libmdbx": False,
     }
-        # "mining=False", \
-    # "with_remote_database=False"
+    # "mining=False", \
 
     generators = "cmake"
     exports = "conan_*", "ci_utils/*"
