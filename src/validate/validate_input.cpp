@@ -52,18 +52,18 @@ uint32_t validate_input::convert_flags(uint32_t native_forks) {
         flags |= verify_flags_null_fail;
     }
 
-    if (script::is_enabled(native_forks, domain::machine::rule_fork::bch_magnetic_anomaly)) {
+    if (script::is_enabled(native_forks, domain::machine::rule_fork::bch_euclid)) {
         flags |= verify_flags_enable_checkdatasig_sigops;
         flags |= verify_flags_sigpushonly;
         flags |= verify_flags_cleanstack;
     }
 
-    if (script::is_enabled(native_forks, domain::machine::rule_fork::bch_graviton)) {
+    if (script::is_enabled(native_forks, domain::machine::rule_fork::bch_mersenne)) {
         flags |= verify_flags_enable_schnorr_multisig;
         flags |= verify_flags_minimaldata;
     }
 
-    if (script::is_enabled(native_forks, domain::machine::rule_fork::bch_phonon)) {
+    if (script::is_enabled(native_forks, domain::machine::rule_fork::bch_fermat)) {
         flags |= verify_flags_enable_op_reversebytes;
         flags |= verify_flags_report_sigchecks;
         flags |= verify_flags_zero_sigops;

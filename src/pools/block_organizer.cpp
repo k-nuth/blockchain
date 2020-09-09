@@ -31,9 +31,9 @@ using namespace std::placeholders;
 // transaction: { exists, height, output }
 
 #if defined(KTH_WITH_MEMPOOL)
-block_organizer::block_organizer(prioritized_mutex& mutex, dispatcher& dispatch, threadpool& thread_pool, fast_chain& chain, settings const& settings, bool relay_transactions, mining::mempool& mp)
+block_organizer::block_organizer(prioritized_mutex& mutex, dispatcher& dispatch, threadpool& thread_pool, fast_chain& chain, settings const& settings, domain::config::network network, bool relay_transactions, mining::mempool& mp)
 #else
-block_organizer::block_organizer(prioritized_mutex& mutex, dispatcher& dispatch, threadpool& thread_pool, fast_chain& chain, settings const& settings, bool relay_transactions)
+block_organizer::block_organizer(prioritized_mutex& mutex, dispatcher& dispatch, threadpool& thread_pool, fast_chain& chain, settings const& settings, domain::config::network network, bool relay_transactions)
 #endif
     : fast_chain_(chain)
     , mutex_(mutex)
@@ -41,9 +41,9 @@ block_organizer::block_organizer(prioritized_mutex& mutex, dispatcher& dispatch,
     , dispatch_(dispatch)
     , block_pool_(settings.reorganization_limit)
 #if defined(KTH_WITH_MEMPOOL)
-    , validator_(dispatch, fast_chain_, settings, relay_transactions, mp)
+    , validator_(dispatch, fast_chain_, settings, network, relay_transactions, mp)
 #else
-    , validator_(dispatch, fast_chain_, settings, relay_transactions)
+    , validator_(dispatch, fast_chain_, settings, network, relay_transactions)
 #endif    
     , subscriber_(std::make_shared<reorganize_subscriber>(thread_pool, NAME))
 

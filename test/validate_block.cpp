@@ -114,8 +114,8 @@ TEST_CASE("validate block  2018NOV  block 520679 tx  valid", "[validate block te
     native_forks |= domain::machine::rule_fork::bip112_rule;
     native_forks |= domain::machine::rule_fork::bch_uahf;
     native_forks |= domain::machine::rule_fork::bch_daa_cw144;
-    native_forks |= domain::machine::rule_fork::bch_magnetic_anomaly;
-    native_forks |= domain::machine::rule_fork::bch_great_wall;
+    native_forks |= domain::machine::rule_fork::bch_euclid;
+    native_forks |= domain::machine::rule_fork::bch_pisano;
     // native_forks |= domain::machine::rule_fork::cash_segwit_recovery;
 
     data_chunk decoded_tx;

@@ -51,7 +51,7 @@ int main(int argc, char** argv) {
         return -1;
     }
 
-    database::settings settings(infrastructure::config::settings::mainnet);
+    database::settings settings(domain::config::network::mainnet);
 
     if ( ! data_base(settings).create(block::genesis_mainnet())) {
         std::cerr << BS_INITCHAIN_FAIL;

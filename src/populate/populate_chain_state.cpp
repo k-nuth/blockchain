@@ -28,13 +28,14 @@ static constexpr uint32_t unspecified = max_uint32;
 // get_last_height
 // block: { hash, bits, version, timestamp }
 
-populate_chain_state::populate_chain_state(fast_chain const& chain, settings const& settings)
+populate_chain_state::populate_chain_state(fast_chain const& chain, settings const& settings, domain::config::network network)
     :
 #if defined(KTH_CURRENCY_BCH)
       settings_(settings),
 #endif //KTH_CURRENCY_BCH
       configured_forks_(settings.enabled_forks())
     , checkpoints_(infrastructure::config::checkpoint::sort(settings.checkpoints))
+    , network_(network)
     , fast_chain_(chain)
 {}
 
@@ -147,6 +148,7 @@ bool populate_chain_state::populate_collision(chain_state::data& data, chain_sta
     return get_block_hash(data.allow_collisions_hash, map.allow_collisions_height, branch);
 }
 
+#if ! defined(KTH_CURRENCY_BCH)
 bool populate_chain_state::populate_bip9_bit0(chain_state::data& data, chain_state::map const& map, branch::const_ptr branch) const {
     if (map.bip9_bit0_height == chain_state::map::unrequested) {
         data.bip9_bit0_hash = null_hash;
@@ -166,7 +168,7 @@ bool populate_chain_state::populate_bip9_bit1(chain_state::data& data,
     return get_block_hash(data.bip9_bit1_hash,
         map.bip9_bit1_height, branch);
 }
-
+#endif
 
 
 bool populate_chain_state::populate_all(chain_state::data& data, branch::const_ptr branch) const {
@@ -175,15 +177,17 @@ bool populate_chain_state::populate_all(chain_state::data& data, branch::const_p
     unique_lock lock(mutex_);
 
     // Construct a map to inform chain state data population.
-    auto const map = chain_state::get_map(data.height, checkpoints_, configured_forks_);
+    auto const map = chain_state::get_map(data.height, checkpoints_, configured_forks_, network_);
 
     return (
         populate_bits(data, map, branch)
         && populate_versions(data, map, branch)
         && populate_timestamps(data, map, branch)
         && populate_collision(data, map, branch)
+#if ! defined(KTH_CURRENCY_BCH)        
         && populate_bip9_bit0(data, map, branch)
         && populate_bip9_bit1(data, map, branch)
+#endif        
     );
     ///////////////////////////////////////////////////////////////////////////
 }
@@ -204,7 +208,7 @@ chain_state::assert_anchor_block_info_t populate_chain_state::find_assert_anchor
     using tao::algorithm::partition_point_variant_n;
 
     auto const last_time_span = domain::chain::chain_state::median_time_past(data, 0, true);
-    bool const asert_activated = domain::chain::chain_state::is_mtp_activated(last_time_span, settings_.axion_activation_time);
+    bool const asert_activated = domain::chain::chain_state::is_mtp_activated(last_time_span, settings_.euler_activation_time);
 
     if ( ! asert_activated) {
         return {};
@@ -212,7 +216,7 @@ chain_state::assert_anchor_block_info_t populate_chain_state::find_assert_anchor
     auto const testnet = script::is_enabled(forks, domain::machine::rule_fork::easy_blocks);
     auto const from = testnet ? testnet_asert_anchor_lock_up_checkpoint.height() : mainnet_asert_anchor_lock_up_checkpoint.height();
 
-    //TODO(fernando): get from branch, like ...
+    //TODO(fernando): optimization: get from branch, like ...
     // return branch->get_bits(out_xxxxxxx, height) || fast_chain_.get_bits(out_xxxxxxx, height);
     auto const headers = fast_chain_.get_headers(from, height);
     std::vector<uint32_t> timestamps(headers.size(), 0);
@@ -221,12 +225,12 @@ chain_state::assert_anchor_block_info_t populate_chain_state::find_assert_anchor
     });
 
     constexpr size_t len = 11;
-    auto const is_axion_enabled = [this](auto const& it) {
+    auto const is_euler_enabled = [this](auto const& it) {
         auto mtp = get_mtp(it);
-        return domain::chain::chain_state::is_mtp_activated(mtp, settings_.axion_activation_time);
+        return domain::chain::chain_state::is_mtp_activated(mtp, settings_.euler_activation_time);
     };
     auto p = partition_point_variant_n(std::next(std::begin(timestamps), len), 
-                                       std::size(timestamps), is_axion_enabled);
+                                       std::size(timestamps), is_euler_enabled);
 
     //TODO(fernando): what to do if p == std::end(timestamps)?
     auto const d = std::distance(std::begin(timestamps), p);
@@ -262,15 +266,17 @@ chain_state::ptr populate_chain_state::populate() const {
         std::move(data)
         , configured_forks_
         , checkpoints_
+        , network_
 #if defined(KTH_CURRENCY_BCH)
         , anchor
         , settings_.asert_half_life
-        // , settings_.monolith_activation_time
-        // , settings_.magnetic_anomaly_activation_time
-        // , settings_.great_wall_activation_time
-        // , settings_.graviton_activation_time
-        // , phonon_t(settings_.phonon_activation_time)
-        , axion_t(settings_.axion_activation_time)
+        // , settings_.pythagoras_activation_time
+        // , settings_.euclid_activation_time
+        // , settings_.pisano_activation_time
+        // , settings_.mersenne_activation_time
+        // , fermat_t(settings_.fermat_activation_time)
+        , euler_t(settings_.euler_activation_time)
+        , gauss_t(settings_.gauss_activation_time)
 #endif //KTH_CURRENCY_BCH
     );
 }
@@ -297,15 +303,17 @@ chain_state::ptr populate_chain_state::populate(chain_state::ptr pool, branch::c
         std::move(data)
         , configured_forks_
         , checkpoints_
+        , network_
 #if defined(KTH_CURRENCY_BCH)
         , pool->assert_anchor_block_info()
         , settings_.asert_half_life
-        // , settings_.monolith_activation_time
-        // , settings_.magnetic_anomaly_activation_time
-        // , settings_.great_wall_activation_time
-        // , settings_.graviton_activation_time
-        // , phonon_t(settings_.phonon_activation_time)
-        , axion_t(settings_.axion_activation_time)
+        // , settings_.pythagoras_activation_time
+        // , settings_.euclid_activation_time
+        // , settings_.pisano_activation_time
+        // , settings_.mersenne_activation_time
+        // , fermat_t(settings_.fermat_activation_time)
+        , euler_t(settings_.euler_activation_time)
+        , gauss_t(settings_.gauss_activation_time)
 #endif //KTH_CURRENCY_BCH
     );
 }

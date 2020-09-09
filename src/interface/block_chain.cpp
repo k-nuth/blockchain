@@ -64,11 +64,12 @@ using namespace std::placeholders;
 
 static auto const hour_seconds = 3600u;
 
-block_chain::block_chain(threadpool& pool, const blockchain::settings& chain_settings, const database::settings& database_settings,  bool relay_transactions)
+block_chain::block_chain(threadpool& pool, blockchain::settings const& chain_settings
+                       , database::settings const& database_settings, domain::config::network network, bool relay_transactions /* = true*/)
     : stopped_(true)
     , settings_(chain_settings)
     , notify_limit_seconds_(chain_settings.notify_limit_hours * hour_seconds)
-    , chain_state_populator_(*this, chain_settings)
+    , chain_state_populator_(*this, chain_settings, network)
     , database_(database_settings)
     , validation_mutex_(database_settings.flush_writes && relay_transactions)
     , priority_pool_("blockchain", thread_ceiling(chain_settings.cores), priority(chain_settings.priority))
@@ -77,10 +78,10 @@ block_chain::block_chain(threadpool& pool, const blockchain::settings& chain_set
 #if defined(KTH_WITH_MEMPOOL)
     , mempool_(chain_settings.mempool_max_template_size, chain_settings.mempool_size_multiplier)
     , transaction_organizer_(validation_mutex_, dispatch_, pool, *this, chain_settings, mempool_)
-    , block_organizer_(validation_mutex_, dispatch_, pool, *this, chain_settings, relay_transactions, mempool_)
+    , block_organizer_(validation_mutex_, dispatch_, pool, *this, chain_settings, network, relay_transactions, mempool_)
 #else
     , transaction_organizer_(validation_mutex_, dispatch_, pool, *this, chain_settings)
-    , block_organizer_(validation_mutex_, dispatch_, pool, *this, chain_settings, relay_transactions)
+    , block_organizer_(validation_mutex_, dispatch_, pool, *this, chain_settings, network, relay_transactions)
 #endif
 {}
 
@@ -102,11 +103,6 @@ uint32_t get_clock_now() {
 inline
 void block_chain::prune_reorg_async() {}
 #endif // ! defined(KTH_DB_READONLY)
-
-/*
-inline 
-void block_chain::set_database_flags() {}
-*/
 
 bool block_chain::get_gaps(block_database::heights& out_gaps) const {
     database_.blocks().gaps(out_gaps);
@@ -221,8 +217,6 @@ bool block_chain::get_is_unspent_transaction(hash_digest const& hash, size_t bra
 }
 #endif // KTH_DB_LEGACY
 
-
-
 #if defined(KTH_DB_LEGACY) || defined(KTH_DB_NEW_FULL) 
 
 bool block_chain::get_output(domain::chain::output& out_output, size_t& out_height,
@@ -258,9 +252,7 @@ bool block_chain::get_output(domain::chain::output& out_output, size_t& out_heig
 
 #endif
 
-
-
-//Knuth: We don't store spent information
+//Note(Knuth): We don't store spent information
 /*#if defined(KTH_DB_NEW_FULL)
 //TODO(fernando): check if can we do it just with the UTXO
 bool block_chain::get_is_unspent_transaction(hash_digest const& hash, size_t branch_height, bool require_confirmed) const {
@@ -390,7 +382,6 @@ bool block_chain::get_bits(uint32_t& out_bits, size_t height) const {
 }
 
 bool block_chain::get_timestamp(uint32_t& out_timestamp, size_t height) const {
-   
     auto result = database_.internal_db().get_header(height);
     if ( ! result.is_valid()) return false;
     out_timestamp = result.timestamp();
@@ -398,7 +389,6 @@ bool block_chain::get_timestamp(uint32_t& out_timestamp, size_t height) const {
 }
 
 bool block_chain::get_version(uint32_t& out_version, size_t height) const {
-  
     auto result = database_.internal_db().get_header(height);
     if ( ! result.is_valid()) return false;
     out_version = result.version();
@@ -406,7 +396,6 @@ bool block_chain::get_version(uint32_t& out_version, size_t height) const {
 }
 
 bool block_chain::get_last_height(size_t& out_height) const {
- 
     uint32_t temp;
     auto res = database_.internal_db().get_last_height(temp);
     out_height = temp;
