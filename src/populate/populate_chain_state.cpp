@@ -204,17 +204,28 @@ uint32_t get_mtp(I it) {
     return subset[len / 2];
 };
 
-chain_state::assert_anchor_block_info_t populate_chain_state::find_assert_anchor_block(size_t height, uint32_t forks, data const& data, branch_ptr branch) const {
+chain_state::assert_anchor_block_info_t populate_chain_state::find_assert_anchor_block(size_t height, domain::config::network network, data const& data, branch_ptr branch) const {
     using tao::algorithm::partition_point_variant_n;
 
-    auto const last_time_span = domain::chain::chain_state::median_time_past(data, 0, true);
+    auto const last_time_span = domain::chain::chain_state::median_time_past(data);
     bool const asert_activated = domain::chain::chain_state::is_mtp_activated(last_time_span, settings_.euler_activation_time);
 
     if ( ! asert_activated) {
         return {};
     }
-    auto const testnet = script::is_enabled(forks, domain::machine::rule_fork::easy_blocks);
-    auto const from = testnet ? testnet_asert_anchor_lock_up_checkpoint.height() : mainnet_asert_anchor_lock_up_checkpoint.height();
+
+    auto const from = network_map(network
+                                , mainnet_asert_anchor_lock_up_height
+                                , testnet_asert_anchor_lock_up_height
+                                , size_t(0)
+#if defined(KTH_CURRENCY_BCH)
+                                , testnet4_asert_anchor_lock_up_height
+#endif
+                                );
+
+
+    // auto const testnet = script::is_enabled(forks, domain::machine::rule_fork::easy_blocks);
+    // auto const from = testnet ? testnet_asert_anchor_lock_up_height : mainnet_asert_anchor_lock_up_height;
 
     //TODO(fernando): optimization: get from branch, like ...
     // return branch->get_bits(out_xxxxxxx, height) || fast_chain_.get_bits(out_xxxxxxx, height);
@@ -259,7 +270,7 @@ chain_state::ptr populate_chain_state::populate() const {
     }
 
 #if defined(KTH_CURRENCY_BCH)
-    auto anchor = find_assert_anchor_block(data.height, configured_forks_, data, branch_ptr);
+    auto const anchor = find_assert_anchor_block(data.height, network_, data, branch_ptr);
 #endif
 
     return std::make_shared<chain_state>(

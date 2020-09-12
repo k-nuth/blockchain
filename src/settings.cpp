@@ -66,15 +66,15 @@ uint32_t settings::enabled_forks() const {
     forks |= (bip113      ? rule_fork::bip113_rule : 0);
 
 #if defined(KTH_CURRENCY_BCH)
-    forks |= (bch_uahf             ? rule_fork::bch_uahf : 0);
-    forks |= (bch_daa_cw144        ? rule_fork::bch_daa_cw144 : 0);
-    forks |= (bch_pythagoras         ? rule_fork::bch_pythagoras : 0);
-    forks |= (bch_euclid ? rule_fork::bch_euclid : 0);
-    forks |= (bch_pisano       ? rule_fork::bch_pisano : 0);
-    forks |= (bch_mersenne         ? rule_fork::bch_mersenne : 0);
-    forks |= (bch_fermat           ? rule_fork::bch_fermat : 0);
-    forks |= (bch_euler            ? rule_fork::bch_euler : 0);
-    forks |= (bch_gauss          ? rule_fork::bch_gauss : 0);
+    forks |= (bch_uahf       ? rule_fork::bch_uahf : 0);
+    forks |= (bch_daa_cw144  ? rule_fork::bch_daa_cw144 : 0);
+    forks |= (bch_pythagoras ? rule_fork::bch_pythagoras : 0);
+    forks |= (bch_euclid     ? rule_fork::bch_euclid : 0);
+    forks |= (bch_pisano     ? rule_fork::bch_pisano : 0);
+    forks |= (bch_mersenne   ? rule_fork::bch_mersenne : 0);
+    forks |= (bch_fermat     ? rule_fork::bch_fermat : 0);
+    forks |= (bch_euler      ? rule_fork::bch_euler : 0);
+    forks |= (bch_gauss      ? rule_fork::bch_gauss : 0);
     // forks |= (bch_unnamed           ? rule_fork::bch_unnamed : 0);
 #else
     forks |= (bip141 ? rule_fork::bip141_rule : 0);

@@ -47,7 +47,7 @@ private:
 #endif
 
 #if defined(KTH_CURRENCY_BCH)
-    domain::chain::chain_state::assert_anchor_block_info_t find_assert_anchor_block(size_t height, uint32_t forks, data const& data, branch_ptr branch) const;
+    domain::chain::chain_state::assert_anchor_block_info_t find_assert_anchor_block(size_t height, domain::config::network network, data const& data, branch_ptr branch) const;
 #endif
 
     bool get_bits(uint32_t& out_bits, size_t height, branch_ptr branch) const;
