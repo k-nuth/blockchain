@@ -384,8 +384,6 @@ set(kth_blockchain_sources_just_kth
   src/interface/block_chain_old_db.cpp
 )
 
-# message(STATUS "TODO(fernando) WITH_KEOKEN: ${WITH_KEOKEN}")
-
 if (WITH_KEOKEN)
   set(kth_blockchain_sources_just_kth 
     ${kth_blockchain_sources_just_kth}         
