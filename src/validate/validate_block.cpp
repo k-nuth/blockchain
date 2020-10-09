@@ -34,12 +34,13 @@ using namespace std::placeholders;
 // will never be invoked, resulting in a threadpool.join indefinite hang.
 
 #if defined(KTH_WITH_MEMPOOL)
-validate_block::validate_block(dispatcher& dispatch, fast_chain const& chain, settings const& settings, bool relay_transactions, mining::mempool const& mp)
+validate_block::validate_block(dispatcher& dispatch, fast_chain const& chain, settings const& settings, domain::config::network network, bool relay_transactions, mining::mempool const& mp)
 #else
-validate_block::validate_block(dispatcher& dispatch, fast_chain const& chain, settings const& settings, bool relay_transactions)
+validate_block::validate_block(dispatcher& dispatch, fast_chain const& chain, settings const& settings, domain::config::network network, bool relay_transactions)
 #endif    
     : stopped_(true)
     , fast_chain_(chain)
+    , network_(network)
     , priority_dispatch_(dispatch)
 #if defined(KTH_WITH_MEMPOOL)
     , block_populator_(dispatch, chain, relay_transactions, mp)
@@ -112,7 +113,7 @@ void validate_block::handle_checked(code const& ec, block_const_ptr block, resul
     }
 
     // Run context free checks, sets time internally.
-    handler(block->check());
+    handler(block->check(get_max_block_size(network_)));
 }
 
 // Accept sequence.
@@ -340,7 +341,7 @@ void validate_block::connect_inputs(block_const_ptr block, size_t bucket, size_t
 
 #if defined(KTH_CURRENCY_BCH)
             block_sigchecks += sigchecks;
-            if (block_sigchecks > max_block_sigchecks) {
+            if (block_sigchecks > get_max_block_sigchecks(network_)) {
                 ec = error::block_sigchecks_limit;
                 break;
             }

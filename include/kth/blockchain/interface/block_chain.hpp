@@ -35,10 +35,11 @@ public:
     /// Relay transactions is network setting that is passed through to block
     /// population as an optimization. This can be removed once there is an
     /// in-memory cache of tx pool metadata, as the costly query will go away.
-    block_chain(threadpool& pool,
-        const blockchain::settings& chain_settings,
-        const database::settings& database_settings,
-        bool relay_transactions=true);
+    block_chain(threadpool& pool
+        , blockchain::settings const& chain_settings
+        , database::settings const& database_settings
+        , domain::config::network network
+        , bool relay_transactions = true);
 
     /// The database is closed on destruct, threads must be joined.
     ~block_chain();

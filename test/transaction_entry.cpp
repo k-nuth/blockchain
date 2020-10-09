@@ -34,7 +34,7 @@ transaction_const_ptr make_tx() {
     auto const tx = std::make_shared<const domain::message::transaction>();
     tx->validation.state = std::make_shared<chain_state>(
 #if defined(KTH_CURRENCY_BCH)
-        chain_state {data(), 0, {}, kth::phonon_t(0), kth::axion_t(0)});
+        chain_state {data(), 0, {}, kth::euler_t(0), kth::gauss_t(0)});
 #else
         chain_state {data(), 0, {}});
 #endif //KTH_CURRENCY_BCH

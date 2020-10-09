@@ -28,9 +28,9 @@ public:
     using result_handler = handle0;
 
 #if defined(KTH_WITH_MEMPOOL)
-    validate_block(dispatcher& dispatch, fast_chain const& chain, settings const& settings, bool relay_transactions, mining::mempool const& mp);
+    validate_block(dispatcher& dispatch, fast_chain const& chain, settings const& settings, domain::config::network network, bool relay_transactions, mining::mempool const& mp);
 #else
-    validate_block(dispatcher& dispatch, fast_chain const& chain, settings const& settings, bool relay_transactions);
+    validate_block(dispatcher& dispatch, fast_chain const& chain, settings const& settings, domain::config::network network, bool relay_transactions);
 #endif
 
     void start();
@@ -66,6 +66,7 @@ private:
     // These are thread safe.
     std::atomic<bool> stopped_;
     fast_chain const& fast_chain_;
+    domain::config::network network_;
     dispatcher& priority_dispatch_;
     mutable atomic_counter hits_;
     mutable atomic_counter queries_;

@@ -21,7 +21,7 @@ namespace kth::blockchain {
 class BCB_API settings {
 public:
     settings() = default;
-    settings(infrastructure::config::settings context);
+    settings(domain::config::network context);
 
     /// Fork flags combiner.
     uint32_t enabled_forks() const;
@@ -35,6 +35,7 @@ public:
     uint32_t notify_limit_hours = 24;
     uint32_t reorganization_limit = 256;
     infrastructure::config::checkpoint::list checkpoints;
+    bool fix_checkpoints = true;
     bool allow_collisions = true;
     bool easy_blocks = false;
     bool retarget = true;
@@ -52,13 +53,14 @@ public:
 
     bool bch_uahf = true;
     bool bch_daa_cw144 = true;
-    bool bch_monolith = true;
-    bool bch_magnetic_anomaly = true;
-    bool bch_great_wall = true;
-    bool bch_graviton = true;
-    bool bch_phonon = true;      // 2020-May
-    bool bch_axion = false;      // 2020-Nov
-    // bool bch_unnamed = false;     // 2021-May
+    bool bch_pythagoras = true;
+    bool bch_euclid = true;
+    bool bch_pisano = true;
+    bool bch_mersenne = true;
+    bool bch_fermat = true;      // 2020-May
+    bool bch_euler = false;      // 2020-Nov
+    bool bch_gauss = false;    // 2021-May
+    // bool bch_unnamed = false; // 2021-Nov
     
     ////2017-Aug-01 hard fork, defaults to 478559 (Mainnet)
     // size_t uahf_height = 478559;                             
@@ -67,24 +69,27 @@ public:
     // size_t daa_height = 504031;                              
     
     ////2018-May-15 hard fork, defaults to 1526400000
-    // uint64_t monolith_activation_time = bch_monolith_activation_time;
+    // uint64_t pythagoras_activation_time = bch_pythagoras_activation_time;
 
     ////2018-Nov-15 hard fork, defaults to 1542300000
-    // uint64_t magnetic_anomaly_activation_time = bch_magnetic_anomaly_activation_time;
+    // uint64_t euclid_activation_time = bch_euclid_activation_time;
 
     // //2019-May-15 hard fork, defaults to 1557921600: Wed, 15 May 2019 12:00:00 UTC protocol upgrade
-    // uint64_t great_wall_activation_time = bch_great_wall_activation_time;               
+    // uint64_t pisano_activation_time = bch_pisano_activation_time;               
     
     // //2019-May-15 hard fork, defaults to 1573819200: Nov 15, 2019 12:00:00 UTC protocol upgrade
-    // uint64_t graviton_activation_time = bch_graviton_activation_time;
+    // uint64_t mersenne_activation_time = bch_mersenne_activation_time;
 
     // //2020-May-15 hard fork, defaults to 1589544000: May 15, 2020 12:00:00 UTC protocol upgrade
-    // uint64_t phonon_activation_time = to_underlying(bch_phonon_activation_time);
+    // uint64_t fermat_activation_time = to_underlying(bch_fermat_activation_time);
     
     //2020-Nov-15 hard fork, defaults to 1605441600: Nov 15, 2020 12:00:00 UTC protocol upgrade
-    uint64_t axion_activation_time = to_underlying(bch_axion_activation_time);
+    uint64_t euler_activation_time = to_underlying(bch_euler_activation_time);
 
-    // //2021-May-15 hard fork, defaults to 9999999999: ???May 15, 2020 12:00:00 UTC protocol upgrade
+    //2021-May-15 hard fork, defaults to 1621080000: May 15, 2021 12:00:00 UTC protocol upgrade
+    uint64_t gauss_activation_time = to_underlying(bch_gauss_activation_time);
+
+    // //2021-Nov-15 hard fork, defaults to 9999999999: Nov 15, 2021 12:00:00 UTC protocol upgrade
     // uint64_t unnamed_activation_time = to_underlying(bch_unnamed_activation_time);
 
     // The half life for the ASERTi3-2d DAA. For every (asert_half_life) seconds behind schedule the blockchain gets, difficulty is cut in half. 
