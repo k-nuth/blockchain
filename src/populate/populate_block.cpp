@@ -177,8 +177,6 @@ void populate_block::populate_transactions(branch::const_ptr branch, size_t buck
 void populate_block::populate_transactions(branch::const_ptr branch, size_t bucket, size_t buckets, local_utxo_set_t const& branch_utxo, result_handler handler) const {
 #endif
     // TODO(fernando): check how to replace it with UTXO
-    // asm("int $3");  //TODO(fernando): remover
-
     KTH_ASSERT(bucket < buckets);
     auto const block = branch->top();
     auto const branch_height = branch->height();

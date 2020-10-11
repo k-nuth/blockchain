@@ -86,8 +86,6 @@ void populate_transaction::populate_inputs(transaction_const_ptr tx, size_t chai
 
 #if defined(KTH_DB_NEW) && defined(KTH_WITH_MEMPOOL)
         if ( ! prevout.validation.cache.is_valid()) {
-            // asm("int $3");  //TODO(fernando): remover
-
             // BUSCAR EN UTXO DEL MEMPOOL y marcar
             prevout.validation.cache = mempool_.get_utxo(prevout);
             if (prevout.validation.cache.is_valid()) {
