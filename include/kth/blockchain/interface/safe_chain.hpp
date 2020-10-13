@@ -36,8 +36,8 @@ public:
     using transaction_index_fetch_handler = handle2<size_t, size_t>;
 
 #ifdef KTH_WITH_KEOKEN
-    using keoken_history_fetch_handler = std::function<void (const code&, const std::shared_ptr <std::vector <kth::transaction_const_ptr>>)>;
-    using block_keoken_fetch_handler = std::function<void (const code&,  header_const_ptr, size_t,  const std::shared_ptr <std::vector <kth::transaction_const_ptr>>, uint64_t, size_t)> ;
+    using keoken_history_fetch_handler = std::function<void (code const&, std::shared_ptr<std::vector<kth::transaction_const_ptr>>)>;
+    using block_keoken_fetch_handler = std::function<void (code const&,  header_const_ptr, size_t, std::shared_ptr<std::vector <kth::transaction_const_ptr>>, uint64_t, size_t)> ;
     
     virtual 
     void fetch_keoken_history(const short_hash& address_hash, size_t limit, size_t from_height, keoken_history_fetch_handler handler) const = 0;
@@ -50,33 +50,28 @@ public:
 #endif
 
     using confirmed_transactions_fetch_handler = handle1<std::vector<hash_digest>>;
-
     // Smart pointer parameters must not be passed by reference.
-    using block_fetch_handler = std::function<void(const code&, block_const_ptr, size_t)>;
-
-    typedef std::function<void(const code&, header_const_ptr, size_t,  const std::shared_ptr<hash_list>, uint64_t)> block_header_txs_size_fetch_handler;
-
-    typedef std::function<void(const code&, hash_digest const&, uint32_t, size_t)> block_hash_time_fetch_handler;
-
-    typedef std::function<void(const code&, merkle_block_ptr, size_t)> merkle_block_fetch_handler;
-    typedef std::function<void(const code&, compact_block_ptr, size_t)> compact_block_fetch_handler;
-    typedef std::function<void(const code&, header_ptr, size_t)> block_header_fetch_handler;
-    typedef std::function<void(const code&, transaction_const_ptr, size_t, size_t)> transaction_fetch_handler;
+    using block_fetch_handler = std::function<void(code const&, block_const_ptr, size_t)>;
+    using block_header_txs_size_fetch_handler = std::function<void(code const&, header_const_ptr, size_t, std::shared_ptr<hash_list>, uint64_t)>;
+    using block_hash_time_fetch_handler = std::function<void(code const&, hash_digest const&, uint32_t, size_t)>;
+    using merkle_block_fetch_handler =  std::function<void(code const&, merkle_block_ptr, size_t)>;
+    using compact_block_fetch_handler = std::function<void(code const&, compact_block_ptr, size_t)>;
+    using block_header_fetch_handler = std::function<void(code const&, header_ptr, size_t)>;
+    using transaction_fetch_handler = std::function<void(code const&, transaction_const_ptr, size_t, size_t)>;
 
 #if defined(KTH_DB_TRANSACTION_UNCONFIRMED) || defined(KTH_DB_NEW_FULL)
-    using transaction_unconfirmed_fetch_handler = std::function<void(const code&, transaction_const_ptr)>;
+    using transaction_unconfirmed_fetch_handler = std::function<void(code const&, transaction_const_ptr)>;
 #endif // KTH_DB_TRANSACTION_UNCONFIRMED
 
-    typedef std::function<void(const code&, headers_ptr)> locator_block_headers_fetch_handler;
-    typedef std::function<void(const code&, get_headers_ptr)> block_locator_fetch_handler;
-    typedef std::function<void(const code&, inventory_ptr)> inventory_fetch_handler;
+    using locator_block_headers_fetch_handler = std::function<void(code const&, headers_ptr)>;
+    using block_locator_fetch_handler = std::function<void(code const&, get_headers_ptr)>;
+    using inventory_fetch_handler = std::function<void(code const&, inventory_ptr)>;
 
     /// Subscription handlers.
-    typedef std::function<bool(code, size_t, block_const_ptr_list_const_ptr, block_const_ptr_list_const_ptr)> reorganize_handler;
-    typedef std::function<bool(code, transaction_const_ptr)> transaction_handler;
+    using reorganize_handler = std::function<bool(code, size_t, block_const_ptr_list_const_ptr, block_const_ptr_list_const_ptr)>;
+    using transaction_handler = std::function<bool(code, transaction_const_ptr)>;
 
     using for_each_tx_handler = std::function<void(code const&, size_t, domain::chain::transaction const&)>;
-
     using mempool_mini_hash_map = std::unordered_map<mini_hash, domain::chain::transaction>;
 
     // Startup and shutdown.
