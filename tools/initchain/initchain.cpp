@@ -5,9 +5,6 @@
 #include <iostream>     //TODO(fernando): where is it used?
 #include <filesystem>
 
-// #include <boost/format.hpp>
-// #include <boost/filesystem.hpp>
-
 #define FMT_HEADER_ONLY 1
 #include <fmt/core.h>
 

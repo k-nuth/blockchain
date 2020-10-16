@@ -8,8 +8,6 @@
 #include <cstdint>
 #include <filesystem>
 
-// #include <boost/filesystem.hpp>
-
 #include <kth/domain.hpp>
 #include <kth/infrastructure/config/endpoint.hpp>
 
