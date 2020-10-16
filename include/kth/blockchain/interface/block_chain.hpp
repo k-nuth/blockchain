@@ -429,7 +429,7 @@ protected:
     bool stopped() const;
 
 private:
-    typedef database::data_base::handle handle;
+    using handle = database::data_base::handle;
 
     // Locking helpers.
     // ------------------------------------------------------------------------
