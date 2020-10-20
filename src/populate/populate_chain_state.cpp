@@ -220,6 +220,7 @@ chain_state::assert_anchor_block_info_t populate_chain_state::find_assert_anchor
                                 , size_t(0)
 #if defined(KTH_CURRENCY_BCH)
                                 , testnet4_asert_anchor_lock_up_height
+                                , scalenet_asert_anchor_lock_up_height
 #endif
                                 );
 
