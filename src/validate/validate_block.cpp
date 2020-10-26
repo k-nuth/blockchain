@@ -232,6 +232,11 @@ void validate_block::handle_accepted(code const& ec, block_const_ptr block, atom
     }
 
 #if defined(KTH_CURRENCY_BCH)
+    if (block->validation.state->is_fermat_enabled()) {
+        handler(error::success);
+        return;
+    }
+
     size_t allowed_sigops = get_allowed_sigops(block->serialized_size(1));
     auto const exceeded = *sigops > allowed_sigops;
 #else

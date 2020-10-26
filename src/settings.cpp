@@ -44,6 +44,7 @@ settings::settings(domain::config::network network) {
             break;
         }
         case domain::config::network::scalenet: {
+            easy_blocks = true;
             asert_half_life = 2ull * 24 * 60 * 60;   // two days
             break;
         }
