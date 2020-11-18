@@ -81,8 +81,8 @@ public:
     // //2020-May-15 hard fork, defaults to 1589544000: May 15, 2020 12:00:00 UTC protocol upgrade
     // uint64_t fermat_activation_time = to_underlying(bch_fermat_activation_time);
     
-    //2020-Nov-15 hard fork, defaults to 1605441600: Nov 15, 2020 12:00:00 UTC protocol upgrade
-    uint64_t euler_activation_time = to_underlying(bch_euler_activation_time);
+    // //2020-Nov-15 hard fork, defaults to 1605441600: Nov 15, 2020 12:00:00 UTC protocol upgrade
+    // uint64_t euler_activation_time = to_underlying(bch_euler_activation_time);
 
     //2021-May-15 hard fork, defaults to 1621080000: May 15, 2021 12:00:00 UTC protocol upgrade
     uint64_t gauss_activation_time = to_underlying(bch_gauss_activation_time);

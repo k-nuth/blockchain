@@ -194,63 +194,91 @@ bool populate_chain_state::populate_all(chain_state::data& data, branch::const_p
 
 #if defined(KTH_CURRENCY_BCH)
 
-template <typename I>
-// requires(RandomAccessIterator<I>)
-uint32_t get_mtp(I it) {
-    constexpr size_t len = 11;
-    std::array<uint32_t, len> subset;
-    std::copy_n(std::prev(it, len - 1), len, std::begin(subset));
-    std::sort(std::begin(subset), std::end(subset));
-    return subset[len / 2];
-};
+// template <typename I>
+// // requires(RandomAccessIterator<I>)
+// uint32_t get_mtp(I it) {
+//     constexpr size_t len = 11;
+//     std::array<uint32_t, len> subset;
+//     std::copy_n(std::prev(it, len - 1), len, std::begin(subset));
+//     std::sort(std::begin(subset), std::end(subset));
+//     return subset[len / 2];
+// };
 
-chain_state::assert_anchor_block_info_t populate_chain_state::find_assert_anchor_block(size_t height, domain::config::network network, data const& data, branch_ptr branch) const {
-    using tao::algorithm::partition_point_variant_n;
+// chain_state::assert_anchor_block_info_t populate_chain_state::find_assert_anchor_block(size_t height, domain::config::network network, data const& data, branch_ptr branch) const {
+//     using tao::algorithm::partition_point_variant_n;
 
-    auto const last_time_span = domain::chain::chain_state::median_time_past(data);
-    bool const asert_activated = domain::chain::chain_state::is_mtp_activated(last_time_span, settings_.euler_activation_time);
+//     auto const last_time_span = domain::chain::chain_state::median_time_past(data);
+//     bool const asert_activated = domain::chain::chain_state::is_mtp_activated(last_time_span, settings_.euler_activation_time);
 
-    if ( ! asert_activated) {
-        return {};
-    }
+//     if ( ! asert_activated) {
+//         return {};
+//     }
 
-    auto const from = network_map(network
-                                , mainnet_asert_anchor_lock_up_height
-                                , testnet_asert_anchor_lock_up_height
+//     auto const from = network_map(network
+//                                 , mainnet_asert_anchor_lock_up_height
+//                                 , testnet_asert_anchor_lock_up_height
+//                                 , size_t(0)
+//                                 , testnet4_asert_anchor_lock_up_height
+//                                 , scalenet_asert_anchor_lock_up_height
+//                                 );
+
+
+//     // auto const testnet = script::is_enabled(forks, domain::machine::rule_fork::easy_blocks);
+//     // auto const from = testnet ? testnet_asert_anchor_lock_up_height : mainnet_asert_anchor_lock_up_height;
+
+//     //TODO(fernando): optimization: get from branch, like ...
+//     // return branch->get_bits(out_xxxxxxx, height) || fast_chain_.get_bits(out_xxxxxxx, height);
+//     auto const headers = fast_chain_.get_headers(from, height);
+//     std::vector<uint32_t> timestamps(headers.size(), 0);
+//     std::transform(std::begin(headers), std::end(headers), std::begin(timestamps), [](auto const& h) { 
+//         return h.timestamp();
+//     });
+
+//     constexpr size_t len = 11;
+//     auto const is_euler_enabled = [this](auto const& it) {
+//         auto mtp = get_mtp(it);
+//         return domain::chain::chain_state::is_mtp_activated(mtp, settings_.euler_activation_time);
+//     };
+//     auto p = partition_point_variant_n(std::next(std::begin(timestamps), len), 
+//                                        std::size(timestamps), is_euler_enabled);
+
+//     //TODO(fernando): what to do if p == std::end(timestamps)?
+//     auto const d = std::distance(std::begin(timestamps), p);
+//     auto const& header = headers[d];
+//     auto const& prev_header = headers[d - 1];
+//     return {from + d, prev_header.timestamp(), header.bits()};
+// }
+
+chain_state::assert_anchor_block_info_t populate_chain_state::get_assert_anchor_block(domain::config::network network) const {
+
+    auto const height = network_map(network
+                                , mainnet_asert_anchor_block_height
+                                , testnet_asert_anchor_block_height
                                 , size_t(0)
-#if defined(KTH_CURRENCY_BCH)
-                                , testnet4_asert_anchor_lock_up_height
-                                , scalenet_asert_anchor_lock_up_height
-#endif
+                                , testnet4_asert_anchor_block_height
+                                , scalenet_asert_anchor_block_height
                                 );
 
+    auto const ancestor_time = network_map(network
+                                , mainnet_asert_anchor_block_ancestor_time
+                                , testnet_asert_anchor_block_ancestor_time
+                                , size_t(0)
+                                , testnet4_asert_anchor_block_ancestor_time
+                                , scalenet_asert_anchor_block_ancestor_time
+                                ); 
 
-    // auto const testnet = script::is_enabled(forks, domain::machine::rule_fork::easy_blocks);
-    // auto const from = testnet ? testnet_asert_anchor_lock_up_height : mainnet_asert_anchor_lock_up_height;
+    auto const bits = network_map(network
+                                , mainnet_asert_anchor_block_bits
+                                , testnet_asert_anchor_block_bits
+                                , size_t(0)
+                                , testnet4_asert_anchor_block_bits
+                                , scalenet_asert_anchor_block_bits
+                                );
 
-    //TODO(fernando): optimization: get from branch, like ...
-    // return branch->get_bits(out_xxxxxxx, height) || fast_chain_.get_bits(out_xxxxxxx, height);
-    auto const headers = fast_chain_.get_headers(from, height);
-    std::vector<uint32_t> timestamps(headers.size(), 0);
-    std::transform(std::begin(headers), std::end(headers), std::begin(timestamps), [](auto const& h) { 
-        return h.timestamp();
-    });
-
-    constexpr size_t len = 11;
-    auto const is_euler_enabled = [this](auto const& it) {
-        auto mtp = get_mtp(it);
-        return domain::chain::chain_state::is_mtp_activated(mtp, settings_.euler_activation_time);
-    };
-    auto p = partition_point_variant_n(std::next(std::begin(timestamps), len), 
-                                       std::size(timestamps), is_euler_enabled);
-
-    //TODO(fernando): what to do if p == std::end(timestamps)?
-    auto const d = std::distance(std::begin(timestamps), p);
-    auto const& header = headers[d];
-    auto const& prev_header = headers[d - 1];
-    return {from + d, prev_header.timestamp(), header.bits()};
+    return {height, ancestor_time, bits};                                                   
 }
-#endif
+
+#endif // defined(KTH_CURRENCY_BCH)
 
 chain_state::ptr populate_chain_state::populate() const {
     size_t top;
@@ -271,7 +299,8 @@ chain_state::ptr populate_chain_state::populate() const {
     }
 
 #if defined(KTH_CURRENCY_BCH)
-    auto const anchor = find_assert_anchor_block(data.height, network_, data, branch_ptr);
+    //auto const anchor = find_assert_anchor_block(data.height, network_, data, branch_ptr);
+    auto const anchor = get_assert_anchor_block(network_);
 #endif
 
     return std::make_shared<chain_state>(
@@ -287,7 +316,7 @@ chain_state::ptr populate_chain_state::populate() const {
         // , settings_.pisano_activation_time
         // , settings_.mersenne_activation_time
         // , fermat_t(settings_.fermat_activation_time)
-        , euler_t(settings_.euler_activation_time)
+        // , euler_t(settings_.euler_activation_time)
         , gauss_t(settings_.gauss_activation_time)
 #endif //KTH_CURRENCY_BCH
     );
@@ -324,7 +353,7 @@ chain_state::ptr populate_chain_state::populate(chain_state::ptr pool, branch::c
         // , settings_.pisano_activation_time
         // , settings_.mersenne_activation_time
         // , fermat_t(settings_.fermat_activation_time)
-        , euler_t(settings_.euler_activation_time)
+        // , euler_t(settings_.euler_activation_time)
         , gauss_t(settings_.gauss_activation_time)
 #endif //KTH_CURRENCY_BCH
     );
