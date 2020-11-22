@@ -275,7 +275,7 @@ chain_state::assert_anchor_block_info_t populate_chain_state::get_assert_anchor_
                                 , scalenet_asert_anchor_block_bits
                                 );
 
-    return {height, ancestor_time, bits};                                                   
+    return {height, uint32_t(ancestor_time), bits};                                                   
 }
 
 #endif // defined(KTH_CURRENCY_BCH)
