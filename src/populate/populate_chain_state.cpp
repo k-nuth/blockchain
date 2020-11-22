@@ -267,7 +267,8 @@ chain_state::assert_anchor_block_info_t populate_chain_state::get_assert_anchor_
                                 , scalenet_asert_anchor_block_ancestor_time
                                 ); 
 
-    auto const bits = network_map(network
+    //TODO(fernando): make the function network_map generic
+    uint32_t const bits = network_map(network
                                 , mainnet_asert_anchor_block_bits
                                 , testnet_asert_anchor_block_bits
                                 , size_t(0)
@@ -275,7 +276,7 @@ chain_state::assert_anchor_block_info_t populate_chain_state::get_assert_anchor_
                                 , scalenet_asert_anchor_block_bits
                                 );
 
-    return {height, uint32_t(ancestor_time), bits};                                                   
+    return {height, ancestor_time, bits};                                                   
 }
 
 #endif // defined(KTH_CURRENCY_BCH)
