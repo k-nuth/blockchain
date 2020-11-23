@@ -2450,14 +2450,9 @@ void block_chain::organize(transaction_const_ptr tx, result_handler handler)
 // Properties (thread safe).
 // ----------------------------------------------------------------------------
 
-inline
-bool block_chain::is_stale_fast() const {
-    return is_stale();
-}
-
-bool block_chain::is_stale() const {
+bool block_chain::is_stale_for(time_t limit_secs) const {
     // If there is no limit set the chain is never considered stale.
-    if (notify_limit_seconds_ == 0) {
+    if (limit_secs == 0) {
         return false;
     }
 
@@ -2476,7 +2471,17 @@ bool block_chain::is_stale() const {
         }
     }
     auto const timestamp = top ? top->header().timestamp() : last_timestamp;
-    return timestamp < floor_subtract(zulu_time(), notify_limit_seconds_);
+    return timestamp < floor_subtract(zulu_time(), limit_secs);
+}
+
+inline
+bool block_chain::is_stale_fast() const {
+    return is_stale();
+}
+
+inline
+bool block_chain::is_stale() const {
+    return is_stale_for(notify_limit_seconds_);
 }
 
 settings const& block_chain::chain_settings() const {

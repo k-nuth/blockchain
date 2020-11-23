@@ -398,6 +398,10 @@ public:
     // Properties.
     //-------------------------------------------------------------------------
 
+    //TODO(fernando): modernize, use chrono units
+    /// True if the blockchain is stale based on given age limit.
+    bool is_stale_for(time_t limit_secs) const override;
+
     /// True if the blockchain is stale based on configured age limit.
     bool is_stale() const override;
 
@@ -451,7 +455,7 @@ private:
     // These are thread safe.
     std::atomic<bool> stopped_;
     settings const& settings_;
-    const time_t notify_limit_seconds_;
+    time_t const notify_limit_seconds_;
     kth::atomic<block_const_ptr> last_block_;
 
     //TODO(kth):  dissabled this tx cache because we don't want special treatment for the last txn, it affects the explorer rpc methods

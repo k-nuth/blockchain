@@ -199,6 +199,7 @@ public:
     // Properties
     // ------------------------------------------------------------------------
 
+    virtual bool is_stale_for(time_t limit_secs) const = 0;
     virtual bool is_stale() const = 0;
 
     //TODO(Mario) temporary duplication 
