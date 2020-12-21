@@ -491,8 +491,7 @@ void block_chain::fetch_unconfirmed_transaction(hash_digest const& hash, transac
 #if ! defined(KTH_DB_READONLY)
 void block_chain::reorganize(const infrastructure::config::checkpoint& fork_point,
     block_const_ptr_list_const_ptr incoming_blocks,
-    block_const_ptr_list_ptr outgoing_blocks, dispatcher& dispatch,
-    result_handler handler) {
+    block_const_ptr_list_ptr outgoing_blocks, dispatcher& dispatch, result_handler handler) {
     if (incoming_blocks->empty()) {
         handler(error::operation_failed_13);
         return;

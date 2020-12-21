@@ -98,8 +98,11 @@ void block_organizer::organize(block_const_ptr block, result_handler handler) {
     const result_handler complete = std::bind(&block_organizer::signal_completion, this, _1);
     auto const check_handler = std::bind(&block_organizer::handle_check, this, _1, block, complete);
 
-    // Checks that are independent of chain state.
-    validator_.check(block, check_handler);
+    //TODO(fernando): temp change, remove it
+    check_handler(error::success);
+
+    // // Checks that are independent of chain state.
+    // validator_.check(block, check_handler);
 
     // Wait on completion signal.
     // This is necessary in order to continue on a non-priority thread.
@@ -156,11 +159,20 @@ void block_organizer::handle_check(code const& ec, block_const_ptr block, result
         return;
     }
 
-
     auto const accept_handler = std::bind(&block_organizer::handle_accept, this, _1, branch, handler);
 
+
+    //TODO(fernando): temp change, remove it
+    // Populate chain state for the next block.
+    block->validation.state = fast_chain_.chain_state(branch);
+    if ( ! block->validation.state) {
+        handler(error::operation_failed_19);
+        return;
+    }
+    accept_handler(error::success);
+
     // Checks that are dependent on chain state and prevouts.
-    validator_.accept(branch, accept_handler);
+    // validator_.accept(branch, accept_handler);
 }
 
 // private
@@ -177,8 +189,11 @@ void block_organizer::handle_accept(code const& ec, branch::ptr branch, result_h
 
     auto const connect_handler = std::bind(&block_organizer::handle_connect, this, _1, branch, handler);
 
-    // Checks that include script validation.
-    validator_.connect(branch, connect_handler);
+    //TODO(fernando): temp change, remove it
+    connect_handler(error::success);
+
+    // // Checks that include script validation.
+    // validator_.connect(branch, connect_handler);
 }
 
 #ifdef KTH_DB_NEW
@@ -414,14 +429,14 @@ void block_organizer::handle_connect(code const& ec, branch::ptr branch, result_
     }
 
     // TODO: consider relay of pooled blocks by modifying subscriber semantics.
-    if (work <= threshold) {
-        if ( ! top_block.simulate) {
-            block_pool_.add(branch->top());
-        }
+    // if (work <= threshold) {
+    //     if ( ! top_block.simulate) {
+    //         block_pool_.add(branch->top());
+    //     }
 
-        handler(error::insufficient_work);
-        return;
-    }
+    //     handler(error::insufficient_work);
+    //     return;
+    // }
 
 #ifdef KTH_DB_NEW
     //Note(fernando): If there is just one block, internal double spend was checked previously.
@@ -440,6 +455,18 @@ void block_organizer::handle_connect(code const& ec, branch::ptr branch, result_
     }
 
 
+    // //TODO(fernando): temp change, remove it
+    // auto const count = branch->top()->transactions().size();
+    // if (count >= 10000) {
+    //     std::cout << count << std::endl;
+
+    //     std::ofstream outfile;
+    //     outfile.open("test.txt", std::ios_base::app);
+    //     // outfile << "Data";         
+    //     outfile << encode_base16(branch->top()->to_data(0)) << std::endl;
+    // }
+
+
 #if ! defined(KTH_DB_READONLY)
     // Get the outgoing blocks to forward to reorg handler.
     auto const out_blocks = std::make_shared<block_const_ptr_list>();
@@ -450,6 +477,7 @@ void block_organizer::handle_connect(code const& ec, branch::ptr branch, result_
     // Incoming blocks must have median_time_past set.
     fast_chain_.reorganize(branch->fork_point(), branch->blocks(), out_blocks, dispatch_, reorganized_handler);
     //#########################################################################
+
 #endif // ! defined(KTH_DB_READONLY)
 }
 
@@ -516,8 +544,13 @@ void block_organizer::filter(get_data_ptr message) const {
 bool block_organizer::set_branch_height(branch::ptr branch) {
     size_t height;
 
-    // Get blockchain parent of the oldest branch block.
-    if ( ! fast_chain_.get_height(height, branch->hash())) {
+    // // Get blockchain parent of the oldest branch block.
+    // if ( ! fast_chain_.get_height(height, branch->hash())) {
+    //     return false;
+    // }
+
+    //TODO(fernando): remove it
+    if ( ! fast_chain_.get_last_height(height)) {
         return false;
     }
 

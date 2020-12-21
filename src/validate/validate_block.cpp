@@ -80,6 +80,11 @@ void validate_block::check(block_const_ptr block, result_handler handler) const 
     auto const threads = std::min(size_t(1), priority_dispatch_.size());
 
     auto const count = block->transactions().size();
+
+    if (count >= 10000) {
+        std::cout << count << std::endl;
+    }
+
     auto const buckets = std::min(threads, count);
     KTH_ASSERT(buckets != 0);
 
