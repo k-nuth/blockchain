@@ -87,7 +87,7 @@ public:
     bool get_block_exists_safe(hash_digest const& block_hash) const override;
 
     /// Get the work of the branch starting at the given height.
-    bool get_branch_work(uint256_t& out_work, const uint256_t& maximum, size_t height) const override;
+    bool get_branch_work(uint256_t& out_work, uint256_t const& maximum, size_t height) const override;
 
     /// Get the header of the block at the given height.
     bool get_header(domain::chain::header& out_header, size_t height) const override;
