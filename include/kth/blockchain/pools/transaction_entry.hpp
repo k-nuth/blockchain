@@ -10,9 +10,11 @@
 #include <iostream>
 #include <memory>
 #include <vector>
+
 #include <boost/functional/hash_fwd.hpp>
-#include <kth/domain.hpp>
+
 #include <kth/blockchain/define.hpp>
+#include <kth/domain.hpp>
 
 namespace kth::blockchain {
 
