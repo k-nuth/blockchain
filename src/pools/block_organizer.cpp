@@ -9,12 +9,13 @@
 #include <future>
 #include <memory>
 #include <utility>
-#include <kth/domain.hpp>
+
 #include <kth/blockchain/interface/fast_chain.hpp>
 #include <kth/blockchain/pools/block_pool.hpp>
 #include <kth/blockchain/pools/branch.hpp>
 #include <kth/blockchain/settings.hpp>
 #include <kth/blockchain/validate/validate_block.hpp>
+#include <kth/domain.hpp>
 
 namespace kth::blockchain {
 
