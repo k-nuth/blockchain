@@ -6,8 +6,9 @@
 
 #include <algorithm>
 #include <iostream>
-#include <kth/domain.hpp>
+
 #include <kth/blockchain/define.hpp>
+#include <kth/domain.hpp>
 
 namespace kth::blockchain {
 
