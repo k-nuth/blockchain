@@ -8,10 +8,10 @@
 #include <cstddef>
 #include <cstdint>
 
-#include <kth/domain.hpp>
 #include <kth/blockchain/define.hpp>
 #include <kth/blockchain/interface/fast_chain.hpp>
 #include <kth/blockchain/settings.hpp>
+#include <kth/domain.hpp>
 
 namespace kth::blockchain {
 
