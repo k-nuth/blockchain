@@ -9,12 +9,13 @@
 #include <cstddef>
 #include <cstdint>
 #include <memory>
-#include <kth/domain.hpp>
+
 #include <kth/blockchain/define.hpp>
 #include <kth/blockchain/interface/fast_chain.hpp>
 #include <kth/blockchain/pools/branch.hpp>
 #include <kth/blockchain/populate/populate_block.hpp>
 #include <kth/blockchain/settings.hpp>
+#include <kth/domain.hpp>
 
 #if defined(KTH_WITH_MEMPOOL)
 #include <kth/mining/mempool.hpp>
