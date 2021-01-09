@@ -6,10 +6,11 @@
 #define KTH_BLOCKCHAIN_POPULATE_TRANSACTION_HPP
 
 #include <cstddef>
-#include <kth/domain.hpp>
+
 #include <kth/blockchain/define.hpp>
 #include <kth/blockchain/interface/fast_chain.hpp>
 #include <kth/blockchain/populate/populate_base.hpp>
+#include <kth/domain.hpp>
 
 #if defined(KTH_WITH_MEMPOOL)
 #include <kth/mining/mempool.hpp>
