@@ -6,8 +6,9 @@
 
 #include <cstddef>
 #include <memory>
-#include <kth/domain.hpp>
+
 #include <kth/blockchain/settings.hpp>
+#include <kth/domain.hpp>
 
 namespace kth::blockchain {
 
