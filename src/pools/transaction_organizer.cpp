@@ -10,12 +10,13 @@
 #include <future>
 #include <memory>
 #include <utility>
-#include <kth/domain.hpp>
+
 #include <kth/blockchain/define.hpp>
 #include <kth/blockchain/interface/fast_chain.hpp>
 #include <kth/blockchain/interface/safe_chain.hpp>
 #include <kth/blockchain/settings.hpp>
 #include <kth/blockchain/validate/validate_transaction.hpp>
+#include <kth/domain.hpp>
 
 namespace kth::blockchain {
 
