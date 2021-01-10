@@ -4,9 +4,9 @@
 
 #include <kth/blockchain/pools/transaction_entry.hpp>
 
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
-#include <algorithm>
 #include <iostream>
 
 #include <kth/domain.hpp>
