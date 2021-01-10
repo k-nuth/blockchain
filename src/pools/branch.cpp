@@ -9,8 +9,9 @@
 #include <memory>
 #include <numeric>
 #include <utility>
-#include <kth/domain.hpp>
+
 #include <kth/blockchain/define.hpp>
+#include <kth/domain.hpp>
 
 namespace kth::blockchain {
 
