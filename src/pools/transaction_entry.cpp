@@ -21,7 +21,7 @@ uint32_t cap(size_t value) {
     return domain_constrain<uint32_t>(value);
 }
 
-// TODO: implement size, sigops, and fees caching on domain::chain::transaction.
+// TODO(legacy): implement size, sigops, and fees caching on domain::chain::transaction.
 // This requires the full population of transaction.validation metadata.
 transaction_entry::transaction_entry(transaction_const_ptr tx)
     : size_(cap(tx->serialized_size(domain::message::version::level::canonical)))
