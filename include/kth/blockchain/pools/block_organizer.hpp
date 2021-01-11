@@ -17,6 +17,7 @@
 #include <kth/blockchain/pools/branch.hpp>
 #include <kth/blockchain/settings.hpp>
 #include <kth/blockchain/validate/validate_block.hpp>
+#include <kth/domain.hpp>
 
 namespace kth::blockchain {
 
