@@ -126,7 +126,7 @@ uint32_t branch::median_time_past_at(size_t index) const {
     return (*blocks_)[index]->header().validation.median_time_past;
 }
 
-// TODO: absorb into the main chain for speed and code consolidation.
+// TODO(legacy): absorb into the main chain for speed and code consolidation.
 // The branch work check is both a consensus check and denial of service
 // protection. It is necessary here that total claimed work exceeds that of the
 // competing chain segment (consensus), and that the work has actually been
