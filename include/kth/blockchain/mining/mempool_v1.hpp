@@ -283,10 +283,11 @@ public:
 
         friend
         void swap(candidate_index_t& a, candidate_index_t& b) {
+            using std::swap;
             auto tmp = all_transactions()[a.index()].candidate_index();
             all_transactions()[a.index()].set_candidate_index(all_transactions()[b.index()].candidate_index());
             all_transactions()[b.index()].set_candidate_index(tmp);
-            std::swap(a.index_, b.index_);
+            swap(a.index_, b.index_);
         }
 
         friend mempool;
