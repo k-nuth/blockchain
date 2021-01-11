@@ -19,16 +19,14 @@ namespace kth::blockchain {
 using namespace boost;
 
 block_pool::block_pool(size_t maximum_depth)
-  : maximum_depth_(maximum_depth == 0 ? max_size_t : maximum_depth)
-{
-}
+    : maximum_depth_(maximum_depth == 0 ? max_size_t : maximum_depth)
+{}
 
 size_t block_pool::size() const {
     return blocks_.size();
 }
 
-void block_pool::add(block_const_ptr valid_block)
-{
+void block_pool::add(block_const_ptr valid_block) {
     // The block must be successfully validated.
     ////KTH_ASSERT( ! block->validation.error);
     block_entry entry{ valid_block };
