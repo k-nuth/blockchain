@@ -414,7 +414,7 @@ void block_organizer::handle_connect(code const& ec, branch::ptr branch, result_
         return;
     }
 
-    // TODO: consider relay of pooled blocks by modifying subscriber semantics.
+    // TODO(legacy): consider relay of pooled blocks by modifying subscriber semantics.
     if (work <= threshold) {
         if ( ! top_block.simulate) {
             block_pool_.add(branch->top());
