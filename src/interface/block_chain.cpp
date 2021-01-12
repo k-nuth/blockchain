@@ -153,11 +153,9 @@ bool block_chain::get_header(domain::chain::header& out_header, size_t height) c
 //TODO(fernando): implement get_headers using legacy DB.
 // domain::chain::header::list block_chain::get_headers(size_t from, size_t to) const;
 
-bool block_chain::get_height(size_t& out_height,
-    hash_digest const& block_hash) const {
+bool block_chain::get_height(size_t& out_height, hash_digest const& block_hash) const {
     auto result = database_.blocks().get(block_hash);
-    if ( ! result)
-        return false;
+    if ( ! result) return false;
 
     out_height = result.height();
     return true;
