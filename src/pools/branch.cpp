@@ -146,7 +146,7 @@ uint256_t branch::work() const {
     return total;
 }
 
-// TODO: convert to a direct block pool query when the branch goes away.
+// TODO(legacy): convert to a direct block pool query when the branch goes away.
 // BUGBUG: this does not differentiate between spent and unspent txs.
 // Spent transactions could exist in the pool due to other txs in the same or
 // later pool blocks. So this is disabled in favor of "allowed collisions".
