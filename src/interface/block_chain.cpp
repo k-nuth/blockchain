@@ -163,8 +163,7 @@ bool block_chain::get_height(size_t& out_height, hash_digest const& block_hash) 
 
 bool block_chain::get_bits(uint32_t& out_bits, size_t height) const {
     auto result = database_.blocks().get(height);
-    if ( ! result)
-        return false;
+    if ( ! result) return false;
 
     out_bits = result.bits();
     return true;
