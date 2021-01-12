@@ -144,8 +144,7 @@ bool block_chain::get_branch_work(uint256_t& out_work, uint256_t const& maximum,
 
 bool block_chain::get_header(domain::chain::header& out_header, size_t height) const {
     auto result = database_.blocks().get(height);
-    if ( ! result)
-        return false;
+    if ( ! result) return false;
 
     out_header = result.header();
     return true;
