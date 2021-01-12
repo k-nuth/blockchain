@@ -510,7 +510,7 @@ void block_organizer::filter(get_data_ptr message) const {
 // Utility.
 //-----------------------------------------------------------------------------
 
-// TODO: store this in the block pool and avoid this query.
+// TODO(legacy): store this in the block pool and avoid this query.
 bool block_organizer::set_branch_height(branch::ptr branch) {
     size_t height;
 
