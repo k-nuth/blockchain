@@ -56,8 +56,7 @@ void block_pool::add(block_const_ptr valid_block) {
     ///////////////////////////////////////////////////////////////////////////
 }
 
-void block_pool::add(block_const_ptr_list_const_ptr valid_blocks)
-{
+void block_pool::add(block_const_ptr_list_const_ptr valid_blocks) {
     auto const insert = [&](const block_const_ptr& block) { add(block); };
     std::for_each(valid_blocks->begin(), valid_blocks->end(), insert);
 }
