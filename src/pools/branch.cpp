@@ -174,7 +174,7 @@ uint256_t branch::work() const {
 ////    tx.validation.duplicate = count > 1u;
 ////}
 
-// TODO: convert to a direct block pool query when the branch goes away.
+// TODO(legacy): convert to a direct block pool query when the branch goes away.
 void branch::populate_spent(output_point const& outpoint) const {
     auto& prevout = outpoint.validation;
 
