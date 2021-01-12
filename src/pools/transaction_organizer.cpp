@@ -191,8 +191,7 @@ void transaction_organizer::organize(transaction_const_ptr tx, result_handler ha
 }
 
 // private
-void transaction_organizer::signal_completion(code const& ec)
-{
+void transaction_organizer::signal_completion(code const& ec) {
     // This must be protected so that it is properly cleared.
     // Signal completion, which results in original handler invoke with code.
     resume_.set_value(ec);
