@@ -61,16 +61,14 @@ bool transaction_organizer::stopped() const {
 // Start/stop sequences.
 //-----------------------------------------------------------------------------
 
-bool transaction_organizer::start()
-{
+bool transaction_organizer::start() {
     stopped_ = false;
     subscriber_->start();
     validator_.start();
     return true;
 }
 
-bool transaction_organizer::stop()
-{
+bool transaction_organizer::stop() {
     validator_.stop();
     subscriber_->stop();
     subscriber_->invoke(error::service_stopped, {});
