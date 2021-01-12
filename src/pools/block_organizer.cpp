@@ -476,10 +476,7 @@ void block_organizer::handle_reorganized(code const& ec, branch::const_ptr branc
     // v3 reorg block order is reverse of v2, branch.back() is the new top.
     notify(branch->height(), branch->blocks(), outgoing);
 
-#if ! defined(KTH_DB_READONLY)
     fast_chain_.prune_reorg_async();
-#endif
-
     //fast_chain_.set_database_flags();
 
     handler(error::success);
