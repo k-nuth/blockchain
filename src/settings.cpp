@@ -51,7 +51,7 @@ settings::settings(domain::config::network net) {
 #endif
     }
 
-    checkpoints = domain::config::default_checkpoints(network);
+    checkpoints = domain::config::default_checkpoints(net);
 }
 
 uint32_t settings::enabled_forks() const {
