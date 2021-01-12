@@ -434,7 +434,7 @@ void block_organizer::handle_connect(code const& ec, branch::ptr branch, result_
     }
 #endif
 
-    // TODO: create a simulated validation path that does not block others.
+    // TODO(legacy): create a simulated validation path that does not block others.
     if (top_block.simulate) {
         handler(error::success);
         return;
