@@ -103,8 +103,8 @@ void transaction_entry::add_child(ptr child) {
 void transaction_entry::remove_child(ptr child) {
     auto const it = find(children_.begin(), children_.end(), child);
 
-    // TODO: this is a placeholder for subtree purge.
-    // TODO: manage removal of bidirectional link add/remove.
+    // TODO(legacy): this is a placeholder for subtree purge.
+    // TODO(legacy): manage removal of bidirectional link add/remove.
     if (it != children_.end()) {
         children_.erase(it);
     }
