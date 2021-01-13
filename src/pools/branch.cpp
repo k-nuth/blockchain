@@ -210,7 +210,7 @@ void branch::populate_spent(output_point const& outpoint) const {
     prevout.confirmed = prevout.spent;
 }
 
-// TODO: absorb into the main chain for speed and code consolidation.
+// TODO(legacy): absorb into the main chain for speed and code consolidation.
 void branch::populate_prevout(output_point const& outpoint) const {
     auto& prevout = outpoint.validation;
 
