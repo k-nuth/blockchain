@@ -90,8 +90,7 @@ void block_pool::remove(block_const_ptr_list_const_ptr accepted_blocks) {
         auto it = left.find(block_entry{ child });
 
         // Except for sub-branches all children should have been deleted above.
-        if (it == left.end())
-            continue;
+        if (it == left.end()) continue;
 
         // Copy the entry so that it can be deleted and replanted with height.
         auto const copy = it->first;
