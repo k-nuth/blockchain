@@ -311,7 +311,7 @@ void branch::populate_prevout(output_point const& outpoint, std::vector<std::uno
 }
 
 
-// TODO: absorb into the main chain for speed and code consolidation.
+// TODO(legacy): absorb into the main chain for speed and code consolidation.
 // The bits of the block at the given height in the branch.
 bool branch::get_bits(uint32_t& out_bits, size_t height) const {
     if (height <= height_) {
