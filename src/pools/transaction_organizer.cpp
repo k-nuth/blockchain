@@ -201,9 +201,7 @@ void transaction_organizer::signal_completion(code const& ec) {
 //-----------------------------------------------------------------------------
 
 // private
-void transaction_organizer::handle_check(code const& ec,
-    transaction_const_ptr tx, result_handler handler)
-{
+void transaction_organizer::handle_check(code const& ec, transaction_const_ptr tx, result_handler handler) {
     if (stopped()) {
         handler(error::service_stopped);
         return;
