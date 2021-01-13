@@ -248,9 +248,9 @@ void branch::populate_prevout(output_point const& outpoint) const {
     }
 }
 
-//TODO(fernando): use the type alias instead of the std::unord...
+//TODO(legacy): use the type alias instead of the std::unord...
 
-// TODO: absorb into the main chain for speed and code consolidation.
+// TODO(legacy): absorb into the main chain for speed and code consolidation.
 void branch::populate_prevout(output_point const& outpoint, std::vector<std::unordered_map<point, output const*>> const& branch_utxo) const {
     auto& prevout = outpoint.validation;
 
