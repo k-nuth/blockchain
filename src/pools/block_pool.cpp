@@ -107,21 +107,19 @@ void block_pool::remove(block_const_ptr_list_const_ptr accepted_blocks) {
 }
 
 // protected
-void block_pool::prune(hash_list const& hashes, size_t minimum_height)
-{
+void block_pool::prune(hash_list const& hashes, size_t minimum_height) {
     hash_list child_hashes;
     auto saver = [&](hash_digest const& hash){ child_hashes.push_back(hash); };
     auto& left = blocks_.left;
 
-    for (auto& hash: hashes) {
+    for (auto const& hash: hashes) {
         auto const it = left.find(block_entry{ hash });
         KTH_ASSERT(it != left.end());
 
         auto const height = it->first.block()->header().validation.height;
 
         // Delete all roots and expired non-roots and recurse their children.
-        if (it->second != 0 || height < minimum_height)
-        {
+        if (it->second != 0 || height < minimum_height) {
             // delete
             auto const& children = it->first.children();
             std::for_each(children.begin(), children.end(), saver);
