@@ -221,9 +221,7 @@ void transaction_organizer::handle_check(code const& ec, transaction_const_ptr t
 }
 
 // private
-void transaction_organizer::handle_accept(code const& ec,
-    transaction_const_ptr tx, result_handler handler)
-{
+void transaction_organizer::handle_accept(code const& ec, transaction_const_ptr tx, result_handler handler) {
     if (stopped()) {
         handler(error::service_stopped);
         return;
