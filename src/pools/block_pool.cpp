@@ -145,24 +145,27 @@ void block_pool::prune(hash_list const& hashes, size_t minimum_height) {
     }
 
     // Recurse the children to span the tree.
-    if ( ! child_hashes.empty())
+    if ( ! child_hashes.empty()) {
         prune(child_hashes, minimum_height);
+    }
 }
 
-void block_pool::prune(size_t top_height)
-{
+void block_pool::prune(size_t top_height) {
     hash_list hashes;
     auto const minimum_height = floor_subtract(top_height, maximum_depth_);
 
-    // TODO: not using table sort here, should stop iterating once above min.
+    // TODO(legacy): not using table sort here, should stop iterating once above min.
     // Iterate over all root nodes with insufficient height.
-    for (auto it: blocks_.right)
-        if (it.first != 0 && it.first < minimum_height)
+    for (auto it: blocks_.right) {
+        if (it.first != 0 && it.first < minimum_height) {
             hashes.push_back(it.second.hash());
+        }
+    }
 
     // Get outside of the hash table iterator before deleting.
-    if ( ! hashes.empty())
+    if ( ! hashes.empty()) {
         prune(hashes, minimum_height);
+    }
 }
 
 void block_pool::filter(get_data_ptr message) const {
