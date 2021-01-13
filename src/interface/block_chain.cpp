@@ -226,9 +226,7 @@ bool block_chain::get_output(domain::chain::output& out_output, size_t& out_heig
 
     auto const tx = database_.internal_db().get_transaction(outpoint.hash(), branch_height);
 
-    if ( ! tx.is_valid()) {
-        return false;
-    }
+    if ( ! tx.is_valid()) return false;
     
     out_height = tx.height();
     out_coinbase = tx.position() == 0;
