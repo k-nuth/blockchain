@@ -179,8 +179,7 @@ bool block_chain::get_timestamp(uint32_t& out_timestamp, size_t height) const {
 
 bool block_chain::get_version(uint32_t& out_version, size_t height) const {
     auto result = database_.blocks().get(height);
-    if ( ! result)
-        return false;
+    if ( ! result) return false;
 
     out_version = result.version();
     return true;
