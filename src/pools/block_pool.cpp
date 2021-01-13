@@ -72,8 +72,7 @@ void block_pool::remove(block_const_ptr_list_const_ptr accepted_blocks) {
     for (auto block: *accepted_blocks) {
         auto it = left.find(block_entry{ block->hash() });
 
-        if (it == left.end())
-            continue;
+        if (it == left.end()) continue;
 
         // Copy hashes of all children of nodes we delete.
         auto const& children = it->first.children();
