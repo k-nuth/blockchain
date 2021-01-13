@@ -339,8 +339,7 @@ uint64_t transaction_organizer::price(transaction_const_ptr tx) const {
     auto const sigop_fee = settings_.sigop_fee_satoshis;
 
     // Guard against summing signed values by testing independently.
-    if (byte_fee == 0.0f && sigop_fee == 0.0f)
-        return 0;
+    if (byte_fee == 0.0f && sigop_fee == 0.0f) return 0;
 
     // TODO: this is a second pass on size and sigops, implement cache.
     // This at least prevents uncached calls when zero fee is configured.
