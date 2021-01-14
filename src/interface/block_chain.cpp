@@ -310,17 +310,14 @@ void block_chain::prune_reorg_async() {
 // }
 
 bool block_chain::get_block_exists(hash_digest const& block_hash) const {
-    
     return database_.internal_db().get_header(block_hash).first.is_valid();
 }
 
 bool block_chain::get_block_exists_safe(hash_digest const& block_hash) const {
-   
     return get_block_exists(block_hash);
 }
 
 bool block_chain::get_block_hash(hash_digest& out_hash, size_t height) const {
-   
     auto const result = database_.internal_db().get_header(height);
     if ( ! result.is_valid()) return false;
     out_hash = result.hash();
