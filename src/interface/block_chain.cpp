@@ -1218,10 +1218,11 @@ void block_chain::fetch_transaction_position(hash_digest const& hash, bool requi
 
 //TODO (Mario) : Review and move to proper location
 hash_digest generate_merkle_root(std::vector<domain::chain::transaction> transactions) {
-    if (transactions.empty())
-        return null_hash;
+    using std::swap;
 
-    hash_list merkle, update;
+    if (transactions.empty()) return null_hash;
+
+    hash_list merkle;
 
     auto hasher = [&merkle](transaction const& tx) {
         merkle.push_back(tx.hash());
