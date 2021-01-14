@@ -1231,18 +1231,21 @@ hash_digest generate_merkle_root(std::vector<domain::chain::transaction> transac
     // Hash ordering matters, don't use std::transform here.
     std::for_each(transactions.begin(), transactions.end(), hasher);
 
+    hash_list update;
     // Initial capacity is half of the original list (clear doesn't reset).
     update.reserve((merkle.size() + 1) / 2);
 
     while (merkle.size() > 1) {
         // If number of hashes is odd, duplicate last hash in the list.
-        if (merkle.size() % 2 != 0)
+        if (merkle.size() % 2 != 0) {
             merkle.push_back(merkle.back());
+        }
 
-        for (auto it = merkle.begin(); it != merkle.end(); it += 2)
+        for (auto it = merkle.begin(); it != merkle.end(); it += 2) {
             update.push_back(bitcoin_hash(build_chunk({ it[0], it[1] })));
+        }
 
-        std::swap(merkle, update);
+        swap(merkle, update);
         update.clear();
     }
 
