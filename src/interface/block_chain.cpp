@@ -325,7 +325,6 @@ bool block_chain::get_block_hash(hash_digest& out_hash, size_t height) const {
 }
 
 bool block_chain::get_branch_work(uint256_t& out_work, uint256_t const& maximum, size_t from_height) const {
-    
     size_t top;
     if ( ! get_last_height(top)) return false;
 
