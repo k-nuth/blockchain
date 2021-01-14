@@ -709,7 +709,7 @@ void block_chain::fetch_block_header_txs_size(hash_digest const& hash, block_hea
     auto const height = block_result.height();
     auto const message = std::make_shared<const header>(block_result.header());
     auto const tx_hashes = std::make_shared<hash_list>(block_result.transaction_hashes());
-    //TODO encapsulate header and tx_list
+    //TODO(fernando): encapsulate header and tx_list
     handler(error::success, message, height, tx_hashes, block_result.serialized_size());
 }
 
