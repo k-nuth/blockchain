@@ -327,7 +327,7 @@ bool branch::get_bits(uint32_t& out_bits, size_t height) const {
     return true;
 }
 
-// TODO: absorb into the main chain for speed and code consolidation.
+// TODO(legacy): absorb into the main chain for speed and code consolidation.
 // The version of the block at the given height in the branch.
 bool branch::get_version(uint32_t& out_version, size_t height) const {
     if (height <= height_) {
