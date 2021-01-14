@@ -223,8 +223,7 @@ branch::ptr block_pool::get_path(block_const_ptr block) const {
     ////log_content();
     auto const trace = std::make_shared<branch>();
 
-    if (exists(block))
-        return trace;
+    if (exists(block)) return trace;
 
     while (block) {
         trace->push_front(block);
