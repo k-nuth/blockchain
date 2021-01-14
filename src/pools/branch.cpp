@@ -361,7 +361,7 @@ bool branch::get_timestamp(uint32_t& out_timestamp, size_t height) const {
     return true;
 }
 
-// TODO: convert to a direct block pool query when the branch goes away.
+// TODO(legacy): convert to a direct block pool query when the branch goes away.
 // The hash of the block at the given height if it exists in the branch.
 bool branch::get_block_hash(hash_digest& out_hash, size_t height) const {
     if (height <= height_) {
