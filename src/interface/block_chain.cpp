@@ -272,14 +272,10 @@ bool block_chain::get_transaction_position(size_t& out_height, size_t& out_posit
         return true;
     }   
 
-    if (require_confirmed ) {
-        return false;
-    } 
+    if (require_confirmed ) return false;
     
     auto const result2 = database_.internal_db().get_transaction_unconfirmed(hash);
-    if ( ! result2.is_valid() ) {
-        return false;
-    }
+    if ( ! result2.is_valid() ) return false;
 
     out_height = result2.height();
     out_position = position_max;
