@@ -173,8 +173,7 @@ void block_pool::filter(get_data_ptr message) const {
     auto const& left = blocks_.left;
 
     for (auto it = inventories.begin(); it != inventories.end();) {
-        if ( ! it->is_block_type())
-        {
+        if ( ! it->is_block_type()) {
             ++it;
             continue;
         }
