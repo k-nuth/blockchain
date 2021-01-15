@@ -1384,7 +1384,7 @@ std::vector<domain::chain::transaction> block_chain::get_mempool_transactions_fr
         }
 
         for (auto iter_input = tx.inputs().begin(); (iter_input != tx.inputs().end() && !inserted); ++iter_input) {
-            // TODO: payment_addrress::extract should use the prev_output script instead of the input script
+            // TODO(kth): payment_addrress::extract should use the prev_output script instead of the input script
             // see https://github.com/k-nuth/core/blob/v0.10.0/src/wallet/payment_address.cpp#L505
             auto const tx_addresses = kth::domain::wallet::payment_address::extract((*iter_input).script(), encoding_p2kh, encoding_p2sh);
             for (auto iter_addr = tx_addresses.begin(); (iter_addr != tx_addresses.end() && !inserted); ++iter_addr) {
