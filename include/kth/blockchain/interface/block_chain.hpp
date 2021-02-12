@@ -212,9 +212,9 @@ public:
 
 #if defined(KTH_DB_LEGACY) || defined(KTH_DB_NEW_FULL) 
 
-    void for_each_transaction(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const;
+    void for_each_transaction(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const override;
 
-    void for_each_transaction_non_coinbase(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const;
+    void for_each_transaction_non_coinbase(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const override;
     
     /// fetch transaction by hash.
     void fetch_transaction(hash_digest const& hash, bool require_confirmed, bool witness, transaction_fetch_handler handler) const override;
@@ -351,7 +351,7 @@ public:
     std::vector<domain::chain::transaction> get_mempool_transactions_from_wallets(std::vector<domain::wallet::payment_address> const& payment_addresses, bool use_testnet_rules, bool witness) const override;
 
     /// fetch unconfirmed transaction by hash.
-    void fetch_unconfirmed_transaction(hash_digest const& hash, transaction_unconfirmed_fetch_handler handler) const;
+    void fetch_unconfirmed_transaction(hash_digest const& hash, transaction_unconfirmed_fetch_handler handler) const override;
     
     mempool_mini_hash_map get_mempool_mini_hash_map(domain::message::compact_block const& block) const override;
     void fill_tx_list_from_mempool(domain::message::compact_block const& block, size_t& mempool_count, std::vector<domain::chain::transaction>& txn_available, std::unordered_map<uint64_t, uint16_t> const& shorttxids) const override;
