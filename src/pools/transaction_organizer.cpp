@@ -10,12 +10,13 @@
 #include <future>
 #include <memory>
 #include <utility>
-#include <kth/domain.hpp>
+
 #include <kth/blockchain/define.hpp>
 #include <kth/blockchain/interface/fast_chain.hpp>
 #include <kth/blockchain/interface/safe_chain.hpp>
 #include <kth/blockchain/settings.hpp>
 #include <kth/blockchain/validate/validate_transaction.hpp>
+#include <kth/domain.hpp>
 
 namespace kth::blockchain {
 
@@ -23,7 +24,7 @@ using namespace std::placeholders;
 
 #define NAME "transaction_organizer"
 
-// TODO: create priority pool at blockchain level and use in both organizers. 
+// TODO(legacy): create priority pool at blockchain level and use in both organizers. 
 
 #if defined(KTH_WITH_MEMPOOL)
 transaction_organizer::transaction_organizer(prioritized_mutex& mutex, dispatcher& dispatch, threadpool& thread_pool, fast_chain& chain, settings const& settings, mining::mempool& mp)
@@ -60,16 +61,14 @@ bool transaction_organizer::stopped() const {
 // Start/stop sequences.
 //-----------------------------------------------------------------------------
 
-bool transaction_organizer::start()
-{
+bool transaction_organizer::start() {
     stopped_ = false;
     subscriber_->start();
     validator_.start();
     return true;
 }
 
-bool transaction_organizer::stop()
-{
+bool transaction_organizer::stop() {
     validator_.stop();
     subscriber_->stop();
     subscriber_->invoke(error::service_stopped, {});
@@ -192,8 +191,7 @@ void transaction_organizer::organize(transaction_const_ptr tx, result_handler ha
 }
 
 // private
-void transaction_organizer::signal_completion(code const& ec)
-{
+void transaction_organizer::signal_completion(code const& ec) {
     // This must be protected so that it is properly cleared.
     // Signal completion, which results in original handler invoke with code.
     resume_.set_value(ec);
@@ -203,9 +201,7 @@ void transaction_organizer::signal_completion(code const& ec)
 //-----------------------------------------------------------------------------
 
 // private
-void transaction_organizer::handle_check(code const& ec,
-    transaction_const_ptr tx, result_handler handler)
-{
+void transaction_organizer::handle_check(code const& ec, transaction_const_ptr tx, result_handler handler) {
     if (stopped()) {
         handler(error::service_stopped);
         return;
@@ -225,9 +221,7 @@ void transaction_organizer::handle_check(code const& ec,
 }
 
 // private
-void transaction_organizer::handle_accept(code const& ec,
-    transaction_const_ptr tx, result_handler handler)
-{
+void transaction_organizer::handle_accept(code const& ec, transaction_const_ptr tx, result_handler handler) {
     if (stopped()) {
         handler(error::service_stopped);
         return;
@@ -345,8 +339,7 @@ uint64_t transaction_organizer::price(transaction_const_ptr tx) const {
     auto const sigop_fee = settings_.sigop_fee_satoshis;
 
     // Guard against summing signed values by testing independently.
-    if (byte_fee == 0.0f && sigop_fee == 0.0f)
-        return 0;
+    if (byte_fee == 0.0f && sigop_fee == 0.0f) return 0;
 
     // TODO: this is a second pass on size and sigops, implement cache.
     // This at least prevents uncached calls when zero fee is configured.

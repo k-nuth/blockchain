@@ -10,13 +10,14 @@
 #include <cstdint>
 #include <future>
 #include <memory>
-#include <kth/domain.hpp>
+
 #include <kth/blockchain/define.hpp>
 #include <kth/blockchain/interface/fast_chain.hpp>
 #include <kth/blockchain/interface/safe_chain.hpp>
 #include <kth/blockchain/pools/transaction_pool.hpp>
 #include <kth/blockchain/settings.hpp>
 #include <kth/blockchain/validate/validate_transaction.hpp>
+#include <kth/domain.hpp>
 
 #if defined(KTH_WITH_MEMPOOL)
 #include <kth/mining/mempool.hpp>

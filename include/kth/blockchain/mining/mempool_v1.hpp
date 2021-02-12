@@ -242,11 +242,12 @@ public:
         candidate_index_t(candidate_index_t&& x) = default;
 
         candidate_index_t& operator=(candidate_index_t&& x) noexcept {
+            using std::swap;
             auto xci = all_transactions()[x.index_].candidate_index();
             auto tci = all_transactions()[index_].candidate_index();
             all_transactions()[x.index_].set_candidate_index(tci);
             all_transactions()[index_].set_candidate_index(xci);
-            std::swap(index_, x.index_);
+            swap(index_, x.index_);
 
             return *this;
         }
@@ -282,10 +283,11 @@ public:
 
         friend
         void swap(candidate_index_t& a, candidate_index_t& b) {
+            using std::swap;
             auto tmp = all_transactions()[a.index()].candidate_index();
             all_transactions()[a.index()].set_candidate_index(all_transactions()[b.index()].candidate_index());
             all_transactions()[b.index()].set_candidate_index(tmp);
-            std::swap(a.index_, b.index_);
+            swap(a.index_, b.index_);
         }
 
         friend mempool;

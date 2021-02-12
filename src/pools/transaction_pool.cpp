@@ -6,8 +6,9 @@
 
 #include <cstddef>
 #include <memory>
-#include <kth/domain.hpp>
+
 #include <kth/blockchain/settings.hpp>
+#include <kth/domain.hpp>
 
 namespace kth::blockchain {
 
@@ -23,14 +24,14 @@ transaction_pool::transaction_pool(settings const& settings)
 {
 }
 
-// TODO: implement block template discovery.
+// TODO(legacy): implement block template discovery.
 void transaction_pool::fetch_template(merkle_block_fetch_handler handler) const {
     size_t const height = max_size_t;
     auto const block = std::make_shared<domain::message::merkle_block>();
     handler(error::success, block, height);
 }
 
-// TODO: implement mempool message payload discovery.
+// TODO(legacy): implement mempool message payload discovery.
 void transaction_pool::fetch_mempool(size_t maximum,
     inventory_fetch_handler handler) const {
     auto const empty = std::make_shared<domain::message::inventory>();

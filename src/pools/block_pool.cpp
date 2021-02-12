@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <utility>
+
 #include <kth/blockchain/define.hpp>
 #include <kth/blockchain/pools/branch.hpp>
 
@@ -89,8 +90,7 @@ void block_pool::remove(block_const_ptr_list_const_ptr accepted_blocks) {
         auto it = left.find(block_entry{ child });
 
         // Except for sub-branches all children should have been deleted above.
-        if (it == left.end())
-            continue;
+        if (it == left.end()) continue;
 
         // Copy the entry so that it can be deleted and replanted with height.
         auto const copy = it->first;
@@ -112,7 +112,7 @@ void block_pool::prune(hash_list const& hashes, size_t minimum_height) {
     auto saver = [&](hash_digest const& hash){ child_hashes.push_back(hash); };
     auto& left = blocks_.left;
 
-    for (auto& hash: hashes) {
+    for (auto const& hash: hashes) {
         auto const it = left.find(block_entry{ hash });
         KTH_ASSERT(it != left.end());
 
@@ -154,7 +154,7 @@ void block_pool::prune(size_t top_height) {
     hash_list hashes;
     auto const minimum_height = floor_subtract(top_height, maximum_depth_);
 
-    // TODO: not using table sort here, should stop iterating once above min.
+    // TODO(legacy): not using table sort here, should stop iterating once above min.
     // Iterate over all root nodes with insufficient height.
     for (auto it: blocks_.right) {
         if (it.first != 0 && it.first < minimum_height) {
@@ -187,7 +187,7 @@ void block_pool::filter(get_data_ptr message) const {
         mutex_.unlock_shared();
         ///////////////////////////////////////////////////////////////////////
 
-        // TODO: optimize (prevent repeating vector moves).
+        // TODO(legacy): optimize (prevent repeating vector moves).
         it = found ? inventories.erase(it) : it + 1;
     }
 }

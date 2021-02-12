@@ -19,7 +19,7 @@ namespace kth::blockchain {
 class BCB_API settings {
 public:
     settings() = default;
-    settings(domain::config::network context);
+    settings(domain::config::network net);
 
     /// Fork flags combiner.
     uint32_t enabled_forks() const;

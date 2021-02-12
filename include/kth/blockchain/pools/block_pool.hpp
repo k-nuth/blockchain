@@ -6,13 +6,15 @@
 #define KTH_BLOCKCHAIN_BLOCK_POOL_HPP
 
 #include <cstddef>
+
 #include <boost/bimap.hpp>
 #include <boost/bimap/multiset_of.hpp>
 #include <boost/bimap/unordered_set_of.hpp>
-#include <kth/domain.hpp>
+
 #include <kth/blockchain/define.hpp>
 #include <kth/blockchain/pools/block_entry.hpp>
 #include <kth/blockchain/pools/branch.hpp>
+#include <kth/domain.hpp>
 
 namespace kth::blockchain {
 

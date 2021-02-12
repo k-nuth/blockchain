@@ -13,8 +13,8 @@
 
 namespace kth::blockchain {
 
-settings::settings(domain::config::network network) {
-    switch (network) {
+settings::settings(domain::config::network net) {
+    switch (net) {
         case domain::config::network::mainnet: {
 #if defined(KTH_CURRENCY_BCH)
             asert_half_life = 2ull * 24 * 60 * 60;   // two days
@@ -51,7 +51,7 @@ settings::settings(domain::config::network network) {
 #endif
     }
 
-    checkpoints = domain::config::default_checkpoints(network);
+    checkpoints = domain::config::default_checkpoints(net);
 }
 
 uint32_t settings::enabled_forks() const {

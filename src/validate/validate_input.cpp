@@ -5,6 +5,7 @@
 #include <kth/blockchain/validate/validate_input.hpp>
 
 #include <cstdint>
+
 #include <kth/domain.hpp>
 
 #ifdef WITH_CONSENSUS
