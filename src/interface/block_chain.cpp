@@ -1980,7 +1980,7 @@ void block_chain::fetch_locator_block_headers(get_headers_const_ptr locator,
 }
 
 // This may generally execute 29+ queries.
-void block_chain::fetch_block_locator(const block::indexes& heights, block_locator_fetch_handler handler) const {
+void block_chain::fetch_block_locator(block::indexes const& heights, block_locator_fetch_handler handler) const {
 
     if (stopped()) {
         handler(error::service_stopped, nullptr);
@@ -2434,14 +2434,12 @@ void block_chain::transaction_validate(transaction_const_ptr tx, result_handler 
 // Organizers.
 //-----------------------------------------------------------------------------
 
-void block_chain::organize(block_const_ptr block, result_handler handler)
-{
+void block_chain::organize(block_const_ptr block, result_handler handler) {
     // This cannot call organize or stop (lock safe).
     block_organizer_.organize(block, handler);
 }
 
-void block_chain::organize(transaction_const_ptr tx, result_handler handler)
-{
+void block_chain::organize(transaction_const_ptr tx, result_handler handler) {
     // This cannot call organize or stop (lock safe).
     transaction_organizer_.organize(tx, handler);
 }

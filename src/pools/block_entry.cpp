@@ -45,7 +45,7 @@ void block_entry::add_child(block_const_ptr child) const {
     children_.push_back(child->hash());
 }
 
-std::ostream& operator<<(std::ostream& out, const block_entry& of) {
+std::ostream& operator<<(std::ostream& out, block_entry const& of) {
     out << encode_hash(of.hash_)
         << " " << encode_hash(of.parent())
         << " " << of.children_.size();
@@ -53,7 +53,7 @@ std::ostream& operator<<(std::ostream& out, const block_entry& of) {
 }
 
 // For the purpose of bimap identity only the tx hash matters.
-bool block_entry::operator==(const block_entry& other) const {
+bool block_entry::operator==(block_entry const& other) const {
     return hash_ == other.hash_;
 }
 

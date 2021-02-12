@@ -45,10 +45,10 @@ public:
 
     /// Serializer for debugging (temporary).
     friend 
-    std::ostream& operator<<(std::ostream& out, const block_entry& of);
+    std::ostream& operator<<(std::ostream& out, block_entry const& of);
 
     /// Operators.
-    bool operator==(const block_entry& other) const;
+    bool operator==(block_entry const& other) const;
 
 private:
     // These are non-const to allow for default copy construction.
