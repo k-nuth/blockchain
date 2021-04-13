@@ -23,7 +23,7 @@ clang-tidy --version
 conan user
 conan --version
 
-conan remote add kth_temp https://api.bintray.com/conan/k-nuth/kth
+conan remote add kth_temp https://knuth.jfrog.io/artifactory/api/conan/knuth
 
 cd /home/conan/project
 
@@ -37,7 +37,7 @@ echo $CONAN_CHANNEL
 
 mkdir build
 cd build
-conan install .. 
+conan install ..
 # cmake .. -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DUSE_CONAN=ON -DENABLE_TESTS=OFF -DWITH_TESTS=OFF -DWITH_TOOLS=OFF -DCMAKE_BUILD_TYPE=Release -DJUST_KTH_SOURCES=OFF -DWITH_KEOKEN=ON
 # python ../ci_utils/run-clang-tidy.py -checks='*,-android-*,-llvm-header-guard,-fuchsia*,-google-runtime-references,-cert-err58-cpp,-cppcoreguidelines-special-member-functions,-modernize-pass-by-value,-cert-dcl21-cpp,-google-explicit-constructor,-hicpp-explicit-conversions,-hicpp-member-init,-hicpp-signed-bitwise,-google-build-using-namespace,-hicpp-special-member-functions,-cppcoreguidelines-pro-type-member-init,-cppcoreguidelines-pro-bounds-pointer-arithmetic,-cppcoreguidelines-pro-bounds-array-to-pointer-decay,-hicpp-no-array-decay' -warnings-as-errors='*'  -header-filter=/home/conan/project/include/
 
