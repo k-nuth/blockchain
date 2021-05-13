@@ -56,16 +56,17 @@ public:
     bool bch_pisano = true;
     bool bch_mersenne = true;
     bool bch_fermat = true;      // 2020-May
-    bool bch_euler = false;      // 2020-Nov
-    bool bch_gauss = false;    // 2021-May
+    bool bch_euler = true;       // 2020-Nov
+                                 // 2021-May (no HF)
+    // bool bch_gauss = false;   // ????-???
     // bool bch_unnamed = false; // 2021-Nov
-    
+
     ////2017-Aug-01 hard fork, defaults to 478559 (Mainnet)
-    // size_t uahf_height = 478559;                             
+    // size_t uahf_height = 478559;
 
     ////2017-Nov-13 hard fork, defaults to 504031 (Mainnet)
-    // size_t daa_height = 504031;                              
-    
+    // size_t daa_height = 504031;
+
     ////2018-May-15 hard fork, defaults to 1526400000
     // uint64_t pythagoras_activation_time = bch_pythagoras_activation_time;
 
@@ -73,24 +74,26 @@ public:
     // uint64_t euclid_activation_time = bch_euclid_activation_time;
 
     // //2019-May-15 hard fork, defaults to 1557921600: Wed, 15 May 2019 12:00:00 UTC protocol upgrade
-    // uint64_t pisano_activation_time = bch_pisano_activation_time;               
-    
+    // uint64_t pisano_activation_time = bch_pisano_activation_time;
+
     // //2019-May-15 hard fork, defaults to 1573819200: Nov 15, 2019 12:00:00 UTC protocol upgrade
     // uint64_t mersenne_activation_time = bch_mersenne_activation_time;
 
     // //2020-May-15 hard fork, defaults to 1589544000: May 15, 2020 12:00:00 UTC protocol upgrade
     // uint64_t fermat_activation_time = to_underlying(bch_fermat_activation_time);
-    
+
     // //2020-Nov-15 hard fork, defaults to 1605441600: Nov 15, 2020 12:00:00 UTC protocol upgrade
     // uint64_t euler_activation_time = to_underlying(bch_euler_activation_time);
 
-    //2021-May-15 hard fork, defaults to 1621080000: May 15, 2021 12:00:00 UTC protocol upgrade
-    uint64_t gauss_activation_time = to_underlying(bch_gauss_activation_time);
+    // 2021-May-15: No hard fork on May 15, 2021.
 
-    // //2021-Nov-15 hard fork, defaults to 9999999999: Nov 15, 2021 12:00:00 UTC protocol upgrade
+    // //????-???-?? hard fork, defaults to 9999999999: ??? ??, ???? 12:00:00 UTC protocol upgrade
+    // uint64_t gauss_activation_time = to_underlying(bch_gauss_activation_time);
+
+    // //????-???-?? hard fork, defaults to 9999999999: ??? ??, ???? 12:00:00 UTC protocol upgrade
     // uint64_t unnamed_activation_time = to_underlying(bch_unnamed_activation_time);
 
-    // The half life for the ASERTi3-2d DAA. For every (asert_half_life) seconds behind schedule the blockchain gets, difficulty is cut in half. 
+    // The half life for the ASERTi3-2d DAA. For every (asert_half_life) seconds behind schedule the blockchain gets, difficulty is cut in half.
     // Doubled if blocks are ahead of schedule.
     uint64_t asert_half_life = 2ull * 24 * 60 * 60;   //two days
 #else
