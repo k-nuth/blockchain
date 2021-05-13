@@ -54,7 +54,6 @@ uint32_t validate_input::convert_flags(uint32_t native_forks) {
     }
 
     if (script::is_enabled(native_forks, domain::machine::rule_fork::bch_euclid)) {
-        flags |= verify_flags_enable_checkdatasig_sigops;
         flags |= verify_flags_sigpushonly;
         flags |= verify_flags_cleanstack;
     }
@@ -65,9 +64,7 @@ uint32_t validate_input::convert_flags(uint32_t native_forks) {
     }
 
     if (script::is_enabled(native_forks, domain::machine::rule_fork::bch_fermat)) {
-        flags |= verify_flags_enable_op_reversebytes;
-        flags |= verify_flags_report_sigchecks;
-        flags |= verify_flags_zero_sigops;
+        flags |= verify_flags_enforce_sigchecks;
     }
 
     // // We make sure this node will have replay protection during the next hard fork.
