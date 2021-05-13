@@ -39,7 +39,7 @@ populate_chain_state::populate_chain_state(fast_chain const& chain, settings con
     , fast_chain_(chain)
 {}
 
-inline 
+inline
 bool is_transaction_pool(branch::const_ptr branch) {
     return branch->empty();
 }
@@ -184,10 +184,10 @@ bool populate_chain_state::populate_all(chain_state::data& data, branch::const_p
         && populate_versions(data, map, branch)
         && populate_timestamps(data, map, branch)
         && populate_collision(data, map, branch)
-#if ! defined(KTH_CURRENCY_BCH)        
+#if ! defined(KTH_CURRENCY_BCH)
         && populate_bip9_bit0(data, map, branch)
         && populate_bip9_bit1(data, map, branch)
-#endif        
+#endif
     );
     ///////////////////////////////////////////////////////////////////////////
 }
@@ -230,7 +230,7 @@ bool populate_chain_state::populate_all(chain_state::data& data, branch::const_p
 //     // return branch->get_bits(out_xxxxxxx, height) || fast_chain_.get_bits(out_xxxxxxx, height);
 //     auto const headers = fast_chain_.get_headers(from, height);
 //     std::vector<uint32_t> timestamps(headers.size(), 0);
-//     std::transform(std::begin(headers), std::end(headers), std::begin(timestamps), [](auto const& h) { 
+//     std::transform(std::begin(headers), std::end(headers), std::begin(timestamps), [](auto const& h) {
 //         return h.timestamp();
 //     });
 
@@ -239,7 +239,7 @@ bool populate_chain_state::populate_all(chain_state::data& data, branch::const_p
 //         auto mtp = get_mtp(it);
 //         return domain::chain::chain_state::is_mtp_activated(mtp, settings_.euler_activation_time);
 //     };
-//     auto p = partition_point_variant_n(std::next(std::begin(timestamps), len), 
+//     auto p = partition_point_variant_n(std::next(std::begin(timestamps), len),
 //                                        std::size(timestamps), is_euler_enabled);
 
 //     //TODO(fernando): what to do if p == std::end(timestamps)?
@@ -265,7 +265,7 @@ chain_state::assert_anchor_block_info_t populate_chain_state::get_assert_anchor_
                                 , size_t(0)
                                 , testnet4_asert_anchor_block_ancestor_time
                                 , scalenet_asert_anchor_block_ancestor_time
-                                ); 
+                                );
 
     //TODO(fernando): make the function network_map generic
     uint32_t const bits = network_map(network
@@ -276,7 +276,7 @@ chain_state::assert_anchor_block_info_t populate_chain_state::get_assert_anchor_
                                 , scalenet_asert_anchor_block_bits
                                 );
 
-    return {height, ancestor_time, bits};                                                   
+    return {height, ancestor_time, bits};
 }
 
 #endif // defined(KTH_CURRENCY_BCH)
@@ -318,7 +318,7 @@ chain_state::ptr populate_chain_state::populate() const {
         // , settings_.mersenne_activation_time
         // , fermat_t(settings_.fermat_activation_time)
         // , euler_t(settings_.euler_activation_time)
-        , gauss_t(settings_.gauss_activation_time)
+        // , gauss_t(settings_.gauss_activation_time)
 #endif //KTH_CURRENCY_BCH
     );
 }
@@ -355,7 +355,7 @@ chain_state::ptr populate_chain_state::populate(chain_state::ptr pool, branch::c
         // , settings_.mersenne_activation_time
         // , fermat_t(settings_.fermat_activation_time)
         // , euler_t(settings_.euler_activation_time)
-        , gauss_t(settings_.gauss_activation_time)
+        // , gauss_t(settings_.gauss_activation_time)
 #endif //KTH_CURRENCY_BCH
     );
 }
