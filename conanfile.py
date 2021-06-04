@@ -86,7 +86,7 @@ class KnuthBlockchainConan(KnuthConanFile):
             self.requires.add("consensus/0.X@%s/%s" % (self.user, self.channel))
 
         if self.options.tests:
-            self.requires("catch2/2.13.4")
+            self.requires("catch2/2.13.6")
 
     def config_options(self):
         KnuthConanFile.config_options(self)
