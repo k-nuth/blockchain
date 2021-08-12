@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2020 Knuth Project developers.
+// Copyright (c) 2016-2021 Knuth Project developers.
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -6,8 +6,9 @@
 #define KTH_BLOCKCHAIN_VALIDATE_INPUT_HPP
 
 #include <cstdint>
-#include <kth/domain.hpp>
+
 #include <kth/blockchain/define.hpp>
+#include <kth/domain.hpp>
 
 #ifdef WITH_CONSENSUS
 #include <kth/consensus.hpp>

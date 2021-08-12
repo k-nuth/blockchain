@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2020 Knuth Project developers.
+// Copyright (c) 2016-2021 Knuth Project developers.
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -45,10 +45,10 @@ public:
 
     /// Serializer for debugging (temporary).
     friend 
-    std::ostream& operator<<(std::ostream& out, const block_entry& of);
+    std::ostream& operator<<(std::ostream& out, block_entry const& of);
 
     /// Operators.
-    bool operator==(const block_entry& other) const;
+    bool operator==(block_entry const& other) const;
 
 private:
     // These are non-const to allow for default copy construction.

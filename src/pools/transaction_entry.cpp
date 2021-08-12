@@ -1,12 +1,12 @@
-// Copyright (c) 2016-2020 Knuth Project developers.
+// Copyright (c) 2016-2021 Knuth Project developers.
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include <kth/blockchain/pools/transaction_entry.hpp>
 
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
-#include <algorithm>
 #include <iostream>
 
 #include <kth/domain.hpp>
@@ -21,7 +21,7 @@ uint32_t cap(size_t value) {
     return domain_constrain<uint32_t>(value);
 }
 
-// TODO: implement size, sigops, and fees caching on domain::chain::transaction.
+// TODO(legacy): implement size, sigops, and fees caching on domain::chain::transaction.
 // This requires the full population of transaction.validation metadata.
 transaction_entry::transaction_entry(transaction_const_ptr tx)
     : size_(cap(tx->serialized_size(domain::message::version::level::canonical)))
@@ -103,8 +103,8 @@ void transaction_entry::add_child(ptr child) {
 void transaction_entry::remove_child(ptr child) {
     auto const it = find(children_.begin(), children_.end(), child);
 
-    // TODO: this is a placeholder for subtree purge.
-    // TODO: manage removal of bidirectional link add/remove.
+    // TODO(legacy): this is a placeholder for subtree purge.
+    // TODO(legacy): manage removal of bidirectional link add/remove.
     if (it != children_.end()) {
         children_.erase(it);
     }

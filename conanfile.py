@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2020 Knuth Project developers.
+# Copyright (c) 2016-2021 Knuth Project developers.
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -49,11 +49,11 @@ class KnuthBlockchainConan(KnuthConanFile):
         "tests": False,
         "tools": False,
         "currency": "BCH",
-        
+
         "microarchitecture": "_DUMMY_",
         "fix_march": False,
         "march_id": "_DUMMY_",
-        
+
         "verbose": False,
         "keoken": False,
         "mempool": False,
@@ -115,7 +115,7 @@ class KnuthBlockchainConan(KnuthConanFile):
         self.output.info("Compiling with read-only DB: %s" % (self.options.db_readonly,))
 
         # self.options["*"].mining = self.options.mining
-        # self.options["*"].mempool = self.options.mempool  
+        # self.options["*"].mempool = self.options.mempool
         # self.output.info("Compiling with mining optimizations: %s" % (self.options.mining,))
         self.output.info("Compiling with mempool: %s" % (self.options.mempool,))
 

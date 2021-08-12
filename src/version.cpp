@@ -1,15 +1,15 @@
-// Copyright (c) 2016-2020 Knuth Project developers.
+// Copyright (c) 2016-2021 Knuth Project developers.
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 
 #include <kth/blockchain/version.hpp>
 
-namespace kth { namespace blockchain {
+namespace kth::blockchain {
 
 char const* version() {
     return KTH_BLOCKCHAIN_VERSION;
 }
 
-}} // namespace kth::blockchain
+} // namespace kth::blockchain
 

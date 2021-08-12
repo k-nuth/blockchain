@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2020 Knuth Project developers.
+// Copyright (c) 2016-2021 Knuth Project developers.
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -50,7 +50,7 @@ public:
     virtual bool get_block_hash(hash_digest& out_hash, size_t height) const = 0;
 
     /// Get the work of the branch starting at the given height.
-    virtual bool get_branch_work(uint256_t& out_work, const uint256_t& maximum, size_t from_height) const = 0;
+    virtual bool get_branch_work(uint256_t& out_work, uint256_t const& maximum, size_t from_height) const = 0;
 
     /// Get the header of the block at the given height.
     virtual bool get_header(domain::chain::header& out_header, size_t height) const = 0;

@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2020 Knuth Project developers.
+// Copyright (c) 2016-2021 Knuth Project developers.
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -9,12 +9,13 @@
 #include <future>
 #include <memory>
 #include <utility>
-#include <kth/domain.hpp>
+
 #include <kth/blockchain/interface/fast_chain.hpp>
 #include <kth/blockchain/pools/block_pool.hpp>
 #include <kth/blockchain/pools/branch.hpp>
 #include <kth/blockchain/settings.hpp>
 #include <kth/blockchain/validate/validate_block.hpp>
+#include <kth/domain.hpp>
 
 namespace kth::blockchain {
 
@@ -413,7 +414,7 @@ void block_organizer::handle_connect(code const& ec, branch::ptr branch, result_
         return;
     }
 
-    // TODO: consider relay of pooled blocks by modifying subscriber semantics.
+    // TODO(legacy): consider relay of pooled blocks by modifying subscriber semantics.
     if (work <= threshold) {
         if ( ! top_block.simulate) {
             block_pool_.add(branch->top());
@@ -433,7 +434,7 @@ void block_organizer::handle_connect(code const& ec, branch::ptr branch, result_
     }
 #endif
 
-    // TODO: create a simulated validation path that does not block others.
+    // TODO(legacy): create a simulated validation path that does not block others.
     if (top_block.simulate) {
         handler(error::success);
         return;
@@ -475,10 +476,7 @@ void block_organizer::handle_reorganized(code const& ec, branch::const_ptr branc
     // v3 reorg block order is reverse of v2, branch.back() is the new top.
     notify(branch->height(), branch->blocks(), outgoing);
 
-#if ! defined(KTH_DB_READONLY)
     fast_chain_.prune_reorg_async();
-#endif
-
     //fast_chain_.set_database_flags();
 
     handler(error::success);
@@ -512,7 +510,7 @@ void block_organizer::filter(get_data_ptr message) const {
 // Utility.
 //-----------------------------------------------------------------------------
 
-// TODO: store this in the block pool and avoid this query.
+// TODO(legacy): store this in the block pool and avoid this query.
 bool block_organizer::set_branch_height(branch::ptr branch) {
     size_t height;
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2020 Knuth Project developers.
+// Copyright (c) 2016-2021 Knuth Project developers.
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -87,7 +87,7 @@ public:
     bool get_block_exists_safe(hash_digest const& block_hash) const override;
 
     /// Get the work of the branch starting at the given height.
-    bool get_branch_work(uint256_t& out_work, const uint256_t& maximum, size_t height) const override;
+    bool get_branch_work(uint256_t& out_work, uint256_t const& maximum, size_t height) const override;
 
     /// Get the header of the block at the given height.
     bool get_header(domain::chain::header& out_header, size_t height) const override;
@@ -212,9 +212,9 @@ public:
 
 #if defined(KTH_DB_LEGACY) || defined(KTH_DB_NEW_FULL) 
 
-    void for_each_transaction(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const;
+    void for_each_transaction(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const override;
 
-    void for_each_transaction_non_coinbase(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const;
+    void for_each_transaction_non_coinbase(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const override;
     
     /// fetch transaction by hash.
     void fetch_transaction(hash_digest const& hash, bool require_confirmed, bool witness, transaction_fetch_handler handler) const override;
@@ -351,7 +351,7 @@ public:
     std::vector<domain::chain::transaction> get_mempool_transactions_from_wallets(std::vector<domain::wallet::payment_address> const& payment_addresses, bool use_testnet_rules, bool witness) const override;
 
     /// fetch unconfirmed transaction by hash.
-    void fetch_unconfirmed_transaction(hash_digest const& hash, transaction_unconfirmed_fetch_handler handler) const;
+    void fetch_unconfirmed_transaction(hash_digest const& hash, transaction_unconfirmed_fetch_handler handler) const override;
     
     mempool_mini_hash_map get_mempool_mini_hash_map(domain::message::compact_block const& block) const override;
     void fill_tx_list_from_mempool(domain::message::compact_block const& block, size_t& mempool_count, std::vector<domain::chain::transaction>& txn_available, std::unordered_map<uint64_t, uint16_t> const& shorttxids) const override;

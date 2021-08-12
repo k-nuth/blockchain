@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2020 Knuth Project developers.
+// Copyright (c) 2016-2021 Knuth Project developers.
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -11,12 +11,12 @@
 #include <functional>
 #include <memory>
 
-#include <kth/domain.hpp>
-#include <kth/domain/multi_crypto_support.hpp>
 #include <kth/blockchain/interface/fast_chain.hpp>
 #include <kth/blockchain/pools/branch.hpp>
 #include <kth/blockchain/settings.hpp>
 #include <kth/blockchain/validate/validate_input.hpp>
+#include <kth/domain.hpp>
+#include <kth/domain/multi_crypto_support.hpp>
 
 namespace kth::blockchain {
 

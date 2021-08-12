@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2020 Knuth Project developers.
+// Copyright (c) 2016-2021 Knuth Project developers.
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -11,14 +11,14 @@
 #include <memory>
 #include <numeric>
 #include <string>
-#include <utility>
 #include <unordered_set>
+#include <utility>
 
-#include <kth/blockchain/settings.hpp>
 #include <kth/blockchain/populate/populate_chain_state.hpp>
+#include <kth/blockchain/settings.hpp>
+#include <kth/database.hpp>
 #include <kth/domain.hpp>
 #include <kth/domain/multi_crypto_support.hpp>
-#include <kth/database.hpp>
 #include <kth/infrastructure/math/sip_hash.hpp>
 
 #include <boost/thread/latch.hpp>
@@ -120,25 +120,21 @@ bool block_chain::get_block_exists_safe(hash_digest const& block_hash) const {
 bool block_chain::get_block_hash(hash_digest& out_hash, size_t height) const {
     auto const result = database_.blocks().get(height);
 
-    if ( ! result)
-        return false;
+    if ( ! result) return false;
 
     out_hash = result.hash();
     return true;
 }
 
-bool block_chain::get_branch_work(uint256_t& out_work,
-    const uint256_t& maximum, size_t from_height) const {
+bool block_chain::get_branch_work(uint256_t& out_work, uint256_t const& maximum, size_t from_height) const {
     size_t top;
-    if ( ! database_.blocks().top(top))
-        return false;
+    if ( ! database_.blocks().top(top)) return false;
 
     out_work = 0;
     for (auto height = from_height; height <= top && out_work < maximum;
         ++height) {
         auto const result = database_.blocks().get(height);
-        if ( ! result)
-            return false;
+        if ( ! result) return false;
 
         out_work += domain::chain::header::proof(result.bits());
     }
@@ -148,8 +144,7 @@ bool block_chain::get_branch_work(uint256_t& out_work,
 
 bool block_chain::get_header(domain::chain::header& out_header, size_t height) const {
     auto result = database_.blocks().get(height);
-    if ( ! result)
-        return false;
+    if ( ! result) return false;
 
     out_header = result.header();
     return true;
@@ -158,11 +153,9 @@ bool block_chain::get_header(domain::chain::header& out_header, size_t height) c
 //TODO(fernando): implement get_headers using legacy DB.
 // domain::chain::header::list block_chain::get_headers(size_t from, size_t to) const;
 
-bool block_chain::get_height(size_t& out_height,
-    hash_digest const& block_hash) const {
+bool block_chain::get_height(size_t& out_height, hash_digest const& block_hash) const {
     auto result = database_.blocks().get(block_hash);
-    if ( ! result)
-        return false;
+    if ( ! result) return false;
 
     out_height = result.height();
     return true;
@@ -170,8 +163,7 @@ bool block_chain::get_height(size_t& out_height,
 
 bool block_chain::get_bits(uint32_t& out_bits, size_t height) const {
     auto result = database_.blocks().get(height);
-    if ( ! result)
-        return false;
+    if ( ! result) return false;
 
     out_bits = result.bits();
     return true;
@@ -179,8 +171,7 @@ bool block_chain::get_bits(uint32_t& out_bits, size_t height) const {
 
 bool block_chain::get_timestamp(uint32_t& out_timestamp, size_t height) const {
     auto result = database_.blocks().get(height);
-    if ( ! result)
-        return false;
+    if ( ! result) return false;
 
     out_timestamp = result.timestamp();
     return true;
@@ -188,8 +179,7 @@ bool block_chain::get_timestamp(uint32_t& out_timestamp, size_t height) const {
 
 bool block_chain::get_version(uint32_t& out_version, size_t height) const {
     auto result = database_.blocks().get(height);
-    if ( ! result)
-        return false;
+    if ( ! result) return false;
 
     out_version = result.version();
     return true;
@@ -236,9 +226,7 @@ bool block_chain::get_output(domain::chain::output& out_output, size_t& out_heig
 
     auto const tx = database_.internal_db().get_transaction(outpoint.hash(), branch_height);
 
-    if ( ! tx.is_valid()) {
-        return false;
-    }
+    if ( ! tx.is_valid()) return false;
     
     out_height = tx.height();
     out_coinbase = tx.position() == 0;
@@ -284,14 +272,10 @@ bool block_chain::get_transaction_position(size_t& out_height, size_t& out_posit
         return true;
     }   
 
-    if (require_confirmed ) {
-        return false;
-    } 
+    if (require_confirmed ) return false;
     
     auto const result2 = database_.internal_db().get_transaction_unconfirmed(hash);
-    if ( ! result2.is_valid() ) {
-        return false;
-    }
+    if ( ! result2.is_valid() ) return false;
 
     out_height = result2.height();
     out_position = position_max;
@@ -326,17 +310,14 @@ void block_chain::prune_reorg_async() {
 // }
 
 bool block_chain::get_block_exists(hash_digest const& block_hash) const {
-    
     return database_.internal_db().get_header(block_hash).first.is_valid();
 }
 
 bool block_chain::get_block_exists_safe(hash_digest const& block_hash) const {
-   
     return get_block_exists(block_hash);
 }
 
 bool block_chain::get_block_hash(hash_digest& out_hash, size_t height) const {
-   
     auto const result = database_.internal_db().get_header(height);
     if ( ! result.is_valid()) return false;
     out_hash = result.hash();
@@ -344,7 +325,6 @@ bool block_chain::get_block_hash(hash_digest& out_hash, size_t height) const {
 }
 
 bool block_chain::get_branch_work(uint256_t& out_work, uint256_t const& maximum, size_t from_height) const {
-    
     size_t top;
     if ( ! get_last_height(top)) return false;
 
@@ -729,7 +709,7 @@ void block_chain::fetch_block_header_txs_size(hash_digest const& hash, block_hea
     auto const height = block_result.height();
     auto const message = std::make_shared<const header>(block_result.header());
     auto const tx_hashes = std::make_shared<hash_list>(block_result.transaction_hashes());
-    //TODO encapsulate header and tx_list
+    //TODO(fernando): encapsulate header and tx_list
     handler(error::success, message, height, tx_hashes, block_result.serialized_size());
 }
 
@@ -1007,7 +987,7 @@ void block_chain::fetch_block_header_txs_size(hash_digest const& hash,
     auto const height = block_result.second; 
     auto const result = std::make_shared<const header>(block_result.first.header());
     auto const tx_hashes = std::make_shared<hash_list>(block_result.first.to_hashes());
-    //TODO encapsulate header and tx_list
+    //TODO(fernando): encapsulate header and tx_list
     handler(error::success, result, height, tx_hashes, block_result.first.serialized_size());
 }
 
@@ -1238,10 +1218,11 @@ void block_chain::fetch_transaction_position(hash_digest const& hash, bool requi
 
 //TODO (Mario) : Review and move to proper location
 hash_digest generate_merkle_root(std::vector<domain::chain::transaction> transactions) {
-    if (transactions.empty())
-        return null_hash;
+    using std::swap;
 
-    hash_list merkle, update;
+    if (transactions.empty()) return null_hash;
+
+    hash_list merkle;
 
     auto hasher = [&merkle](transaction const& tx) {
         merkle.push_back(tx.hash());
@@ -1250,18 +1231,21 @@ hash_digest generate_merkle_root(std::vector<domain::chain::transaction> transac
     // Hash ordering matters, don't use std::transform here.
     std::for_each(transactions.begin(), transactions.end(), hasher);
 
+    hash_list update;
     // Initial capacity is half of the original list (clear doesn't reset).
     update.reserve((merkle.size() + 1) / 2);
 
     while (merkle.size() > 1) {
         // If number of hashes is odd, duplicate last hash in the list.
-        if (merkle.size() % 2 != 0)
+        if (merkle.size() % 2 != 0) {
             merkle.push_back(merkle.back());
+        }
 
-        for (auto it = merkle.begin(); it != merkle.end(); it += 2)
+        for (auto it = merkle.begin(); it != merkle.end(); it += 2) {
             update.push_back(bitcoin_hash(build_chunk({ it[0], it[1] })));
+        }
 
-        std::swap(merkle, update);
+        swap(merkle, update);
         update.clear();
     }
 
@@ -1326,7 +1310,7 @@ std::vector<kth::blockchain::mempool_transaction_summary> block_chain::get_mempo
         }
         i = 0;
         for (auto const& input : tx.inputs()) {
-            // TODO: payment_addrress::extract should use the prev_output script instead of the input script
+            // TODO(kth): payment_addrress::extract should use the prev_output script instead of the input script
             // see https://github.com/k-nuth/core/blob/v0.10.0/src/wallet/payment_address.cpp#L505
             auto const tx_addresses = kth::domain::wallet::payment_address::extract(input.script(), encoding_p2kh, encoding_p2sh);
             for(auto const tx_address : tx_addresses)
@@ -1400,7 +1384,7 @@ std::vector<domain::chain::transaction> block_chain::get_mempool_transactions_fr
         }
 
         for (auto iter_input = tx.inputs().begin(); (iter_input != tx.inputs().end() && !inserted); ++iter_input) {
-            // TODO: payment_addrress::extract should use the prev_output script instead of the input script
+            // TODO(kth): payment_addrress::extract should use the prev_output script instead of the input script
             // see https://github.com/k-nuth/core/blob/v0.10.0/src/wallet/payment_address.cpp#L505
             auto const tx_addresses = kth::domain::wallet::payment_address::extract((*iter_input).script(), encoding_p2kh, encoding_p2sh);
             for (auto iter_addr = tx_addresses.begin(); (iter_addr != tx_addresses.end() && !inserted); ++iter_addr) {
@@ -1590,7 +1574,7 @@ std::vector<kth::blockchain::mempool_transaction_summary> block_chain::get_mempo
         }
         i = 0;
         for (auto const& input : tx.inputs()) {
-            // TODO: payment_addrress::extract should use the prev_output script instead of the input script
+            // TODO(kth): payment_addrress::extract should use the prev_output script instead of the input script
             // see https://github.com/k-nuth/core/blob/v0.10.0/src/wallet/payment_address.cpp#L505
             auto const tx_addresses = kth::domain::wallet::payment_address::extract(input.script(), encoding_p2kh, encoding_p2sh);
             for(auto const tx_address : tx_addresses)
@@ -1664,7 +1648,7 @@ std::vector<domain::chain::transaction> block_chain::get_mempool_transactions_fr
         }
 
         for (auto iter_input = tx.inputs().begin(); (iter_input != tx.inputs().end() && !inserted); ++iter_input) {
-            // TODO: payment_addrress::extract should use the prev_output script instead of the input script
+            // TODO(kth): payment_addrress::extract should use the prev_output script instead of the input script
             // see https://github.com/k-nuth/core/blob/v0.10.0/src/wallet/payment_address.cpp#L505
             auto const tx_addresses = kth::domain::wallet::payment_address::extract((*iter_input).script(), encoding_p2kh, encoding_p2sh);
             for (auto iter_addr = tx_addresses.begin(); (iter_addr != tx_addresses.end() && !inserted); ++iter_addr) {
@@ -1980,7 +1964,7 @@ void block_chain::fetch_locator_block_headers(get_headers_const_ptr locator,
 }
 
 // This may generally execute 29+ queries.
-void block_chain::fetch_block_locator(const block::indexes& heights, block_locator_fetch_handler handler) const {
+void block_chain::fetch_block_locator(block::indexes const& heights, block_locator_fetch_handler handler) const {
 
     if (stopped()) {
         handler(error::service_stopped, nullptr);
@@ -2434,14 +2418,12 @@ void block_chain::transaction_validate(transaction_const_ptr tx, result_handler 
 // Organizers.
 //-----------------------------------------------------------------------------
 
-void block_chain::organize(block_const_ptr block, result_handler handler)
-{
+void block_chain::organize(block_const_ptr block, result_handler handler) {
     // This cannot call organize or stop (lock safe).
     block_organizer_.organize(block, handler);
 }
 
-void block_chain::organize(transaction_const_ptr tx, result_handler handler)
-{
+void block_chain::organize(transaction_const_ptr tx, result_handler handler) {
     // This cannot call organize or stop (lock safe).
     transaction_organizer_.organize(tx, handler);
 }

@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2020 Knuth Project developers.
+// Copyright (c) 2016-2021 Knuth Project developers.
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -9,12 +9,13 @@
 #include <cstddef>
 #include <cstdint>
 #include <memory>
-#include <kth/domain.hpp>
+
 #include <kth/blockchain/define.hpp>
 #include <kth/blockchain/interface/fast_chain.hpp>
 #include <kth/blockchain/pools/branch.hpp>
 #include <kth/blockchain/populate/populate_block.hpp>
 #include <kth/blockchain/settings.hpp>
+#include <kth/domain.hpp>
 
 #if defined(KTH_WITH_MEMPOOL)
 #include <kth/mining/mempool.hpp>

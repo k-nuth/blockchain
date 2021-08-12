@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2020 Knuth Project developers.
+// Copyright (c) 2016-2021 Knuth Project developers.
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -9,8 +9,9 @@
 #include <memory>
 #include <numeric>
 #include <utility>
-#include <kth/domain.hpp>
+
 #include <kth/blockchain/define.hpp>
+#include <kth/domain.hpp>
 
 namespace kth::blockchain {
 
@@ -125,7 +126,7 @@ uint32_t branch::median_time_past_at(size_t index) const {
     return (*blocks_)[index]->header().validation.median_time_past;
 }
 
-// TODO: absorb into the main chain for speed and code consolidation.
+// TODO(legacy): absorb into the main chain for speed and code consolidation.
 // The branch work check is both a consensus check and denial of service
 // protection. It is necessary here that total claimed work exceeds that of the
 // competing chain segment (consensus), and that the work has actually been
@@ -145,7 +146,7 @@ uint256_t branch::work() const {
     return total;
 }
 
-// TODO: convert to a direct block pool query when the branch goes away.
+// TODO(legacy): convert to a direct block pool query when the branch goes away.
 // BUGBUG: this does not differentiate between spent and unspent txs.
 // Spent transactions could exist in the pool due to other txs in the same or
 // later pool blocks. So this is disabled in favor of "allowed collisions".
@@ -173,7 +174,7 @@ uint256_t branch::work() const {
 ////    tx.validation.duplicate = count > 1u;
 ////}
 
-// TODO: convert to a direct block pool query when the branch goes away.
+// TODO(legacy): convert to a direct block pool query when the branch goes away.
 void branch::populate_spent(output_point const& outpoint) const {
     auto& prevout = outpoint.validation;
 
@@ -188,7 +189,7 @@ void branch::populate_spent(output_point const& outpoint) const {
         return;
     }
 
-    // TODO: use hash table storage of block's inputs for block pool entries.
+    // TODO(legacy): use hash table storage of block's inputs for block pool entries.
     auto const blocks = [&outpoint](block_const_ptr block) {
         auto const transactions = [&outpoint](transaction const& tx) {
             auto const prevout_match = [&outpoint](const input& input) {
@@ -209,7 +210,7 @@ void branch::populate_spent(output_point const& outpoint) const {
     prevout.confirmed = prevout.spent;
 }
 
-// TODO: absorb into the main chain for speed and code consolidation.
+// TODO(legacy): absorb into the main chain for speed and code consolidation.
 void branch::populate_prevout(output_point const& outpoint) const {
     auto& prevout = outpoint.validation;
 
@@ -247,9 +248,9 @@ void branch::populate_prevout(output_point const& outpoint) const {
     }
 }
 
-//TODO(fernando): use the type alias instead of the std::unord...
+//TODO(legacy): use the type alias instead of the std::unord...
 
-// TODO: absorb into the main chain for speed and code consolidation.
+// TODO(legacy): absorb into the main chain for speed and code consolidation.
 void branch::populate_prevout(output_point const& outpoint, std::vector<std::unordered_map<point, output const*>> const& branch_utxo) const {
     auto& prevout = outpoint.validation;
 
@@ -310,7 +311,7 @@ void branch::populate_prevout(output_point const& outpoint, std::vector<std::uno
 }
 
 
-// TODO: absorb into the main chain for speed and code consolidation.
+// TODO(legacy): absorb into the main chain for speed and code consolidation.
 // The bits of the block at the given height in the branch.
 bool branch::get_bits(uint32_t& out_bits, size_t height) const {
     if (height <= height_) {
@@ -326,7 +327,7 @@ bool branch::get_bits(uint32_t& out_bits, size_t height) const {
     return true;
 }
 
-// TODO: absorb into the main chain for speed and code consolidation.
+// TODO(legacy): absorb into the main chain for speed and code consolidation.
 // The version of the block at the given height in the branch.
 bool branch::get_version(uint32_t& out_version, size_t height) const {
     if (height <= height_) {
@@ -343,7 +344,7 @@ bool branch::get_version(uint32_t& out_version, size_t height) const {
     return true;
 }
 
-// TODO: absorb into the main chain for speed and code consolidation.
+// TODO(legacy): absorb into the main chain for speed and code consolidation.
 // The timestamp of the block at the given height in the branch.
 bool branch::get_timestamp(uint32_t& out_timestamp, size_t height) const {
     if (height <= height_) {
@@ -360,7 +361,7 @@ bool branch::get_timestamp(uint32_t& out_timestamp, size_t height) const {
     return true;
 }
 
-// TODO: convert to a direct block pool query when the branch goes away.
+// TODO(legacy): convert to a direct block pool query when the branch goes away.
 // The hash of the block at the given height if it exists in the branch.
 bool branch::get_block_hash(hash_digest& out_hash, size_t height) const {
     if (height <= height_) {

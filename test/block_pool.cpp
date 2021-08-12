@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2020 Knuth Project developers.
+// Copyright (c) 2016-2021 Knuth Project developers.
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -146,7 +146,7 @@ TEST_CASE("block pool  add1  two distinct hash  two", "[block pool tests]") {
 
 TEST_CASE("block pool  add2  empty  empty", "[block pool tests]") {
     block_pool instance(0);
-    instance.add(std::make_shared<const block_const_ptr_list>());
+    instance.add(std::make_shared<block_const_ptr_list const>());
     REQUIRE(instance.size() == 0u);
 }
 
@@ -159,7 +159,7 @@ TEST_CASE("block pool  add2  distinct  expected", "[block pool tests]") {
     // The blocks do not have the same hash value, so both will be added.
     REQUIRE(block1->hash() != block2->hash());
 
-    instance.add(std::make_shared<const block_const_ptr_list>(std::move(blocks)));
+    instance.add(std::make_shared<block_const_ptr_list const>(std::move(blocks)));
     REQUIRE(instance.size() == 2u);
 
     auto const entry1 = instance.blocks().right.find(42);
@@ -179,7 +179,7 @@ TEST_CASE("block pool  remove  empty  unchanged", "[block pool tests]") {
     instance.add(block1);
     REQUIRE(instance.size() == 1u);
 
-    instance.remove(std::make_shared<const block_const_ptr_list>());
+    instance.remove(std::make_shared<block_const_ptr_list const>());
     REQUIRE(instance.size() == 1u);
 }
 
@@ -193,7 +193,7 @@ TEST_CASE("block pool  remove  all distinct  empty", "[block pool tests]") {
     REQUIRE(instance.size() == 2u);
 
     block_const_ptr_list path{ block1, block2 };
-    instance.remove(std::make_shared<const block_const_ptr_list>(std::move(path)));
+    instance.remove(std::make_shared<block_const_ptr_list const>(std::move(path)));
     REQUIRE(instance.size() == 0u);
 }
 
@@ -207,7 +207,7 @@ TEST_CASE("block pool  remove  all connected  empty", "[block pool tests]") {
     REQUIRE(instance.size() == 2u);
 
     block_const_ptr_list path{ block1, block2, block3 };
-    instance.remove(std::make_shared<const block_const_ptr_list>(std::move(path)));
+    instance.remove(std::make_shared<block_const_ptr_list const>(std::move(path)));
     REQUIRE(instance.size() == 0u);
 }
 
@@ -232,7 +232,7 @@ TEST_CASE("block pool  remove  subtree  reorganized", "[block pool tests]") {
     REQUIRE(instance.size() == 6u);
 
     block_const_ptr_list path{ block1, block2, block6, block7 };
-    instance.remove(std::make_shared<const block_const_ptr_list>(std::move(path)));
+    instance.remove(std::make_shared<block_const_ptr_list const>(std::move(path)));
     REQUIRE(instance.size() == 3u);
 
     // Entry3 is the new root block (non-zero height).

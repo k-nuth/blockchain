@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2020 Knuth Project developers.
+// Copyright (c) 2016-2021 Knuth Project developers.
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -6,8 +6,9 @@
 
 #include <algorithm>
 #include <iostream>
-#include <kth/domain.hpp>
+
 #include <kth/blockchain/define.hpp>
+#include <kth/domain.hpp>
 
 namespace kth::blockchain {
 
@@ -45,7 +46,7 @@ void block_entry::add_child(block_const_ptr child) const {
     children_.push_back(child->hash());
 }
 
-std::ostream& operator<<(std::ostream& out, const block_entry& of) {
+std::ostream& operator<<(std::ostream& out, block_entry const& of) {
     out << encode_hash(of.hash_)
         << " " << encode_hash(of.parent())
         << " " << of.children_.size();
@@ -53,7 +54,7 @@ std::ostream& operator<<(std::ostream& out, const block_entry& of) {
 }
 
 // For the purpose of bimap identity only the tx hash matters.
-bool block_entry::operator==(const block_entry& other) const {
+bool block_entry::operator==(block_entry const& other) const {
     return hash_ == other.hash_;
 }
 

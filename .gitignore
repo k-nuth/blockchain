@@ -50,3 +50,4 @@ cmake-build-debug/
 .vscode
 
 CMakeSettings.json
+.DS_Store
