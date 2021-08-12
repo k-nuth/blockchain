@@ -2286,10 +2286,11 @@ void block_chain::filter_blocks(get_data_ptr message, result_handler handler) co
     auto const& blocks = database_.blocks();
 
     for (auto it = inventories.begin(); it != inventories.end();) {
-        if (it->is_block_type() && blocks.get(it->hash()))
+        if (it->is_block_type() && blocks.get(it->hash())) {
             it = inventories.erase(it);
-        else
+        } else {
             ++it;
+        }
     }
 
     handler(error::success);
