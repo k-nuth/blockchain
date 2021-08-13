@@ -33,6 +33,7 @@ public:
     using result_handler = handle0;
     using ptr = std::shared_ptr<transaction_organizer>;
     using transaction_handler = safe_chain::transaction_handler;
+    using ds_proof_handler = safe_chain::ds_proof_handler;
     using inventory_fetch_handler = safe_chain::inventory_fetch_handler;
     using merkle_block_fetch_handler = safe_chain::merkle_block_fetch_handler;
     using transaction_subscriber = resubscriber<code, transaction_const_ptr>;
@@ -54,7 +55,9 @@ public:
     void transaction_validate(transaction_const_ptr tx, result_handler handler) const;
 
     void subscribe(transaction_handler&& handler);
+    void subscribe_ds_proof(ds_proof_handler&& handler);
     void unsubscribe();
+    void unsubscribe_ds_proof();
 
     void fetch_template(merkle_block_fetch_handler) const;
     void fetch_mempool(size_t maximum, inventory_fetch_handler) const;

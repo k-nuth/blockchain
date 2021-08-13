@@ -70,6 +70,7 @@ public:
     /// Subscription handlers.
     using reorganize_handler = std::function<bool(code, size_t, block_const_ptr_list_const_ptr, block_const_ptr_list_const_ptr)>;
     using transaction_handler = std::function<bool(code, transaction_const_ptr)>;
+    using ds_proof_handler = std::function<bool(code, double_spend_proofs_const_ptr)>;
 
     using for_each_tx_handler = std::function<void(code const&, size_t, domain::chain::transaction const&)>;
     using mempool_mini_hash_map = std::unordered_map<mini_hash, domain::chain::transaction>;
@@ -182,6 +183,7 @@ public:
 
     virtual void subscribe_blockchain(reorganize_handler&& handler) = 0;
     virtual void subscribe_transaction(transaction_handler&& handler) = 0;
+    virtual void subscribe_ds_proof(ds_proof_handler&& handler) = 0;
     virtual void unsubscribe() = 0;
 
 

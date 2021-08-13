@@ -378,6 +378,9 @@ public:
     /// Subscribe to memory pool additions, get transaction.
     void subscribe_transaction(transaction_handler&& handler) override;
 
+    /// Subscribe to DSProof pool additions, get DSProof object.
+    void subscribe_ds_proof(ds_proof_handler&& handler) override;
+
     /// Send null data success notification to all subscribers.
     void unsubscribe() override;
 
