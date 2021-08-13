@@ -49,6 +49,8 @@ public:
     bool stop();
 
     void organize(transaction_const_ptr tx, result_handler handler);
+    void organize(double_spend_proofs_const_ptr ds_proof, result_handler handler);
+
     void transaction_validate(transaction_const_ptr tx, result_handler handler) const;
 
     void subscribe(transaction_handler&& handler);
@@ -96,6 +98,8 @@ private:
 #if defined(KTH_WITH_MEMPOOL)
     mining::mempool& mempool_;
 #endif
+
+    std::unordered_map<hash_digest, double_spend_proofs_const_ptr> ds_proofs_;
 };
 
 } // namespace kth::blockchain

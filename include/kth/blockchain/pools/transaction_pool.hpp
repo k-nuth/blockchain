@@ -27,7 +27,7 @@ public:
     void fetch_mempool(size_t maximum, inventory_fetch_handler) const;
 
 ////private:
-////    const bool reject_conflicts_;
+////    bool const reject_conflicts_;
 ////    const uint64_t minimum_fee_;
 };
 

@@ -147,9 +147,31 @@ void transaction_organizer::validate_handle_connect(code const& ec, transaction_
     return;
 }
 
+// DSProof Organize sequence.
+//-----------------------------------------------------------------------------
 
+// This is called from blockchain::organize.
+void transaction_organizer::organize(double_spend_proofs_const_ptr ds_proof, result_handler handler) {
+    // Critical Section
+    ///////////////////////////////////////////////////////////////////////////
+    mutex_.lock_low_priority();
 
-// Organize sequence.
+    if (stopped()) {
+        mutex_.unlock_low_priority();
+        handler(error::service_stopped);
+        return;
+    }
+
+    ds_proofs_.try_emplace(hash(*ds_proof), ds_proof);
+
+    mutex_.unlock_low_priority();
+    ///////////////////////////////////////////////////////////////////////////
+
+    // Invoke caller handler outside of critical section.
+    handler(error::success);
+}
+
+// Transaction Organize sequence.
 //-----------------------------------------------------------------------------
 
 // This is called from blockchain::organize.

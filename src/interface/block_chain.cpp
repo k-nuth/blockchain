@@ -2429,6 +2429,11 @@ void block_chain::organize(transaction_const_ptr tx, result_handler handler) {
     transaction_organizer_.organize(tx, handler);
 }
 
+void block_chain::organize(double_spend_proofs_const_ptr ds_proof, result_handler handler) {
+    // This cannot call organize or stop (lock safe).
+    transaction_organizer_.organize(ds_proof, handler);
+}
+
 
 // Properties (thread safe).
 // ----------------------------------------------------------------------------

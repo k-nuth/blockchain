@@ -395,6 +395,9 @@ public:
     /// Store a transaction to the pool if valid.
     void organize(transaction_const_ptr tx, result_handler handler) override;
 
+    /// Store a DSProof to the pool if valid.
+    void organize(double_spend_proofs_const_ptr ds_proof, result_handler handler) override;
+
     // Properties.
     //-------------------------------------------------------------------------
 
