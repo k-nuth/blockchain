@@ -2404,7 +2404,7 @@ void block_chain::subscribe_transaction(transaction_handler&& handler) {
     transaction_organizer_.subscribe(std::move(handler));
 }
 
-void block_chain::subscribe_ds_proofs(ds_proof_handler&& handler) {
+void block_chain::subscribe_ds_proof(ds_proof_handler&& handler) {
     // Pass this through to the tx organizer, which issues the notifications.
     transaction_organizer_.subscribe_ds_proof(std::move(handler));
 }
