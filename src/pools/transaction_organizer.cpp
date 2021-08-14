@@ -24,7 +24,7 @@ using namespace std::placeholders;
 
 #define NAME "transaction_organizer"
 
-// TODO(legacy): create priority pool at blockchain level and use in both organizers. 
+// TODO(legacy): create priority pool at blockchain level and use in both organizers.
 
 #if defined(KTH_WITH_MEMPOOL)
 transaction_organizer::transaction_organizer(prioritized_mutex& mutex, dispatcher& dispatch, threadpool& thread_pool, fast_chain& chain, settings const& settings, mining::mempool& mp)
@@ -45,6 +45,8 @@ transaction_organizer::transaction_organizer(prioritized_mutex& mutex, dispatche
 #endif
 
     , subscriber_(std::make_shared<transaction_subscriber>(thread_pool, NAME))
+    , ds_proof_subscriber_(std::make_shared<ds_proof_subscriber>(thread_pool, NAME))
+
 
 #if defined(KTH_WITH_MEMPOOL)
     , mempool_(mp)
@@ -64,6 +66,7 @@ bool transaction_organizer::stopped() const {
 bool transaction_organizer::start() {
     stopped_ = false;
     subscriber_->start();
+    ds_proof_subscriber_->start();
     validator_.start();
     return true;
 }
@@ -72,6 +75,8 @@ bool transaction_organizer::stop() {
     validator_.stop();
     subscriber_->stop();
     subscriber_->invoke(error::service_stopped, {});
+    ds_proof_subscriber_->stop();
+    ds_proof_subscriber_->invoke(error::service_stopped, {});
     stopped_ = true;
     return true;
 }
@@ -334,12 +339,25 @@ void transaction_organizer::notify(transaction_const_ptr tx) {
     subscriber_->invoke(error::success, tx);
 }
 
+void transaction_organizer::notify_ds_proof(double_spend_proofs_const_ptr tx) {
+    // This invokes handlers within the criticial section (deadlock risk).
+    ds_proof_subscriber_->invoke(error::success, tx);
+}
+
 void transaction_organizer::subscribe(transaction_handler&& handler) {
     subscriber_->subscribe(std::move(handler), error::service_stopped, {});
 }
 
+void transaction_organizer::subscribe_ds_proof(ds_proof_handler&& handler) {
+    ds_proof_subscriber_->subscribe(std::move(handler), error::service_stopped, {});
+}
+
 void transaction_organizer::unsubscribe() {
     subscriber_->relay(error::success, {});
+}
+
+void transaction_organizer::unsubscribe_ds_proof() {
+    ds_proof_subscriber_->relay(error::success, {});
 }
 
 // Queries.

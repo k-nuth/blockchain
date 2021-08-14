@@ -269,7 +269,7 @@ if (NOT USE_CONAN)
     if (NOT TARGET kth-consensus)
       find_package(kth-consensus 0 REQUIRED)
     endif()
-  endif()  
+  endif()
 endif(NOT USE_CONAN)
 
 
@@ -383,21 +383,21 @@ set(kth_blockchain_sources_just_kth
 )
 
 if (WITH_KEOKEN)
-  set(kth_blockchain_sources_just_kth 
-    ${kth_blockchain_sources_just_kth}         
+  set(kth_blockchain_sources_just_kth
+    ${kth_blockchain_sources_just_kth}
     src/keoken/memory_state.cpp
   )
 endif()
 
 if (NOT JUST_KTH_SOURCES)
-  set(kth_blockchain_sources 
+  set(kth_blockchain_sources
     ${kth_blockchain_sources_just_legacy}
   )
 endif()
 
-set(kth_blockchain_sources 
-  ${kth_blockchain_sources}   
-  ${kth_blockchain_sources_just_kth}         
+set(kth_blockchain_sources
+  ${kth_blockchain_sources}
+  ${kth_blockchain_sources_just_kth}
 )
 
 add_library(kth-blockchain ${MODE} ${kth_blockchain_sources})
@@ -407,12 +407,12 @@ add_library(kth-blockchain ${MODE} ${kth_blockchain_sources})
 if (ENABLE_POSITION_INDEPENDENT_CODE)
     set_property(TARGET kth-blockchain PROPERTY POSITION_INDEPENDENT_CODE ON)
 endif(ENABLE_POSITION_INDEPENDENT_CODE)
-  
+
 target_include_directories(kth-blockchain PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
 
-# target_compile_definitions(kth-blockchain PUBLIC -DKTH_PROJECT_VERSION="\\"${KTH_PROJECT_VERSION}\\"") #TODO(fernando): manage with Conan????  
+# target_compile_definitions(kth-blockchain PUBLIC -DKTH_PROJECT_VERSION="\\"${KTH_PROJECT_VERSION}\\"") #TODO(fernando): manage with Conan????
 target_compile_definitions(kth-blockchain PUBLIC -DKTH_PROJECT_VERSION="${KTH_PROJECT_VERSION}") #TODO(fernando): manage with Conan????
 
 
@@ -447,12 +447,12 @@ endif(NOT USE_CONAN)
 
 
 
-if (WITH_CONSENSUS)		 
+if (WITH_CONSENSUS)
   target_compile_definitions(kth-blockchain PUBLIC -DWITH_CONSENSUS)
-  if (NOT USE_CONAN)		
+  if (NOT USE_CONAN)
     target_link_libraries(kth-blockchain PUBLIC kth-consensus)
-  endif(NOT USE_CONAN)		 
-endif(WITH_CONSENSUS)		 
+  endif(NOT USE_CONAN)
+endif(WITH_CONSENSUS)
 
 if (NOT NO_CONAN_AT_ALL) # at least with external libraries
   target_link_libraries(kth-blockchain PUBLIC ${CONAN_LIBS})
@@ -477,7 +477,7 @@ endif()
 # local: test/kth_blockchain_test
 #------------------------------------------------------------------------------
 if (WITH_TESTS)
-    set(kth_blockchain_test_sources 
+    set(kth_blockchain_test_sources
         test/block_chain.cpp
         test/block_entry.cpp
         test/block_pool.cpp
@@ -491,15 +491,15 @@ if (WITH_TESTS)
     )
 
     if (WITH_MEMPOOL)
-        set(kth_blockchain_test_sources 
+        set(kth_blockchain_test_sources
             ${kth_blockchain_test_sources}
             test/mempool_tests.cpp
         )
     endif()
 
     if (WITH_KEOKEN)
-        set(kth_blockchain_test_sources 
-            ${kth_blockchain_test_sources}   
+        set(kth_blockchain_test_sources
+            ${kth_blockchain_test_sources}
             test/state_delegated_tests.cpp
             test/state_tests.cpp
             test/interpreter_tests.cpp
@@ -562,9 +562,9 @@ set(_kth_headers
  kth/blockchain/pools/transaction_entry.hpp
  kth/blockchain/pools/transaction_organizer.hpp
  kth/blockchain/pools/transaction_pool.hpp
-  
+
   #Rama
- kth/blockchain/pools/mempool_transaction_summary.hpp 
+ kth/blockchain/pools/mempool_transaction_summary.hpp
 
   # include_kth_blockchain_populate_HEADERS =
  kth/blockchain/populate/populate_base.hpp
@@ -576,7 +576,7 @@ set(_kth_headers
  kth/blockchain/validate/validate_input.hpp
  kth/blockchain/validate/validate_transaction.hpp
 )
-  
+
 foreach (_header ${_kth_headers})
   get_filename_component(_directory "${_header}" DIRECTORY)
   install(FILES "include/${_header}" DESTINATION "include/${_directory}")

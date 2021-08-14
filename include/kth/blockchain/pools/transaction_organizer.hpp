@@ -37,6 +37,7 @@ public:
     using inventory_fetch_handler = safe_chain::inventory_fetch_handler;
     using merkle_block_fetch_handler = safe_chain::merkle_block_fetch_handler;
     using transaction_subscriber = resubscriber<code, transaction_const_ptr>;
+    using ds_proof_subscriber = resubscriber<code, double_spend_proofs_const_ptr>;
 
     /// Construct an instance.
 
@@ -75,7 +76,7 @@ private:
 #if ! defined(KTH_DB_READONLY)
     void handle_pushed(code const& ec, transaction_const_ptr tx, result_handler handler);
 #endif
-    
+
     void signal_completion(code const& ec);
 
     void validate_handle_check(code const& ec, transaction_const_ptr tx, result_handler handler) const;
@@ -84,6 +85,7 @@ private:
 
     // Subscription.
     void notify(transaction_const_ptr tx);
+    void notify_ds_proof(double_spend_proofs_const_ptr tx);
 
     // This must be protected by the implementation.
     fast_chain& fast_chain_;
@@ -97,6 +99,7 @@ private:
     transaction_pool transaction_pool_;
     validate_transaction validator_;
     transaction_subscriber::ptr subscriber_;
+    ds_proof_subscriber::ptr ds_proof_subscriber_;
 
 #if defined(KTH_WITH_MEMPOOL)
     mining::mempool& mempool_;
