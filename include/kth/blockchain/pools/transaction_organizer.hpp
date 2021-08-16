@@ -36,8 +36,9 @@ public:
     using ds_proof_handler = safe_chain::ds_proof_handler;
     using inventory_fetch_handler = safe_chain::inventory_fetch_handler;
     using merkle_block_fetch_handler = safe_chain::merkle_block_fetch_handler;
+    using ds_proof_fetch_handler = safe_chain::ds_proof_fetch_handler;
     using transaction_subscriber = resubscriber<code, transaction_const_ptr>;
-    using ds_proof_subscriber = resubscriber<code, double_spend_proofs_const_ptr>;
+    using ds_proof_subscriber = resubscriber<code, double_spend_proof_const_ptr>;
 
     /// Construct an instance.
 
@@ -51,7 +52,7 @@ public:
     bool stop();
 
     void organize(transaction_const_ptr tx, result_handler handler);
-    void organize(double_spend_proofs_const_ptr ds_proof, result_handler handler);
+    void organize(double_spend_proof_const_ptr ds_proof, result_handler handler);
 
     void transaction_validate(transaction_const_ptr tx, result_handler handler) const;
 
@@ -62,6 +63,7 @@ public:
 
     void fetch_template(merkle_block_fetch_handler) const;
     void fetch_mempool(size_t maximum, inventory_fetch_handler) const;
+    void fetch_ds_proof(hash_digest const& hash, ds_proof_fetch_handler) const;
 
 protected:
     bool stopped() const;
@@ -85,7 +87,7 @@ private:
 
     // Subscription.
     void notify(transaction_const_ptr tx);
-    void notify_ds_proof(double_spend_proofs_const_ptr tx);
+    void notify_ds_proof(double_spend_proof_const_ptr tx);
 
     // This must be protected by the implementation.
     fast_chain& fast_chain_;
@@ -105,7 +107,7 @@ private:
     mining::mempool& mempool_;
 #endif
 
-    std::unordered_map<hash_digest, double_spend_proofs_const_ptr> ds_proofs_;
+    std::unordered_map<hash_digest, double_spend_proof_const_ptr> ds_proofs_;
 };
 
 } // namespace kth::blockchain

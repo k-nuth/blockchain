@@ -156,7 +156,7 @@ void transaction_organizer::validate_handle_connect(code const& ec, transaction_
 //-----------------------------------------------------------------------------
 
 // This is called from blockchain::organize.
-void transaction_organizer::organize(double_spend_proofs_const_ptr ds_proof, result_handler handler) {
+void transaction_organizer::organize(double_spend_proof_const_ptr ds_proof, result_handler handler) {
     // Critical Section
     ///////////////////////////////////////////////////////////////////////////
     mutex_.lock_low_priority();
@@ -339,7 +339,7 @@ void transaction_organizer::notify(transaction_const_ptr tx) {
     subscriber_->invoke(error::success, tx);
 }
 
-void transaction_organizer::notify_ds_proof(double_spend_proofs_const_ptr tx) {
+void transaction_organizer::notify_ds_proof(double_spend_proof_const_ptr tx) {
     // This invokes handlers within the criticial section (deadlock risk).
     ds_proof_subscriber_->invoke(error::success, tx);
 }
@@ -369,6 +369,15 @@ void transaction_organizer::fetch_template(merkle_block_fetch_handler handler) c
 
 void transaction_organizer::fetch_mempool(size_t maximum, inventory_fetch_handler handler) const {
     transaction_pool_.fetch_mempool(maximum, handler);
+}
+
+void transaction_organizer::fetch_ds_proof(hash_digest const& hash, ds_proof_fetch_handler handler) const {
+    auto it = ds_proofs_.find(hash);
+    if (it == ds_proofs_.end()) {
+        handler(error::not_found, nullptr);
+        return;
+    }
+    handler(error::success, it->second);
 }
 
 // Utility.

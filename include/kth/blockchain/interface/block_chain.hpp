@@ -210,6 +210,9 @@ public:
 
 #endif // KTH_DB_LEGACY || KTH_DB_NEW_BLOCKS || KTH_DB_NEW_FULL
 
+    /// fetch DSProof by hash.
+    void fetch_ds_proof(hash_digest const& hash, ds_proof_fetch_handler handler) const override;
+
 #if defined(KTH_DB_LEGACY) || defined(KTH_DB_NEW_FULL)
 
     void for_each_transaction(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const override;
@@ -399,7 +402,7 @@ public:
     void organize(transaction_const_ptr tx, result_handler handler) override;
 
     /// Store a DSProof to the pool if valid.
-    void organize(double_spend_proofs_const_ptr ds_proof, result_handler handler) override;
+    void organize(double_spend_proof_const_ptr ds_proof, result_handler handler) override;
 
     // Properties.
     //-------------------------------------------------------------------------
