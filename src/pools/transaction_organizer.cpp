@@ -172,6 +172,9 @@ void transaction_organizer::organize(double_spend_proof_const_ptr ds_proof, resu
     mutex_.unlock_low_priority();
     ///////////////////////////////////////////////////////////////////////////
 
+    // This gets picked up by node DSProof-out protocol for announcement to peers.
+    notify_ds_proof(ds_proof);
+
     // Invoke caller handler outside of critical section.
     handler(error::success);
 }
@@ -194,13 +197,8 @@ void transaction_organizer::organize(transaction_const_ptr tx, result_handler ha
     // Reset the reusable promise.
     resume_ = std::promise<code>();
 
-    const result_handler complete =
-        std::bind(&transaction_organizer::signal_completion,
-            this, _1);
-
-    auto const check_handler =
-        std::bind(&transaction_organizer::handle_check,
-            this, _1, tx, complete);
+    result_handler const complete = std::bind(&transaction_organizer::signal_completion, this, _1);
+    auto const check_handler = std::bind(&transaction_organizer::handle_check, this, _1, tx, complete);
 
     // Checks that are independent of chain state.
     validator_.check(tx, check_handler);
@@ -239,9 +237,7 @@ void transaction_organizer::handle_check(code const& ec, transaction_const_ptr t
         return;
     }
 
-    auto const accept_handler =
-        std::bind(&transaction_organizer::handle_accept,
-            this, _1, tx, handler);
+    auto const accept_handler = std::bind(&transaction_organizer::handle_accept, this, _1, tx, handler);
 
     // Checks that are dependent on chain state and prevouts.
     validator_.accept(tx, accept_handler);
@@ -269,9 +265,7 @@ void transaction_organizer::handle_accept(code const& ec, transaction_const_ptr 
         return;
     }
 
-    auto const connect_handler =
-        std::bind(&transaction_organizer::handle_connect,
-            this, _1, tx, handler);
+    auto const connect_handler = std::bind(&transaction_organizer::handle_connect, this, _1, tx, handler);
 
     // Checks that include script validation.
     validator_.connect(tx, connect_handler);
@@ -316,9 +310,7 @@ void transaction_organizer::handle_connect(code const& ec, transaction_const_ptr
 // private
 void transaction_organizer::handle_pushed(code const& ec, transaction_const_ptr tx, result_handler handler) {
     if (ec) {
-        LOG_FATAL(LOG_BLOCKCHAIN
-            , "Failure writing transaction to store, is now corrupted: "
-            , ec.message());
+        LOG_FATAL(LOG_BLOCKCHAIN, "Failure writing transaction to store, is now corrupted: ", ec.message());
         handler(ec);
         return;
     }
@@ -372,12 +364,24 @@ void transaction_organizer::fetch_mempool(size_t maximum, inventory_fetch_handle
 }
 
 void transaction_organizer::fetch_ds_proof(hash_digest const& hash, ds_proof_fetch_handler handler) const {
+    // Critical Section
+    ///////////////////////////////////////////////////////////////////////////
+    mutex_.lock_low_priority();
+
     auto it = ds_proofs_.find(hash);
     if (it == ds_proofs_.end()) {
+        mutex_.unlock_low_priority();
         handler(error::not_found, nullptr);
         return;
     }
-    handler(error::success, it->second);
+
+    auto const res = it->second;
+
+    mutex_.unlock_low_priority();
+    ///////////////////////////////////////////////////////////////////////////
+
+    // Invoke caller handler outside of critical section.
+    handler(error::success, res);
 }
 
 // Utility.
