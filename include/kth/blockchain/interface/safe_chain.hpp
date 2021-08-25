@@ -38,14 +38,14 @@ public:
 #ifdef KTH_WITH_KEOKEN
     using keoken_history_fetch_handler = std::function<void (code const&, std::shared_ptr<std::vector<kth::transaction_const_ptr>>)>;
     using block_keoken_fetch_handler = std::function<void (code const&,  header_const_ptr, size_t, std::shared_ptr<std::vector <kth::transaction_const_ptr>>, uint64_t, size_t)> ;
-    
-    virtual 
+
+    virtual
     void fetch_keoken_history(const short_hash& address_hash, size_t limit, size_t from_height, keoken_history_fetch_handler handler) const = 0;
 
-    virtual 
+    virtual
     void fetch_block_keoken(hash_digest const& hash, bool witness, block_keoken_fetch_handler handler) const = 0;
 
-    virtual 
+    virtual
     void convert_to_keo_transaction(hash_digest const& hash, std::shared_ptr<std::vector<transaction_const_ptr>> keoken_txs) const = 0;
 #endif
 
@@ -58,6 +58,7 @@ public:
     using compact_block_fetch_handler = std::function<void(code const&, compact_block_ptr, size_t)>;
     using block_header_fetch_handler = std::function<void(code const&, header_ptr, size_t)>;
     using transaction_fetch_handler = std::function<void(code const&, transaction_const_ptr, size_t, size_t)>;
+    using ds_proof_fetch_handler = std::function<void(code const&, double_spend_proof_const_ptr)>;
 
 #if defined(KTH_DB_TRANSACTION_UNCONFIRMED) || defined(KTH_DB_NEW_FULL)
     using transaction_unconfirmed_fetch_handler = std::function<void(code const&, transaction_const_ptr)>;
@@ -70,6 +71,7 @@ public:
     /// Subscription handlers.
     using reorganize_handler = std::function<bool(code, size_t, block_const_ptr_list_const_ptr, block_const_ptr_list_const_ptr)>;
     using transaction_handler = std::function<bool(code, transaction_const_ptr)>;
+    using ds_proof_handler = std::function<bool(code, double_spend_proof_const_ptr)>;
 
     using for_each_tx_handler = std::function<void(code const&, size_t, domain::chain::transaction const&)>;
     using mempool_mini_hash_map = std::unordered_map<mini_hash, domain::chain::transaction>;
@@ -103,9 +105,10 @@ public:
     virtual void fetch_block_header_txs_size(hash_digest const& hash, block_header_txs_size_fetch_handler handler) const = 0;
 #endif // KTH_DB_LEGACY || KTH_DB_NEW_BLOCKS || KTH_DB_NEW_FULL
 
+    virtual void fetch_ds_proof(hash_digest const& hash, ds_proof_fetch_handler handler) const = 0;
 
 #if defined(KTH_DB_LEGACY) || defined(KTH_DB_NEW_FULL)
-    
+
     virtual void fetch_transaction(hash_digest const& hash, bool require_confirmed, bool witness, transaction_fetch_handler handler) const = 0;
 
     virtual void fetch_transaction_position(hash_digest const& hash, bool require_confirmed, transaction_index_fetch_handler handler) const = 0;
@@ -114,7 +117,7 @@ public:
 
     virtual void for_each_transaction_non_coinbase(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const = 0;
 
-#endif 
+#endif
 
 
     virtual void fetch_locator_block_headers(get_headers_const_ptr locator, hash_digest const& threshold, size_t limit, locator_block_headers_fetch_handler handler) const = 0;
@@ -138,12 +141,12 @@ public:
 
 #if defined(KTH_DB_SPENDS) || defined(KTH_DB_NEW_FULL)
     virtual void fetch_spend(const domain::chain::output_point& outpoint, spend_fetch_handler handler) const = 0;
-#endif 
+#endif
 
 #if defined(KTH_DB_HISTORY) || defined(KTH_DB_NEW_FULL)
     virtual void fetch_history(const short_hash& address_hash, size_t limit, size_t from_height, history_fetch_handler handler) const = 0;
     virtual void fetch_confirmed_transactions(const short_hash& address_hash, size_t limit, size_t from_height, confirmed_transactions_fetch_handler handler) const = 0;
-#endif 
+#endif
 
 #ifdef KTH_DB_STEALTH
     virtual void fetch_stealth(const binary& filter, size_t from_height, stealth_fetch_handler handler) const = 0;
@@ -158,7 +161,7 @@ public:
 #if defined(KTH_DB_TRANSACTION_UNCONFIRMED) || defined(KTH_DB_NEW_FULL)
     virtual std::vector<mempool_transaction_summary> get_mempool_transactions(std::vector<std::string> const& payment_addresses, bool use_testnet_rules, bool witness) const = 0;
     virtual std::vector<mempool_transaction_summary> get_mempool_transactions(std::string const& payment_address, bool use_testnet_rules, bool witness) const = 0;
-    
+
     virtual std::vector<domain::chain::transaction> get_mempool_transactions_from_wallets(std::vector<domain::wallet::payment_address> const& payment_addresses, bool use_testnet_rules, bool witness) const = 0;
 
     virtual void fetch_unconfirmed_transaction(hash_digest const& hash, transaction_unconfirmed_fetch_handler handler) const = 0;
@@ -167,7 +170,7 @@ public:
     virtual void fill_tx_list_from_mempool(domain::message::compact_block const& block, size_t& mempool_count, std::vector<domain::chain::transaction>& txn_available, std::unordered_map<uint64_t, uint16_t> const& shorttxids) const = 0;
 #endif // KTH_DB_TRANSACTION_UNCONFIRMED
 
-  
+
     // Filters.
     //-------------------------------------------------------------------------
 
@@ -175,13 +178,14 @@ public:
 
 #if defined(KTH_DB_LEGACY) || defined(KTH_DB_NEW_FULL) || defined(KTH_WITH_MEMPOOL)
     virtual void filter_transactions(get_data_ptr message, result_handler handler) const = 0;
-#endif 
+#endif
 
     // Subscribers.
     //-------------------------------------------------------------------------
 
     virtual void subscribe_blockchain(reorganize_handler&& handler) = 0;
     virtual void subscribe_transaction(transaction_handler&& handler) = 0;
+    virtual void subscribe_ds_proof(ds_proof_handler&& handler) = 0;
     virtual void unsubscribe() = 0;
 
 
@@ -195,13 +199,14 @@ public:
 
     virtual void organize(block_const_ptr block, result_handler handler) = 0;
     virtual void organize(transaction_const_ptr tx, result_handler handler) = 0;
+    virtual void organize(double_spend_proof_const_ptr ds_proof, result_handler handler) = 0;
 
     // Properties
     // ------------------------------------------------------------------------
 
     virtual bool is_stale() const = 0;
 
-    //TODO(Mario) temporary duplication 
+    //TODO(Mario) temporary duplication
     /// Get a determination of whether the block hash exists in the store.
     virtual bool get_block_exists_safe(hash_digest const & block_hash) const = 0;
 

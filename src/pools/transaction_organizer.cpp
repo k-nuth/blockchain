@@ -24,7 +24,7 @@ using namespace std::placeholders;
 
 #define NAME "transaction_organizer"
 
-// TODO(legacy): create priority pool at blockchain level and use in both organizers. 
+// TODO(legacy): create priority pool at blockchain level and use in both organizers.
 
 #if defined(KTH_WITH_MEMPOOL)
 transaction_organizer::transaction_organizer(prioritized_mutex& mutex, dispatcher& dispatch, threadpool& thread_pool, fast_chain& chain, settings const& settings, mining::mempool& mp)
@@ -45,6 +45,8 @@ transaction_organizer::transaction_organizer(prioritized_mutex& mutex, dispatche
 #endif
 
     , subscriber_(std::make_shared<transaction_subscriber>(thread_pool, NAME))
+    , ds_proof_subscriber_(std::make_shared<ds_proof_subscriber>(thread_pool, NAME))
+
 
 #if defined(KTH_WITH_MEMPOOL)
     , mempool_(mp)
@@ -64,6 +66,7 @@ bool transaction_organizer::stopped() const {
 bool transaction_organizer::start() {
     stopped_ = false;
     subscriber_->start();
+    ds_proof_subscriber_->start();
     validator_.start();
     return true;
 }
@@ -72,6 +75,8 @@ bool transaction_organizer::stop() {
     validator_.stop();
     subscriber_->stop();
     subscriber_->invoke(error::service_stopped, {});
+    ds_proof_subscriber_->stop();
+    ds_proof_subscriber_->invoke(error::service_stopped, {});
     stopped_ = true;
     return true;
 }
@@ -147,9 +152,34 @@ void transaction_organizer::validate_handle_connect(code const& ec, transaction_
     return;
 }
 
+// DSProof Organize sequence.
+//-----------------------------------------------------------------------------
 
+// This is called from blockchain::organize.
+void transaction_organizer::organize(double_spend_proof_const_ptr ds_proof, result_handler handler) {
+    // Critical Section
+    ///////////////////////////////////////////////////////////////////////////
+    mutex_.lock_low_priority();
 
-// Organize sequence.
+    if (stopped()) {
+        mutex_.unlock_low_priority();
+        handler(error::service_stopped);
+        return;
+    }
+
+    ds_proofs_.try_emplace(hash(*ds_proof), ds_proof);
+
+    mutex_.unlock_low_priority();
+    ///////////////////////////////////////////////////////////////////////////
+
+    // This gets picked up by node DSProof-out protocol for announcement to peers.
+    notify_ds_proof(ds_proof);
+
+    // Invoke caller handler outside of critical section.
+    handler(error::success);
+}
+
+// Transaction Organize sequence.
 //-----------------------------------------------------------------------------
 
 // This is called from blockchain::organize.
@@ -167,13 +197,8 @@ void transaction_organizer::organize(transaction_const_ptr tx, result_handler ha
     // Reset the reusable promise.
     resume_ = std::promise<code>();
 
-    const result_handler complete =
-        std::bind(&transaction_organizer::signal_completion,
-            this, _1);
-
-    auto const check_handler =
-        std::bind(&transaction_organizer::handle_check,
-            this, _1, tx, complete);
+    result_handler const complete = std::bind(&transaction_organizer::signal_completion, this, _1);
+    auto const check_handler = std::bind(&transaction_organizer::handle_check, this, _1, tx, complete);
 
     // Checks that are independent of chain state.
     validator_.check(tx, check_handler);
@@ -212,9 +237,7 @@ void transaction_organizer::handle_check(code const& ec, transaction_const_ptr t
         return;
     }
 
-    auto const accept_handler =
-        std::bind(&transaction_organizer::handle_accept,
-            this, _1, tx, handler);
+    auto const accept_handler = std::bind(&transaction_organizer::handle_accept, this, _1, tx, handler);
 
     // Checks that are dependent on chain state and prevouts.
     validator_.accept(tx, accept_handler);
@@ -242,9 +265,7 @@ void transaction_organizer::handle_accept(code const& ec, transaction_const_ptr 
         return;
     }
 
-    auto const connect_handler =
-        std::bind(&transaction_organizer::handle_connect,
-            this, _1, tx, handler);
+    auto const connect_handler = std::bind(&transaction_organizer::handle_connect, this, _1, tx, handler);
 
     // Checks that include script validation.
     validator_.connect(tx, connect_handler);
@@ -289,9 +310,7 @@ void transaction_organizer::handle_connect(code const& ec, transaction_const_ptr
 // private
 void transaction_organizer::handle_pushed(code const& ec, transaction_const_ptr tx, result_handler handler) {
     if (ec) {
-        LOG_FATAL(LOG_BLOCKCHAIN
-            , "Failure writing transaction to store, is now corrupted: "
-            , ec.message());
+        LOG_FATAL(LOG_BLOCKCHAIN, "Failure writing transaction to store, is now corrupted: ", ec.message());
         handler(ec);
         return;
     }
@@ -312,12 +331,25 @@ void transaction_organizer::notify(transaction_const_ptr tx) {
     subscriber_->invoke(error::success, tx);
 }
 
+void transaction_organizer::notify_ds_proof(double_spend_proof_const_ptr tx) {
+    // This invokes handlers within the criticial section (deadlock risk).
+    ds_proof_subscriber_->invoke(error::success, tx);
+}
+
 void transaction_organizer::subscribe(transaction_handler&& handler) {
     subscriber_->subscribe(std::move(handler), error::service_stopped, {});
 }
 
+void transaction_organizer::subscribe_ds_proof(ds_proof_handler&& handler) {
+    ds_proof_subscriber_->subscribe(std::move(handler), error::service_stopped, {});
+}
+
 void transaction_organizer::unsubscribe() {
     subscriber_->relay(error::success, {});
+}
+
+void transaction_organizer::unsubscribe_ds_proof() {
+    ds_proof_subscriber_->relay(error::success, {});
 }
 
 // Queries.
@@ -329,6 +361,27 @@ void transaction_organizer::fetch_template(merkle_block_fetch_handler handler) c
 
 void transaction_organizer::fetch_mempool(size_t maximum, inventory_fetch_handler handler) const {
     transaction_pool_.fetch_mempool(maximum, handler);
+}
+
+void transaction_organizer::fetch_ds_proof(hash_digest const& hash, ds_proof_fetch_handler handler) const {
+    // Critical Section
+    ///////////////////////////////////////////////////////////////////////////
+    mutex_.lock_low_priority();
+
+    auto it = ds_proofs_.find(hash);
+    if (it == ds_proofs_.end()) {
+        mutex_.unlock_low_priority();
+        handler(error::not_found, nullptr);
+        return;
+    }
+
+    auto const res = it->second;
+
+    mutex_.unlock_low_priority();
+    ///////////////////////////////////////////////////////////////////////////
+
+    // Invoke caller handler outside of critical section.
+    handler(error::success, res);
 }
 
 // Utility.

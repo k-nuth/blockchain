@@ -172,7 +172,7 @@ void validate_block::handle_populated(code const& ec, block_const_ptr block, res
     auto const state = block->validation.state;
     KTH_ASSERT(state);
 #if defined(KTH_CURRENCY_BCH)
-    const bool bip141 = false;
+    bool const bip141 = false;
 #else
     auto const bip141 = state->is_enabled(domain::machine::rule_fork::bip141_rule);
 #endif

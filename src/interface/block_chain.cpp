@@ -207,7 +207,7 @@ bool block_chain::get_is_unspent_transaction(hash_digest const& hash, size_t bra
 }
 #endif // KTH_DB_LEGACY
 
-#if defined(KTH_DB_LEGACY) || defined(KTH_DB_NEW_FULL) 
+#if defined(KTH_DB_LEGACY) || defined(KTH_DB_NEW_FULL)
 
 bool block_chain::get_output(domain::chain::output& out_output, size_t& out_height,
     uint32_t& out_median_time_past, bool& out_coinbase,
@@ -227,7 +227,7 @@ bool block_chain::get_output(domain::chain::output& out_output, size_t& out_heig
     auto const tx = database_.internal_db().get_transaction(outpoint.hash(), branch_height);
 
     if ( ! tx.is_valid()) return false;
-    
+
     out_height = tx.height();
     out_coinbase = tx.position() == 0;
     out_median_time_past = tx.median_time_past();
@@ -253,7 +253,7 @@ bool block_chain::get_is_unspent_transaction(hash_digest const& hash, size_t bra
 #if defined(KTH_DB_LEGACY) || defined(KTH_DB_NEW_FULL)
 bool block_chain::get_transaction_position(size_t& out_height, size_t& out_position, hash_digest const& hash, bool require_confirmed) const {
 
-#if defined(KTH_DB_LEGACY)    
+#if defined(KTH_DB_LEGACY)
     auto const result = database_.transactions().get(hash, max_size_t, require_confirmed);
     if ( ! result) {
         return false;
@@ -265,15 +265,15 @@ bool block_chain::get_transaction_position(size_t& out_height, size_t& out_posit
 
 #else
     auto const result = database_.internal_db().get_transaction(hash, max_size_t);
-    
+
     if ( result.is_valid() ) {
         out_height = result.height();
         out_position = result.position();
         return true;
-    }   
+    }
 
     if (require_confirmed ) return false;
-    
+
     auto const result2 = database_.internal_db().get_transaction_unconfirmed(hash);
     if ( ! result2.is_valid() ) return false;
 
@@ -400,7 +400,7 @@ std::pair<bool, database::internal_database::utxo_pool_t> block_chain::get_utxo_
 
     if (p.first != result_code::success) {
         return {false, std::move(p.second)};
-    }    
+    }
     return {true, std::move(p.second)};
 }
 
@@ -439,7 +439,7 @@ bool block_chain::insert(block_const_ptr block, size_t height) {
 }
 
 void block_chain::push(transaction_const_ptr tx, dispatcher&, result_handler handler) {
-    
+
     //TODO(kth):  dissabled this tx cache because we don't want special treatment for the last txn, it affects the explorer rpc methods
     //last_transaction_.store(tx);
 
@@ -555,7 +555,7 @@ bool block_chain::start() {
     // Initialize chain state after database start but before organizers.
     pool_state_ = chain_state_populator_.populate();
 
-    return pool_state_ && 
+    return pool_state_ &&
            transaction_organizer_.start() &&
            block_organizer_.start();
 }
@@ -817,7 +817,7 @@ void block_chain::fetch_compact_block(hash_digest const& hash, compact_block_fet
         handler(error::service_stopped, {},0);
         return;
     }
-    
+
     fetch_block(hash, witness,[&handler](code const& ec, block_const_ptr message, size_t height) {
         if (ec == error::success) {
             auto blk_ptr = std::make_shared<compact_block>(compact_block::factory_from_block(*message));
@@ -861,9 +861,7 @@ void block_chain::fetch_last_height(last_height_fetch_handler handler) const {
     handler(error::success, last_height);
 }
 
-void block_chain::fetch_transaction(hash_digest const& hash,
-    bool require_confirmed, bool witness,
-    transaction_fetch_handler handler) const {
+void block_chain::fetch_transaction(hash_digest const& hash, bool require_confirmed, bool witness, transaction_fetch_handler handler) const {
 #if defined(KTH_CURRENCY_BCH)
     witness = false;
 #endif
@@ -887,7 +885,7 @@ void block_chain::fetch_transaction(hash_digest const& hash,
 //            return;
 //        }
 //    }
-  
+
 
     auto const result = database_.transactions().get(hash, max_size_t,
         require_confirmed);
@@ -961,13 +959,13 @@ void block_chain::fetch_block(hash_digest const& hash, bool witness,
         return;
     }
 
-    auto const height = block_result.second; 
+    auto const height = block_result.second;
 
     auto const result = std::make_shared<const block>(block_result.first);
 
     handler(error::success, result, height);
 }
-#endif 
+#endif
 
 #if defined(KTH_DB_NEW_BLOCKS) || defined(KTH_DB_NEW_FULL)
 void block_chain::fetch_block_header_txs_size(hash_digest const& hash,
@@ -984,7 +982,7 @@ void block_chain::fetch_block_header_txs_size(hash_digest const& hash,
         return;
     }
 
-    auto const height = block_result.second; 
+    auto const height = block_result.second;
     auto const result = std::make_shared<const header>(block_result.first.header());
     auto const tx_hashes = std::make_shared<hash_list>(block_result.first.to_hashes());
     //TODO(fernando): encapsulate header and tx_list
@@ -1045,7 +1043,7 @@ void block_chain::fetch_compact_block(hash_digest const& hash, compact_block_fet
         handler(error::service_stopped, {},0);
         return;
     }
-    
+
     fetch_block(hash, witness,[&handler](code const& ec, block_const_ptr message, size_t height) {
         if (ec == error::success) {
             auto blk_ptr = std::make_shared<compact_block>(compact_block::factory_from_block(*message));
@@ -1134,6 +1132,14 @@ void block_chain::fetch_locator_block_hashes(get_blocks_const_ptr locator,
 
 #endif //KTH_DB_NEW || KTH_DB_NEW_BLOCKS || KTH_DB_NEW_FULL
 
+void block_chain::fetch_ds_proof(hash_digest const& hash, ds_proof_fetch_handler handler) const {
+    if (stopped()) {
+        handler(error::service_stopped, nullptr);
+        return;
+    }
+
+    transaction_organizer_.fetch_ds_proof(hash, handler);
+}
 
 #if defined(KTH_DB_NEW_FULL)
 
@@ -1161,12 +1167,11 @@ void block_chain::fetch_transaction(hash_digest const& hash, bool require_confir
 //            return;
 //        }
 //    }
-  
 
     auto const result = database_.internal_db().get_transaction(hash, max_size_t);
     if ( result.is_valid() ) {
         auto const tx = std::make_shared<const transaction>(result.transaction());
-        handler(error::success, tx, result.position(), result.height());    
+        handler(error::success, tx, result.position(), result.height());
         return;
     }
 
@@ -1279,9 +1284,9 @@ std::vector<kth::blockchain::mempool_transaction_summary> block_chain::get_mempo
         encoding_p2kh = kth::domain::wallet::payment_address::mainnet_p2kh;
         encoding_p2sh = kth::domain::wallet::payment_address::mainnet_p2sh;
     }
-    
+
     std::vector<kth::blockchain::mempool_transaction_summary> ret;
-    
+
     std::unordered_set<kth::domain::wallet::payment_address> addrs;
     for (auto const& payment_address : payment_addresses) {
         kth::domain::wallet::payment_address address(payment_address);
@@ -1291,7 +1296,7 @@ std::vector<kth::blockchain::mempool_transaction_summary> block_chain::get_mempo
     }
 
     auto const result = database_.internal_db().get_all_transaction_unconfirmed();
-    
+
     for (auto const& tx_res : result) {
         auto const& tx = tx_res.transaction();
         //tx.recompute_hash();
@@ -1362,14 +1367,14 @@ std::vector<domain::chain::transaction> block_chain::get_mempool_transactions_fr
 
     auto const result = database_.internal_db().get_all_transaction_unconfirmed();
 
-    for (auto const& tx_res : result) { 
+    for (auto const& tx_res : result) {
         auto const& tx = tx_res.transaction();
         //tx.recompute_hash();
         // Only insert the transaction once. Avoid duplicating the tx if serveral wallets are used in the same tx, and if the same wallet is the input and output addr.
         bool inserted = false;
 
         for (auto iter_output = tx.outputs().begin(); (iter_output != tx.outputs().end() && !inserted); ++iter_output) {
-        
+
             auto const tx_addresses = kth::domain::wallet::payment_address::extract((*iter_output).script(), encoding_p2kh, encoding_p2sh);
 
             for (auto iter_addr = tx_addresses.begin(); (iter_addr != tx_addresses.end() && !inserted); ++iter_addr) {
@@ -1397,23 +1402,23 @@ std::vector<domain::chain::transaction> block_chain::get_mempool_transactions_fr
                 }
             }
         }
-        
+
     }
 
     return ret;
 }
 
 void block_chain::fill_tx_list_from_mempool(domain::message::compact_block const& block, size_t& mempool_count, std::vector<domain::chain::transaction>& txn_available, std::unordered_map<uint64_t, uint16_t> const& shorttxids) const {
-    
+
     std::vector<bool> have_txn(txn_available.size());
-    
+
     auto header_hash = hash(block);
     auto k0 = from_little_endian_unsafe<uint64_t>(header_hash.begin());
     auto k1 = from_little_endian_unsafe<uint64_t>(header_hash.begin() + sizeof(uint64_t));
 
     auto const result = database_.internal_db().get_all_transaction_unconfirmed();
 
-    for (auto const& tx_res : result) { 
+    for (auto const& tx_res : result) {
         auto const& tx = tx_res.transaction();
 
 #if defined(KTH_CURRENCY_BCH)
@@ -1422,7 +1427,7 @@ void block_chain::fill_tx_list_from_mempool(domain::message::compact_block const
         bool witness = true;
 #endif
         uint64_t shortid = sip_hash_uint256(k0, k1, tx.hash(witness)) & uint64_t(0xffffffffffff);
-        
+
         auto idit = shorttxids.find(shortid);
         if (idit != shorttxids.end()) {
             if ( ! have_txn[idit->second]) {
@@ -1465,7 +1470,7 @@ safe_chain::mempool_mini_hash_map block_chain::get_mempool_mini_hash_map(domain:
     if (stopped()) {
         return safe_chain::mempool_mini_hash_map();
     }
-    
+
     auto header_hash = hash(block);
 
     auto k0 = from_little_endian_unsafe<uint64_t>(header_hash.begin());
@@ -1476,21 +1481,21 @@ safe_chain::mempool_mini_hash_map block_chain::get_mempool_mini_hash_map(domain:
 
     auto const result = database_.internal_db().get_all_transaction_unconfirmed();
 
-    for (auto const& tx_res : result) { 
+    for (auto const& tx_res : result) {
         auto const& tx = tx_res.transaction();
 
         auto sh = sip_hash_uint256(k0, k1, tx.hash(witness));
-        
+
        /* to_little_endian()
         uint64_t pepe = 4564564;
         uint64_t pepe2 = pepe & 0x0000ffffffffffff;
-            
+
         reinterpret_cast<uint8_t*>(pepe2);
         */
         //Drop the most significative bytes from the sh
         mini_hash short_id;
         mempool.emplace(short_id,tx);
-    
+
     }
 
     return mempool;
@@ -1628,12 +1633,12 @@ std::vector<domain::chain::transaction> block_chain::get_mempool_transactions_fr
     database_.transactions_unconfirmed().for_each_result([&](kth::database::transaction_unconfirmed_result const &tx_res) {
         auto tx = tx_res.transaction(witness);
         tx.recompute_hash();
-        
+
         // Only insert the transaction once. Avoid duplicating the tx if serveral wallets are used in the same tx, and if the same wallet is the input and output addr.
         bool inserted = false;
 
         for (auto iter_output = tx.outputs().begin(); (iter_output != tx.outputs().end() && !inserted); ++iter_output) {
-        
+
             auto const tx_addresses = kth::domain::wallet::payment_address::extract((*iter_output).script(), encoding_p2kh, encoding_p2sh);
 
             for (auto iter_addr = tx_addresses.begin(); (iter_addr != tx_addresses.end() && !inserted); ++iter_addr) {
@@ -1679,19 +1684,19 @@ std::vector<domain::chain::transaction> block_chain::get_mempool_transactions_fr
 
 
 void block_chain::fill_tx_list_from_mempool(domain::message::compact_block const& block, size_t& mempool_count, std::vector<domain::chain::transaction>& txn_available, std::unordered_map<uint64_t, uint16_t> const& shorttxids) const {
-    
+
     std::vector<bool> have_txn(txn_available.size());
-    
+
     auto header_hash = hash(block);
     auto k0 = from_little_endian_unsafe<uint64_t>(header_hash.begin());
     auto k1 = from_little_endian_unsafe<uint64_t>(header_hash.begin() + sizeof(uint64_t));
 
-        
+
     //LOG_INFO(LOG_BLOCKCHAIN
-    //<< "fill_tx_list_from_mempool header_hash ->  " << encode_hash(header_hash) 
+    //<< "fill_tx_list_from_mempool header_hash ->  " << encode_hash(header_hash)
     //<< " k0 " << k0
     //<< " k1 " << k1);
-            
+
 
     database_.transactions_unconfirmed().for_each([&](domain::chain::transaction const &tx) {
 #if defined(KTH_CURRENCY_BCH)
@@ -1700,11 +1705,11 @@ void block_chain::fill_tx_list_from_mempool(domain::message::compact_block const
         bool witness = true;
 #endif
         uint64_t shortid = sip_hash_uint256(k0, k1, tx.hash(witness)) & uint64_t(0xffffffffffff);
-        
+
       /*   LOG_INFO(LOG_BLOCKCHAIN
-            << "mempool tx ->  " << encode_hash(tx.hash()) 
+            << "mempool tx ->  " << encode_hash(tx.hash())
             << " shortid " << shortid);
-      */      
+      */
         auto idit = shorttxids.find(shortid);
         if (idit != shorttxids.end()) {
             if ( ! have_txn[idit->second]) {
@@ -1744,22 +1749,22 @@ safe_chain::mempool_mini_hash_map block_chain::get_mempool_mini_hash_map(domain:
     if (stopped()) {
         return safe_chain::mempool_mini_hash_map();
     }
-    
+
     auto header_hash = hash(block);
 
     auto k0 = from_little_endian_unsafe<uint64_t>(header_hash.begin());
     auto k1 = from_little_endian_unsafe<uint64_t>(header_hash.begin() + sizeof(uint64_t));
 
     safe_chain::mempool_mini_hash_map mempool;
-   
+
     database_.transactions_unconfirmed().for_each([&](domain::chain::transaction const &tx) {
-    
+
         auto sh = sip_hash_uint256(k0, k1, tx.hash(witness));
-        
+
        /* to_little_endian()
         uint64_t pepe = 4564564;
         uint64_t pepe2 = pepe & 0x0000ffffffffffff;
-            
+
         reinterpret_cast<uint8_t*>(pepe2);
         */
         //Drop the most significative bytes from the sh
@@ -2055,7 +2060,7 @@ void block_chain::fetch_block_header(hash_digest const& hash,
         handler(error::service_stopped, nullptr, 0);
         return;
     }
-    
+
     auto const result = database_.internal_db().get_header(hash);
 
     if ( ! result.first.is_valid() ) {
@@ -2158,7 +2163,7 @@ void block_chain::fetch_locator_block_headers(get_headers_const_ptr locator, has
 
 // This may generally execute 29+ queries.
 void block_chain::fetch_block_locator(block::indexes const& heights, block_locator_fetch_handler handler) const {
-    
+
     if (stopped()) {
         handler(error::service_stopped, nullptr);
         return;
@@ -2274,7 +2279,7 @@ void block_chain::fetch_mempool(size_t count_limit, uint64_t minimum_fee,
 // This may execute up to 500 queries.
 // This filters against the block pool and then the block chain.
 void block_chain::filter_blocks(get_data_ptr message, result_handler handler) const {
-    
+
     if (stopped()) {
         handler(error::service_stopped);
         return;
@@ -2286,10 +2291,11 @@ void block_chain::filter_blocks(get_data_ptr message, result_handler handler) co
     auto const& blocks = database_.blocks();
 
     for (auto it = inventories.begin(); it != inventories.end();) {
-        if (it->is_block_type() && blocks.get(it->hash()))
+        if (it->is_block_type() && blocks.get(it->hash())) {
             it = inventories.erase(it);
-        else
+        } else {
             ++it;
+        }
     }
 
     handler(error::success);
@@ -2344,7 +2350,7 @@ void block_chain::filter_transactions(get_data_ptr message, result_handler handl
 
     if (validated_txs.empty()) {
         handler(error::success);
-        return;    
+        return;
     }
 
     for (auto it = inventories.begin(); it != inventories.end();) {
@@ -2366,7 +2372,7 @@ void block_chain::filter_transactions(get_data_ptr message, result_handler handl
 // This may execute up to 500 queries.
 // This filters against the block pool and then the block chain.
 void block_chain::filter_blocks(get_data_ptr message, result_handler handler) const {
-    
+
     if (stopped()) {
         handler(error::service_stopped);
         return;
@@ -2403,9 +2409,15 @@ void block_chain::subscribe_transaction(transaction_handler&& handler) {
     transaction_organizer_.subscribe(std::move(handler));
 }
 
+void block_chain::subscribe_ds_proof(ds_proof_handler&& handler) {
+    // Pass this through to the tx organizer, which issues the notifications.
+    transaction_organizer_.subscribe_ds_proof(std::move(handler));
+}
+
 void block_chain::unsubscribe() {
     block_organizer_.unsubscribe();
     transaction_organizer_.unsubscribe();
+    transaction_organizer_.unsubscribe_ds_proof();
 }
 
 // Transaction Validation.
@@ -2426,6 +2438,11 @@ void block_chain::organize(block_const_ptr block, result_handler handler) {
 void block_chain::organize(transaction_const_ptr tx, result_handler handler) {
     // This cannot call organize or stop (lock safe).
     transaction_organizer_.organize(tx, handler);
+}
+
+void block_chain::organize(double_spend_proof_const_ptr ds_proof, result_handler handler) {
+    // This cannot call organize or stop (lock safe).
+    transaction_organizer_.organize(ds_proof, handler);
 }
 
 

@@ -21,8 +21,7 @@ namespace kth::blockchain {
 transaction_pool::transaction_pool(settings const& settings)
   ////: reject_conflicts_(settings.reject_conflicts),
   ////  minimum_fee_(settings.minimum_fee_satoshis)
-{
-}
+{}
 
 // TODO(legacy): implement block template discovery.
 void transaction_pool::fetch_template(merkle_block_fetch_handler handler) const {

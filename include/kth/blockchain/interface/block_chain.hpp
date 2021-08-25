@@ -64,8 +64,8 @@ public:
 
 #endif// KTH_DB_LEGACY
 
-#if defined(KTH_DB_LEGACY) || defined(KTH_DB_NEW_FULL) 
-   
+#if defined(KTH_DB_LEGACY) || defined(KTH_DB_NEW_FULL)
+
     /// Get the output that is referenced by the outpoint.
     bool get_output(domain::chain::output& out_output, size_t& out_height, uint32_t& out_median_time_past, bool& out_coinbase, const domain::chain::output_point& outpoint, size_t branch_height, bool require_confirmed) const override;
 
@@ -193,7 +193,7 @@ public:
     /// fetch the set of block hashes indicated by the block locator.
     void fetch_locator_block_hashes(get_blocks_const_ptr locator, hash_digest const& threshold, size_t limit, inventory_fetch_handler handler) const override;
 
-#if defined(KTH_DB_LEGACY) || defined(KTH_DB_NEW_BLOCKS) || defined(KTH_DB_NEW_FULL) 
+#if defined(KTH_DB_LEGACY) || defined(KTH_DB_NEW_BLOCKS) || defined(KTH_DB_NEW_FULL)
     void fetch_block_header_txs_size(hash_digest const& hash, block_header_txs_size_fetch_handler handler) const override;
 
     /// fetch hashes of transactions for a block, by block height.
@@ -207,15 +207,18 @@ public:
 
     /// fetch compact block by block hash.
     void fetch_compact_block(hash_digest const& hash, compact_block_fetch_handler handler) const override;
-    
+
 #endif // KTH_DB_LEGACY || KTH_DB_NEW_BLOCKS || KTH_DB_NEW_FULL
 
-#if defined(KTH_DB_LEGACY) || defined(KTH_DB_NEW_FULL) 
+    /// fetch DSProof by hash.
+    void fetch_ds_proof(hash_digest const& hash, ds_proof_fetch_handler handler) const override;
+
+#if defined(KTH_DB_LEGACY) || defined(KTH_DB_NEW_FULL)
 
     void for_each_transaction(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const override;
 
     void for_each_transaction_non_coinbase(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const override;
-    
+
     /// fetch transaction by hash.
     void fetch_transaction(hash_digest const& hash, bool require_confirmed, bool witness, transaction_fetch_handler handler) const override;
 
@@ -240,7 +243,7 @@ public:
 
     /// fetch height of block by hash.
     void fetch_block_height(hash_digest const& hash, block_height_fetch_handler handler) const override;
-    
+
     void fetch_block_hash_timestamp(size_t height, block_hash_time_fetch_handler handler) const override;
 
 
@@ -266,13 +269,13 @@ public:
             ++f;
         }
     }
-#endif // KTH_DB_LEGACY    
+#endif // KTH_DB_LEGACY
 
 
 #ifdef KTH_DB_NEW_FULL
     // Knuth non-virtual functions.
     //-------------------------------------------------------------------------
-    
+
     template <typename I>
     void for_each_tx_hash(I f, I l, size_t height, bool witness, for_each_tx_handler handler) const {
     #if defined(KTH_CURRENCY_BCH)
@@ -281,7 +284,7 @@ public:
         while (f != l) {
             auto const& hash = *f;
             auto const tx_result = database_.internal_db().get_transaction(hash, max_size_t);
-        
+
             if ( ! tx_result.is_valid()) {
                 handler(error::operation_failed_16, 0, domain::chain::transaction{});
                 return;
@@ -291,7 +294,7 @@ public:
             ++f;
         }
     }
-    
+
     template <typename I>
     void for_each_tx_valid(I f, I l, size_t height, bool witness, for_each_tx_handler handler) const {
     #if defined(KTH_CURRENCY_BCH)
@@ -299,7 +302,7 @@ public:
     #endif
         while (f != l) {
             auto const& tx = *f;
-            
+
             if ( ! tx.is_valid()) {
                 handler(error::operation_failed_16, 0, domain::chain::transaction{});
                 return;
@@ -309,7 +312,7 @@ public:
             ++f;
         }
     }
-#endif // KTH_DB_NEW_FULL    
+#endif // KTH_DB_NEW_FULL
 
 
 
@@ -345,14 +348,14 @@ public:
     void fetch_mempool(size_t count_limit, uint64_t minimum_fee, inventory_fetch_handler handler) const override;
 
 
-#if defined(KTH_DB_TRANSACTION_UNCONFIRMED) || defined(KTH_DB_NEW_FULL)    
+#if defined(KTH_DB_TRANSACTION_UNCONFIRMED) || defined(KTH_DB_NEW_FULL)
     std::vector<mempool_transaction_summary> get_mempool_transactions(std::vector<std::string> const& payment_addresses, bool use_testnet_rules, bool witness) const override;
     std::vector<mempool_transaction_summary> get_mempool_transactions(std::string const& payment_address, bool use_testnet_rules, bool witness) const override;
     std::vector<domain::chain::transaction> get_mempool_transactions_from_wallets(std::vector<domain::wallet::payment_address> const& payment_addresses, bool use_testnet_rules, bool witness) const override;
 
     /// fetch unconfirmed transaction by hash.
     void fetch_unconfirmed_transaction(hash_digest const& hash, transaction_unconfirmed_fetch_handler handler) const override;
-    
+
     mempool_mini_hash_map get_mempool_mini_hash_map(domain::message::compact_block const& block) const override;
     void fill_tx_list_from_mempool(domain::message::compact_block const& block, size_t& mempool_count, std::vector<domain::chain::transaction>& txn_available, std::unordered_map<uint64_t, uint16_t> const& shorttxids) const override;
 #endif // KTH_DB_TRANSACTION_UNCONFIRMED
@@ -366,7 +369,7 @@ public:
 #if defined(KTH_DB_LEGACY) || defined(KTH_DB_NEW_FULL) || defined(KTH_WITH_MEMPOOL)
     /// Filter out confirmed and unconfirmed transactions by hash.
     void filter_transactions(get_data_ptr message, result_handler handler) const override;
-#endif 
+#endif
 
 
     // Subscribers.
@@ -378,6 +381,9 @@ public:
     /// Subscribe to memory pool additions, get transaction.
     void subscribe_transaction(transaction_handler&& handler) override;
 
+    /// Subscribe to DSProof pool additions, get DSProof object.
+    void subscribe_ds_proof(ds_proof_handler&& handler) override;
+
     /// Send null data success notification to all subscribers.
     void unsubscribe() override;
 
@@ -385,7 +391,7 @@ public:
     //-----------------------------------------------------------------------------
 
     void transaction_validate(transaction_const_ptr tx, result_handler handler) const override;
-    
+
     // Organizers.
     //-------------------------------------------------------------------------
 
@@ -394,6 +400,9 @@ public:
 
     /// Store a transaction to the pool if valid.
     void organize(transaction_const_ptr tx, result_handler handler) override;
+
+    /// Store a DSProof to the pool if valid.
+    void organize(double_spend_proof_const_ptr ds_proof, result_handler handler) override;
 
     // Properties.
     //-------------------------------------------------------------------------
@@ -408,7 +417,7 @@ public:
     settings const& chain_settings() const;
 
 
-#ifdef KTH_WITH_KEOKEN    
+#ifdef KTH_WITH_KEOKEN
     virtual void fetch_keoken_history(const short_hash& address_hash, size_t limit,
         size_t from_height, keoken_history_fetch_handler handler) const override;
 
@@ -456,7 +465,7 @@ private:
 
     //TODO(kth):  dissabled this tx cache because we don't want special treatment for the last txn, it affects the explorer rpc methods
     //kth::atomic<transaction_const_ptr> last_transaction_;
-    
+
     populate_chain_state const chain_state_populator_;
     database::data_base database_;
 
