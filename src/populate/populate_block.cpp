@@ -33,8 +33,6 @@ populate_block::populate_block(dispatcher& dispatch, fast_chain const& chain, bo
 #endif
 {}
 
-
-
 void populate_block::populate(branch::const_ptr branch, result_handler&& handler) const {
     auto const block = branch->top();
     KTH_ASSERT(block);
@@ -62,9 +60,7 @@ void populate_block::populate(branch::const_ptr branch, result_handler&& handler
     auto const buckets = std::min(dispatch_.size(), non_coinbase_inputs);
     auto const join_handler = synchronize(std::move(handler), buckets, NAME);
     KTH_ASSERT(buckets != 0);
-    // LOG_INFO(LOG_BLOCKCHAIN, "populate_block::populate - buckets:  ", buckets);
 
-    // auto local_utxo = create_local_utxo_set(*block);
     auto branch_utxo = create_branch_utxo_set(branch);
 
 #if defined(KTH_WITH_MEMPOOL)
@@ -112,17 +108,8 @@ void populate_block::populate_coinbase(branch::const_ptr branch, block_const_ptr
     //*************************************************************************
     if ( ! state->is_enabled(domain::machine::rule_fork::allow_collisions)) {
         populate_base::populate_duplicate(branch->height(), coinbase, true);
-        ////populate_duplicate(branch, coinbase);
     }
 }
-
-////void populate_block::populate_duplicate(branch::const_ptr branch,
-////    const domain::chain::transaction& tx) const
-////{
-////    if ( ! tx.validation.duplicate)
-////        branch->populate_duplicate(tx);
-////}
-
 
 #if defined(KTH_DB_NEW)
 populate_block::utxo_pool_t populate_block::get_reorg_subset_conditionally(size_t first_height, size_t& out_chain_top) const {
@@ -218,7 +205,6 @@ void populate_block::populate_transactions(branch::const_ptr branch, size_t buck
 #if defined(KTH_DB_LEGACY)
         if ( ! collide) {
             populate_base::populate_duplicate(branch->height(), tx, true);
-            ////populate_duplicate(branch, coinbase);
         }
 #endif
     }

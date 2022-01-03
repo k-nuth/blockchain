@@ -861,9 +861,7 @@ void block_chain::fetch_last_height(last_height_fetch_handler handler) const {
     handler(error::success, last_height);
 }
 
-void block_chain::fetch_transaction(hash_digest const& hash,
-    bool require_confirmed, bool witness,
-    transaction_fetch_handler handler) const {
+void block_chain::fetch_transaction(hash_digest const& hash, bool require_confirmed, bool witness, transaction_fetch_handler handler) const {
 #if defined(KTH_CURRENCY_BCH)
     witness = false;
 #endif
@@ -1169,7 +1167,6 @@ void block_chain::fetch_transaction(hash_digest const& hash, bool require_confir
 //            return;
 //        }
 //    }
-
 
     auto const result = database_.internal_db().get_transaction(hash, max_size_t);
     if ( result.is_valid() ) {

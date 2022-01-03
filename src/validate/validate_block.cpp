@@ -71,14 +71,11 @@ void validate_block::check(block_const_ptr block, result_handler handler) const 
         return;
     }
 
-    result_handler complete_handler =
-        std::bind(&validate_block::handle_checked,
-            this, _1, block, handler);
+    result_handler complete_handler = std::bind(&validate_block::handle_checked, this, _1, block, handler);
 
     // TODO: make configurable for each parallel segment.
     // This one is more efficient with one thread than parallel.
     auto const threads = std::min(size_t(1), priority_dispatch_.size());
-
     auto const count = block->transactions().size();
     auto const buckets = std::min(threads, count);
     KTH_ASSERT(buckets != 0);
@@ -151,14 +148,6 @@ void validate_block::handle_populated(code const& ec, block_const_ptr block, res
     }
 
     auto const height = block->validation.state->height();
-
-    // if (encode_hash(block->hash()) == "000000000000000000812c14e92e484f1beb97456799d8d07e7afe46930ac0d6") {
-    //     LOG_INFO(LOG_BLOCKCHAIN, "This is the block I want to measure");
-    // }
-
-    // if (encode_hash(block->hash()) == "000000000000000001007e32c6337e2fdd79e8cd0a3307c5c852c71028c7ceb8") {
-    //     LOG_INFO(LOG_BLOCKCHAIN, "This is the block I want to measure");
-    // }
 
     // Run contextual block non-tx checks (sets start time).
     auto const error_code = block->accept(false);
@@ -283,11 +272,11 @@ void validate_block::connect(branch::const_ptr branch, result_handler handler) c
     auto const join_handler = synchronize(std::move(complete_handler), buckets, NAME "_validate");
 
     for (size_t bucket = 0; bucket < buckets; ++bucket) {
-        priority_dispatch_.concurrent(&validate_block::connect_inputs, this, block, bucket, buckets, join_handler);
+        priority_dispatch_.concurrent(&validate_block::connect_inputs, this, block, bucket, buckets, ???, join_handler);
     }
 }
 
-void validate_block::connect_inputs(block_const_ptr block, size_t bucket, size_t buckets, result_handler handler) const {
+void validate_block::connect_inputs(block_const_ptr block, size_t bucket, size_t buckets, ???, result_handler handler) const {
     KTH_ASSERT(bucket < buckets);
     code ec(error::success);
     auto const forks = block->validation.state->enabled_forks();
@@ -317,7 +306,6 @@ void validate_block::connect_inputs(block_const_ptr block, size_t bucket, size_t
             continue;
         }
 
-
         size_t input_index;
         auto const& inputs = tx->inputs();
 
@@ -339,7 +327,7 @@ void validate_block::connect_inputs(block_const_ptr block, size_t bucket, size_t
             }
 
             size_t sigchecks;
-            std::tie(ec, sigchecks) = validate_input::verify_script(*tx, input_index, forks);
+            std::tie(ec, sigchecks) = validate_input::verify_script(*tx, input_index, forks, ???);
             if (ec != error::success) {
                 break;
             }
@@ -383,15 +371,6 @@ void validate_block::dump(code const& ec, transaction const& tx, uint32_t input_
     auto const hash = encode_hash(prevout.hash());
     auto const tx_hash = encode_hash(tx.hash());
 
-    // LOG_DEBUG(LOG_BLOCKCHAIN
-    //     , "Verify failed [" << height << "] : " << ec.message() << std::endl
-    //     , " forks        : " << forks << std::endl
-    //     , " outpoint     : " << hash << ":" << prevout.index() << std::endl
-    //     , " script       : " << encode_base16(script) << std::endl
-    //     , " value        : " << prevout.validation.cache.value() << std::endl
-    //     , " inpoint      : " << tx_hash << ":" << input_index << std::endl
-    //     , " transaction  : " << encode_base16(tx.to_data(true, true)));
-
     LOG_DEBUG(LOG_BLOCKCHAIN
         , "Verify failed [{}] : {}\n"
         " forks        : {}\n"
@@ -401,7 +380,6 @@ void validate_block::dump(code const& ec, transaction const& tx, uint32_t input_
         " inpoint      : {}:{}\n"
         " transaction  : {}", height, ec.message(), forks, hash, prevout.index(), encode_base16(script)
         , prevout.validation.cache.value(), tx_hash, input_index, encode_base16(tx.to_data(true, true)));
-
 }
 
 } // namespace kth::blockchain

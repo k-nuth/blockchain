@@ -185,38 +185,47 @@ code validate_input::convert_result(verify_result_type result) {
     }
 }
 
-// TODO: cache transaction wire serialization.
-std::pair<code, size_t> validate_input::verify_script(transaction const& tx, uint32_t input_index, uint32_t branches) {
+using coins_t = std::vector<kth::consensus::coin>;
+
+inline
+coins_t create_context_data(transaction const& tx, bool should_create_context) {
+    if ( ! should_create_context) return {};
+
+    coins_t coins;
+    coins.reserve(tx.inputs().size());
+
+    for (auto const& input : tx.inputs()) {
+        auto const& prevout = input.previous_output().validation.cache;
+        coins.emplace_back(prevout.value(), prevout.script().to_data(false));
+    }
+    return coins;
+}
+#endif
+
 
 #if defined(KTH_CURRENCY_BCH)
+std::pair<code, size_t> validate_input::verify_script(transaction const& tx, uint32_t input_index, uint32_t branches, ScriptExecutionContextOpt context) {
     bool witness = false;
 #else
+std::pair<code, size_t> validate_input::verify_script(transaction const& tx, uint32_t input_index, uint32_t branches) {
     bool witness = true;
 #endif
 
     KTH_ASSERT(input_index < tx.inputs().size());
     auto const& prevout = tx.inputs()[input_index].previous_output().validation;
     auto const script_data = prevout.cache.script().to_data(false);
-    auto const prevout_value = prevout.cache.value();
-
-    // auto const amount = bitcoin_cash ? prevout.cache.value() : 0;
     auto const amount = prevout.cache.value();
-    // auto const prevout_value = prevout.cache.value();
-
-    // Wire serialization is cached in support of large numbers of inputs.
-
-    //TODO(fernando): implement KTH_CACHED_RPC_DATA (See domain) for the last parameter (unconfirmed = false).
-    // auto const tx_data = tx.to_data(true, witness, false);
     auto const tx_data = tx.to_data(true, witness);
 
 #if defined(KTH_CURRENCY_BCH)
     size_t sig_checks;
+    auto const coins = create_context_data(tx, should_create_context);
+
     auto res = consensus::verify_script(tx_data.data(),
         tx_data.size(), script_data.data(), script_data.size(), input_index,
-        convert_flags(branches), sig_checks, amount);
+        convert_flags(branches), sig_checks, amount, coins);
 
     return {convert_result(res), sig_checks};
-
 #else
     auto res = consensus::verify_script(tx_data.data(),
         tx_data.size(), script_data.data(), script_data.size(), amount,
@@ -228,14 +237,9 @@ std::pair<code, size_t> validate_input::verify_script(transaction const& tx, uin
 
 #else //WITH_CONSENSUS
 
-std::pair<code, size_t> validate_input::verify_script(transaction const& tx, uint32_t input_index, uint32_t forks) {
-
 #error Not supported, build using -o consensus=True
 
-    // if (bitcoin_cash) {
-    //     return error::operation_failed_22;
-    // }
-
+std::pair<code, size_t> validate_input::verify_script(transaction const& tx, uint32_t input_index, uint32_t forks) {
     return {script::verify(tx, input_index, forks), 0};
 }
 
