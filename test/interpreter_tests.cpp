@@ -1,7 +1,7 @@
-// Copyright (c) 2016-2021 Knuth Project developers.
+// Copyright (c) 2016-2022 Knuth Project developers.
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
- 
+
 
 #include "doctest.h"
 
@@ -30,9 +30,9 @@ class fast_chain_dummy_return_false {
 public:
     /// Get the output that is referenced by the outpoint.
     bool get_output(kd::domain::chain::output& out_output, size_t& out_height,
-        uint32_t& out_median_time_past, bool& out_coinbase, 
+        uint32_t& out_median_time_past, bool& out_coinbase,
         const kd::domain::chain::output_point& outpoint, size_t branch_height,
-        bool require_confirmed) const { 
+        bool require_confirmed) const {
 
         return false;
     }
@@ -41,20 +41,20 @@ public:
 class fast_chain_dummy_return_true {
 public:
     fast_chain_dummy_return_true(kd::domain::chain::transaction& tx)
-        :tx_(tx) 
+        :tx_(tx)
     {}
 
     /// Get the output that is referenced by the outpoint.
     bool get_output(kd::domain::chain::output& out_output, size_t& out_height,
-        uint32_t& out_median_time_past, bool& out_coinbase, 
+        uint32_t& out_median_time_past, bool& out_coinbase,
         const kd::domain::chain::output_point& outpoint, size_t branch_height,
-        bool require_confirmed) const { 
-            
+        bool require_confirmed) const {
+
         out_output = tx_.outputs()[0];
         out_height = 123;
         out_median_time_past = 456;
         out_coinbase = false;
-        
+
         return true;
     }
 private:
@@ -135,7 +135,7 @@ TEST_CASE("[interpreter_tx_create_asset_valid] ") {
 TEST_CASE("[interpreter_tx_send_token_insufficient_money] ") {
 
     using blk_t = fast_chain_dummy_return_true;
-    
+
     // state st(2);
     memory_state st;
     st.set_initial_asset_id(2);

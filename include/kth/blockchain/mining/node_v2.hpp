@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2021 Knuth Project developers.
+// Copyright (c) 2016-2022 Knuth Project developers.
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -16,13 +16,13 @@ namespace mining {
 class node {
 public:
 
-    node(transaction_element const& te) 
+    node(transaction_element const& te)
         : te_(te)
         , children_fees_(te_.fee())
         , children_size_(te_.size())
         , children_sigops_(te_.sigops()) {}
 
-    node(transaction_element&& te) 
+    node(transaction_element&& te)
         : te_(std::move(te))
         , children_fees_(te_.fee())
         , children_size_(te_.size())
@@ -70,7 +70,7 @@ public:
 
     std::vector<index_t>& parents() {
         return parents_;
-    }    
+    }
 
     std::vector<index_t> const& children() const {
         return children_;

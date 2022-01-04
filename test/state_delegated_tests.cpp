@@ -1,7 +1,7 @@
-// Copyright (c) 2016-2021 Knuth Project developers.
+// Copyright (c) 2016-2022 Knuth Project developers.
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
- 
+
 
 #include "doctest.h"
 
@@ -39,7 +39,7 @@ TEST_CASE("[state_delegated_asset_id_exists_not_empty] ") {
     hash_digest const txid = hash_literal("8b4b9487199ed6668cf6135f29f832c215ab8d32a32c323923594e7475dece25");
 
     state_.create_asset(name, amount, addr, height, txid);
-    
+
     REQUIRE(state_.asset_id_exists(0));
 }
 
@@ -96,7 +96,7 @@ TEST_CASE("[state_delegated_create_asset] ") {
     hash_digest const txid = hash_literal("8b4b9487199ed6668cf6135f29f832c215ab8d32a32c323923594e7475dece25");
 
     state_.create_asset(name, amount, addr, height, txid);
-    
+
     auto const& ret = state_.get_assets();
 
     auto const new_asset = ret[0];
@@ -126,7 +126,7 @@ TEST_CASE("[state_delegated_create_balance_entry] ") {
     hash_digest const txid = hash_literal("8b4b9487199ed6668cf6135f29f832c215ab8d32a32c323923594e7475dece25");
 
     state_.create_asset(name, amount, source, height, txid);
-    
+
     amount_t amount_to_transfer = 5;
     state_.create_balance_entry(0, amount_to_transfer, source, destination, height, txid );
 
@@ -155,7 +155,7 @@ TEST_CASE("[state_delegated_get_assets_by_address] ") {
     hash_digest const txid = hash_literal("8b4b9487199ed6668cf6135f29f832c215ab8d32a32c323923594e7475dece25");
 
     state_.create_asset(name, amount, source, height, txid);
-    
+
     amount_t amount_to_transfer = 5;
     state_.create_balance_entry(0, amount_to_transfer, source, destination, height, txid );
 
@@ -197,12 +197,12 @@ TEST_CASE("[state_delegated_get_all_asset_addresses] ") {
     hash_digest const txid = hash_literal("8b4b9487199ed6668cf6135f29f832c215ab8d32a32c323923594e7475dece25");
 
     state_.create_asset(name, amount, source, height, txid);
-    
+
     amount_t amount_to_transfer = 5;
     state_.create_balance_entry(0, amount_to_transfer, source, destination, height, txid );
 
     auto const& list_source = state_.get_all_asset_addresses();
-    
+
     REQUIRE(list_source.size() == 2);
 
     auto it = std::find_if(list_source.begin(),list_source.end(), [&source](get_all_asset_addresses_data const& x) {

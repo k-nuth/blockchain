@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2021 Knuth Project developers.
+// Copyright (c) 2016-2022 Knuth Project developers.
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -62,7 +62,7 @@ namespace utxo_tests {
 
 static const uint64_t genesis_mainnet_work = 0x0000000100010001;
 
-static 
+static
 void print_headers(std::string const& test) {
     auto const header = "=========== " + test + " ==========";
     LOG_INFO(TEST_SET_NAME, header);

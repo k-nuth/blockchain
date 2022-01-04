@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2021 Knuth Project developers.
+// Copyright (c) 2016-2022 Knuth Project developers.
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -55,11 +55,12 @@ public:
     bool bch_euclid = true;
     bool bch_pisano = true;
     bool bch_mersenne = true;
-    bool bch_fermat = true;      // 2020-May
-    bool bch_euler = true;       // 2020-Nov
-                                 // 2021-May (no HF)
-    // bool bch_gauss = false;   // ????-???
-    // bool bch_unnamed = false; // 2021-Nov
+    bool bch_fermat = true;        // 2020-May
+    bool bch_euler = true;         // 2020-Nov
+                                   // 2021-May (no HF)
+    // bool bch_gauss = false;     // 2022-May
+    // bool bch_descartes = false; // 2023-May
+    // bool bch_unnamed = false;   // 2024-May
 
     ////2017-Aug-01 hard fork, defaults to 478559 (Mainnet)
     // size_t uahf_height = 478559;
@@ -87,8 +88,11 @@ public:
 
     // 2021-May-15: No hard fork on May 15, 2021.
 
-    // //????-???-?? hard fork, defaults to 9999999999: ??? ??, ???? 12:00:00 UTC protocol upgrade
-    // uint64_t gauss_activation_time = to_underlying(bch_gauss_activation_time);
+    //2022-May-15 hard fork, defaults to 1652616000: May 15, 2022 12:00:00 UTC protocol upgrade
+    uint64_t gauss_activation_time = to_underlying(bch_gauss_activation_time);
+
+    //2023-May-15 hard fork, defaults to 1684152000: May 15, 2023 12:00:00 UTC protocol upgrade
+    uint64_t descartes_activation_time = to_underlying(bch_descartes_activation_time);
 
     // //????-???-?? hard fork, defaults to 9999999999: ??? ??, ???? 12:00:00 UTC protocol upgrade
     // uint64_t unnamed_activation_time = to_underlying(bch_unnamed_activation_time);

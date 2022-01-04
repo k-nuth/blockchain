@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2021 Knuth Project developers.
+// Copyright (c) 2016-2022 Knuth Project developers.
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -28,9 +28,9 @@ public:
 
     prioritizer() = default;
 
-#ifndef NDEBUG    
-    ~prioritizer() { 
-        assert( ! waiting_); 
+#ifndef NDEBUG
+    ~prioritizer() {
+        assert( ! waiting_);
     }
 #endif
 
@@ -54,7 +54,7 @@ public:
     auto high_job(F f) const {
         waiting_ = true;
         lock_guard_t lk(gate_);
-        
+
         waiting_ = false;
 
         auto res = f();

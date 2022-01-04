@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2021 Knuth Project developers.
+// Copyright (c) 2016-2022 Knuth Project developers.
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -24,7 +24,7 @@ class BCB_API populate_block : public populate_base {
 public:
 #if defined(KTH_DB_NEW)
     using utxo_pool_t = database::internal_database::utxo_pool_t;
-#endif    
+#endif
 
 #if defined(KTH_WITH_MEMPOOL)
     populate_block(dispatcher& dispatch, fast_chain const& chain, bool relay_transactions, mining::mempool const& mp);
