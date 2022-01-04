@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2021 Knuth Project developers.
+// Copyright (c) 2016-2022 Knuth Project developers.
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -27,7 +27,7 @@
 #include <kth/domain.hpp>
 
 
-template <typename F> 
+template <typename F>
 auto scope_guard(F&& f) {
     // return std::unique_ptr<void, typename std::decay<F>::type>{(void*)1, std::forward<F>(f)};
     return std::unique_ptr<void, typename std::decay<F>::type>{reinterpret_cast<void*>(1), std::forward<F>(f)};
@@ -49,7 +49,7 @@ node make_node(domain::chain::transaction const& tx) {
                                   , tx.hash(true)
 #endif
                                   , tx.to_data(true, KTH_WITNESS_DEFAULT)
-                                  , tx.fees() 
+                                  , tx.fees()
                                   , tx.signature_operations()
                                   , tx.outputs().size())
                         );
@@ -89,7 +89,7 @@ using all_transactions_t = std::vector<node>;
 inline
 void sort_ctor(all_transactions_t& all, std::vector<size_t>& candidates) {
     auto const cmp = [&all](index_t ia, index_t ib) {
-        auto const& a = all[ia]; 
+        auto const& a = all[ia];
         auto const& b = all[ib];
         return std::lexicographical_compare(a.txid().rbegin(), a.txid().rend(),
                                             b.txid().rbegin(), b.txid().rend());
@@ -105,7 +105,7 @@ void sort_ltor(bool sorted, all_transactions_t& all, std::vector<size_t>& candid
 
     if ( ! sorted) {
         auto const cmp = [&all](index_t ia, index_t ib) {
-            auto const& a = all[ia]; 
+            auto const& a = all[ia];
             auto const& b = all[ib];
             // return fee_per_size_cmp{}(a, b);
             auto const value_a = static_cast<double>(a.children_fees()) / a.children_size();
@@ -121,11 +121,11 @@ void sort_ltor(bool sorted, all_transactions_t& all, std::vector<size_t>& candid
     while (last_organized != std::end(candidates)) {
         auto selected_to_move = last_organized++;
 
-        auto most_left_child = std::find_if(std::begin(candidates), selected_to_move, 
+        auto most_left_child = std::find_if(std::begin(candidates), selected_to_move,
             [&](index_t s) {
                 auto const& parent_node = all[*selected_to_move];
-                auto found = std::find(std::begin(parent_node.children()), 
-                                       std::end(parent_node.children()), 
+                auto found = std::find(std::begin(parent_node.children()),
+                                       std::end(parent_node.children()),
                                        s);
                 return found != std::end(parent_node.children());
         });
@@ -256,7 +256,7 @@ public:
         operator size_t() const {
             return index_;
         }
-        
+
         size_t index() const {
             return index_;
         }
@@ -327,10 +327,10 @@ public:
     static constexpr size_t mempool_size_multiplier_default = 10;
 #else
     static constexpr size_t mempool_size_multiplier_default = 10;
-#endif 
+#endif
 
     explicit
-    mempool(size_t max_template_size = max_template_size_default, size_t mempool_size_multiplier = mempool_size_multiplier_default) 
+    mempool(size_t max_template_size = max_template_size_default, size_t mempool_size_multiplier = mempool_size_multiplier_default)
         : max_template_size_(max_template_size)
         // , mempool_size_multiplier_(mempool_size_multiplier)
         , mempool_total_size_(get_max_block_weight() * mempool_size_multiplier)
@@ -374,7 +374,7 @@ public:
     double relatives_management_part_2_new_node_add_parents_time = 0.0;
     double relatives_management_part_2_second_loop_time = 0.0;
     double relatives_management_part_2_second_loop_parent_add_child_time = 0.0;
-    
+
 
 
 
@@ -613,7 +613,7 @@ public:
 //                 //     std::cout << std::endl;
 //                 // }
 
-                
+
 //                 indexes_t old_parents;
 //                 for (auto x : node_old.parents()) {
 //                     if (x >= diff) {
@@ -644,7 +644,7 @@ public:
             //     all_transactions_[i].set_candidate_index(null_index);
             //     all_transactions_[i].reset_children_values();
             // }
-            
+
             for (auto& atx : all_transactions_) {
                 atx.set_candidate_index(null_index);
                 atx.reset_children_values();
@@ -770,14 +770,14 @@ public:
 
         if (processing_block_) {
             return {};
-        } 
+        }
 
         auto copied_data = prioritizer_.high_job([this] {
             std::vector<size_t> candidates;
             candidates.reserve(candidate_transactions_.size());
             std::transform(std::begin(candidate_transactions_), std::end(candidate_transactions_), std::back_inserter(candidates),
-                   [](candidate_index_t const& x) { 
-                       return x.index(); 
+                   [](candidate_index_t const& x) {
+                       return x.index();
                     }
             );
 
@@ -827,7 +827,7 @@ public:
             auto it = internal_utxo_set_.find(point);
             if (it != internal_utxo_set_.end()) {
                 return it->second;
-            } 
+            }
 
             return domain::chain::output{};
         });
@@ -845,7 +845,7 @@ public:
         if ( ! res.second) {
             return;
         }
-        
+
         auto const& node = all_transactions_[node_index];
         auto fee = node.fee();
         auto size = node.size();
@@ -937,7 +937,7 @@ public:
                 }
                 ++i;
             }
-        } 
+        }
 
         {
             // size_t ci = 0;
@@ -955,7 +955,7 @@ public:
                 check_children_accum(i);
                 ++i;
             }
-        }        
+        }
 
 
         {
@@ -973,7 +973,7 @@ public:
 
                 BOOST_ASSERT(res);
             }
-        }   
+        }
 
         // **FER**
         {
@@ -1040,7 +1040,7 @@ public:
             auto last = std::unique(ci_sorted.begin(), ci_sorted.end());
             BOOST_ASSERT(std::distance(ci_sorted.begin(), last) == ci_sorted.size());
         }
-        
+
         // {
         //     std::vector<size_t> all_sorted;
         //     for (auto const& node : all_transactions_) {
@@ -1076,14 +1076,14 @@ public:
 
     // TODO(review-Dario): This method is too long, wouldn't it be more readable breaking it into inlined submethods?
     void check_invariant_partial() const {
-        
+
         BOOST_ASSERT(candidate_transactions_.size() <= all_transactions_.size());
 
 
         // {
         //     for (auto i : candidate_transactions_) {
         //         auto const& node = all_transactions_[i];
-                
+
         //         if (node.candidate_index() != null_index && node.candidate_index() >= all_transactions_.size()) {
         //             BOOST_ASSERT(false);
         //         }
@@ -1101,7 +1101,7 @@ public:
         {
             for (auto i : candidate_transactions_) {
                 auto const& node = all_transactions_[i.index()];
-                
+
                 for (auto ci : node.children()) {
                     if (ci >= all_transactions_.size()) {
                         BOOST_ASSERT(false);
@@ -1113,7 +1113,7 @@ public:
         {
             for (auto i : candidate_transactions_) {
                 auto const& node = all_transactions_[i.index()];
-                
+
                 for (auto pi : node.parents()) {
                     if (pi >= all_transactions_.size()) {
                         BOOST_ASSERT(false);
@@ -1142,7 +1142,7 @@ public:
         //     auto last = std::unique(ci_sorted.begin(), ci_sorted.end());
         //     BOOST_ASSERT(std::distance(ci_sorted.begin(), last) == ci_sorted.size());
         // }
-        
+
         // {
         //     std::vector<size_t> all_sorted;
         //     for (auto const& node : all_transactions_) {
@@ -1205,7 +1205,7 @@ private:
                 if (pi >= index) {
                     --pi;
                 }
-            }            
+            }
         }
     }
 
@@ -1214,13 +1214,13 @@ private:
 
         auto it = hash_index_.find(elem.txid());
         if (it != hash_index_.end()) {
-            
+
             it->second.first = index;
             auto const& tx = it->second.second;
 
             for (auto const& i : tx.inputs()) {
                 previous_outputs_.insert({i.previous_output(), index});
-            }        
+            }
             // add_node(index);
             insert_candidate(index, elem);
         } else {
@@ -1250,7 +1250,7 @@ private:
             if (to_remove.empty()) {
                 // ++low_benefit_tx_counter;
                 return error::low_benefit_transaction;
-            } 
+            }
 
             do_candidate_removal(to_remove);
         }
@@ -1258,8 +1258,8 @@ private:
         do_candidates_insertion(to_insert);
 
         return error::success;
-    }    
-    
+    }
+
     void clean_parents(mining::node const& node, index_t index) {
         for (auto pi : node.parents()) {
             auto& parent = all_transactions_[pi];
@@ -1285,7 +1285,7 @@ private:
                 }
             }
         }
-    }    
+    }
 
     void remove_from_utxo(hash_digest const& txid, uint32_t output_count) {
         for (uint32_t i = 0; i < output_count; ++i) {
@@ -1319,7 +1319,7 @@ private:
         if ( ! res.second) {
             return {0, 0, 0};
         }
-        
+
         auto const& node = all_transactions_[node_index];
         auto fee = node.fee();
         auto size = node.size();
@@ -1359,7 +1359,7 @@ private:
                 size += parent.size();
                 sigops += parent.sigops();
                 to_insert_no_inserted.push_back(pi);
-            } 
+            }
         }
 
         return {std::move(to_insert_no_inserted), fees, size, sigops};
@@ -1380,7 +1380,7 @@ private:
 
         uint64_t fee_accum = 0;
         size_t size_accum = 0;
-        
+
         auto next_size = accum_size_;
         auto next_sigops = accum_sigops_;
 
@@ -1390,7 +1390,7 @@ private:
             auto elem_index = *it;
             auto const& elem = all_transactions_[elem_index.index()];
             auto const& to_insert_elem = all_transactions_[to_insert_index];
-            
+
             //TODO(fernando): Do I have to check if elem_idex is any of the to_insert elements
             bool shares = shares_parents(to_insert_elem, elem_index.index());
 
@@ -1429,11 +1429,11 @@ private:
 
         //TODO(fernando): remove_time
         remove_nodes(to_remove);
-              
+
         //TODO(fernando): reindex_parents_for_removal_time
         reindex_parents_for_removal(to_remove);
 
-        
+
     }
 
     void do_candidates_insertion(to_insert_t const& to_insert) {
@@ -1455,7 +1455,7 @@ private:
         if (accum_size_ > max_template_size_ - size) {
             return false;
         }
-        
+
         auto const next_size = accum_size_ + size;
         auto const sigops_limit = get_allowed_sigops(next_size);
 
@@ -1652,7 +1652,7 @@ private:
         if (i == candidate_transactions_.size() - 1) {
             auto it = std::next(std::begin(candidate_transactions_), i);
             auto ci = candidate_transactions_.back().index();
-            
+
             auto& node = all_transactions_[ci];
             node.set_candidate_index(null_index);
             node.reset_children_values();
@@ -1674,9 +1674,9 @@ private:
             // print_candidates();
 
 #ifndef NDEBUG
-            check_invariant_consistency_partial();      
+            check_invariant_consistency_partial();
 #endif
-            return;      
+            return;
         }
 
         auto it = std::next(std::begin(candidate_transactions_), i);
@@ -1750,7 +1750,7 @@ private:
             return get_candidate_index(i);
         });
     }
-        
+
     void reindex_parent_for_removal(mining::node const& node, mining::node& parent, index_t parent_index) {
         // cout << "reindex_parent_quitar\n";
         auto node_benefit = static_cast<double>(node.fee()) / node.size();
@@ -1802,7 +1802,7 @@ private:
 
             auto it2 = std::upper_bound(from, to, candidate_index_t{parent_index}, cmp);
             if (it2 != it) {
-                
+
                 // std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
                 // print_candidates();
                 // std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
@@ -1876,7 +1876,7 @@ private:
         if (old_accum_benefit == accum_benefit) {
             return;
         }
-    
+
         auto it = std::next(std::begin(candidate_transactions_), parent.candidate_index());
         auto child_it = std::next(std::begin(candidate_transactions_), node.candidate_index());
 
@@ -1908,7 +1908,7 @@ private:
 #endif
             } else {
                 if (accum_benefit < node_accum_benefit) {
-                    //  P        C     P'      
+                    //  P        C     P'
                     auto from = child_it + 1;
                     auto to = std::end(candidate_transactions_);;
 
@@ -2005,7 +2005,7 @@ private:
 #ifndef NDEBUG
                         check_invariant_consistency_partial();
 #endif
-                    } 
+                    }
                 }
             }
         }
@@ -2048,13 +2048,13 @@ private:
             // auto old = parent;
 
             // parent.increment_values(node.fee(), node.size(), node.sigops());
-           
+
             if (parent.candidate_index() != null_index) {
 
-                // auto parent_benefit = static_cast<double>(parent.children_fees()) / parent.children_size();   
+                // auto parent_benefit = static_cast<double>(parent.children_fees()) / parent.children_size();
                 // std::cout << "Parent stage0 benefit " << parent_benefit << "\n";
                 parent.increment_values(node.fee(), node.size(), node.sigops());
-                // parent_benefit = static_cast<double>(parent.children_fees()) / parent.children_size();   
+                // parent_benefit = static_cast<double>(parent.children_fees()) / parent.children_size();
                 // std::cout << "Parent stage1 benefit " << parent_benefit << "\n";
 
                 reindex_parent_from_insertion(node, parent, pi);
@@ -2166,7 +2166,7 @@ private:
     size_t accum_size_ = 0;
     size_t accum_sigops_ = 0;
     uint64_t accum_fees_ = 0;
-    
+
     //TODO(fernando): chequear el anidamiento de TX con su máximo (25??) y si es regla de consenso.
 
     internal_utxo_set_t internal_utxo_set_;

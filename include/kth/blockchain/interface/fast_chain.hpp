@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2021 Knuth Project developers.
+// Copyright (c) 2016-2022 Knuth Project developers.
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -27,15 +27,15 @@ public:
 #ifdef KTH_DB_LEGACY
     /// Get the set of block gaps in the chain.
     virtual bool get_gaps(database::block_database::heights& out_gaps) const = 0;
-    
-    
+
+
     //Knuth: we don't store spent information
     /// Determine if an unspent transaction exists with the given hash.
     virtual bool get_is_unspent_transaction(hash_digest const& hash, size_t branch_height, bool require_confirmed) const = 0;
 
 #endif // KTH_DB_LEGACY
 
-#if defined(KTH_DB_LEGACY) || defined(KTH_DB_NEW_FULL) 
+#if defined(KTH_DB_LEGACY) || defined(KTH_DB_NEW_FULL)
     /// Get position data for a transaction.
     virtual bool get_transaction_position(size_t& out_height, size_t& out_position, hash_digest const& hash, bool require_confirmed) const = 0;
 

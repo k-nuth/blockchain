@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2021 Knuth Project developers.
+// Copyright (c) 2016-2022 Knuth Project developers.
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -25,7 +25,7 @@ kd::wallet::payment_address get_first_input_addr(Fastchain const& fast_chain, kd
     uint32_t out_median_time_past;
     bool out_coinbase;
 
-    if ( ! fast_chain.get_output(out_output, out_height, out_median_time_past, out_coinbase, 
+    if ( ! fast_chain.get_output(out_output, out_height, out_median_time_past, out_coinbase,
                                   owner_input.previous_output(), kd::max_size_t, true)) {
         return kd::wallet::payment_address{};
     }
@@ -45,7 +45,7 @@ std::pair<kd::wallet::payment_address, kd::wallet::payment_address> get_send_tok
     });
 
     if (it == tx.outputs().end()) {
-        return {std::move(source), kd::wallet::payment_address{}};        
+        return {std::move(source), kd::wallet::payment_address{}};
     }
 
     return {std::move(source), it->address(testnet)};

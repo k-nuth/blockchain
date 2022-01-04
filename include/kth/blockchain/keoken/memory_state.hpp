@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2021 Knuth Project developers.
+// Copyright (c) 2016-2022 Knuth Project developers.
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -21,7 +21,7 @@
 namespace kth::keoken {
 
 class memory_state {
-public:    
+public:
     using asset_list_t = std::vector<asset_entry>;
     using balance_value = std::vector<balance_entry>;
     using balance_t = std::unordered_map<balance_key, balance_value>;
@@ -46,13 +46,13 @@ public:
     void reset();
     void remove_up_to(size_t height);
 
-    void create_asset(std::string asset_name, amount_t asset_amount, 
+    void create_asset(std::string asset_name, amount_t asset_amount,
                       payment_address owner,
                       size_t block_height, kth::hash_digest const& txid);
 
     void create_balance_entry(asset_id_t asset_id, amount_t asset_amount,
                               payment_address source,
-                              payment_address target, 
+                              payment_address target,
                               size_t block_height, kth::hash_digest const& txid);
 
 

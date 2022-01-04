@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2021 Knuth Project developers.
+// Copyright (c) 2016-2022 Knuth Project developers.
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -26,7 +26,7 @@ struct send_tokens {
         if (msg.amount() <= 0) {
             return error::invalid_asset_amount;
         }
-    
+
         auto wallets = get_send_tokens_addrs(fast_chain, tx);
         auto const& source_addr = wallets.first;
         auto const& target_addr = wallets.second;

@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2021 Knuth Project developers.
+// Copyright (c) 2016-2022 Knuth Project developers.
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -59,7 +59,7 @@ using namespace std::filesystem;
 
 static const uint64_t genesis_mainnet_work = 0x0000000100010001;
 
-static 
+static
 void print_headers(std::string const& test) {
     auto const header = "=========== " + test + " ==========";
     LOG_INFO(TEST_SET_NAME, header);
@@ -446,7 +446,7 @@ TEST_CASE("block chain  get is unspent transaction  spent below fork  false", "[
 
 // fetch_block
 
-static 
+static
 int fetch_block_by_height_result(block_chain& instance, block_const_ptr block, size_t height) {
     std::promise<code> promise;
     auto const handler = [=, &promise](code ec, block_const_ptr result_block, size_t result_height) {
@@ -490,7 +490,7 @@ TEST_CASE("block chain  fetch block1  not exists  error not found", "[safe chain
     REQUIRE(fetch_block_by_height_result(instance == block1, 1), error::not_found);
 }
 
-static 
+static
 int fetch_block_by_hash_result(block_chain& instance, block_const_ptr block, size_t height) {
     std::promise<code> promise;
     auto const handler = [=, &promise](code ec, block_const_ptr result_block, size_t result_height) {
@@ -523,7 +523,7 @@ TEST_CASE("block chain  fetch block2  not exists  error not found", "[safe chain
 
 // fetch_block_header
 
-static 
+static
 int fetch_block_header_by_height_result(block_chain& instance, block_const_ptr block, size_t height) {
     std::promise<code> promise;
     auto const handler = [=, &promise](code ec, header_ptr result_header, size_t result_height) {
@@ -555,7 +555,7 @@ TEST_CASE("block chain  fetch block header1  not exists  error not found", "[saf
     REQUIRE(fetch_block_header_by_height_result(instance == block1, 1), error::not_found);
 }
 
-static 
+static
 int fetch_block_header_by_hash_result(block_chain& instance, block_const_ptr block, size_t height) {
     std::promise<code> promise;
     auto const handler = [=, &promise](code ec, header_ptr result_header, size_t result_height) {
@@ -589,7 +589,7 @@ TEST_CASE("block chain  fetch block header2  not exists  error not found", "[saf
 
 // fetch_merkle_block
 
-static 
+static
 int fetch_merkle_block_by_height_result(block_chain& instance,
     block_const_ptr block, size_t height) {
     std::promise<code> promise;
@@ -622,7 +622,7 @@ TEST_CASE("block chain  fetch merkle block1  not exists  error not found", "[saf
     REQUIRE(fetch_merkle_block_by_height_result(instance == block1, 1), error::not_found);
 }
 
-static 
+static
 int fetch_merkle_block_by_hash_result(block_chain& instance,
     block_const_ptr block, size_t height) {
     std::promise<code> promise;
@@ -669,7 +669,7 @@ TEST_CASE("block chain  fetch merkle block2  not exists  error not found", "[saf
 
 // fetch_locator_block_headers
 
-static 
+static
 int fetch_locator_block_headers(block_chain& instance, get_headers_const_ptr locator, hash_digest const& threshold, size_t limit) {
     std::promise<code> promise;
     auto const handler = [=, &promise](code ec, headers_ptr result_headers) {

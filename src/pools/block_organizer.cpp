@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2021 Knuth Project developers.
+// Copyright (c) 2016-2022 Knuth Project developers.
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -45,7 +45,7 @@ block_organizer::block_organizer(prioritized_mutex& mutex, dispatcher& dispatch,
     , validator_(dispatch, fast_chain_, settings, network, relay_transactions, mp)
 #else
     , validator_(dispatch, fast_chain_, settings, network, relay_transactions)
-#endif    
+#endif
     , subscriber_(std::make_shared<reorganize_subscriber>(thread_pool, NAME))
 
 #if defined(KTH_WITH_MEMPOOL)
@@ -126,7 +126,7 @@ void block_organizer::signal_completion(code const& ec) {
 
 // private
 void block_organizer::handle_check(code const& ec, block_const_ptr block, result_handler handler) {
-    
+
     if (stopped()) {
         handler(error::service_stopped);
         return;
@@ -195,7 +195,7 @@ bool block_organizer::is_branch_double_spend(branch::ptr const& branch) const {
 
     point::list outs;
     outs.reserve(non_coinbase_inputs);
-    
+
     // Merge the prevouts of all non-coinbase transactions into one set.
     for (auto const& block : blocks) {
         auto const& txs = block->transactions();
@@ -355,7 +355,7 @@ void block_organizer::organize_mempool(branch::const_ptr branch, block_const_ptr
             // std::cout << "Inserting Block in Mempool: " << encode_hash(block->hash()) << std::endl;
 
             if (block->transactions().size() > 1) {
-                std::for_each(block->transactions().begin() + 1, block->transactions().end(), 
+                std::for_each(block->transactions().begin() + 1, block->transactions().end(),
                 [this, branch, &txs_in, &prevouts_in, &branch_utxo](domain::chain::transaction const& tx) {
                     auto it = txs_in.find(tx.hash());
                     if (it == txs_in.end()) {
@@ -385,7 +385,7 @@ void block_organizer::organize_mempool(branch::const_ptr branch, block_const_ptr
 
 // private
 void block_organizer::handle_connect(code const& ec, branch::ptr branch, result_handler handler) {
-    
+
     if (stopped()) {
         handler(error::service_stopped);
         return;

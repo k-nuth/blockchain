@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2021 Knuth Project developers.
+// Copyright (c) 2016-2022 Knuth Project developers.
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -32,18 +32,18 @@ void memory_state::remove_balance_entries(Predicate const& pred) {
     //     auto& balance_entries = x.second;
 
     //     balance_entries.erase(
-    //         std::remove_if(begin(balance_entries), end(balance_entries), pred), 
+    //         std::remove_if(begin(balance_entries), end(balance_entries), pred),
     //     end(balance_entries));
     // }
 
-    auto f = begin(balance_); 
+    auto f = begin(balance_);
     auto l = end(balance_);
 
     while (f != l) {
         auto& balance_entries = f->second;
 
         balance_entries.erase(
-            std::remove_if(begin(balance_entries), end(balance_entries), pred), 
+            std::remove_if(begin(balance_entries), end(balance_entries), pred),
         end(balance_entries));
 
         if (balance_entries.empty()) {
@@ -82,7 +82,7 @@ void memory_state::remove_up_to(size_t height) {
 
     //TODO(fernando): could be done in a more efficient way using find from backwards... (or binary search, ..., is the data ordered?)
     asset_list_.erase(
-        std::remove_if(begin(asset_list_), end(asset_list_), rollback_pred{height}), 
+        std::remove_if(begin(asset_list_), end(asset_list_), rollback_pred{height}),
         end(asset_list_)
     );
 
@@ -90,7 +90,7 @@ void memory_state::remove_up_to(size_t height) {
 }
 
 
-void memory_state::create_asset(std::string asset_name, amount_t asset_amount, 
+void memory_state::create_asset(std::string asset_name, amount_t asset_amount,
                     payment_address owner,
                     size_t block_height, hash_digest const& txid) {
 
@@ -101,15 +101,15 @@ void memory_state::create_asset(std::string asset_name, amount_t asset_amount,
     //TODO(fernando): emplace inside a lock? It is a good practice? is construct outside and push preferible?
     asset_list_.emplace_back(std::move(obj), block_height, txid);
 
-    balance_.emplace(balance_key{asset_id_next_, std::move(owner)}, 
+    balance_.emplace(balance_key{asset_id_next_, std::move(owner)},
                      balance_value{balance_entry{asset_amount, block_height, txid}});
- 
+
     ++asset_id_next_;
 }
 
 void memory_state::create_balance_entry(asset_id_t asset_id, amount_t asset_amount,
                             payment_address source,
-                            payment_address target, 
+                            payment_address target,
                             size_t block_height, hash_digest const& txid) {
 
     boost::unique_lock<boost::shared_mutex> lock(mutex_);
@@ -134,7 +134,7 @@ amount_t memory_state::get_balance_internal(balance_value const& entries) const 
 
 amount_t memory_state::get_balance(asset_id_t id, kth::domain::wallet::payment_address const& addr) const {
     boost::shared_lock<boost::shared_mutex> lock(mutex_);
-    
+
     auto it = balance_.find(balance_key{id, addr});
     if (it == balance_.end()) {
         return amount_t(0);

@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2021 Knuth Project developers.
+// Copyright (c) 2016-2022 Knuth Project developers.
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -30,7 +30,7 @@ public:
     using internal_value_type = partially_indexed_node<candidate_index_t, T>;
     using main_container_t = std::vector<internal_value_type>;
 
-    partially_indexed(Cmp cmp, State& state) 
+    partially_indexed(Cmp cmp, State& state)
         : null_index_(std::end(candidate_elements_))
         , sorted_(false)
         , cmp_(cmp)
@@ -93,7 +93,7 @@ public:
         return std::distance(std::begin(candidate_elements_), candidate_index_const_t(node.index()));
     }
 
-    value_type const& operator[](std::size_t i) const { 
+    value_type const& operator[](std::size_t i) const {
         return all_elements_[i].element();
     }
 
@@ -135,7 +135,7 @@ public:
             if ( !  f(node.element())) {
                 break;
             }
-        }        
+        }
     }
 
     template <typename F>
@@ -144,7 +144,7 @@ public:
             if ( !  f(node.element())) {
                 break;
             }
-        }        
+        }
     }
 
     auto internal_data() const {
@@ -157,7 +157,7 @@ public:
 #ifndef NDEBUG
 
     void check_invariant_partial() const {
-        
+
         BOOST_ASSERT(candidate_elements_.size() <= all_elements_.size());
 
         {
@@ -182,7 +182,7 @@ public:
             auto last = std::unique(std::begin(ci_sorted), std::end(ci_sorted));
             BOOST_ASSERT(std::distance(std::begin(ci_sorted), last) == ci_sorted.size());
         }
-        
+
         {
             std::vector<main_index_t> all_sorted;
             for (auto const& node : all_elements_) {
@@ -245,7 +245,7 @@ public:
                 BOOST_ASSERT(state_.check_node(i, g, b));
                 ++i;
             }
-        }        
+        }
 
         {
             if (sorted_) {
@@ -253,7 +253,7 @@ public:
                 BOOST_ASSERT(res);
 
             }
-        }        
+        }
     }
 #endif // NDEBUG
 
@@ -267,7 +267,7 @@ private:
         nested_t(partially_indexed& x)
             : outer_(x)
         {}
-      
+
         partially_indexed& outer() {
             return outer_;
         }
@@ -285,7 +285,7 @@ private:
         nested_const_t(partially_indexed const& x)
             : outer_(x)
         {}
-      
+
         partially_indexed const& outer() const {
             return outer_;
         }
@@ -322,7 +322,7 @@ private:
 
         void operator()(main_index_t i) {
             auto& node = outer().all_elements_[i];
-            
+
             // candidate_elements_.push_back(i);
             // auto new_cand_index = std::prev(std::end(candidate_elements_));
             // node.set_index(new_cand_index);
@@ -555,7 +555,7 @@ private:
         } else {
             BOOST_ASSERT(false);
         }
-    }    
+    }
 
 
     // std::cout << all_elements_[*cand_index].element().fee() << "\n";

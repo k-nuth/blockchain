@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2021 Knuth Project developers.
+// Copyright (c) 2016-2022 Knuth Project developers.
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -22,7 +22,7 @@
 #include <kth/domain.hpp>
 
 
-template <typename F> 
+template <typename F>
 auto scope_guard(F&& f) {
     return std::unique_ptr<void, typename std::decay<F>::type>{(void*)1, std::forward<F>(f)};
 }
@@ -43,7 +43,7 @@ node make_node(domain::chain::transaction const& tx) {
                                   , tx.hash(true)
 #endif
                                   , tx.to_data(true, KTH_WITNESS_DEFAULT)
-                                  , tx.fees() 
+                                  , tx.fees()
                                   , tx.signature_operations()
                                   , tx.outputs().size())
                         );
@@ -111,7 +111,7 @@ public:
     using accum_t = std::tuple<uint64_t, size_t, size_t>;
     using all_transactions_t = std::vector<node>;
     using internal_utxo_set_t = std::unordered_map<domain::chain::point, domain::chain::output>;
-    
+
     // using previous_outputs_t = boost::bimap<domain::chain::point, index_t>;
     using previous_outputs_t = std::unordered_map<domain::chain::point, index_t>;
 
@@ -131,9 +131,9 @@ public:
     static constexpr size_t mempool_size_multiplier_default = 10;
 #else
     static constexpr size_t mempool_size_multiplier_default = 10;
-#endif 
+#endif
 
-    mempool(size_t max_template_size = max_template_size_default, size_t mempool_size_multiplier = mempool_size_multiplier_default) 
+    mempool(size_t max_template_size = max_template_size_default, size_t mempool_size_multiplier = mempool_size_multiplier_default)
         : max_template_size_(max_template_size)
         // , mempool_size_multiplier_(mempool_size_multiplier)
         , mempool_total_size_(get_max_block_weight() * mempool_size_multiplier) {
@@ -143,7 +143,7 @@ public:
         size_t const all_capacity = mempool_total_size_ / min_transaction_size_for_capacity;
 
         candidate_transactions_.reserve(candidates_capacity);
-#ifdef KTH_MINING_CTOR_ENABLED    
+#ifdef KTH_MINING_CTOR_ENABLED
         candidate_transactions_ctor_.reserve(candidates_capacity);
 #endif
         all_transactions_.reserve(all_capacity);
@@ -160,7 +160,7 @@ public:
         if ( ! res.second) {
             return;
         }
-        
+
         auto const& node = all_transactions_[node_index];
         auto fee = node.fee();
         auto size = node.size();
@@ -239,7 +239,7 @@ public:
                 }
                 ++i;
             }
-        } 
+        }
 
         {
             // size_t ci = 0;
@@ -257,7 +257,7 @@ public:
                 check_children_accum(i);
                 ++i;
             }
-        }        
+        }
 
 
         {
@@ -273,18 +273,18 @@ public:
             // }
 
             BOOST_ASSERT(res);
-        }        
+        }
     }
 
     void check_invariant_partial() const {
-        
+
         BOOST_ASSERT(candidate_transactions_.size() <= all_transactions_.size());
 
 
         // {
         //     for (auto i : candidate_transactions_) {
         //         auto const& node = all_transactions_[i];
-                
+
         //         if (node.candidate_index() != null_index && node.candidate_index() >= all_transactions_.size()) {
         //             BOOST_ASSERT(false);
         //         }
@@ -302,7 +302,7 @@ public:
         {
             for (auto i : candidate_transactions_) {
                 auto const& node = all_transactions_[i];
-                
+
                 for (auto ci : node.children()) {
                     if (ci >= all_transactions_.size()) {
                         BOOST_ASSERT(false);
@@ -314,7 +314,7 @@ public:
         {
             for (auto i : candidate_transactions_) {
                 auto const& node = all_transactions_[i];
-                
+
                 for (auto pi : node.parents()) {
                     if (pi >= all_transactions_.size()) {
                         BOOST_ASSERT(false);
@@ -337,7 +337,7 @@ public:
             auto last = std::unique(ci_sorted.begin(), ci_sorted.end());
             BOOST_ASSERT(std::distance(ci_sorted.begin(), last) == ci_sorted.size());
         }
-        
+
         {
             indexes_t all_sorted;
             for (auto const& node : all_transactions_) {
@@ -438,7 +438,7 @@ public:
                 if (pi >= index) {
                     --pi;
                 }
-            }            
+            }
         }
     }
 
@@ -537,7 +537,7 @@ public:
 //                 //     std::cout << std::endl;
 //                 // }
 
-                
+
 //                 indexes_t old_parents;
 //                 for (auto x : node_old.parents()) {
 //                     if (x >= diff) {
@@ -562,7 +562,7 @@ public:
             accum_fees_ = 0;
             accum_size_ = 0;
             accum_sigops_ = 0;
-            
+
             for (size_t i = 0; i < all_transactions_.size(); ++i) {
                 all_transactions_[i].set_candidate_index(null_index);
                 all_transactions_[i].reset_children_values();
@@ -674,7 +674,7 @@ public:
 
         if (processing_block_) {
             return {};
-        } 
+        }
 
         auto copied_data = prioritizer_.high_job([this]{
             return make_tuple(candidate_transactions_, all_transactions_, accum_fees_);
@@ -714,7 +714,7 @@ public:
             auto it = internal_utxo_set_.find(point);
             if (it != internal_utxo_set_.end()) {
                 return it->second;
-            } 
+            }
 
             return domain::chain::output{};
         });
@@ -729,14 +729,14 @@ private:
 
         auto it = hash_index_.find(elem.txid());
         if (it != hash_index_.end()) {
-            
+
             it->second.first = index;
             auto const& tx = it->second.second;
 
             for (auto const& i : tx.inputs()) {
                 // previous_outputs_.left.insert(previous_outputs_t::left_value_type(i.previous_output(), node_index));
                 previous_outputs_.insert({i.previous_output(), index});
-            }        
+            }
             add_node(index);
         } else {
             //No debería pasar por aca
@@ -764,7 +764,7 @@ private:
             if (to_remove.empty()) {
                 // ++low_benefit_tx_counter;
                 return error::low_benefit_transaction;
-            } 
+            }
             do_candidate_removal(to_remove);
 #ifndef NDEBUG
             check_invariant();
@@ -780,8 +780,8 @@ private:
 #endif
 
         return error::success;
-    }    
-    
+    }
+
     void clean_parents(mining::node const& node, index_t index) {
         for (auto pi : node.parents()) {
             auto& parent = all_transactions_[pi];
@@ -809,7 +809,7 @@ private:
                 }
             }
         }
-    }    
+    }
 
     void remove_from_utxo(hash_digest const& txid, uint32_t output_count) {
         for (uint32_t i = 0; i < output_count; ++i) {
@@ -846,7 +846,7 @@ private:
         if ( ! res.second) {
             return {0, 0, 0};
         }
-        
+
         auto const& node = all_transactions_[node_index];
         auto fee = node.fee();
         auto size = node.size();
@@ -891,7 +891,7 @@ private:
                 size += parent.size();
                 sigops += parent.sigops();
                 to_insert_no_inserted.push_back(pi);
-            } 
+            }
             // else {
             //     fees_inserted += parent.fee();
             //     size_inserted += parent.size();
@@ -922,7 +922,7 @@ private:
 
         uint64_t fee_accum = 0;
         size_t size_accum = 0;
-        
+
         auto next_size = accum_size_;
         auto next_sigops = accum_sigops_;
 
@@ -933,7 +933,7 @@ private:
             auto elem_index = *it;
             auto const& elem = all_transactions_[elem_index];
             auto const& to_insert_elem = all_transactions_[to_insert_index];
-            
+
             //TODO(fernando): Do I have to check if elem_idex is any of the to_insert elements
             bool shares = shares_parents(to_insert_elem, elem_index);
 
@@ -979,7 +979,7 @@ private:
         //TODO: remove_time
         // remove_nodes_v1(to_remove);
         remove_nodes(to_remove);
-              
+
 
 #ifdef KTH_MINING_CTOR_ENABLED
         //TODO: remove_time_ctor
@@ -1026,7 +1026,7 @@ private:
         if (accum_size_ > max_template_size_ - size) {
             return false;
         }
-        
+
         auto const next_size = accum_size_ + size;
         auto const sigops_limit = get_allowed_sigops(next_size);
 
@@ -1169,7 +1169,7 @@ private:
             n.set_candidate_ctor_index(n.candidate_ctor_index() + 1);
         });
     }
-#endif    
+#endif
 
     void remove_and_reindex(index_t i) {
         //precondition: TODO?
@@ -1259,7 +1259,7 @@ private:
         });
     }
 #endif
-        
+
     void reindex_parent_for_removal(mining::node const& node, mining::node& parent, index_t parent_index) {
         // cout << "reindex_parent_quitar\n";
         auto node_benefit = static_cast<double>(node.fee()) / node.size();
@@ -1293,7 +1293,7 @@ private:
             auto it2 = std::upper_bound(from, to, parent_index, cmp);
             reindex_decrement(from, it2);
             it = std::rotate(it, it + 1, it2);
-            
+
             parent.set_candidate_index(std::distance(std::begin(candidate_transactions_), it));
 
         } else {
@@ -1361,7 +1361,7 @@ private:
         //     std::cout << "kkkkkkkkkk\n";
         // }
 
-    
+
         auto it = std::next(std::begin(candidate_transactions_), parent.candidate_index());
         auto child_it = std::next(std::begin(candidate_transactions_), node.candidate_index());
 
@@ -1402,7 +1402,7 @@ private:
                 if (accum_benefit < node_accum_benefit) {
 /*
         ------------------------------------
-                 P        C     P'      
+                 P        C     P'
         ------------------------------------
 */
                     // std::cout << "Case 2\n";
@@ -1494,7 +1494,7 @@ private:
                         reindex_increment(it2, it);
                         std::rotate(it2, it, it + 1);
                         parent.set_candidate_index(std::distance(std::begin(candidate_transactions_), it2));
-                    } 
+                    }
                 }
             }
         }
@@ -1701,7 +1701,7 @@ private:
             // auto old = parent;
 
             // parent.increment_values(node.fee(), node.size(), node.sigops());
-           
+
             if (parent.candidate_index() != null_index) {
 
                 // std::cout << "--------------------------------------------------\n";
@@ -1715,10 +1715,10 @@ private:
                 // }
 
 
-                auto parent_benefit = static_cast<double>(parent.children_fees()) / parent.children_size();   
+                auto parent_benefit = static_cast<double>(parent.children_fees()) / parent.children_size();
                 // std::cout << "Parent stage0 benefit " << parent_benefit << "\n";
                 parent.increment_values(node.fee(), node.size(), node.sigops());
-                parent_benefit = static_cast<double>(parent.children_fees()) / parent.children_size();   
+                parent_benefit = static_cast<double>(parent.children_fees()) / parent.children_size();
                 // std::cout << "Parent stage1 benefit " << parent_benefit << "\n";
 
                 reindex_parent_from_insertion(node, parent, pi);
@@ -1834,7 +1834,7 @@ private:
     size_t accum_size_ = 0;
     size_t accum_sigops_ = 0;
     uint64_t accum_fees_ = 0;
-    
+
 
     //TODO: race conditions, LOCK!
     //TODO: chequear el anidamiento de TX con su máximo (25??) y si es regla de consenso.
@@ -1843,7 +1843,7 @@ private:
     all_transactions_t all_transactions_;
     hash_index_t hash_index_;
     indexes_t candidate_transactions_;        //Por Ponderacion
-#if defined(KTH_CURRENCY_BCH)    
+#if defined(KTH_CURRENCY_BCH)
     indexes_t candidate_transactions_ctor_;   //Por CTOR, solamente para BCH...
 #endif
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2021 Knuth Project developers.
+// Copyright (c) 2016-2022 Knuth Project developers.
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -16,7 +16,7 @@
 namespace kth::blockchain {
 
 // Space optimization since valid sigops and size are never close to 32 bits.
-inline 
+inline
 uint32_t cap(size_t value) {
     return domain_constrain<uint32_t>(value);
 }
