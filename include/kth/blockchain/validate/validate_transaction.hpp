@@ -41,14 +41,14 @@ public:
     void connect(transaction_const_ptr tx, result_handler handler) const;
 
 protected:
-    inline 
+    inline
     bool stopped() const {
         return stopped_;
     }
 
 private:
     void handle_populated(code const& ec, transaction_const_ptr tx, result_handler handler) const;
-    void connect_inputs(transaction_const_ptr tx, size_t bucket, size_t buckets, ???, result_handler handler) const;
+    void connect_inputs(transaction_const_ptr tx, size_t bucket, size_t buckets, result_handler handler) const;
 
     // These are thread safe.
     std::atomic<bool> stopped_;

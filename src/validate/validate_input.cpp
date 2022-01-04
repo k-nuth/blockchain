@@ -22,71 +22,69 @@ using namespace kd::machine;
 using namespace kth::consensus;
 
 //TODO(legacy): map bc policy flags.
-uint32_t validate_input::convert_flags(uint32_t native_forks) {
+uint32_t validate_input::convert_flags(uint32_t forks) {
     uint32_t flags = verify_flags_none;
 
-    if (script::is_enabled(native_forks, domain::machine::rule_fork::bip16_rule)) {
+    if (script::is_enabled(forks, domain::machine::rule_fork::bip16_rule)) {
         flags |= verify_flags_p2sh;
     }
 
-    if (script::is_enabled(native_forks, domain::machine::rule_fork::bip65_rule)) {
+    if (script::is_enabled(forks, domain::machine::rule_fork::bip65_rule)) {
         flags |= verify_flags_checklocktimeverify;
     }
 
-    if (script::is_enabled(native_forks, domain::machine::rule_fork::bip66_rule)) {
+    if (script::is_enabled(forks, domain::machine::rule_fork::bip66_rule)) {
         flags |= verify_flags_dersig;
     }
 
-    if (script::is_enabled(native_forks, domain::machine::rule_fork::bip112_rule)) {
+    if (script::is_enabled(forks, domain::machine::rule_fork::bip112_rule)) {
         flags |= verify_flags_checksequenceverify;
     }
 
 #if defined(KTH_CURRENCY_BCH)
 
-    if (script::is_enabled(native_forks, domain::machine::rule_fork::bch_uahf)) {
+    if (script::is_enabled(forks, domain::machine::rule_fork::bch_uahf)) {
         flags |= verify_flags_strictenc;
         flags |= verify_flags_enable_sighash_forkid;
     }
 
-    if (script::is_enabled(native_forks, domain::machine::rule_fork::bch_daa_cw144)) {
+    if (script::is_enabled(forks, domain::machine::rule_fork::bch_daa_cw144)) {
         flags |= verify_flags_low_s;
         flags |= verify_flags_null_fail;
     }
 
-    if (script::is_enabled(native_forks, domain::machine::rule_fork::bch_euclid)) {
+    if (script::is_enabled(forks, domain::machine::rule_fork::bch_euclid)) {
         flags |= verify_flags_sigpushonly;
         flags |= verify_flags_cleanstack;
     }
 
-    if (script::is_enabled(native_forks, domain::machine::rule_fork::bch_mersenne)) {
+    if (script::is_enabled(forks, domain::machine::rule_fork::bch_mersenne)) {
         flags |= verify_flags_enable_schnorr_multisig;
         flags |= verify_flags_minimaldata;
     }
 
-    if (script::is_enabled(native_forks, domain::machine::rule_fork::bch_fermat)) {
+    if (script::is_enabled(forks, domain::machine::rule_fork::bch_fermat)) {
         flags |= verify_flags_enforce_sigchecks;
     }
 
+    if (script::is_enabled(forks, domain::machine::rule_fork::bch_gauss)) {
+        flags |= verify_flags_64_bit_integers;
+        flags |= verify_flags_native_introspection;
+    }
+
     // // We make sure this node will have replay protection during the next hard fork.
-    // if (script::is_enabled(native_forks, domain::machine::rule_fork::bch_replay_protection)) {
+    // if (script::is_enabled(forks, domain::machine::rule_fork::bch_replay_protection)) {
     //     flags |= verify_flags_enable_replay_protection;
     // }
 
 #else
-    if (script::is_enabled(native_forks, domain::machine::rule_fork::bip141_rule)) {
+    if (script::is_enabled(forks, domain::machine::rule_fork::bip141_rule)) {
         flags |= verify_flags_witness;
     }
 
-    if (script::is_enabled(native_forks, domain::machine::rule_fork::bip147_rule)) {
+    if (script::is_enabled(forks, domain::machine::rule_fork::bip147_rule)) {
         flags |= verify_flags_nulldummy;
     }
-
-
-    //TODO(fernando): check what to do with these flags... taken from Consensus code
-    // if ((flags & verify_flags_const_scriptcode) != 0) {
-    //     script_flags |= SCRIPT_VERIFY_CONST_SCRIPTCODE;
-    // }
-
 #endif
     return flags;
 }
@@ -196,18 +194,15 @@ coins_t create_context_data(transaction const& tx, bool should_create_context) {
 
     for (auto const& input : tx.inputs()) {
         auto const& prevout = input.previous_output().validation.cache;
-        coins.emplace_back(prevout.value(), prevout.script().to_data(false));
+        coins.emplace_back(int64_t(prevout.value()), prevout.script().to_data(false));
     }
     return coins;
 }
-#endif
 
-
+std::pair<code, size_t> validate_input::verify_script(transaction const& tx, uint32_t input_index, uint32_t forks) {
 #if defined(KTH_CURRENCY_BCH)
-std::pair<code, size_t> validate_input::verify_script(transaction const& tx, uint32_t input_index, uint32_t branches, ScriptExecutionContextOpt context) {
     bool witness = false;
 #else
-std::pair<code, size_t> validate_input::verify_script(transaction const& tx, uint32_t input_index, uint32_t branches) {
     bool witness = true;
 #endif
 
@@ -219,17 +214,18 @@ std::pair<code, size_t> validate_input::verify_script(transaction const& tx, uin
 
 #if defined(KTH_CURRENCY_BCH)
     size_t sig_checks;
+    bool const should_create_context = script::is_enabled(forks, domain::machine::rule_fork::bch_gauss);
     auto const coins = create_context_data(tx, should_create_context);
 
     auto res = consensus::verify_script(tx_data.data(),
         tx_data.size(), script_data.data(), script_data.size(), input_index,
-        convert_flags(branches), sig_checks, amount, coins);
+        convert_flags(forks), sig_checks, amount, coins);
 
     return {convert_result(res), sig_checks};
 #else
     auto res = consensus::verify_script(tx_data.data(),
         tx_data.size(), script_data.data(), script_data.size(), amount,
-        input_index, convert_flags(branches));
+        input_index, convert_flags(forks));
 
     return {convert_result(res), 0};
 #endif // KTH_CURRENCY_BCH

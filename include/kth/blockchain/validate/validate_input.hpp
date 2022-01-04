@@ -21,21 +21,15 @@ class BCB_API validate_input {
 public:
 
 #ifdef WITH_CONSENSUS
-    static 
+    static
     uint32_t convert_flags(uint32_t native_forks);
-    
-    static 
+
+    static
     code convert_result(consensus::verify_result_type result);
 #endif
 
-#if defined(KTH_CURRENCY_BCH)
-    static
-    std::pair<code, size_t> verify_script(domain::chain::transaction const& tx, uint32_t input_index, uint32_t forks, ScriptExecutionContextOpt context);
-#else
     static
     std::pair<code, size_t> verify_script(domain::chain::transaction const& tx, uint32_t input_index, uint32_t forks);
-#endif
-
 };
 
 } // namespace kth::blockchain
