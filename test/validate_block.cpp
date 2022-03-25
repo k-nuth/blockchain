@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2021 Knuth Project developers.
+// Copyright (c) 2016-2022 Knuth Project developers.
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -39,10 +39,10 @@ TEST_CASE("validate block  native  block 438513 tx  valid", "[validate block tes
 
     prevout.set_value(0);
     prevout.set_script(kd::create<script>(decoded_script, false));
-    
+
     REQUIRE(prevout.script().is_valid());
 
-    auto const result = validate_input::verify_script(tx, index, forks, ???);
+    auto const result = validate_input::verify_script(tx, index, forks);
 
     REQUIRE(result.value() == error::success);
 
@@ -85,7 +85,7 @@ TEST_CASE("validate block  native  block 520679 tx  valid", "[validate block tes
     prevout.set_script(kd::create<script>(decoded_script, false));
     REQUIRE(prevout.script().is_valid());
 
-    auto const result = validate_input::verify_script(tx, index, native_forks, ???);
+    auto const result = validate_input::verify_script(tx, index, native_forks);
     REQUIRE(result.value() == error::success);
 }
 
@@ -134,7 +134,7 @@ TEST_CASE("validate block  2018NOV  block 520679 tx  valid", "[validate block te
     prevout.set_script(kd::create<script>(decoded_script, false));
     REQUIRE(prevout.script().is_valid());
 
-    auto const result = validate_input::verify_script(tx, index, native_forks, ???);
+    auto const result = validate_input::verify_script(tx, index, native_forks);
     REQUIRE(result.value() == error::success);
 }
 #endif

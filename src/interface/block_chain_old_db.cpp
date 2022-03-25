@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2021 Knuth Project developers.
+// Copyright (c) 2016-2022 Knuth Project developers.
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -26,7 +26,7 @@ void block_chain::for_each_transaction(size_t from, size_t to, bool witness, for
             handler(error::service_stopped, 0, domain::chain::transaction{});
             return;
         }
-    
+
         auto const block_result = database_.blocks().get(from);
 
         if ( ! block_result) {
@@ -36,8 +36,8 @@ void block_chain::for_each_transaction(size_t from, size_t to, bool witness, for
         KTH_ASSERT(block_result.height() == from);
         auto const tx_hashes = block_result.transaction_hashes();
 
-        for_each_tx_hash(block_result.transaction_hashes().begin(), 
-                         block_result.transaction_hashes().end(), 
+        for_each_tx_hash(block_result.transaction_hashes().begin(),
+                         block_result.transaction_hashes().end(),
                          tx_store, from, witness, handler);
 
         ++from;
@@ -56,7 +56,7 @@ void block_chain::for_each_transaction_non_coinbase(size_t from, size_t to, bool
             handler(error::service_stopped, 0, domain::chain::transaction{});
             return;
         }
-    
+
         auto const block_result = database_.blocks().get(from);
 
         if ( ! block_result) {
@@ -66,8 +66,8 @@ void block_chain::for_each_transaction_non_coinbase(size_t from, size_t to, bool
         KTH_ASSERT(block_result.height() == from);
         auto const tx_hashes = block_result.transaction_hashes();
 
-        for_each_tx_hash(std::next(block_result.transaction_hashes().begin()), 
-                         block_result.transaction_hashes().end(), 
+        for_each_tx_hash(std::next(block_result.transaction_hashes().begin()),
+                         block_result.transaction_hashes().end(),
                          tx_store, from, witness, handler);
 
         ++from;
@@ -81,14 +81,14 @@ void block_chain::for_each_transaction(size_t from, size_t to, bool witness, for
 #if defined(KTH_CURRENCY_BCH)
     witness = false;    //TODO(fernando): see what to do with those things!
 #endif
-    
+
     while (from <= to) {
 
         if (stopped()) {
             handler(error::service_stopped, 0, domain::chain::transaction{});
             return;
         }
-    
+
         auto const block_result = database_.internal_db().get_block(from);
 
         if ( ! block_result.is_valid()) {
@@ -99,7 +99,7 @@ void block_chain::for_each_transaction(size_t from, size_t to, bool witness, for
         //KTH_ASSERT(block_result.height() == from);
         //auto const tx_hashes = block_result.transaction_hashes();
 
-        for_each_tx_valid(block_result.transactions().begin(), 
+        for_each_tx_valid(block_result.transactions().begin(),
                          block_result.transactions().end(), from, witness, handler);
 
         ++from;
@@ -118,7 +118,7 @@ void block_chain::for_each_transaction_non_coinbase(size_t from, size_t to, bool
             handler(error::service_stopped, 0, domain::chain::transaction{});
             return;
         }
-    
+
         auto const block_result = database_.internal_db().get_block(from);
 
         if ( ! block_result.is_valid()) {
@@ -128,7 +128,7 @@ void block_chain::for_each_transaction_non_coinbase(size_t from, size_t to, bool
         //KTH_ASSERT(block_result.height() == from);
         auto const tx_hashes = block_result.transactions();
 
-        for_each_tx_valid(std::next(tx_hashes.begin()), 
+        for_each_tx_valid(std::next(tx_hashes.begin()),
                          tx_hashes.end(), from, witness, handler);
 
         ++from;
@@ -289,7 +289,7 @@ void block_chain::fetch_block_keoken(hash_digest const& hash, bool witness,
     auto const height = block_result.second;
     auto const message = std::make_shared<const kth::domain::message::header>(block_result.first.header());
     //auto const tx_hashes = block_result.first.transaction_hashes();
-    
+
     DEBUG_ONLY(size_t position = 0;)
 
     for (auto const& tx_result : block_result.first.transactions()) {

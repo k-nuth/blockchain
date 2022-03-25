@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2021 Knuth Project developers.
+// Copyright (c) 2016-2022 Knuth Project developers.
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -21,21 +21,15 @@ class BCB_API validate_input {
 public:
 
 #ifdef WITH_CONSENSUS
-    static 
+    static
     uint32_t convert_flags(uint32_t native_forks);
-    
-    static 
+
+    static
     code convert_result(consensus::verify_result_type result);
 #endif
 
-#if defined(KTH_CURRENCY_BCH)
-    static
-    std::pair<code, size_t> verify_script(domain::chain::transaction const& tx, uint32_t input_index, uint32_t forks, ScriptExecutionContextOpt context);
-#else
     static
     std::pair<code, size_t> verify_script(domain::chain::transaction const& tx, uint32_t input_index, uint32_t forks);
-#endif
-
 };
 
 } // namespace kth::blockchain

@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2021 Knuth Project developers.
+// Copyright (c) 2016-2022 Knuth Project developers.
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -80,6 +80,7 @@ uint32_t settings::enabled_forks() const {
     forks |= (bch_fermat     ? rule_fork::bch_fermat : 0);
     forks |= (bch_euler      ? rule_fork::bch_euler : 0);
     forks |= (bch_gauss      ? rule_fork::bch_gauss : 0);
+    forks |= (bch_descartes  ? rule_fork::bch_descartes : 0);
     // forks |= (bch_unnamed           ? rule_fork::bch_unnamed : 0);
 #else
     forks |= (bip141 ? rule_fork::bip141_rule : 0);

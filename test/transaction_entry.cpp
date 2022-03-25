@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2021 Knuth Project developers.
+// Copyright (c) 2016-2022 Knuth Project developers.
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -16,10 +16,10 @@ using namespace kd::machine;
 
 // Start Boost Suite: transaction entry tests
 
-static 
+static
 auto const default_tx_hash = hash_literal("f702453dd03b0f055e5437d76128141803984fb10acb85fc3b2184fae2f3fa78");
 
-static 
+static
 chain_state::data data() {
     chain_state::data value;
     value.height = 1;
@@ -29,7 +29,7 @@ chain_state::data data() {
     return value;
 }
 
-static 
+static
 transaction_const_ptr make_tx() {
     auto const tx = std::make_shared<const domain::message::transaction>();
     tx->validation.state = std::make_shared<chain_state>(
@@ -38,11 +38,11 @@ transaction_const_ptr make_tx() {
 #else
         chain_state {data(), 0, {}});
 #endif //KTH_CURRENCY_BCH
-        
+
     return tx;
 }
 
-static 
+static
 transaction_entry::ptr make_instance() {
     return std::make_shared<transaction_entry>(transaction_entry(make_tx()));
 }

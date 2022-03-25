@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2021 Knuth Project developers.
+# Copyright (c) 2016-2022 Knuth Project developers.
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -86,7 +86,7 @@ class KnuthBlockchainConan(KnuthConanFile):
             self.requires.add("consensus/0.X@%s/%s" % (self.user, self.channel))
 
         if self.options.tests:
-            self.requires("catch2/2.13.7")
+            self.requires("catch2/2.13.8")
 
     def config_options(self):
         KnuthConanFile.config_options(self)

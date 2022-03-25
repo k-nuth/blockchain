@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2021 Knuth Project developers.
+// Copyright (c) 2016-2022 Knuth Project developers.
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -37,7 +37,7 @@ using namespace std::placeholders;
 validate_block::validate_block(dispatcher& dispatch, fast_chain const& chain, settings const& settings, domain::config::network network, bool relay_transactions, mining::mempool const& mp)
 #else
 validate_block::validate_block(dispatcher& dispatch, fast_chain const& chain, settings const& settings, domain::config::network network, bool relay_transactions)
-#endif    
+#endif
     : stopped_(true)
     , fast_chain_(chain)
     , network_(network)
@@ -46,7 +46,7 @@ validate_block::validate_block(dispatcher& dispatch, fast_chain const& chain, se
     , block_populator_(dispatch, chain, relay_transactions, mp)
 #else
     , block_populator_(dispatch, chain, relay_transactions)
-#endif    
+#endif
 {}
 
 // Start/stop sequences.
@@ -272,11 +272,11 @@ void validate_block::connect(branch::const_ptr branch, result_handler handler) c
     auto const join_handler = synchronize(std::move(complete_handler), buckets, NAME "_validate");
 
     for (size_t bucket = 0; bucket < buckets; ++bucket) {
-        priority_dispatch_.concurrent(&validate_block::connect_inputs, this, block, bucket, buckets, ???, join_handler);
+        priority_dispatch_.concurrent(&validate_block::connect_inputs, this, block, bucket, buckets, join_handler);
     }
 }
 
-void validate_block::connect_inputs(block_const_ptr block, size_t bucket, size_t buckets, ???, result_handler handler) const {
+void validate_block::connect_inputs(block_const_ptr block, size_t bucket, size_t buckets, result_handler handler) const {
     KTH_ASSERT(bucket < buckets);
     code ec(error::success);
     auto const forks = block->validation.state->enabled_forks();
@@ -327,7 +327,7 @@ void validate_block::connect_inputs(block_const_ptr block, size_t bucket, size_t
             }
 
             size_t sigchecks;
-            std::tie(ec, sigchecks) = validate_input::verify_script(*tx, input_index, forks, ???);
+            std::tie(ec, sigchecks) = validate_input::verify_script(*tx, input_index, forks);
             if (ec != error::success) {
                 break;
             }

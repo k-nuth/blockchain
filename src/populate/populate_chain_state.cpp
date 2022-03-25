@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2021 Knuth Project developers.
+// Copyright (c) 2016-2022 Knuth Project developers.
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -318,7 +318,8 @@ chain_state::ptr populate_chain_state::populate() const {
         // , settings_.mersenne_activation_time
         // , fermat_t(settings_.fermat_activation_time)
         // , euler_t(settings_.euler_activation_time)
-        // , gauss_t(settings_.gauss_activation_time)
+        , gauss_t(settings_.gauss_activation_time)
+        , descartes_t(settings_.descartes_activation_time)
 #endif //KTH_CURRENCY_BCH
     );
 }
@@ -355,7 +356,8 @@ chain_state::ptr populate_chain_state::populate(chain_state::ptr pool, branch::c
         // , settings_.mersenne_activation_time
         // , fermat_t(settings_.fermat_activation_time)
         // , euler_t(settings_.euler_activation_time)
-        // , gauss_t(settings_.gauss_activation_time)
+        , gauss_t(settings_.gauss_activation_time)
+        , descartes_t(settings_.descartes_activation_time)
 #endif //KTH_CURRENCY_BCH
     );
 }

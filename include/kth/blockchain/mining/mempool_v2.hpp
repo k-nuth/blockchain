@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2021 Knuth Project developers.
+// Copyright (c) 2016-2022 Knuth Project developers.
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -22,7 +22,7 @@
 #include <kth/domain.hpp>
 
 
-template <typename F> 
+template <typename F>
 auto scope_guard(F&& f) {
     return std::unique_ptr<void, typename std::decay<F>::type>{(void*)1, std::forward<F>(f)};
 }
@@ -38,7 +38,7 @@ node make_node(domain::chain::transaction const& tx) {
                                   , tx.hash(true)
 #endif
                                   , tx.to_data(true, KTH_WITNESS_DEFAULT)
-                                  , tx.fees() 
+                                  , tx.fees()
                                   , tx.signature_operations()
                                   , tx.outputs().size())
                         );
@@ -90,7 +90,7 @@ using partially_indexed_mempool_t = partially_indexed<node, fee_per_size_cmp, me
 inline
 void sort_ctor(partially_indexed_mempool_t::main_container_t& all, partially_indexed_mempool_t::indexes_container_t& candidates) {
     auto const cmp = [&all](main_index_t ia, main_index_t ib) {
-        node const& a = all[ia].element(); 
+        node const& a = all[ia].element();
         node const& b = all[ib].element();
         return std::lexicographical_compare(a.txid().rbegin(), a.txid().rend(),
                                             b.txid().rbegin(), b.txid().rend());
@@ -105,7 +105,7 @@ void sort_ltor(bool sorted, partially_indexed_mempool_t::main_container_t& all, 
 
     if ( ! sorted) {
         auto const cmp = [&all](main_index_t ia, main_index_t ib) {
-            node const& a = all[ia].element(); 
+            node const& a = all[ia].element();
             node const& b = all[ib].element();
             return fee_per_size_cmp{}(a, b);
         };
@@ -117,11 +117,11 @@ void sort_ltor(bool sorted, partially_indexed_mempool_t::main_container_t& all, 
     while (last_organized != std::end(candidates)) {
         auto selected_to_move = last_organized++;
 
-        auto most_left_child = std::find_if(std::begin(candidates), selected_to_move, 
+        auto most_left_child = std::find_if(std::begin(candidates), selected_to_move,
             [&](main_index_t s) {
                 auto const& parent_node = all[*selected_to_move];
-                auto found = std::find(std::begin(parent_node.children()), 
-                                       std::end(parent_node.children()), 
+                auto found = std::find(std::begin(parent_node.children()),
+                                       std::end(parent_node.children()),
                                        s);
                 return found != std::end(parent_node.children());
         });
@@ -144,11 +144,11 @@ public:
     using to_insert_t = std::tuple<indexes_t, uint64_t, size_t, size_t>;
 
     using data_t = partially_indexed<node, fee_per_size_cmp, mempool>;
-    // using main_index_t = 
+    // using main_index_t =
 
     friend data_t;  //TODO(fernando): Separate the State part
 
-    
+
 
     // using mutex_t = boost::shared_mutex;
     // using shared_lock_t = boost::shared_lock<mutex_t>;
@@ -163,9 +163,9 @@ public:
     static constexpr size_t mempool_size_multiplier_default = 10;
 #else
     static constexpr size_t mempool_size_multiplier_default = 10;
-#endif 
+#endif
 
-    mempool(size_t max_template_size = max_template_size_default, size_t mempool_size_multiplier = mempool_size_multiplier_default) 
+    mempool(size_t max_template_size = max_template_size_default, size_t mempool_size_multiplier = mempool_size_multiplier_default)
         : max_template_size_(max_template_size)
         , mempool_total_size_(get_max_block_weight() * mempool_size_multiplier)
         // partially_indexed<node, fee_per_size_cmp, has_room_for> data{fee_per_size_cmp{}, roomer};
@@ -203,7 +203,7 @@ public:
             return error::success;
         });
     }
- 
+
     template <typename I>
     error::error_code_t remove(I f, I l, size_t non_coinbase_input_count = 0) {
         // precondition: [f, l) is a valid non-empty range
@@ -311,7 +311,7 @@ public:
 //                 //     std::cout << std::endl;
 //                 // }
 
-                
+
 //                 indexes_t old_parents;
 //                 for (auto x : node_old.parents()) {
 //                     if (x >= diff) {
@@ -463,7 +463,7 @@ public:
 
         if (processing_block_) {
             return {};
-        } 
+        }
 
         auto copied_data = prioritizer_.high_job([this]{
             return std::tuple_cat(data_.internal_data(), std::make_tuple(accum_fees_));
@@ -499,7 +499,7 @@ public:
             auto it = internal_utxo_set_.find(point);
             if (it != internal_utxo_set_.end()) {
                 return it->second;
-            } 
+            }
 
             return domain::chain::output{};
         });
@@ -528,7 +528,7 @@ private:
         if ( ! res.second) {
             return true;
         }
-        
+
         // auto const& node = all_elements_[node_index];
         auto node = getter(node_index);
         auto fee = node.second.fee();
@@ -629,7 +629,7 @@ private:
                     }
                 }
             }
-        }        
+        }
 
         return check_children_accum(node_index, getter);
     }
@@ -653,7 +653,7 @@ private:
                     --pi;
                 }
             }
-            return true;   
+            return true;
         });
     }
 
@@ -684,7 +684,7 @@ private:
                 }
             }
         }
-    }    
+    }
 
     void remove_from_utxo(hash_digest const& txid, uint32_t output_count) {
         for (uint32_t i = 0; i < output_count; ++i) {
@@ -712,7 +712,7 @@ private:
 
         for (auto const& i : tx.inputs()) {
             previous_outputs_.insert({i.previous_output(), index});
-        }        
+        }
         // add_node(index);
 
         return true;
@@ -722,7 +722,7 @@ private:
         if (accum_size_ > max_template_size_ - x.size()) {
             return false;
         }
-        
+
         auto const next_size = accum_size_ + x.size();
         auto const sigops_limit = get_allowed_sigops(next_size);
 
@@ -754,7 +754,7 @@ private:
         if ( ! res.second) {
             return {0, 0, 0};
         }
-        
+
         auto fee = x.fee();
         auto size = x.size();
         auto sigops = x.sigops();
@@ -780,7 +780,7 @@ private:
 
     template <typename Getter>
     to_insert_t what_to_insert(node const& x, main_index_t node_index, Getter getter) {
-        
+
         auto fees = x.fee();
         auto size = x.size();
         auto sigops = x.sigops();
@@ -839,7 +839,7 @@ private:
         if (old_accum_benefit == accum_benefit) {
             return;
         }
-    
+
         if (old_accum_benefit > accum_benefit) {
 //  P               P'
 
@@ -848,7 +848,7 @@ private:
                 re_sort_to_end(parent_index, parent_index);
             } else {
                 if (accum_benefit < node_accum_benefit) {
-//  P        C     P'      
+//  P        C     P'
                     re_sort_to_end(node_index, parent_index);
                 } else {
 //  P              P'      C
@@ -892,7 +892,7 @@ private:
                 }
             }
         }
-    }    
+    }
 
     template <typename Getter, typename ReSortToEnd, typename ReSort, typename ReSortFromBegin>
     void re_sort_elements_insertion_one(mining::node const& node, main_index_t node_index, Getter getter, ReSortToEnd re_sort_to_end, ReSort re_sort, ReSortFromBegin re_sort_from_begin) {
@@ -907,7 +907,7 @@ private:
                 BOOST_ASSERT(false);
             }
         }
-    }    
+    }
 
     template <typename Remover, typename Getter, typename ReSortLeft, typename ReSortRight>
     void do_remove(main_index_t index, Remover remover, Getter getter, ReSortLeft re_sort_left, ReSortRight re_sort_right) {
@@ -944,7 +944,7 @@ private:
     }
 
     template <typename Reverser, typename Remover, typename Getter, typename ReSortLeft, typename ReSortRight>
-    bool remove_insert_common(node const& x, uint64_t fees, size_t size, size_t sigops, Reverser reverser, Remover remover, Getter getter, ReSortLeft re_sort_left, ReSortRight re_sort_right) {   
+    bool remove_insert_common(node const& x, uint64_t fees, size_t size, size_t sigops, Reverser reverser, Remover remover, Getter getter, ReSortLeft re_sort_left, ReSortRight re_sort_right) {
 
 
         auto pack_benefit = benefit(fees, size);
@@ -996,7 +996,7 @@ private:
 
 
     template <typename Reverser, typename Remover, typename Getter, typename Inserter, typename ReSortLeft, typename ReSortRight, typename ReSortToEnd, typename ReSort, typename ReSortFromBegin>
-    bool remove_insert_several(node const& x, main_index_t node_index, Reverser reverser, Remover remover, Getter getter, Inserter inserter, ReSortLeft re_sort_left, ReSortRight re_sort_right, ReSortToEnd re_sort_to_end, ReSort re_sort, ReSortFromBegin re_sort_from_begin) {   
+    bool remove_insert_several(node const& x, main_index_t node_index, Reverser reverser, Remover remover, Getter getter, Inserter inserter, ReSortLeft re_sort_left, ReSortRight re_sort_right, ReSortToEnd re_sort_to_end, ReSort re_sort, ReSortFromBegin re_sort_from_begin) {
         //precondition: candidate_transactions_.size() > 0
 
         // auto [to_insert, fees, size, sigops] = what_to_insert(x, node_index, getter);
@@ -1028,7 +1028,7 @@ private:
     }
 
     template <typename Reverser, typename Remover, typename Getter, typename Inserter, typename ReSortLeft, typename ReSortRight, typename ReSortToEnd, typename ReSort, typename ReSortFromBegin>
-    bool remove_insert_one(node const& x, main_index_t node_index, Reverser reverser, Remover remover, Getter getter, Inserter inserter, ReSortLeft re_sort_left, ReSortRight re_sort_right, ReSortToEnd re_sort_to_end, ReSort re_sort, ReSortFromBegin re_sort_from_begin) {   
+    bool remove_insert_one(node const& x, main_index_t node_index, Reverser reverser, Remover remover, Getter getter, Inserter inserter, ReSortLeft re_sort_left, ReSortRight re_sort_right, ReSortToEnd re_sort_to_end, ReSort re_sort, ReSortFromBegin re_sort_from_begin) {
         //precondition: candidate_transactions_.size() > 0
 
         auto fees = x.fee();
@@ -1185,7 +1185,7 @@ private:
     size_t accum_size_ = 0;
     size_t accum_sigops_ = 0;
     uint64_t accum_fees_ = 0;
-   
+
     //TODO: chequear el anidamiento de TX con su máximo (25??) y si es regla de consenso.
 
     // has_room_for roomer(120);

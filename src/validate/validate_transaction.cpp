@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2021 Knuth Project developers.
+// Copyright (c) 2016-2022 Knuth Project developers.
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -129,7 +129,7 @@ void validate_transaction::connect(transaction_const_ptr tx, result_handler hand
     }
 }
 
-void validate_transaction::connect_inputs(transaction_const_ptr tx, size_t bucket, size_t buckets, result_handler handler, ???) const {
+void validate_transaction::connect_inputs(transaction_const_ptr tx, size_t bucket, size_t buckets, result_handler handler) const {
     KTH_ASSERT(bucket < buckets);
 
 #if defined(KTH_CURRENCY_BCH)
@@ -152,7 +152,7 @@ void validate_transaction::connect_inputs(transaction_const_ptr tx, size_t bucke
             return;
         }
 
-        auto res = validate_input::verify_script(*tx, input_index, forks, ???);
+        auto res = validate_input::verify_script(*tx, input_index, forks);
         if (res.first != error::success) {
             handler(res.first);
             return;

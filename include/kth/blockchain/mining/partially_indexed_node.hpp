@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2021 Knuth Project developers.
+// Copyright (c) 2016-2022 Knuth Project developers.
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -21,11 +21,11 @@ class partially_indexed_node {
 public:
     using value_type = T;
 
-    partially_indexed_node(I index, T const& x) 
+    partially_indexed_node(I index, T const& x)
         : index_(index)
         , x_(x) {}
 
-    partially_indexed_node(I index, T&& x) 
+    partially_indexed_node(I index, T&& x)
         : index_(index)
         , x_(std::move(x)) {}
 

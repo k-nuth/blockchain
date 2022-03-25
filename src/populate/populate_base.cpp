@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2021 Knuth Project developers.
+// Copyright (c) 2016-2022 Knuth Project developers.
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -30,10 +30,10 @@ populate_base::populate_base(dispatcher& dispatch, fast_chain const& chain)
 // This is the only necessary file system read in block/tx validation.
 void populate_base::populate_duplicate(size_t branch_height, const domain::chain::transaction& tx, bool require_confirmed) const {
 
-#if defined(KTH_DB_LEGACY)    
+#if defined(KTH_DB_LEGACY)
     tx.validation.duplicate = fast_chain_.get_is_unspent_transaction(tx.hash(), branch_height, require_confirmed);
 #else
-    //Knuth: We are not validating tx duplication    
+    //Knuth: We are not validating tx duplication
     tx.validation.duplicate = false;
 #endif // KTH_DB_LEGACY
 }
@@ -43,14 +43,14 @@ void populate_base::populate_pooled(const domain::chain::transaction& tx, uint32
     size_t position;
 
 #if defined(KTH_DB_LEGACY) || defined(KTH_DB_NEW_FULL)
-    if (fast_chain_.get_transaction_position(height, position, tx.hash(), false) 
-        
-#if defined(KTH_DB_LEGACY)        
+    if (fast_chain_.get_transaction_position(height, position, tx.hash(), false)
+
+#if defined(KTH_DB_LEGACY)
         && (position == transaction_database::unconfirmed)) {
-#else 
+#else
         && (position == position_max)) {
 #endif
-        
+
         tx.validation.pooled = true;
         tx.validation.current = (height == forks);
         return;
@@ -83,7 +83,7 @@ void populate_base::populate_prevout(size_t branch_height, output_point const& o
     if ( ! fast_chain_.get_utxo(prevout.cache, prevout.height, prevout.median_time_past, prevout.coinbase, outpoint, branch_height)) {
         return;
     }
-    
+
 
 
 #elif defined(KTH_DB_LEGACY)

@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2021 Knuth Project developers.
+// Copyright (c) 2016-2022 Knuth Project developers.
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -44,7 +44,7 @@ public:
     void add_child(block_const_ptr child) const;
 
     /// Serializer for debugging (temporary).
-    friend 
+    friend
     std::ostream& operator<<(std::ostream& out, block_entry const& of);
 
     /// Operators.
