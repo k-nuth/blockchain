@@ -86,7 +86,7 @@ class KnuthBlockchainConan(KnuthConanFile):
             self.requires.add("consensus/0.X@%s/%s" % (self.user, self.channel))
 
         if self.options.tests:
-            self.requires("catch2/2.13.8")
+            self.requires("catch2/3.0.1")
 
     def config_options(self):
         KnuthConanFile.config_options(self)
@@ -94,7 +94,6 @@ class KnuthBlockchainConan(KnuthConanFile):
         if self.options.keoken and self.options.currency != "BCH":
             self.output.warning("Keoken is only enabled for BCH, for the moment. Removing Keoken support")
             self.options.remove("keoken")
-
 
     def configure(self):
         KnuthConanFile.configure(self)
@@ -140,6 +139,7 @@ class KnuthBlockchainConan(KnuthConanFile):
         cmake.definitions["DB_READONLY_MODE"] = option_on_off(self.options.db_readonly)
         cmake.definitions["LOG_LIBRARY"] = self.options.log
         cmake.definitions["USE_LIBMDBX"] = option_on_off(self.options.use_libmdbx)
+        cmake.definitions["CONAN_DISABLE_CHECK_COMPILER"] = option_on_off(True)
 
         cmake.configure(source_dir=self.source_folder)
         if not self.options.cmake_export_compile_commands:
