@@ -23,12 +23,12 @@ class KnuthBlockchainConan(KnuthConanFile):
                "tests": [True, False],
                "tools": [True, False],
                "currency": ['BCH', 'BTC', 'LTC'],
-               "microarchitecture": "ANY",
-               "fix_march": [True, False],
+
                "march_id": "ANY",
+               "march_strategy": ["download_if_possible", "optimized", "download_or_fail"],
 
                "verbose": [True, False],
-               "keoken": [True, False],
+            #    "keoken": [True, False],
             #    "mining": [True, False],
                "mempool": [True, False],
                "db": ['legacy', 'legacy_full', 'pruned', 'default', 'full'],
@@ -50,12 +50,13 @@ class KnuthBlockchainConan(KnuthConanFile):
         "tools": False,
         "currency": "BCH",
 
-        "microarchitecture": "_DUMMY_",
-        "fix_march": False,
         "march_id": "_DUMMY_",
+        "march_strategy": "download_if_possible",
 
         "verbose": False,
-        "keoken": False,
+
+        # "keoken": False,
+
         "mempool": False,
         "db": "default",
         "db_readonly": False,
@@ -75,9 +76,9 @@ class KnuthBlockchainConan(KnuthConanFile):
     package_files = "build/lkth-blockchain.a"
     build_policy = "missing"
 
-    @property
-    def is_keoken(self):
-        return self.options.currency == "BCH" and self.options.get_safe("keoken")
+    # @property
+    # def is_keoken(self):
+    #     return self.options.currency == "BCH" and self.options.get_safe("keoken")
 
     def requirements(self):
         self.requires("database/0.X@%s/%s" % (self.user, self.channel))
@@ -86,29 +87,31 @@ class KnuthBlockchainConan(KnuthConanFile):
             self.requires.add("consensus/0.X@%s/%s" % (self.user, self.channel))
 
         if self.options.tests:
-            self.requires("catch2/2.13.8")
+            self.requires("catch2/3.0.1")
+
+    def validate(self):
+        KnuthConanFile.validate(self)
 
     def config_options(self):
         KnuthConanFile.config_options(self)
 
-        if self.options.keoken and self.options.currency != "BCH":
-            self.output.warning("Keoken is only enabled for BCH, for the moment. Removing Keoken support")
-            self.options.remove("keoken")
-
+        # if self.options.keoken and self.options.currency != "BCH":
+        #     self.output.warning("Keoken is only enabled for BCH, for the moment. Removing Keoken support")
+        #     self.options.remove("keoken")
 
     def configure(self):
         KnuthConanFile.configure(self)
 
-        if self.options.keoken and self.options.currency != "BCH":
-            self.output.warn("For the moment Keoken is only enabled for BCH. Building without Keoken support...")
-            del self.options.keoken
-        else:
-            self.options["*"].keoken = self.options.keoken
+        # if self.options.keoken and self.options.currency != "BCH":
+        #     self.output.warn("For the moment Keoken is only enabled for BCH. Building without Keoken support...")
+        #     del self.options.keoken
+        # else:
+        #     self.options["*"].keoken = self.options.keoken
 
-        if self.is_keoken:
-            if self.options.db == "pruned" or self.options.db == "default":
-                self.output.warn("Keoken mode requires db=full and your configuration is db=%s, it has been changed automatically..." % (self.options.db,))
-                self.options.db = "full"
+        # if self.is_keoken:
+        #     if self.options.db == "pruned" or self.options.db == "default":
+        #         self.output.warn("Keoken mode requires db=full and your configuration is db=%s, it has been changed automatically..." % (self.options.db,))
+        #         self.options.db = "full"
 
 
         self.options["*"].db_readonly = self.options.db_readonly
@@ -134,12 +137,16 @@ class KnuthBlockchainConan(KnuthConanFile):
     def build(self):
         cmake = self.cmake_basis()
         cmake.definitions["WITH_CONSENSUS"] = option_on_off(self.options.consensus)
-        cmake.definitions["WITH_KEOKEN"] = option_on_off(self.is_keoken)
+
+        # cmake.definitions["WITH_KEOKEN"] = option_on_off(self.is_keoken)
+        cmake.definitions["WITH_KEOKEN"] = option_on_off(False)
+
         # cmake.definitions["WITH_MINING"] = option_on_off(self.options.mining)
         cmake.definitions["WITH_MEMPOOL"] = option_on_off(self.options.mempool)
         cmake.definitions["DB_READONLY_MODE"] = option_on_off(self.options.db_readonly)
         cmake.definitions["LOG_LIBRARY"] = self.options.log
         cmake.definitions["USE_LIBMDBX"] = option_on_off(self.options.use_libmdbx)
+        cmake.definitions["CONAN_DISABLE_CHECK_COMPILER"] = option_on_off(True)
 
         cmake.configure(source_dir=self.source_folder)
         if not self.options.cmake_export_compile_commands:
