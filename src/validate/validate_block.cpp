@@ -371,14 +371,14 @@ void validate_block::dump(code const& ec, transaction const& tx, uint32_t input_
     auto const hash = encode_hash(prevout.hash());
     auto const tx_hash = encode_hash(tx.hash());
 
-    LOG_DEBUG(LOG_BLOCKCHAIN
-        , "Verify failed [{}] : {}\n"
+    spdlog::debug("[{}] Verify failed [{}] : {}\n"
         " forks        : {}\n"
         " outpoint     : {}:{}\n"
         " script       : {}\n"
         " value        : {}\n"
         " inpoint      : {}:{}\n"
-        " transaction  : {}", height, ec.message(), forks, hash, prevout.index(), encode_base16(script)
+        " transaction  : {}",
+        LOG_BLOCKCHAIN, height, ec.message(), forks, hash, prevout.index(), encode_base16(script)
         , prevout.validation.cache.value(), tx_hash, input_index, encode_base16(tx.to_data(true, true)));
 }
 
