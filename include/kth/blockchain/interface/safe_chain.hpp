@@ -35,20 +35,6 @@ public:
     using stealth_fetch_handler = handle1<domain::chain::stealth_compact::list>;
     using transaction_index_fetch_handler = handle2<size_t, size_t>;
 
-#ifdef KTH_WITH_KEOKEN
-    using keoken_history_fetch_handler = std::function<void (code const&, std::shared_ptr<std::vector<kth::transaction_const_ptr>>)>;
-    using block_keoken_fetch_handler = std::function<void (code const&,  header_const_ptr, size_t, std::shared_ptr<std::vector <kth::transaction_const_ptr>>, uint64_t, size_t)> ;
-
-    virtual
-    void fetch_keoken_history(const short_hash& address_hash, size_t limit, size_t from_height, keoken_history_fetch_handler handler) const = 0;
-
-    virtual
-    void fetch_block_keoken(hash_digest const& hash, bool witness, block_keoken_fetch_handler handler) const = 0;
-
-    virtual
-    void convert_to_keo_transaction(hash_digest const& hash, std::shared_ptr<std::vector<transaction_const_ptr>> keoken_txs) const = 0;
-#endif
-
     using confirmed_transactions_fetch_handler = handle1<std::vector<hash_digest>>;
     // Smart pointer parameters must not be passed by reference.
     using block_fetch_handler = std::function<void(code const&, block_const_ptr, size_t)>;

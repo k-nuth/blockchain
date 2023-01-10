@@ -416,18 +416,6 @@ public:
     /// Get a reference to the blockchain configuration settings.
     settings const& chain_settings() const;
 
-
-#ifdef KTH_WITH_KEOKEN
-    virtual void fetch_keoken_history(const short_hash& address_hash, size_t limit,
-        size_t from_height, keoken_history_fetch_handler handler) const override;
-
-    virtual void fetch_block_keoken(hash_digest const& hash, bool witness,
-        block_keoken_fetch_handler handler) const override;
-
-    virtual void convert_to_keo_transaction(hash_digest const& hash,
-      std::shared_ptr<std::vector<transaction_const_ptr>> keoken_txs) const override;
-#endif
-
 #if defined(KTH_WITH_MEMPOOL)
     std::pair<std::vector<kth::mining::transaction_element>, uint64_t> get_block_template() const;
 #endif
