@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2022 Knuth Project developers.
+# Copyright (c) 2016-2023 Knuth Project developers.
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -28,7 +28,6 @@ class KnuthBlockchainConan(KnuthConanFile):
                "march_strategy": ["download_if_possible", "optimized", "download_or_fail"],
 
                "verbose": [True, False],
-            #    "keoken": [True, False],
             #    "mining": [True, False],
                "mempool": [True, False],
                "db": ['legacy', 'legacy_full', 'pruned', 'default', 'full'],
@@ -55,8 +54,6 @@ class KnuthBlockchainConan(KnuthConanFile):
 
         "verbose": False,
 
-        # "keoken": False,
-
         "mempool": False,
         "db": "default",
         "db_readonly": False,
@@ -76,10 +73,6 @@ class KnuthBlockchainConan(KnuthConanFile):
     package_files = "build/lkth-blockchain.a"
     build_policy = "missing"
 
-    # @property
-    # def is_keoken(self):
-    #     return self.options.currency == "BCH" and self.options.get_safe("keoken")
-
     def requirements(self):
         self.requires("database/0.X@%s/%s" % (self.user, self.channel))
 
@@ -95,24 +88,8 @@ class KnuthBlockchainConan(KnuthConanFile):
     def config_options(self):
         KnuthConanFile.config_options(self)
 
-        # if self.options.keoken and self.options.currency != "BCH":
-        #     self.output.warning("Keoken is only enabled for BCH, for the moment. Removing Keoken support")
-        #     self.options.remove("keoken")
-
     def configure(self):
         KnuthConanFile.configure(self)
-
-        # if self.options.keoken and self.options.currency != "BCH":
-        #     self.output.warn("For the moment Keoken is only enabled for BCH. Building without Keoken support...")
-        #     del self.options.keoken
-        # else:
-        #     self.options["*"].keoken = self.options.keoken
-
-        # if self.is_keoken:
-        #     if self.options.db == "pruned" or self.options.db == "default":
-        #         self.output.warn("Keoken mode requires db=full and your configuration is db=%s, it has been changed automatically..." % (self.options.db,))
-        #         self.options.db = "full"
-
 
         self.options["*"].db_readonly = self.options.db_readonly
         self.output.info("Compiling with read-only DB: %s" % (self.options.db_readonly,))
@@ -137,9 +114,6 @@ class KnuthBlockchainConan(KnuthConanFile):
     def build(self):
         cmake = self.cmake_basis()
         cmake.definitions["WITH_CONSENSUS"] = option_on_off(self.options.consensus)
-
-        # cmake.definitions["WITH_KEOKEN"] = option_on_off(self.is_keoken)
-        cmake.definitions["WITH_KEOKEN"] = option_on_off(False)
 
         # cmake.definitions["WITH_MINING"] = option_on_off(self.options.mining)
         cmake.definitions["WITH_MEMPOOL"] = option_on_off(self.options.mempool)

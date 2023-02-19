@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2022 Knuth Project developers.
+# Copyright (c) 2016-2023 Knuth Project developers.
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -48,14 +48,6 @@ option(WITH_TESTS "Compile with unit tests." ON)
 # Implement --with-tools and declare WITH_TOOLS.
 #------------------------------------------------------------------------------
 option(WITH_TOOLS "Compile with tools." OFF)
-
-# Implement --with-keoken and declare WITH_KEOKEN.
-#------------------------------------------------------------------------------
-option(WITH_KEOKEN "Keoken enabled." OFF)
-if (WITH_KEOKEN)
-  message(STATUS "Knuth: Keoken enabled")
-  add_definitions(-DKTH_WITH_KEOKEN)
-endif()
 
 # # Implement --with-mining and declare WITH_MINING.
 # #------------------------------------------------------------------------------
@@ -379,13 +371,6 @@ set(kth_blockchain_sources_just_kth
   src/interface/block_chain_old_db.cpp
 )
 
-if (WITH_KEOKEN)
-  set(kth_blockchain_sources_just_kth
-    ${kth_blockchain_sources_just_kth}
-    src/keoken/memory_state.cpp
-  )
-endif()
-
 if (NOT JUST_KTH_SOURCES)
   set(kth_blockchain_sources
     ${kth_blockchain_sources_just_legacy}
@@ -491,15 +476,6 @@ if (WITH_TESTS)
         set(kth_blockchain_test_sources
             ${kth_blockchain_test_sources}
             test/mempool_tests.cpp
-        )
-    endif()
-
-    if (WITH_KEOKEN)
-        set(kth_blockchain_test_sources
-            ${kth_blockchain_test_sources}
-            test/state_delegated_tests.cpp
-            test/state_tests.cpp
-            test/interpreter_tests.cpp
         )
     endif()
 
