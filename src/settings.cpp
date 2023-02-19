@@ -48,6 +48,11 @@ settings::settings(domain::config::network net) {
             asert_half_life = 2ull * 24 * 60 * 60;   // two days
             break;
         }
+        case domain::config::network::chipnet: {
+            easy_blocks = true;
+            asert_half_life = 60ull * 60;   // one hour
+            break;
+        }
 #endif
     }
 
