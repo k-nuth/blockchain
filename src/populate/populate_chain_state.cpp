@@ -8,8 +8,6 @@
 #include <cstdint>
 #include <memory>
 
-#include <tao/algorithm/partition/partition_point_variant.hpp>
-
 #include <kth/domain.hpp>
 
 #include <kth/blockchain/define.hpp>

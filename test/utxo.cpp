@@ -45,14 +45,19 @@ using namespace std::filesystem;
     Catch::getResultCapture().getCurrentTestName()
 
 #define START_BLOCKCHAIN(name, flush)                               \
-    threadpool pool;                                                \
+    threadpool pool("test");                                        \
     database::settings database_settings;                           \
     database_settings.flush_writes = flush;                         \
     database_settings.directory = TEST_NAME;                        \
     REQUIRE(utxo_tests::create_database(database_settings));        \
     blockchain::settings blockchain_settings;                       \
-    block_chain name(pool, blockchain_settings, database_settings); \
+    block_chain name(pool, blockchain_settings, database_settings, domain::config::network::testnet4 ); \
     REQUIRE(name.start())
+
+// block_chain::block_chain(threadpool& pool,
+// blockchain::settings const& chain_settings
+//                        , database::settings const& database_settings, domain::config::network network, bool relay_transactions /* = true*/)
+
 
 #define NEW_BLOCK(height) \
     std::make_shared<const domain::message::block>(utxo_tests::read_block(MAINNET_BLOCK##height))
@@ -101,7 +106,7 @@ domain::chain::block read_block(const std::string hex) {
 
 } // namespace utxo_tests
 
-// Start Boost Suite: utxo tests
+// Start Test Suite: utxo tests
 
 #ifdef KTH_DB_NEW
 
@@ -157,4 +162,4 @@ TEST_CASE("utxo  get utxo  above fork  false", "[utxo tests]") {
 
 #endif // KTH_DB_NEW
 
-// End Boost Suite
+// End Test Suite

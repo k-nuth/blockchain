@@ -2,13 +2,9 @@
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.23)
 
-# kth-blockchain
-#==============================================================================
-project(kth-blockchain
-  VERSION 0
-  LANGUAGES CXX C)
+project(kth-blockchain VERSION 0 LANGUAGES CXX C)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
@@ -22,12 +18,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Implement --use-conan
 #------------------------------------------------------------------------------
-option(USE_CONAN "Use Conan Build Tool." OFF)
-option(NO_CONAN_AT_ALL "Conan totally disabled." OFF)
+# option(USE_CONAN "Use Conan Build Tool." OFF)
+# option(NO_CONAN_AT_ALL "Conan totally disabled." OFF)
 
-if (NO_CONAN_AT_ALL)
-  set(USE_CONAN OFF)
-endif()
+# if (NO_CONAN_AT_ALL)
+#   set(USE_CONAN OFF)
+# endif()
 
 # Inherit --enable-shared and define BOOST_TEST_DYN_LINK.
 #------------------------------------------------------------------------------
@@ -210,56 +206,61 @@ endif()
 message(STATUS "Knuth: Cryptocurrency: ${CURRENCY}")
 
 
-# Conan infrastructure.
-#==============================================================================
-if(EXISTS ${CMAKE_SOURCE_DIR}/ci_utils/cmake/knuthbuildinfo.cmake)
-    include(${CMAKE_SOURCE_DIR}/ci_utils/cmake/knuthbuildinfo.cmake)
-else()
-    message( STATUS "knuthbuildinfo doent exists")
-endif()
+# # Conan infrastructure.
+# #==============================================================================
+# if(EXISTS ${CMAKE_SOURCE_DIR}/ci_utils/cmake/knuthbuildinfo.cmake)
+#     include(${CMAKE_SOURCE_DIR}/ci_utils/cmake/knuthbuildinfo.cmake)
+# else()
+#     message( STATUS "knuthbuildinfo doent exists")
+# endif()
 
 
 
 # Check dependencies.
 #==============================================================================
 #------------------------------------------------------------------------------
-if (NO_CONAN_AT_ALL)
-  # Require Boost of at least version 1.56.0 and output ${boost_CPPFLAGS/LDFLAGS}.
-  #------------------------------------------------------------------------------
-  if (NOT ENABLE_SHARED)
-    set(Boost_USE_STATIC_LIBS ON)
-  endif()
+# if (NO_CONAN_AT_ALL)
+#   # Require Boost of at least version 1.56.0 and output ${boost_CPPFLAGS/LDFLAGS}.
+#   #------------------------------------------------------------------------------
+#   if (NOT ENABLE_SHARED)
+#     set(Boost_USE_STATIC_LIBS ON)
+#   endif()
 
-  if (MSVC)
-    find_package(
-      Boost 1.66.0 REQUIRED
-      COMPONENTS atomic chrono date_time filesystem iostreams locale log log_setup program_options system thread unit_test_framework
-      # regex
-    )
-  else()
-    find_package(
-      Boost 1.66.0 REQUIRED
-      COMPONENTS chrono date_time filesystem iostreams locale log program_options system thread unit_test_framework
-      # regex
-    )
-  endif()
+#   if (MSVC)
+#     find_package(
+#       Boost 1.66.0 REQUIRED
+#       COMPONENTS atomic chrono date_time filesystem iostreams locale log log_setup program_options system thread unit_test_framework
+#       # regex
+#     )
+#   else()
+#     find_package(
+#       Boost 1.66.0 REQUIRED
+#       COMPONENTS chrono date_time filesystem iostreams locale log program_options system thread unit_test_framework
+#       # regex
+#     )
+#   endif()
+# endif()
+
+# if (NOT USE_CONAN)
+#   # Require kth-database of at least version 0 and output ${kth_database_CPPFLAGS/LIBS/PKG}.
+#   #------------------------------------------------------------------------------
+#   if (NOT TARGET kth-database)
+#     find_package(kth-database 0 REQUIRED)
+#   endif()
+
+#   # Require kth-consensus of at least version 0 and output ${kth_consensus_CPPFLAGS/LIBS/PKG}.
+#   #------------------------------------------------------------------------------
+#   if (WITH_CONSENSUS)
+#     if (NOT TARGET kth-consensus)
+#       find_package(kth-consensus 0 REQUIRED)
+#     endif()
+#   endif()
+# endif(NOT USE_CONAN)
+
+find_package(kth-database REQUIRED)
+if (WITH_CONSENSUS)
+  find_package(kth-consensus REQUIRED)
 endif()
-
-if (NOT USE_CONAN)
-  # Require kth-database of at least version 0 and output ${kth_database_CPPFLAGS/LIBS/PKG}.
-  #------------------------------------------------------------------------------
-  if (NOT TARGET kth-database)
-    find_package(kth-database 0 REQUIRED)
-  endif()
-
-  # Require kth-consensus of at least version 0 and output ${kth_consensus_CPPFLAGS/LIBS/PKG}.
-  #------------------------------------------------------------------------------
-  if (WITH_CONSENSUS)
-    if (NOT TARGET kth-consensus)
-      find_package(kth-consensus 0 REQUIRED)
-    endif()
-  endif()
-endif(NOT USE_CONAN)
 
 
 
@@ -406,39 +407,23 @@ if (WITH_CONSENSUS)
   target_compile_definitions(kth-blockchain PUBLIC -DBCK_STATIC) #TODO(fernando): por que esta afuera?
 endif(WITH_CONSENSUS)
 
-if (NOT USE_CONAN)
-  target_link_libraries(kth-blockchain PUBLIC kth-database)
-endif(NOT USE_CONAN)
-
-
-# #TODO(fernando): See what to do with this option. Move to Conan?
-# if (NOT NO_CONAN_AT_ALL)
-#   if (WITH_CONSENSUS)
-#     target_compile_definitions(kth-blockchain PUBLIC -DWITH_CONSENSUS)
-#     target_link_libraries(kth-blockchain PUBLIC ${CONAN_LIBS})
-#   else()
-#     target_link_libraries(kth-blockchain PUBLIC ${CONAN_LIBS})
-#   endif()
-# else()
-#   if (WITH_CONSENSUS)
-#     target_link_libraries(kth-blockchain kth-consensus -DWITH_CONSENSUS)
-#   else()
-#     target_link_libraries(kth-blockchain kth-consensus)
-#   endif()
-# endif()
-
+# if (NOT USE_CONAN)
+#   target_link_libraries(kth-blockchain PUBLIC kth-database)
+# endif(NOT USE_CONAN)
+target_link_libraries(kth-blockchain PUBLIC kth-database)
 
 
 if (WITH_CONSENSUS)
   target_compile_definitions(kth-blockchain PUBLIC -DWITH_CONSENSUS)
-  if (NOT USE_CONAN)
-    target_link_libraries(kth-blockchain PUBLIC kth-consensus)
-  endif(NOT USE_CONAN)
+  # if (NOT USE_CONAN)
+  #   target_link_libraries(kth-blockchain PUBLIC kth-consensus)
+  # endif(NOT USE_CONAN)
+  target_link_libraries(kth-blockchain PUBLIC kth-consensus)
 endif(WITH_CONSENSUS)
 
-if (NOT NO_CONAN_AT_ALL) # at least with external libraries
-  target_link_libraries(kth-blockchain PUBLIC ${CONAN_LIBS})
-endif()
+# if (NOT NO_CONAN_AT_ALL) # at least with external libraries
+#   # target_link_libraries(kth-blockchain PUBLIC ${CONAN_LIBS})
+# endif()
 
 
 # if (USE_CONAN)
@@ -451,14 +436,10 @@ _group_sources(kth-blockchain "${CMAKE_CURRENT_LIST_DIR}")
 
 # Tests
 #==============================================================================
-
 if (WITH_TESTS)
-  enable_testing()
-endif()
+    enable_testing()
+    find_package(Catch2 3 REQUIRED)
 
-# local: test/kth_blockchain_test
-#------------------------------------------------------------------------------
-if (WITH_TESTS)
     set(kth_blockchain_test_sources
         test/block_chain.cpp
         test/block_entry.cpp
@@ -483,10 +464,10 @@ if (WITH_TESTS)
         ${kth_blockchain_test_sources}
     )
 
-    target_include_directories(kth_blockchain_test PUBLIC
-      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test>)
-
+    target_include_directories(kth_blockchain_test PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/test>)
     target_link_libraries(kth_blockchain_test PUBLIC kth-blockchain)
+    target_link_libraries(kth_blockchain_test PRIVATE Catch2::Catch2WithMain)
+
     _group_sources(kth_blockchain_test "${CMAKE_CURRENT_LIST_DIR}/test")
 
     include(CTest)

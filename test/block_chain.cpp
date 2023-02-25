@@ -101,7 +101,7 @@ domain::chain::block read_block(const std::string hex) {
     return result;
 }
 
-// Start Boost Suite: fast chain tests
+// Start Test Suite: fast chain tests
 
 #ifdef KTH_DB_LEGACY
 TEST_CASE("block chain  insert  flushed  expected", "[fast chain tests]") {
@@ -435,11 +435,11 @@ TEST_CASE("block chain  get is unspent transaction  spent below fork  false", "[
 ////    REQUIRE( ! instance.get_transaction(height, hash, false));
 ////}
 
-// End Boost Suite
+// End Test Suite
 
 //-----------------------------------------------------------------------------
 
-// Start Boost Suite: safe chain tests
+// Start Test Suite: safe chain tests
 
 
 #ifdef KTH_DB_LEGACY
@@ -747,4 +747,4 @@ TEST_CASE("block chain  fetch locator block headers  limited  sequential", "[saf
 // TODO: stopped
 // TODO: to_hashes
 
-// End Boost Suite
+// End Test Suite

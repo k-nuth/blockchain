@@ -11,7 +11,7 @@ using namespace kth;
 using namespace kd::message;
 using namespace kth::blockchain;
 
-// Start Boost Suite: branch tests
+// Start Test Suite: branch tests
 
 #define DECLARE_BLOCK(name, number) \
     auto const name##number = std::make_shared<block>(); \
@@ -268,4 +268,4 @@ TEST_CASE("branch  work  two blocks  expected", "[branch tests]") {
     REQUIRE(instance.work() == 0);
 }
 
-// End Boost Suite
+// End Test Suite

@@ -72,6 +72,13 @@ uint32_t validate_input::convert_flags(uint32_t forks) {
         flags |= verify_flags_native_introspection;
     }
 
+    if (script::is_enabled(forks, domain::machine::rule_fork::bch_descartes)) {
+        std::cout << "bch_descartes enabled ****************************************************************************** " << std::endl;
+        flags |= verify_flags_enable_p2sh_32;
+        flags |= verify_flags_enable_tokens;
+    }
+
+
     // // We make sure this node will have replay protection during the next hard fork.
     // if (script::is_enabled(forks, domain::machine::rule_fork::bch_replay_protection)) {
     //     flags |= verify_flags_enable_replay_protection;
