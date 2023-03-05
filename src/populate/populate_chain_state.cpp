@@ -250,7 +250,7 @@ chain_state::ptr populate_chain_state::populate() const {
     auto const anchor = get_assert_anchor_block(network_);
 #endif
 
-    return std::make_shared<chain_state>(
+    auto ret = std::make_shared<chain_state>(
         std::move(data)
         , configured_forks_
         , checkpoints_
@@ -269,6 +269,8 @@ chain_state::ptr populate_chain_state::populate() const {
         , lobachevski_t(settings_.lobachevski_activation_time)
 #endif //KTH_CURRENCY_BCH
     );
+
+    return ret;
 }
 
 chain_state::ptr populate_chain_state::populate(chain_state::ptr pool, branch::const_ptr branch) const {
