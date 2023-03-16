@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Knuth Project developers.
+// Copyright (c) 2016-2023 Knuth Project developers.
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -366,11 +366,6 @@ void block_organizer::organize_mempool(branch::const_ptr branch, block_const_ptr
                         });
 
                         if ( ! double_spend) {
-                            // std::cout << "Inserting Transaction in Mempool: " << encode_hash(tx.hash()) << std::endl;
-
-                            // if (tx.validation.state == nullptr) {
-                            //     std::cout << "tx.validation.state == nullptr" << std::endl;
-                            // }
                             tx.validation.state = fast_chain_.chain_state();
                             populate_transaction_inputs(branch, tx.inputs(), branch_utxo);
                             mempool_.add(tx);       //TODO(fernando): add bulk

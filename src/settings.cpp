@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Knuth Project developers.
+// Copyright (c) 2016-2023 Knuth Project developers.
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -46,6 +46,11 @@ settings::settings(domain::config::network net) {
         case domain::config::network::scalenet: {
             easy_blocks = true;
             asert_half_life = 2ull * 24 * 60 * 60;   // two days
+            break;
+        }
+        case domain::config::network::chipnet: {
+            easy_blocks = true;
+            asert_half_life = 60ull * 60;   // one hour
             break;
         }
 #endif

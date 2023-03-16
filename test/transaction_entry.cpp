@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2022 Knuth Project developers.
+// Copyright (c) 2016-2023 Knuth Project developers.
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -14,7 +14,7 @@ using namespace kd::chain;
 using namespace kth::blockchain;
 using namespace kd::machine;
 
-// Start Boost Suite: transaction entry tests
+// Start Test Suite: transaction entry tests
 
 static
 auto const default_tx_hash = hash_literal("f702453dd03b0f055e5437d76128141803984fb10acb85fc3b2184fae2f3fa78");
@@ -34,7 +34,7 @@ transaction_const_ptr make_tx() {
     auto const tx = std::make_shared<const domain::message::transaction>();
     tx->validation.state = std::make_shared<chain_state>(
 #if defined(KTH_CURRENCY_BCH)
-        chain_state {data(), 0, {}, kth::euler_t(0), kth::gauss_t(0)});
+        chain_state {data(), 0, {}, domain::config::network::testnet4, domain::chain::chain_state::assert_anchor_block_info_t{}, 0, kth::descartes_t(0), kth::lobachevski_t(0)});
 #else
         chain_state {data(), 0, {}});
 #endif //KTH_CURRENCY_BCH
@@ -173,4 +173,4 @@ TEST_CASE("transaction entry  remove child  one of two  expected one remains", "
     REQUIRE(instance.children().front() == child2);
 }
 
-// End Boost Suite
+// End Test Suite
