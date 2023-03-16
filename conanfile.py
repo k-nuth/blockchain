@@ -3,19 +3,13 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import os
-<<<<<<< Updated upstream
-from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain, cmake_layout
-=======
 from conan import ConanFile
 from conan.tools.build.cppstd import check_min_cppstd
 from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain, cmake_layout
-from conan.tools.files import copy #, apply_conandata_patches, export_conandata_patches, get, rm, rmdir
->>>>>>> Stashed changes
-from kthbuild import option_on_off, march_conan_manip, pass_march_to_compiler
-from kthbuild import KnuthConanFileV2
+from conan.tools.files import copy
+from kthbuild import KnuthConanFileV2, option_on_off
 
 required_conan_version = ">=2.0"
-
 
 class KnuthBlockchainConan(KnuthConanFileV2):
     name = "blockchain"
@@ -24,27 +18,24 @@ class KnuthBlockchainConan(KnuthConanFileV2):
     description = "Knuth Blockchain Library"
     settings = "os", "compiler", "build_type", "arch"
 
-    options = {"shared": [True, False],
-               "fPIC": [True, False],
-               "consensus": [True, False],
-               "tests": [True, False],
-               "tools": [True, False],
-               "currency": ['BCH', 'BTC', 'LTC'],
-
-               "march_id": ["ANY"],
-               "march_strategy": ["download_if_possible", "optimized", "download_or_fail"],
-
-               "verbose": [True, False],
-            #    "mining": [True, False],
-               "mempool": [True, False],
-               "db": ['legacy', 'legacy_full', 'pruned', 'default', 'full'],
-               "db_readonly": [True, False],
-
-               "cxxflags": ["ANY"],
-               "cflags": ["ANY"],
-               "cmake_export_compile_commands": [True, False],
-               "log": ["boost", "spdlog", "binlog"],
-               "use_libmdbx": [True, False],
+    options = {
+        "shared": [True, False],
+        "fPIC": [True, False],
+        "consensus": [True, False],
+        "tests": [True, False],
+        "tools": [True, False],
+        "currency": ['BCH', 'BTC', 'LTC'],
+        "march_id": ["ANY"],
+        "march_strategy": ["download_if_possible", "optimized", "download_or_fail"],
+        "verbose": [True, False],
+        "mempool": [True, False],
+        "db": ['legacy', 'legacy_full', 'pruned', 'default', 'full'],
+        "db_readonly": [True, False],
+        "cxxflags": ["ANY"],
+        "cflags": ["ANY"],
+        "cmake_export_compile_commands": [True, False],
+        "log": ["boost", "spdlog", "binlog"],
+        "use_libmdbx": [True, False],
     }
 
     default_options = {
@@ -54,51 +45,53 @@ class KnuthBlockchainConan(KnuthConanFileV2):
         "tests": False,
         "tools": False,
         "currency": "BCH",
-
         "march_strategy": "download_if_possible",
-
         "verbose": False,
-
         "mempool": False,
         "db": "default",
         "db_readonly": False,
-
         "cmake_export_compile_commands": False,
         "log": "spdlog",
         "use_libmdbx": False,
     }
-    # "mining=False", \
 
-    # generators = "cmake"
-<<<<<<< Updated upstream
-    exports = "conan_*", "ci_utils/*"
-    exports_sources = "src/*", "CMakeLists.txt", "cmake/*", "kth-blockchainConfig.cmake.in", "knuthbuildinfo.cmake", "include/*", "test/*", "tools/*"
-=======
-    # exports = "conan_*", "ci_utils/*"
-    exports_sources = "src/*", "CMakeLists.txt", "ci_utils/cmake/*", "cmake/*", "kth-blockchainConfig.cmake.in", "knuthbuildinfo.cmake", "include/*", "test/*", "tools/*"
->>>>>>> Stashed changes
-    package_files = "build/lkth-blockchain.a"
-    # build_policy = "missing"
+    exports_sources = "src/*", "CMakeLists.txt", "ci_utils/cmake/*", "cmake/*", "knuthbuildinfo.cmake", "include/*", "test/*", "tools/*"
+
+    def _is_legacy_db(self):
+        return self.options.db == "legacy" or self.options.db == "legacy_full"
 
     def build_requirements(self):
         if self.options.tests:
             self.test_requires("catch2/3.3.1")
 
     def requirements(self):
-        self.requires("database/0.X@%s/%s" % (self.user, self.channel))
+        self.requires("infrastructure/0.24.0")
+        self.requires("domain/0.29.0")
 
+        self.requires("database/0.28.0")
         if self.options.consensus:
-            self.requires.add("consensus/0.X@%s/%s" % (self.user, self.channel))
+            self.requires("consensus/0.23.0")
+
+        self.requires("boost/1.81.0")
+        self.requires("fmt/9.1.0")
+        self.requires("spdlog/1.11.0")
+
+        if not self._is_legacy_db():
+            if self.options.use_libmdbx:
+                self.requires("libmdbx/0.7.0@kth/stable")
+                self.output.info("Using libmdbx for DB management")
+            else:
+                self.requires("lmdb/0.9.29")
+                self.output.info("Using lmdb for DB management")
+        else:
+            self.output.info("Using legacy DB")
+
 
     def validate(self):
-<<<<<<< Updated upstream
-        KnuthConanFile.validate(self)
+        KnuthConanFileV2.validate(self)
         if self.info.settings.compiler.cppstd:
             check_min_cppstd(self, "20")
 
-=======
-        KnuthConanFileV2.validate(self)
->>>>>>> Stashed changes
 
     def config_options(self):
         KnuthConanFileV2.config_options(self)
@@ -133,12 +126,6 @@ class KnuthBlockchainConan(KnuthConanFileV2):
         tc = self.cmake_toolchain_basis()
         # tc.variables["CMAKE_VERBOSE_MAKEFILE"] = True
         tc.variables["WITH_CONSENSUS"] = option_on_off(self.options.consensus)
-<<<<<<< Updated upstream
-
-=======
-        # tc.variables["WITH_KEOKEN"] = option_on_off(self.is_keoken)
-        tc.variables["WITH_KEOKEN"] = option_on_off(False)
->>>>>>> Stashed changes
         # tc.variables["WITH_MINING"] = option_on_off(self.options.mining)
         tc.variables["WITH_MEMPOOL"] = option_on_off(self.options.mempool)
         tc.variables["DB_READONLY_MODE"] = option_on_off(self.options.db_readonly)
@@ -153,10 +140,6 @@ class KnuthBlockchainConan(KnuthConanFileV2):
     def build(self):
         cmake = CMake(self)
         cmake.configure()
-<<<<<<< Updated upstream
-=======
-
->>>>>>> Stashed changes
         if not self.options.cmake_export_compile_commands:
             cmake.build()
             if self.options.tests:
