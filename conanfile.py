@@ -3,14 +3,21 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 import os
+<<<<<<< Updated upstream
 from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain, cmake_layout
+=======
+from conan import ConanFile
+from conan.tools.build.cppstd import check_min_cppstd
+from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain, cmake_layout
+from conan.tools.files import copy #, apply_conandata_patches, export_conandata_patches, get, rm, rmdir
+>>>>>>> Stashed changes
 from kthbuild import option_on_off, march_conan_manip, pass_march_to_compiler
-from kthbuild import KnuthConanFile
+from kthbuild import KnuthConanFileV2
 
-class KnuthBlockchainConan(KnuthConanFile):
-    def recipe_dir(self):
-        return os.path.dirname(os.path.abspath(__file__))
+required_conan_version = ">=2.0"
 
+
+class KnuthBlockchainConan(KnuthConanFileV2):
     name = "blockchain"
     license = "http://www.boost.org/users/license.html"
     url = "https://github.com/k-nuth/blockchain/blob/conan-build/conanfile.py"
@@ -24,7 +31,7 @@ class KnuthBlockchainConan(KnuthConanFile):
                "tools": [True, False],
                "currency": ['BCH', 'BTC', 'LTC'],
 
-               "march_id": "ANY",
+               "march_id": ["ANY"],
                "march_strategy": ["download_if_possible", "optimized", "download_or_fail"],
 
                "verbose": [True, False],
@@ -33,9 +40,8 @@ class KnuthBlockchainConan(KnuthConanFile):
                "db": ['legacy', 'legacy_full', 'pruned', 'default', 'full'],
                "db_readonly": [True, False],
 
-               "cxxflags": "ANY",
-               "cflags": "ANY",
-               "glibcxx_supports_cxx11_abi": "ANY",
+               "cxxflags": ["ANY"],
+               "cflags": ["ANY"],
                "cmake_export_compile_commands": [True, False],
                "log": ["boost", "spdlog", "binlog"],
                "use_libmdbx": [True, False],
@@ -49,7 +55,6 @@ class KnuthBlockchainConan(KnuthConanFile):
         "tools": False,
         "currency": "BCH",
 
-        "march_id": "_DUMMY_",
         "march_strategy": "download_if_possible",
 
         "verbose": False,
@@ -58,9 +63,6 @@ class KnuthBlockchainConan(KnuthConanFile):
         "db": "default",
         "db_readonly": False,
 
-        "cxxflags": "_DUMMY_",
-        "cflags": "_DUMMY_",
-        "glibcxx_supports_cxx11_abi": "_DUMMY_",
         "cmake_export_compile_commands": False,
         "log": "spdlog",
         "use_libmdbx": False,
@@ -68,8 +70,13 @@ class KnuthBlockchainConan(KnuthConanFile):
     # "mining=False", \
 
     # generators = "cmake"
+<<<<<<< Updated upstream
     exports = "conan_*", "ci_utils/*"
     exports_sources = "src/*", "CMakeLists.txt", "cmake/*", "kth-blockchainConfig.cmake.in", "knuthbuildinfo.cmake", "include/*", "test/*", "tools/*"
+=======
+    # exports = "conan_*", "ci_utils/*"
+    exports_sources = "src/*", "CMakeLists.txt", "ci_utils/cmake/*", "cmake/*", "kth-blockchainConfig.cmake.in", "knuthbuildinfo.cmake", "include/*", "test/*", "tools/*"
+>>>>>>> Stashed changes
     package_files = "build/lkth-blockchain.a"
     # build_policy = "missing"
 
@@ -84,16 +91,20 @@ class KnuthBlockchainConan(KnuthConanFile):
             self.requires.add("consensus/0.X@%s/%s" % (self.user, self.channel))
 
     def validate(self):
+<<<<<<< Updated upstream
         KnuthConanFile.validate(self)
         if self.info.settings.compiler.cppstd:
             check_min_cppstd(self, "20")
 
+=======
+        KnuthConanFileV2.validate(self)
+>>>>>>> Stashed changes
 
     def config_options(self):
-        KnuthConanFile.config_options(self)
+        KnuthConanFileV2.config_options(self)
 
     def configure(self):
-        KnuthConanFile.configure(self)
+        KnuthConanFileV2.configure(self)
 
         self.options["*"].db_readonly = self.options.db_readonly
         self.output.info("Compiling with read-only DB: %s" % (self.options.db_readonly,))
@@ -112,7 +123,7 @@ class KnuthBlockchainConan(KnuthConanFile):
 
 
     def package_id(self):
-        KnuthConanFile.package_id(self)
+        KnuthConanFileV2.package_id(self)
         self.info.options.tools = "ANY"
 
     def layout(self):
@@ -122,7 +133,12 @@ class KnuthBlockchainConan(KnuthConanFile):
         tc = self.cmake_toolchain_basis()
         # tc.variables["CMAKE_VERBOSE_MAKEFILE"] = True
         tc.variables["WITH_CONSENSUS"] = option_on_off(self.options.consensus)
+<<<<<<< Updated upstream
 
+=======
+        # tc.variables["WITH_KEOKEN"] = option_on_off(self.is_keoken)
+        tc.variables["WITH_KEOKEN"] = option_on_off(False)
+>>>>>>> Stashed changes
         # tc.variables["WITH_MINING"] = option_on_off(self.options.mining)
         tc.variables["WITH_MEMPOOL"] = option_on_off(self.options.mempool)
         tc.variables["DB_READONLY_MODE"] = option_on_off(self.options.db_readonly)
@@ -137,20 +153,22 @@ class KnuthBlockchainConan(KnuthConanFile):
     def build(self):
         cmake = CMake(self)
         cmake.configure()
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
         if not self.options.cmake_export_compile_commands:
             cmake.build()
             if self.options.tests:
                 cmake.test()
 
     def package(self):
-        self.copy("*.h", dst="include", src="include")
-        self.copy("*.hpp", dst="include", src="include")
-        self.copy("*.ipp", dst="include", src="include")
-        self.copy("*.lib", dst="lib", keep_path=False)
-        self.copy("*.dll", dst="bin", keep_path=False)
-        self.copy("*.dylib*", dst="lib", keep_path=False)
-        self.copy("*.so", dst="lib", keep_path=False)
-        self.copy("*.a", dst="lib", keep_path=False)
+        cmake = CMake(self)
+        cmake.install()
+        # rmdir(self, os.path.join(self.package_folder, "lib", "cmake"))
+        # rmdir(self, os.path.join(self.package_folder, "lib", "pkgconfig"))
+        # rmdir(self, os.path.join(self.package_folder, "res"))
+        # rmdir(self, os.path.join(self.package_folder, "share"))
 
     def package_info(self):
         self.cpp_info.includedirs = ['include']

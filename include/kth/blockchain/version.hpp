@@ -5,11 +5,7 @@
 #ifndef KTH_BLOCKCHAIN_VERSION_HPP_
 #define KTH_BLOCKCHAIN_VERSION_HPP_
 
-#ifdef KTH_PROJECT_VERSION
-#define KTH_BLOCKCHAIN_VERSION KTH_PROJECT_VERSION
-#else
-#define KTH_BLOCKCHAIN_VERSION "0.0.0"
-#endif
+#define KTH_BLOCKCHAIN_VERSION "0.0.0-dev.1";
 
 namespace kth::blockchain {
 

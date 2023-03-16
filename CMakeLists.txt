@@ -180,9 +180,9 @@ endif()
 
 
 
-set(KTH_PROJECT_VERSION "-" CACHE STRING "Specify the Knuth Project Version.")
-# message(${KTH_PROJECT_VERSION})
-message( STATUS "Knuth: Compiling version ${KTH_PROJECT_VERSION}")
+# set(KTH_PROJECT_VERSION "-" CACHE STRING "Specify the Knuth Project Version.")
+# # message(${KTH_PROJECT_VERSION})
+# message( STATUS "Knuth: Compiling version ${KTH_PROJECT_VERSION}")
 
 set(MARCH_ID "" CACHE STRING "Specify the Microarchitecture ID (x86_64|...).")
 message( STATUS "Knuth: Compiling for Microarchitecture ID ${MARCH_ID}")
@@ -273,7 +273,11 @@ include(CheckCXXCompilerFlag)
 #set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/ci_utils/cmake)
 
+# Knuth tools
+#------------------------------------------------------------------------------
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 include(KnuthTools)
+
 
 
 # Warn on all stuff.
@@ -396,8 +400,7 @@ target_include_directories(kth-blockchain PUBLIC
   $<INSTALL_INTERFACE:include>)
 
 # target_compile_definitions(kth-blockchain PUBLIC -DKTH_PROJECT_VERSION="\\"${KTH_PROJECT_VERSION}\\"") #TODO(fernando): manage with Conan????
-target_compile_definitions(kth-blockchain PUBLIC -DKTH_PROJECT_VERSION="${KTH_PROJECT_VERSION}") #TODO(fernando): manage with Conan????
-
+# target_compile_definitions(kth-blockchain PUBLIC -DKTH_PROJECT_VERSION="${KTH_PROJECT_VERSION}") #TODO(fernando): manage with Conan????
 
 if (NOT ENABLE_SHARED)
   target_compile_definitions(kth-blockchain PUBLIC -DBCB_STATIC -DBCD_STATIC -DBC_STATIC)
