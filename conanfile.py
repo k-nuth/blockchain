@@ -155,4 +155,4 @@ class KnuthBlockchainConan(KnuthConanFileV2):
 
     def package_info(self):
         self.cpp_info.includedirs = ['include']
-        self.cpp_info.libs = ["kth-blockchain"]
+        self.cpp_info.libs = ["blockchain"]
