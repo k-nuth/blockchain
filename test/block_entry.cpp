@@ -10,7 +10,7 @@
 using namespace kth;
 using namespace kth::blockchain;
 
-// Start Boost Suite: block entry tests
+// Start Test Suite: block entry tests
 
 static auto const hash42 = hash_literal("4242424242424242424242424242424242424242424242424242424242424242");
 static auto const default_block_hash = hash_literal("14508459b221041eab257d2baaa7459775ba748246c8403609eb708f0e57e74b");
@@ -92,4 +92,4 @@ TEST_CASE("block entry  equality  different  false", "[block entry tests]")
     REQUIRE( ! (instance1 == instance2));
 }
 
-// End Boost Suite
+// End Test Suite

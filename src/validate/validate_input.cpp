@@ -72,6 +72,12 @@ uint32_t validate_input::convert_flags(uint32_t forks) {
         flags |= verify_flags_native_introspection;
     }
 
+    if (script::is_enabled(forks, domain::machine::rule_fork::bch_descartes)) {
+        flags |= verify_flags_enable_p2sh_32;
+        flags |= verify_flags_enable_tokens;
+    }
+
+
     // // We make sure this node will have replay protection during the next hard fork.
     // if (script::is_enabled(forks, domain::machine::rule_fork::bch_replay_protection)) {
     //     flags |= verify_flags_enable_replay_protection;
@@ -183,7 +189,7 @@ code validate_input::convert_result(verify_result_type result) {
     }
 }
 
-using coins_t = std::vector<kth::consensus::coin>;
+using coins_t = std::vector<std::vector<uint8_t>>;
 
 inline
 coins_t create_context_data(transaction const& tx, bool should_create_context) {
@@ -194,7 +200,7 @@ coins_t create_context_data(transaction const& tx, bool should_create_context) {
 
     for (auto const& input : tx.inputs()) {
         auto const& prevout = input.previous_output().validation.cache;
-        coins.emplace_back(int64_t(prevout.value()), prevout.script().to_data(false));
+        coins.emplace_back(prevout.to_data(true));
     }
     return coins;
 }
@@ -209,6 +215,7 @@ std::pair<code, size_t> validate_input::verify_script(transaction const& tx, uin
     KTH_ASSERT(input_index < tx.inputs().size());
     auto const& prevout = tx.inputs()[input_index].previous_output().validation;
     auto const script_data = prevout.cache.script().to_data(false);
+    auto const token_data = prevout.cache.token_data();
     auto const amount = prevout.cache.value();
     auto const tx_data = tx.to_data(true, witness);
 

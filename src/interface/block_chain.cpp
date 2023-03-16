@@ -1258,6 +1258,23 @@ hash_digest generate_merkle_root(std::vector<domain::chain::transaction> transac
     return merkle.front();
 }
 
+namespace {
+
+std::tuple<uint8_t, uint8_t> get_address_versions(bool use_testnet_rules) {
+    if (use_testnet_rules) {
+        return {
+            kth::domain::wallet::payment_address::testnet_p2kh,
+            kth::domain::wallet::payment_address::testnet_p2sh};
+    }
+
+    return {
+        kth::domain::wallet::payment_address::mainnet_p2kh,
+        kth::domain::wallet::payment_address::mainnet_p2sh};
+
+}
+
+} // anonymous namespace
+
 #ifdef KTH_DB_NEW_FULL
 //TODO(fernando): refactor!!!
 std::vector<kth::blockchain::mempool_transaction_summary> block_chain::get_mempool_transactions(std::vector<std::string> const& payment_addresses, bool use_testnet_rules, bool witness) const {
@@ -1273,17 +1290,7 @@ std::vector<kth::blockchain::mempool_transaction_summary> block_chain::get_mempo
 #if defined(KTH_CURRENCY_BCH)
     witness = false;
 #endif
-
-    uint8_t encoding_p2kh;
-    uint8_t encoding_p2sh;
-
-    if (use_testnet_rules) {
-        encoding_p2kh = kth::domain::wallet::payment_address::testnet_p2kh;
-        encoding_p2sh = kth::domain::wallet::payment_address::testnet_p2sh;
-    } else {
-        encoding_p2kh = kth::domain::wallet::payment_address::mainnet_p2kh;
-        encoding_p2sh = kth::domain::wallet::payment_address::mainnet_p2sh;
-    }
+    auto const [encoding_p2kh, encoding_p2sh] = get_address_versions(use_testnet_rules);
 
     std::vector<kth::blockchain::mempool_transaction_summary> ret;
 
@@ -1352,16 +1359,7 @@ std::vector<domain::chain::transaction> block_chain::get_mempool_transactions_fr
 #if defined(KTH_CURRENCY_BCH)
     witness = false;
 #endif
-
-    uint8_t encoding_p2kh;
-    uint8_t encoding_p2sh;
-    if (use_testnet_rules){
-        encoding_p2kh = kth::domain::wallet::payment_address::testnet_p2kh;
-        encoding_p2sh = kth::domain::wallet::payment_address::testnet_p2sh;
-    } else {
-        encoding_p2kh = kth::domain::wallet::payment_address::mainnet_p2kh;
-        encoding_p2sh = kth::domain::wallet::payment_address::mainnet_p2sh;
-    }
+    auto const [encoding_p2kh, encoding_p2sh] = get_address_versions(use_testnet_rules);
 
     std::vector<domain::chain::transaction> ret;
 
@@ -1542,16 +1540,8 @@ std::vector<kth::blockchain::mempool_transaction_summary> block_chain::get_mempo
 #if defined(KTH_CURRENCY_BCH)
     witness = false;
 #endif
+    auto const [encoding_p2kh, encoding_p2sh] = get_address_versions(use_testnet_rules);
 
-    uint8_t encoding_p2kh;
-    uint8_t encoding_p2sh;
-    if (use_testnet_rules){
-        encoding_p2kh = kth::domain::wallet::payment_address::testnet_p2kh;
-        encoding_p2sh = kth::domain::wallet::payment_address::testnet_p2sh;
-    } else {
-        encoding_p2kh = kth::domain::wallet::payment_address::mainnet_p2kh;
-        encoding_p2sh = kth::domain::wallet::payment_address::mainnet_p2sh;
-    }
     std::vector<kth::blockchain::mempool_transaction_summary> ret;
     std::unordered_set<kth::domain::wallet::payment_address> addrs;
     for (auto const & payment_address : payment_addresses) {
@@ -1617,16 +1607,7 @@ std::vector<domain::chain::transaction> block_chain::get_mempool_transactions_fr
 #if defined(KTH_CURRENCY_BCH)
     witness = false;
 #endif
-
-    uint8_t encoding_p2kh;
-    uint8_t encoding_p2sh;
-    if (use_testnet_rules){
-        encoding_p2kh = kth::domain::wallet::payment_address::testnet_p2kh;
-        encoding_p2sh = kth::domain::wallet::payment_address::testnet_p2sh;
-    } else {
-        encoding_p2kh = kth::domain::wallet::payment_address::mainnet_p2kh;
-        encoding_p2sh = kth::domain::wallet::payment_address::mainnet_p2sh;
-    }
+    auto const [encoding_p2kh, encoding_p2sh] = get_address_versions(use_testnet_rules);
 
     std::vector<domain::chain::transaction> ret;
 

@@ -10,7 +10,7 @@
 using namespace kth;
 using namespace kth::blockchain;
 
-// Start Boost Suite: block pool tests
+// Start Test Suite: block pool tests
 
 // Access to protected members.
 class block_pool_fixture : public block_pool {
@@ -618,4 +618,4 @@ TEST_CASE("block pool  get path  connected multiple sub branches  expected path"
     REQUIRE((*path3->blocks())[6] == block23);
 }
 
-// End Boost Suite
+// End Test Suite
