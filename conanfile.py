@@ -86,7 +86,6 @@ class KnuthBlockchainConan(KnuthConanFileV2):
         else:
             self.output.info("Using legacy DB")
 
-
     def validate(self):
         KnuthConanFileV2.validate(self)
         if self.info.settings.compiler.cppstd:
