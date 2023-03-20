@@ -13,13 +13,13 @@ Installing the library is as simple as:
 ```
 $ pip install kthbuild --user --upgrade
 
-$ conan remote add kth https://knuth.jfrog.io/artifactory/api/conan/knuth
+$ conan config install https://github.com/k-nuth/ci-utils/raw/master/conan/config2023.zip
 ```
 
 2. Install the appropriate library:
 
 ```
-$ $ conan install blockchain/0.X@kth/stable
+$ conan install --requires=blockchain/0.28.0 --update
 ```
 
 For more more detailed instructions, please refer to our [documentation](https://kth.cash/docs/).
