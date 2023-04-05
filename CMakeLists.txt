@@ -127,20 +127,10 @@ endif()
 
 message(STATUS "Knuth: Cryptocurrency: ${CURRENCY}")
 
-
-find_package(infrastructure REQUIRED)
-find_package(domain REQUIRED)
-
 find_package(database REQUIRED)
 if (WITH_CONSENSUS)
   find_package(consensus REQUIRED)
 endif()
-
-find_package(fmt 9.1.0 REQUIRED)
-find_package(spdlog 1.10.0 REQUIRED)
-find_package(lmdb 0.9.29 REQUIRED)
-find_package(Boost 1.81.0 COMPONENTS boost REQUIRED)
-
 
 include(CheckCXXCompilerFlag)
 
@@ -281,14 +271,7 @@ if (WITH_CONSENSUS)
   target_compile_definitions(${PROJECT_NAME} PUBLIC -DBCK_STATIC)
 endif(WITH_CONSENSUS)
 
-target_link_libraries(${PROJECT_NAME} PUBLIC infrastructure::infrastructure)
-target_link_libraries(${PROJECT_NAME} PUBLIC domain::domain)
 target_link_libraries(${PROJECT_NAME} PUBLIC database::database)
-
-target_link_libraries(${PROJECT_NAME} PUBLIC fmt::fmt)
-target_link_libraries(${PROJECT_NAME} PUBLIC spdlog::spdlog)
-target_link_libraries(${PROJECT_NAME} PUBLIC lmdb::lmdb)
-target_link_libraries(${PROJECT_NAME} PUBLIC Boost::boost)
 
 if (WITH_CONSENSUS)
   target_compile_definitions(${PROJECT_NAME} PUBLIC -DWITH_CONSENSUS)
