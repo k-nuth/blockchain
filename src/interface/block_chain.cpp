@@ -1314,7 +1314,7 @@ std::vector<kth::blockchain::mempool_transaction_summary> block_chain::get_mempo
                 if (tx_address && addrs.find(tx_address) != addrs.end()) {
                     ret.push_back
                             (kth::blockchain::mempool_transaction_summary
-                                     (tx_address.encoded_legacy(), kth::encode_hash(tx.hash()), "",
+                                     (tx_address.encoded_cashaddr(false), kth::encode_hash(tx.hash()), "",
                                       "", std::to_string(output.value()), i, tx_res.arrival_time()));
                 }
             }
@@ -1334,7 +1334,7 @@ std::vector<kth::blockchain::mempool_transaction_summary> block_chain::get_mempo
                                       size_t height) {
                                       if (ec == kth::error::success) {
                                           ret.push_back(kth::blockchain::mempool_transaction_summary
-                                                                (tx_address.encoded_legacy(),
+                                                                (tx_address.encoded_cashaddr(false),
                                                                 kth::encode_hash(tx.hash()),
                                                                 kth::encode_hash(input.previous_output().hash()),
                                                                  std::to_string(input.previous_output().index()),
@@ -1561,7 +1561,7 @@ std::vector<kth::blockchain::mempool_transaction_summary> block_chain::get_mempo
                 if (tx_address && addrs.find(tx_address) != addrs.end()) {
                     ret.push_back
                             (kth::blockchain::mempool_transaction_summary
-                                     (tx_address.encoded_legacy(), kth::encode_hash(tx.hash()), "",
+                                     (tx_address.encoded_cashaddr(false), kth::encode_hash(tx.hash()), "",
                                       "", std::to_string(output.value()), i, tx_res.arrival_time()));
                 }
             }
@@ -1581,7 +1581,7 @@ std::vector<kth::blockchain::mempool_transaction_summary> block_chain::get_mempo
                                       size_t height) {
                                       if (ec == kth::error::success) {
                                           ret.push_back(kth::blockchain::mempool_transaction_summary
-                                                                (tx_address.encoded_legacy(),
+                                                                (tx_address.encoded_cashaddr(false),
                                                                 kth::encode_hash(tx.hash()),
                                                                 kth::encode_hash(input.previous_output().hash()),
                                                                  std::to_string(input.previous_output().index()),
