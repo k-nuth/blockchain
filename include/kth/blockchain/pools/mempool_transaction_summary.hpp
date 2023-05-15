@@ -5,6 +5,7 @@
 #ifndef KTH_MEMPOOL_TRANSACTION_SUMMARY_HPP
 #define KTH_MEMPOOL_TRANSACTION_SUMMARY_HPP
 
+#include <cstdint>
 #include <string>
 
 namespace kth::blockchain {
