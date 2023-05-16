@@ -59,7 +59,7 @@ public:
     bool bch_euler = true;           // 2020-Nov
                                      // 2021-May (no HF)
     bool bch_gauss = true;           // 2022-May
-    bool bch_descartes = false;      // 2023-May
+    bool bch_descartes = true;       // 2023-May
     // bool bch_lobachevski = false; // 2024-May
     // bool bch_galois = false;      // 2025-May
 
