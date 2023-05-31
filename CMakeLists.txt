@@ -30,6 +30,9 @@ option(DB_READONLY_MODE "Readonly DB mode enabled." OFF)
 option(JUST_KTH_SOURCES "Just Knuth source code to be linted." OFF)
 option(USE_LIBMDBX "Uses libmdbx DB library." OFF)
 
+option(GLOBAL_BUILD "" OFF)
+
+
 if (WITH_MEMPOOL)
   message(STATUS "Knuth: Mempool enabled")
   add_definitions(-DKTH_WITH_MEMPOOL)
@@ -127,10 +130,18 @@ endif()
 
 message(STATUS "Knuth: Cryptocurrency: ${CURRENCY}")
 
-find_package(database REQUIRED)
-if (WITH_CONSENSUS)
-  find_package(consensus REQUIRED)
+
+if (NOT GLOBAL_BUILD)
+  find_package(database REQUIRED)
 endif()
+
+
+if (WITH_CONSENSUS)
+  if (NOT GLOBAL_BUILD)
+    find_package(consensus REQUIRED)
+  endif()
+endif()
+
 
 include(CheckCXXCompilerFlag)
 
