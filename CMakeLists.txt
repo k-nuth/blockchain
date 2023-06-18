@@ -17,15 +17,6 @@ option(WITH_CONSENSUS "Link consensus and use for consensus checks." ON)
 option(WITH_TESTS "Compile with unit tests." ON)
 option(WITH_TOOLS "Compile with tools." OFF)
 option(WITH_MEMPOOL "Mempool enabled." OFF)
-option(DB_TRANSACTION_UNCONFIRMED "DB Transactions Unconfirmed enabled." ON)
-option(DB_SPENDS "DB Spends enabled." ON)
-option(DB_HISTORY "DB History enabled." ON)
-option(DB_STEALTH "DB Stealth enabled." ON)
-option(DB_UNSPENT_LEGACY "DB Unspent Legacy enabled." ON)
-option(DB_LEGACY "DB Legacy enabled." ON)
-option(DB_NEW "DB New enabled." OFF)
-option(DB_NEW_BLOCKS "DB Blocks New enabled." OFF)
-option(DB_NEW_FULL "DB New Full enabled." OFF)
 option(DB_READONLY_MODE "Readonly DB mode enabled." OFF)
 option(JUST_KTH_SOURCES "Just Knuth source code to be linted." OFF)
 option(USE_LIBMDBX "Uses libmdbx DB library." OFF)
@@ -36,51 +27,6 @@ option(GLOBAL_BUILD "" OFF)
 if (WITH_MEMPOOL)
   message(STATUS "Knuth: Mempool enabled")
   add_definitions(-DKTH_WITH_MEMPOOL)
-endif()
-
-if (DB_TRANSACTION_UNCONFIRMED)
-  message(STATUS "Knuth: DB Transactions Unconfirmed enabled")
-  add_definitions(-DKTH_DB_TRANSACTION_UNCONFIRMED)
-endif()
-
-if (DB_SPENDS)
-  message(STATUS "Knuth: DB Spends enabled")
-  add_definitions(-DKTH_DB_SPENDS)
-endif()
-
-if (DB_HISTORY)
-  message(STATUS "Knuth: DB History enabled")
-  add_definitions(-DKTH_DB_HISTORY)
-endif()
-
-if (DB_STEALTH)
-  message(STATUS "Knuth: DB Stealth enabled")
-  add_definitions(-DKTH_DB_STEALTH)
-endif()
-
-if (DB_UNSPENT_LEGACY)
-  message(STATUS "Knuth: DB Unspent Legacy enabled")
-  add_definitions(-DKTH_DB_UNSPENT_LEGACY)
-endif()
-
-if (DB_LEGACY)
-  message(STATUS "Knuth: DB Legacy enabled")
-  add_definitions(-DKTH_DB_LEGACY)
-endif()
-
-if (DB_NEW)
-  message(STATUS "Knuth: DB New enabled")
-  add_definitions(-DKTH_DB_NEW)
-endif()
-
-if (DB_NEW_BLOCKS)
-  message(STATUS "Knuth: DB Blocks New enabled")
-  add_definitions(-DKTH_DB_NEW_BLOCKS)
-endif()
-
-if (DB_NEW_FULL)
-  message(STATUS "Knuth: DB New Full enabled")
-  add_definitions(-DKTH_DB_NEW_FULL)
 endif()
 
 if (DB_READONLY_MODE)
@@ -205,11 +151,6 @@ set(kth_sources_just_legacy
   src/validate/validate_transaction.cpp
   src/settings.cpp
   src/version.cpp
-  src/interface/block_chain_old_db.cpp
-)
-
-set(kth_sources_just_kth
-  src/interface/block_chain_old_db.cpp
 )
 
 if (NOT JUST_KTH_SOURCES)

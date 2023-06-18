@@ -75,9 +75,7 @@ private:
     void organize_mempool(branch::const_ptr branch, block_const_ptr_list_const_ptr const& incoming_blocks, block_const_ptr_list_ptr const& outgoing_blocks);
 #endif
 
-#ifdef KTH_DB_NEW
     bool is_branch_double_spend(branch::ptr const& branch) const;
-#endif
 
     // Subscription.
     void notify(size_t branch_height, block_const_ptr_list_const_ptr branch, block_const_ptr_list_const_ptr original);

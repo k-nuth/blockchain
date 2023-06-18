@@ -52,33 +52,16 @@ public:
     // ------------------------------------------------------------------------
     // Thread safe, unprotected by sequential lock.
 
-#ifdef KTH_DB_LEGACY
-    /// Get the set of block gaps in the chain.
-    bool get_gaps(database::block_database::heights& out_gaps) const override;
-
-    bool get_output_is_confirmed(domain::chain::output& out_output, size_t& out_height, bool& out_coinbase, bool& out_is_confirmed, const domain::chain::output_point& outpoint, size_t branch_height, bool require_confirmed) const;
-
-     //TODO(fernando): check if can we do it just with the UTXO
-    /// Determine if an unspent transaction exists with the given hash.
-    bool get_is_unspent_transaction(hash_digest const& hash, size_t branch_height, bool require_confirmed) const override;
-
-#endif// KTH_DB_LEGACY
-
-#if defined(KTH_DB_LEGACY) || defined(KTH_DB_NEW_FULL)
-
     /// Get the output that is referenced by the outpoint.
     bool get_output(domain::chain::output& out_output, size_t& out_height, uint32_t& out_median_time_past, bool& out_coinbase, const domain::chain::output_point& outpoint, size_t branch_height, bool require_confirmed) const override;
 
     /// Get position data for a transaction.
     bool get_transaction_position(size_t& out_height, size_t& out_position, hash_digest const& hash, bool require_confirmed) const override;
-#endif
 
-#ifdef KTH_DB_NEW
     /// Get the output that is referenced by the outpoint in the UTXO Set.
     bool get_utxo(domain::chain::output& out_output, size_t& out_height, uint32_t& out_median_time_past, bool& out_coinbase, domain::chain::output_point const& outpoint, size_t branch_height) const override;
 
     std::pair<bool, database::internal_database::utxo_pool_t> get_utxo_pool_from(uint32_t from, uint32_t to) const override;
-#endif// KTH_DB_NEW
 
     /// Get a determination of whether the block hash exists in the store.
     bool get_block_exists(hash_digest const& block_hash) const override;
@@ -129,14 +112,6 @@ public:
     // Thread safe, insert does not set sequential lock.
 
 #if ! defined(KTH_DB_READONLY)
-
-#ifdef KTH_DB_LEGACY
-    /// Create flush lock if flush_writes is true, and set sequential lock.
-    bool begin_insert() const override;
-
-    /// Clear flush lock if flush_writes is true, and clear sequential lock.
-    bool end_insert() const override;
-#endif // KTH_DB_LEGACY
 
     /// Insert a block to the blockchain, height is checked for existence.
     /// Reads and reorgs are undefined when chain is gapped.
@@ -193,7 +168,6 @@ public:
     /// fetch the set of block hashes indicated by the block locator.
     void fetch_locator_block_hashes(get_blocks_const_ptr locator, hash_digest const& threshold, size_t limit, inventory_fetch_handler handler) const override;
 
-#if defined(KTH_DB_LEGACY) || defined(KTH_DB_NEW_BLOCKS) || defined(KTH_DB_NEW_FULL)
     void fetch_block_header_txs_size(hash_digest const& hash, block_header_txs_size_fetch_handler handler) const override;
 
     /// fetch hashes of transactions for a block, by block height.
@@ -208,12 +182,8 @@ public:
     /// fetch compact block by block hash.
     void fetch_compact_block(hash_digest const& hash, compact_block_fetch_handler handler) const override;
 
-#endif // KTH_DB_LEGACY || KTH_DB_NEW_BLOCKS || KTH_DB_NEW_FULL
-
     /// fetch DSProof by hash.
     void fetch_ds_proof(hash_digest const& hash, ds_proof_fetch_handler handler) const override;
-
-#if defined(KTH_DB_LEGACY) || defined(KTH_DB_NEW_FULL)
 
     void for_each_transaction(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const override;
 
@@ -224,7 +194,6 @@ public:
 
     /// fetch position and height within block of transaction by hash.
     void fetch_transaction_position(hash_digest const& hash, bool require_confirmed, transaction_index_fetch_handler handler) const override;
-#endif
 
     /// fetch the set of block headers indicated by the block locator.
     void fetch_locator_block_headers(get_headers_const_ptr locator, hash_digest const& threshold, size_t limit, locator_block_headers_fetch_handler handler) const override;
@@ -246,33 +215,6 @@ public:
 
     void fetch_block_hash_timestamp(size_t height, block_hash_time_fetch_handler handler) const override;
 
-
-
-#ifdef KTH_DB_LEGACY
-    // Knuth non-virtual functions.
-    //-------------------------------------------------------------------------
-    template <typename I>
-    void for_each_tx_hash(I f, I l, database::transaction_database const& tx_store, size_t height, bool witness, for_each_tx_handler handler) const {
-    #if defined(KTH_CURRENCY_BCH)
-        witness = false;    //TODO(fernando): check what to do here. I dont like it
-    #endif
-        while (f != l) {
-            auto const& hash = *f;
-            auto const tx_result = tx_store.get(hash, max_size_t, true);
-
-            if ( ! tx_result) {
-                handler(error::operation_failed_16, 0, domain::chain::transaction{});
-                return;
-            }
-            KTH_ASSERT(tx_result.height() == height);
-            handler(error::success, height, tx_result.transaction(witness));
-            ++f;
-        }
-    }
-#endif // KTH_DB_LEGACY
-
-
-#ifdef KTH_DB_NEW_FULL
     // Knuth non-virtual functions.
     //-------------------------------------------------------------------------
 
@@ -312,31 +254,20 @@ public:
             ++f;
         }
     }
-#endif // KTH_DB_NEW_FULL
-
-
 
     // Server Queries.
     //-------------------------------------------------------------------------
 
-#if defined(KTH_DB_SPENDS) || defined(KTH_DB_NEW_FULL)
     /// fetch the inpoint (spender) of an outpoint.
     void fetch_spend(const domain::chain::output_point& outpoint, spend_fetch_handler handler) const override;
-#endif // KTH_DB_SPENDS
-
-#if defined(KTH_DB_HISTORY) || defined(KTH_DB_NEW_FULL)
     /// fetch outputs, values and spends for an address_hash.
     void fetch_history(const short_hash& address_hash, size_t limit, size_t from_height, history_fetch_handler handler) const override;
 
     /// Fetch all the txns used by the wallet
     void fetch_confirmed_transactions(const short_hash& address_hash, size_t limit, size_t from_height, confirmed_transactions_fetch_handler handler) const override;
-#endif // KTH_DB_HISTORY
 
-
-#ifdef KTH_DB_STEALTH
-    /// fetch stealth results.
-    void fetch_stealth(const binary& filter, size_t from_height, stealth_fetch_handler handler) const override;
-#endif // KTH_DB_STEALTH
+//     /// fetch stealth results.
+//     void fetch_stealth(const binary& filter, size_t from_height, stealth_fetch_handler handler) const override;
 
     // Transaction Pool.
     //-------------------------------------------------------------------------
@@ -348,7 +279,6 @@ public:
     void fetch_mempool(size_t count_limit, uint64_t minimum_fee, inventory_fetch_handler handler) const override;
 
 
-#if defined(KTH_DB_TRANSACTION_UNCONFIRMED) || defined(KTH_DB_NEW_FULL)
     std::vector<mempool_transaction_summary> get_mempool_transactions(std::vector<std::string> const& payment_addresses, bool use_testnet_rules, bool witness) const override;
     std::vector<mempool_transaction_summary> get_mempool_transactions(std::string const& payment_address, bool use_testnet_rules, bool witness) const override;
     std::vector<domain::chain::transaction> get_mempool_transactions_from_wallets(std::vector<domain::wallet::payment_address> const& payment_addresses, bool use_testnet_rules, bool witness) const override;
@@ -358,7 +288,6 @@ public:
 
     mempool_mini_hash_map get_mempool_mini_hash_map(domain::message::compact_block const& block) const override;
     void fill_tx_list_from_mempool(domain::message::compact_block const& block, size_t& mempool_count, std::vector<domain::chain::transaction>& txn_available, std::unordered_map<uint64_t, uint16_t> const& shorttxids) const override;
-#endif // KTH_DB_TRANSACTION_UNCONFIRMED
 
     // Filters.
     //-------------------------------------------------------------------------
@@ -366,11 +295,8 @@ public:
     /// Filter out block by hash that exist in the block pool or store.
     void filter_blocks(get_data_ptr message, result_handler handler) const override;
 
-#if defined(KTH_DB_LEGACY) || defined(KTH_DB_NEW_FULL) || defined(KTH_WITH_MEMPOOL)
     /// Filter out confirmed and unconfirmed transactions by hash.
     void filter_transactions(get_data_ptr message, result_handler handler) const override;
-#endif
-
 
     // Subscribers.
     //-------------------------------------------------------------------------

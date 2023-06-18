@@ -182,7 +182,6 @@ void block_organizer::handle_accept(code const& ec, branch::ptr branch, result_h
     validator_.connect(branch, connect_handler);
 }
 
-#ifdef KTH_DB_NEW
 bool block_organizer::is_branch_double_spend(branch::ptr const& branch) const {
     // precondition: branch->blocks() != nullptr
 
@@ -210,8 +209,6 @@ bool block_organizer::is_branch_double_spend(branch::ptr const& branch) const {
     auto const distinct = (distinct_end == outs.end());
     return !distinct;
 }
-#endif // KTH_DB_NEW
-
 
 #if defined(KTH_WITH_MEMPOOL)
 
@@ -232,32 +229,11 @@ void block_organizer::populate_prevout_1(branch::const_ptr branch, domain::chain
         return;
     }
 
-#if defined(KTH_DB_NEW)
     //TODO(fernando): check the value of the parameters: branch_height and require_confirmed
     if ( ! fast_chain_.get_utxo(prevout.cache, prevout.height, prevout.median_time_past, prevout.coinbase, outpoint, branch_height)) {
         // std::cout << "outpoint not found in UTXO: " << encode_hash(outpoint.hash()) << " - " << outpoint.index() << std::endl;
         return;
     }
-
-#elif defined(KTH_DB_LEGACY)
-    // Get the prevout/cache (and spender height) and its metadata.
-    // The output (prevout.cache) is populated only if the return is true.
-    if ( ! fast_chain_.get_output(prevout.cache, prevout.height,
-        prevout.median_time_past, prevout.coinbase, outpoint, branch_height,
-        require_confirmed)) {
-        return;
-    }
-
-    //*************************************************************************
-    // CONSENSUS: The genesis block coinbase may not be spent. This is the
-    // consequence of satoshi not including it in the utxo set for block
-    // database initialization. Only he knows why, probably an oversight.
-    //*************************************************************************
-    if (prevout.height == 0) {
-        return;
-    }
-#endif
-
 
     // BUGBUG: Spends are not marked as spent by unconfirmed transactions.
     // So tx pool transactions currently have no double spend limitation.
@@ -419,7 +395,6 @@ void block_organizer::handle_connect(code const& ec, branch::ptr branch, result_
         return;
     }
 
-#ifdef KTH_DB_NEW
     //Note(fernando): If there is just one block, internal double spend was checked previously.
     if (branch->blocks() && branch->blocks()->size() > 1) {
         if (is_branch_double_spend(branch)) {
@@ -427,7 +402,6 @@ void block_organizer::handle_connect(code const& ec, branch::ptr branch, result_
             return;
         }
     }
-#endif
 
     // TODO(legacy): create a simulated validation path that does not block others.
     if (top_block.simulate) {

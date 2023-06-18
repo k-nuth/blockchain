@@ -85,7 +85,7 @@ void populate_transaction::populate_inputs(transaction_const_ptr tx, size_t chai
         auto const& prevout = input.previous_output();
         populate_prevout(chain_height, prevout, false);
 
-#if defined(KTH_DB_NEW) && defined(KTH_WITH_MEMPOOL)
+#if defined(KTH_WITH_MEMPOOL)
         if ( ! prevout.validation.cache.is_valid()) {
             // BUSCAR EN UTXO DEL MEMPOOL y marcar
             prevout.validation.cache = mempool_.get_utxo(prevout);

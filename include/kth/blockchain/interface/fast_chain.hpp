@@ -24,24 +24,11 @@ public:
     // Readers.
     // ------------------------------------------------------------------------
 
-#ifdef KTH_DB_LEGACY
-    /// Get the set of block gaps in the chain.
-    virtual bool get_gaps(database::block_database::heights& out_gaps) const = 0;
-
-
-    //Knuth: we don't store spent information
-    /// Determine if an unspent transaction exists with the given hash.
-    virtual bool get_is_unspent_transaction(hash_digest const& hash, size_t branch_height, bool require_confirmed) const = 0;
-
-#endif // KTH_DB_LEGACY
-
-#if defined(KTH_DB_LEGACY) || defined(KTH_DB_NEW_FULL)
     /// Get position data for a transaction.
     virtual bool get_transaction_position(size_t& out_height, size_t& out_position, hash_digest const& hash, bool require_confirmed) const = 0;
 
     /// Get the output that is referenced by the outpoint.
     virtual bool get_output(domain::chain::output& out_output, size_t& out_height, uint32_t& out_median_time_past, bool& out_coinbase, const domain::chain::output_point& outpoint, size_t branch_height, bool require_confirmed) const = 0;
-#endif
 
     /// Get a determination of whether the block hash exists in the store.
     virtual bool get_block_exists(hash_digest const& block_hash) const = 0;
@@ -73,15 +60,11 @@ public:
     /// Get height of latest block.
     virtual bool get_last_height(size_t& out_height) const = 0;
 
-
-#ifdef KTH_DB_NEW
     /// Get the output that is referenced by the outpoint in the UTXO Set.
     virtual bool get_utxo(domain::chain::output& out_output, size_t& out_height, uint32_t& out_median_time_past, bool& out_coinbase, domain::chain::output_point const& outpoint, size_t branch_height) const = 0;
 
     /// Get a UTXO subset from the reorganization pool, [from, to] the specified heights.
     virtual std::pair<bool, database::internal_database::utxo_pool_t> get_utxo_pool_from(uint32_t from, uint32_t to) const = 0;
-
-#endif// KTH_DB_NEW
 
 #if ! defined(KTH_DB_READONLY)
     virtual void prune_reorg_async() = 0;
@@ -97,14 +80,6 @@ public:
     // ------------------------------------------------------------------------
 
 #if ! defined(KTH_DB_READONLY)
-#ifdef KTH_DB_LEGACY
-    /// Create flush lock if flush_writes is true, and set sequential lock.
-    virtual bool begin_insert() const = 0;
-
-    /// Clear flush lock if flush_writes is true, and clear sequential lock.
-    virtual bool end_insert() const = 0;
-#endif // KTH_DB_LEGACY
-
     /// Insert a block to the blockchain, height is checked for existence.
     virtual bool insert(block_const_ptr block, size_t height) = 0;
 
