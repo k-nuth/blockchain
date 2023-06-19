@@ -6,73 +6,6 @@
 
 namespace kth::blockchain {
 
-// using for_each_tx_handler = std::function<void(code const&, size_t, domain::chain::transaction const&)>;
-
-#ifdef KTH_DB_LEGACY
-
-void block_chain::for_each_transaction(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const {
-#if defined(KTH_CURRENCY_BCH)
-    witness = false;    //TODO(fernando): see what to do with those things!
-#endif
-    auto const& tx_store = database_.transactions();
-
-    while (from <= to) {
-
-        if (stopped()) {
-            handler(error::service_stopped, 0, domain::chain::transaction{});
-            return;
-        }
-
-        auto const block_result = database_.blocks().get(from);
-
-        if ( ! block_result) {
-            handler(error::not_found, 0, domain::chain::transaction{});
-            return;
-        }
-        KTH_ASSERT(block_result.height() == from);
-        auto const tx_hashes = block_result.transaction_hashes();
-
-        for_each_tx_hash(block_result.transaction_hashes().begin(),
-                         block_result.transaction_hashes().end(),
-                         tx_store, from, witness, handler);
-
-        ++from;
-    }
-}
-
-void block_chain::for_each_transaction_non_coinbase(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const {
-#if defined(KTH_CURRENCY_BCH)
-    witness = false;    //TODO(fernando): see what to do with those things!
-#endif
-    auto const& tx_store = database_.transactions();
-
-    while (from <= to) {
-
-        if (stopped()) {
-            handler(error::service_stopped, 0, domain::chain::transaction{});
-            return;
-        }
-
-        auto const block_result = database_.blocks().get(from);
-
-        if ( ! block_result) {
-            handler(error::not_found, 0, domain::chain::transaction{});
-            return;
-        }
-        KTH_ASSERT(block_result.height() == from);
-        auto const tx_hashes = block_result.transaction_hashes();
-
-        for_each_tx_hash(std::next(block_result.transaction_hashes().begin()),
-                         block_result.transaction_hashes().end(),
-                         tx_store, from, witness, handler);
-
-        ++from;
-    }
-}
-#endif // KTH_DB_LEGACY
-
-
-#ifdef KTH_DB_NEW_FULL
 void block_chain::for_each_transaction(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const {
 #if defined(KTH_CURRENCY_BCH)
     witness = false;    //TODO(fernando): see what to do with those things!
@@ -130,6 +63,5 @@ void block_chain::for_each_transaction_non_coinbase(size_t from, size_t to, bool
         ++from;
     }
 }
-#endif // KTH_DB_NEW_FULL
 
 } // namespace kth::blockchain

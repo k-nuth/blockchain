@@ -47,7 +47,6 @@ using namespace std::filesystem;
 #define START_BLOCKCHAIN(name, flush)                               \
     threadpool pool("test");                                        \
     database::settings database_settings;                           \
-    database_settings.flush_writes = flush;                         \
     database_settings.directory = TEST_NAME;                        \
     REQUIRE(utxo_tests::create_database(database_settings));        \
     blockchain::settings blockchain_settings;                       \
@@ -76,19 +75,7 @@ void print_headers(std::string const& test) {
 bool create_database(database::settings& out_database) {
     print_headers(out_database.directory.string());
 
-    // Blockchain doesn't care about other indexes.
-    out_database.index_start_height = max_uint32;
-
-    // Table optimization parameters, reduced for speed and more collision.
-    out_database.file_growth_rate = 42;
-#ifdef KTH_DB_LEGACY
-    out_database.block_table_buckets = 42;
-    out_database.transaction_table_buckets = 42;
-#endif // KTH_DB_LEGACY
-
-#ifdef KTH_DB_NEW
     out_database.db_max_size = 16106127360;
-#endif
 
     std::error_code ec;
     remove_all(out_database.directory, ec);
@@ -107,8 +94,6 @@ domain::chain::block read_block(const std::string hex) {
 } // namespace utxo_tests
 
 // Start Test Suite: utxo tests
-
-#ifdef KTH_DB_NEW
 
 TEST_CASE("utxo  get utxo  not found  false", "[utxo tests]") {
     START_BLOCKCHAIN(instance, false);
@@ -159,7 +144,5 @@ TEST_CASE("utxo  get utxo  above fork  false", "[utxo tests]") {
     const domain::chain::output_point outpoint{ block2->transactions()[0].hash(), 0 };
     REQUIRE( ! instance.get_utxo(output, height, median_time_past, coinbase, outpoint, 1));
 }
-
-#endif // KTH_DB_NEW
 
 // End Test Suite

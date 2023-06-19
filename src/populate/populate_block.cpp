@@ -111,7 +111,6 @@ void populate_block::populate_coinbase(branch::const_ptr branch, block_const_ptr
     }
 }
 
-#if defined(KTH_DB_NEW)
 populate_block::utxo_pool_t populate_block::get_reorg_subset_conditionally(size_t first_height, size_t& out_chain_top) const {
 
     if ( ! fast_chain_.get_last_height(out_chain_top)) {
@@ -130,15 +129,9 @@ populate_block::utxo_pool_t populate_block::get_reorg_subset_conditionally(size_
 
     return std::move(p.second);
 }
-#endif // KTH_DB_NEW
 
 
-#if defined(KTH_DB_NEW)
 void populate_block::populate_transaction_inputs(branch::const_ptr branch, domain::chain::input::list const& inputs, size_t bucket, size_t buckets, size_t input_position, local_utxo_set_t const& branch_utxo, size_t first_height, size_t chain_top, utxo_pool_t const& reorg_subset) const {
-#else
-void populate_block::populate_transaction_inputs(branch::const_ptr branch, domain::chain::input::list const& inputs, size_t bucket, size_t buckets, size_t input_position, local_utxo_set_t const& branch_utxo) const {
-#endif
-
     auto const branch_height = branch->height();
 
     for (size_t input_index = 0; input_index < inputs.size(); ++input_index, ++input_position) {
@@ -151,11 +144,9 @@ void populate_block::populate_transaction_inputs(branch::const_ptr branch, domai
         populate_base::populate_prevout(branch_height, prevout, true);  //Populate from Database
         populate_prevout(branch, prevout, branch_utxo);                 //Populate from the Blocks in the Branch
 
-#if defined(KTH_DB_NEW)
         if (first_height <= chain_top) {
             populate_from_reorg_subset(prevout, reorg_subset);
         }
-#endif // KTH_DB_NEW
     }
 }
 
@@ -191,30 +182,23 @@ void populate_block::populate_transactions(branch::const_ptr branch, size_t buck
         //---------------------------------------------------------------------
 
         //TODO(fernando): check again why this is not implemented?
-#if defined(KTH_DB_LEGACY)  || defined(KTH_DB_NEW_FULL)
         if (relay_transactions_) {
             populate_base::populate_pooled(tx, forks);
         }
-#endif
 
         //*********************************************************************
         // CONSENSUS: Satoshi implemented allow collisions in Nov 2015. This is
         // a hard fork that destroys unspent outputs in case of hash collision.
         //*********************************************************************
         //Knuth: we are not validating tx duplicates.
-#if defined(KTH_DB_LEGACY)
-        if ( ! collide) {
-            populate_base::populate_duplicate(branch->height(), tx, true);
-        }
-#endif
+        // if ( ! collide) {
+        //     populate_base::populate_duplicate(branch->height(), tx, true);
+        // }
     }
 
-#if defined(KTH_DB_NEW)
     size_t first_height = branch_height + 1u;
     size_t chain_top;
     auto reorg_subset = get_reorg_subset_conditionally(first_height, /*out*/ chain_top);
-#endif // KTH_DB_NEW
-
 
     // Must skip coinbase here as it is already accounted for.
     for (auto tx = txs.begin() + 1; tx != txs.end(); ++tx) {
@@ -223,11 +207,7 @@ void populate_block::populate_transactions(branch::const_ptr branch, size_t buck
         auto it = validated_txs.find(tx->hash());
         if (it == validated_txs.end()) {
             auto const& inputs = tx->inputs();
-#if defined(KTH_DB_NEW)
             populate_transaction_inputs(branch, inputs, bucket, buckets, input_position, branch_utxo, first_height, chain_top, reorg_subset);
-#else
-            populate_transaction_inputs(branch, inputs, bucket, buckets, input_position, branch_utxo);
-#endif
         } else {
             tx->validation.validated = true;
             auto const& tx_cached = it->second.second;
@@ -237,18 +217,13 @@ void populate_block::populate_transactions(branch::const_ptr branch, size_t buck
         }
 #else
         auto const& inputs = tx->inputs();
-#if defined(KTH_DB_NEW)
         populate_transaction_inputs(branch, inputs, bucket, buckets, input_position, branch_utxo, first_height, chain_top, reorg_subset);
-#else
-        populate_transaction_inputs(branch, inputs, bucket, buckets, input_position, branch_utxo);
-#endif
 #endif // defined(KTH_WITH_MEMPOOL)
     }
 
     handler(error::success);
 }
 
-#if defined(KTH_DB_NEW)
 void populate_block::populate_from_reorg_subset(output_point const& outpoint, utxo_pool_t const& reorg_subset) const {
     if (outpoint.validation.cache.is_valid()) {
         return;
@@ -265,7 +240,6 @@ void populate_block::populate_from_reorg_subset(output_point const& outpoint, ut
     }
 
 }
-#endif // KTH_DB_NEW
 
 void populate_block::populate_prevout(branch::const_ptr branch, output_point const& outpoint, local_utxo_set_t const& branch_utxo) const {
     if ( ! outpoint.validation.spent) {
