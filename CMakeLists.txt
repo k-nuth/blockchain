@@ -134,6 +134,7 @@ endif()
 
 set(kth_sources_just_legacy
   src/interface/block_chain.cpp
+  src/interface/block_chain_old_db.cpp
   src/pools/block_entry.cpp
   src/pools/block_organizer.cpp
   src/pools/block_pool.cpp
