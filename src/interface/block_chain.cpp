@@ -243,6 +243,7 @@ std::pair<bool, database::internal_database::utxo_pool_t> block_chain::get_utxo_
 // ----------------------------------------------------------------------------
 #if ! defined(KTH_DB_READONLY)
 
+// bool block_chain::insert(block_const_ptr block, size_t height, int) {
 bool block_chain::insert(block_const_ptr block, size_t height) {
     return database_.insert(*block, height) == error::success;
 }
