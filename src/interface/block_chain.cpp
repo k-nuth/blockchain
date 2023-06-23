@@ -356,6 +356,7 @@ bool block_chain::start() {
     stopped_ = false;
 
     if ( ! database_.open()) {
+        LOG_ERROR(LOG_BLOCKCHAIN, "Failed to open database.");
         return false;
     }
 
@@ -364,10 +365,23 @@ bool block_chain::start() {
 
     // Initialize chain state after database start but before organizers.
     pool_state_ = chain_state_populator_.populate();
+    if ( ! pool_state_) {
+        LOG_ERROR(LOG_BLOCKCHAIN, "Failed to initialize chain state.");
+        return false;
+    }
 
-    return pool_state_ &&
-           transaction_organizer_.start() &&
-           block_organizer_.start();
+    auto const tx_org_started = transaction_organizer_.start();
+    if ( ! tx_org_started) {
+        LOG_ERROR(LOG_BLOCKCHAIN, "Failed to start transaction organizer.");
+        return false;
+    }
+
+    auto const blk_org_started = block_organizer_.start();
+    if ( ! blk_org_started) {
+        LOG_ERROR(LOG_BLOCKCHAIN, "Failed to start block organizer.");
+        return false;
+    }
+    return true;
 }
 
 bool block_chain::stop() {

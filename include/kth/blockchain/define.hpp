@@ -42,6 +42,6 @@
 //#endif
 
 // Log name.
-#define LOG_BLOCKCHAIN "[blockchain]"
+#define LOG_BLOCKCHAIN "[blockchain] "
 
 #endif
