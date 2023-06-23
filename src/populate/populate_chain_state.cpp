@@ -231,7 +231,7 @@ chain_state::ptr populate_chain_state::populate() const {
     size_t top;
 
     if ( ! fast_chain_.get_last_height(top)) {
-        LOG_ERROR(LOG_CHAIN) << "Failed to populate chain state, last height.";
+        LOG_ERROR(LOG_BLOCKCHAIN) << "Failed to populate chain state, last height.";
         return {};
     }
 
@@ -243,7 +243,7 @@ chain_state::ptr populate_chain_state::populate() const {
 
     // Use an empty branch to represent the transaction pool.
     if ( ! populate_all(data, branch_ptr)) {
-        LOG_ERROR(LOG_CHAIN) << "Failed to populate chain state, all.";
+        LOG_ERROR(LOG_BLOCKCHAIN) << "Failed to populate chain state, all.";
         return {};
     }
 
