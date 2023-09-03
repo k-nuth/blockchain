@@ -8,6 +8,8 @@
 #include <cstddef>
 #include <cstdint>
 #include <functional>
+#include <latch>
+
 #include <memory>
 #include <numeric>
 #include <string>
@@ -19,9 +21,19 @@
 #include <kth/database.hpp>
 #include <kth/domain.hpp>
 #include <kth/domain/multi_crypto_support.hpp>
-#include <kth/infrastructure/math/sip_hash.hpp>
 
-#include <boost/thread/latch.hpp>
+#include <kth/infrastructure/math/sip_hash.hpp>
+#include <kth/infrastructure/utility/limits.hpp>
+#include <kth/infrastructure/utility/timer.hpp>
+
+namespace kth {
+//TODO: remove from here
+time_t floor_subtract(time_t left, time_t right) {
+    static auto const floor = (std::numeric_limits<time_t>::min)();
+    return right >= left ? floor : left - right;
+}
+
+} // namespace kth
 
 namespace kth::blockchain {
 
@@ -593,10 +605,10 @@ void block_chain::fetch_locator_block_hashes(get_blocks_const_ptr locator,
     }
 
     // The begin block requested is always one after the start block.
-    auto begin = safe_add(start, uint32_t(1));
+    auto begin = *safe_add(start, uint32_t(1));
 
     // The maximum number of headers returned is 500.
-    auto end = safe_add(begin, uint32_t(limit));
+    auto end = *safe_add(begin, uint32_t(limit));
 
     // Find the upper threshold block height (peer-specified).
     if (locator->stop_hash() != null_hash) {
@@ -814,7 +826,7 @@ std::vector<kth::blockchain::mempool_transaction_summary> block_chain::get_mempo
             auto const tx_addresses = kth::domain::wallet::payment_address::extract(input.script(), encoding_p2kh, encoding_p2sh);
             for(auto const tx_address : tx_addresses)
             if (tx_address && addrs.find(tx_address) != addrs.end()) {
-                boost::latch latch(2);
+                std::latch latch(1);
                 fetch_transaction(input.previous_output().hash(), false, witness,
                                   [&](const kth::code &ec,
                                       kth::transaction_const_ptr tx_ptr, size_t index,
@@ -831,7 +843,7 @@ std::vector<kth::blockchain::mempool_transaction_summary> block_chain::get_mempo
                                       }
                                       latch.count_down();
                                   });
-                latch.count_down_and_wait();
+                latch.wait();
             }
             ++i;
         }
@@ -1060,7 +1072,7 @@ std::vector<kth::blockchain::mempool_transaction_summary> block_chain::get_mempo
             auto const tx_addresses = kth::domain::wallet::payment_address::extract(input.script(), encoding_p2kh, encoding_p2sh);
             for(auto const tx_address : tx_addresses)
             if (tx_address && addrs.find(tx_address) != addrs.end()) {
-                boost::latch latch(2);
+                std::latch latch(1);
                 fetch_transaction(input.previous_output().hash(), false, witness,
                                   [&](const kth::code &ec,
                                       kth::transaction_const_ptr tx_ptr, size_t index,
@@ -1077,7 +1089,7 @@ std::vector<kth::blockchain::mempool_transaction_summary> block_chain::get_mempo
                                       }
                                       latch.count_down();
                                   });
-                latch.count_down_and_wait();
+                latch.wait();
             }
             ++i;
         }
@@ -1381,10 +1393,10 @@ void block_chain::fetch_locator_block_headers(get_headers_const_ptr locator, has
     }
 
     // The begin block requested is always one after the start block.
-    auto begin = safe_add(start, size_t(1));
+    auto begin = *safe_add(start, size_t(1));
 
     // The maximum number of headers returned is 2000.
-    auto end = safe_add(begin, limit);
+    auto end = *safe_add(begin, limit);
 
     // Find the upper threshold block height (peer-specified).
     if (locator->stop_hash() != null_hash) {

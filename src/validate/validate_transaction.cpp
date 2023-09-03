@@ -18,6 +18,8 @@
 #include <kth/domain.hpp>
 #include <kth/domain/multi_crypto_support.hpp>
 
+#include <kth/infrastructure/utility/synchronizer.hpp>
+
 namespace kth::blockchain {
 
 using namespace kd::chain;

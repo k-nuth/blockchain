@@ -12,6 +12,8 @@
 #include <kth/blockchain/pools/branch.hpp>
 #include <kth/domain.hpp>
 
+#include <kth/infrastructure/utility/synchronizer.hpp>
+
 namespace kth::blockchain {
 
 using namespace kd::chain;
