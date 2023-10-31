@@ -12,7 +12,8 @@
 #include <functional>
 #include <vector>
 
-#include <kth/infrastructure.hpp>
+// #include <kth/infrastructure.hpp>
+#include <kth/infrastructure/utility/atomic.hpp>
 
 #include <kth/database.hpp>
 #include <kth/blockchain/define.hpp>

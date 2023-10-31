@@ -65,9 +65,9 @@ class KnuthBlockchainConan(KnuthConanFileV2):
             self.test_requires("catch2/3.3.2")
 
     def requirements(self):
-        self.requires("database/0.35.0", transitive_headers=True, transitive_libs=True)
+        self.requires("database/0.36.0", transitive_headers=True, transitive_libs=True)
         if self.options.consensus:
-            self.requires("consensus/0.28.0", transitive_headers=True, transitive_libs=True)
+            self.requires("consensus/0.29.0", transitive_headers=True, transitive_libs=True)
 
     def validate(self):
         KnuthConanFileV2.validate(self)

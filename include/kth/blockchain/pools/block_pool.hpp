@@ -65,7 +65,11 @@ protected:
 
     // This is guarded against filtering concurrent to writing.
     block_entries blocks_;
+#if ! defined(__EMSCRIPTEN__)
     mutable upgrade_mutex mutex_;
+#else
+    mutable shared_mutex mutex_;
+#endif
 };
 
 } // namespace kth::blockchain

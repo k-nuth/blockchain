@@ -12,7 +12,8 @@
 #include <vector>
 
 #include <kth/domain.hpp>
-#include <kth/infrastructure.hpp>
+// #include <kth/infrastructure.hpp>
+#include <kth/infrastructure/handlers.hpp>
 
 #include <kth/blockchain/define.hpp>
 #include <kth/blockchain/pools/mempool_transaction_summary.hpp>

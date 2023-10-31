@@ -12,6 +12,7 @@
 
 #include <kth/blockchain/define.hpp>
 #include <kth/domain.hpp>
+#include <kth/infrastructure/utility/limits.hpp>
 
 namespace kth::blockchain {
 
@@ -111,13 +112,13 @@ infrastructure::config::checkpoint branch::fork_point() const {
 // private
 size_t branch::index_of(size_t height) const {
     // The member height_ is the height of the fork point, not the first block.
-    return safe_subtract(safe_subtract(height, height_), size_t(1));
+    return *safe_subtract(*safe_subtract(height, height_), size_t(1));
 }
 
 // private
 size_t branch::height_at(size_t index) const {
     // The height of the blockchain branch point plus zero-based index.
-    return safe_add(safe_add(index, height_), size_t(1));
+    return *safe_add(*safe_add(index, height_), size_t(1));
 }
 
 // private

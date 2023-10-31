@@ -10,10 +10,14 @@
 
 #include <kth/domain.hpp>
 
+
 #include <kth/blockchain/define.hpp>
 #include <kth/blockchain/interface/fast_chain.hpp>
 #include <kth/blockchain/pools/branch.hpp>
 #include <kth/blockchain/settings.hpp>
+
+#include <kth/infrastructure/utility/limits.hpp>
+#include <kth/infrastructure/utility/timer.hpp>
 
 namespace kth::blockchain {
 
@@ -237,7 +241,7 @@ chain_state::ptr populate_chain_state::populate() const {
 
     chain_state::data data;
     data.hash = null_hash;
-    data.height = safe_add(top, size_t(1));
+    data.height = *safe_add(top, size_t(1));
 
     auto branch_ptr = std::make_shared<branch>(top);
 

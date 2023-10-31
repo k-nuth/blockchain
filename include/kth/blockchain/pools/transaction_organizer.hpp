@@ -19,6 +19,9 @@
 #include <kth/blockchain/validate/validate_transaction.hpp>
 #include <kth/domain.hpp>
 
+#include <kth/infrastructure/utility/prioritized_mutex.hpp>
+#include <kth/infrastructure/utility/resubscriber.hpp>
+
 #if defined(KTH_WITH_MEMPOOL)
 #include <kth/mining/mempool.hpp>
 

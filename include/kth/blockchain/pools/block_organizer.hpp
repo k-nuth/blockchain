@@ -19,6 +19,9 @@
 #include <kth/blockchain/validate/validate_block.hpp>
 #include <kth/domain.hpp>
 
+#include <kth/infrastructure/utility/prioritized_mutex.hpp>
+#include <kth/infrastructure/utility/resubscriber.hpp>
+
 namespace kth::blockchain {
 
 /// This class is thread safe.
