@@ -263,6 +263,7 @@ chain_state::ptr populate_chain_state::populate() const {
 #if defined(KTH_CURRENCY_BCH)
         , anchor
         , settings_.asert_half_life
+        , settings_.abla_config
         // , settings_.pythagoras_activation_time
         // , settings_.euclid_activation_time
         // , settings_.pisano_activation_time
@@ -305,6 +306,7 @@ chain_state::ptr populate_chain_state::populate(chain_state::ptr pool, branch::c
 #if defined(KTH_CURRENCY_BCH)
         , pool->assert_anchor_block_info()
         , settings_.asert_half_life
+        , settings_.abla_config
         // , settings_.pythagoras_activation_time
         // , settings_.euclid_activation_time
         // , settings_.pisano_activation_time
