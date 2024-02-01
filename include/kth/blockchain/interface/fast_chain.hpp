@@ -42,6 +42,9 @@ public:
     /// Get the header of the block at the given height.
     virtual bool get_header(domain::chain::header& out_header, size_t height) const = 0;
 
+    /// Get the header of the block with the given height, also the ABLA state.
+    virtual std::optional<database::header_with_abla_state_t> get_header_and_abla_state(size_t height) const = 0;
+
     /// Get a sequence of block headers [from, to].
     virtual domain::chain::header::list get_headers(size_t from, size_t to) const = 0;
 

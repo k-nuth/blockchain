@@ -112,8 +112,7 @@ void validate_block::handle_checked(code const& ec, block_const_ptr block, resul
     }
 
     // Run context free checks, sets time internally.
-    // handler(block->check(get_max_block_size(network_)));
-    handler(block->check(static_absolute_max_block_size()));
+    handler(block->check());
 }
 
 // Accept sequence.
