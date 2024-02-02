@@ -113,15 +113,6 @@ public:
     uint64_t default_consensus_block_size;
     kth::domain::chain::abla::config abla_config {};
 
-    // uint64_t abla_epsilon0 {};
-    // uint64_t abla_beta0 {};
-    // uint64_t abla_n0 {};
-    // uint64_t abla_gamma_reciprocal {};
-    // uint64_t abla_zeta_xB7 {};
-    // uint64_t abla_theta_reciprocal {};
-    // uint64_t abla_delta {};
-    // uint64_t abla_epsilon_max {};
-    // uint64_t abla_beta_max {};
 #else
     // Just for Segwit coins
     bool bip141 = true;
