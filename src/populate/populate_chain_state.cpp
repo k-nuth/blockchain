@@ -233,15 +233,32 @@ chain_state::assert_anchor_block_info_t populate_chain_state::get_assert_anchor_
 
 chain_state::ptr populate_chain_state::populate() const {
     size_t top;
-
     if ( ! fast_chain_.get_last_height(top)) {
         LOG_ERROR(LOG_BLOCKCHAIN, "Failed to populate chain state, last height.");
+        return {};
+    }
+    auto opt = fast_chain_.get_header_and_abla_state(top);
+    if ( ! opt) {
+        LOG_ERROR(LOG_BLOCKCHAIN, "Failed to populate chain state, last header.");
+        return {};
+    }
+    auto [last_header, block_size, control_block_size, elastic_buffer_size] = *opt;
+    if ( ! last_header.is_valid()) {
+        LOG_ERROR(LOG_BLOCKCHAIN, "Failed to populate chain state, last header.");
         return {};
     }
 
     chain_state::data data;
     data.hash = null_hash;
     data.height = *safe_add(top, size_t(1));
+
+    if (block_size == 0) {
+        data.abla_state = abla::state(settings_.abla_config, static_max_block_size(network_));
+    } else {
+        data.abla_state = abla::state(settings_.abla_config, block_size);
+        data.abla_state.control_block_size = control_block_size;
+        data.abla_state.elastic_buffer_size = elastic_buffer_size;
+    }
 
     auto branch_ptr = std::make_shared<branch>(top);
 
@@ -263,6 +280,7 @@ chain_state::ptr populate_chain_state::populate() const {
 #if defined(KTH_CURRENCY_BCH)
         , anchor
         , settings_.asert_half_life
+        , settings_.abla_config
         // , settings_.pythagoras_activation_time
         // , settings_.euclid_activation_time
         // , settings_.pisano_activation_time
@@ -297,6 +315,21 @@ chain_state::ptr populate_chain_state::populate(chain_state::ptr pool, branch::c
         return {};
     }
 
+    auto const is_lobachevski_enabled = chain_state::is_mtp_activated(chain_state::median_time_past(data), settings_.lobachevski_activation_time);
+    if (is_lobachevski_enabled) {
+        if ( ! pool->is_lobachevski_enabled()) {
+            data.abla_state = abla::state(settings_.abla_config, block->serialized_size(1));
+        } else {
+            auto const abla_config_opt = abla::next(pool->abla_state(), settings_.abla_config, block->serialized_size(1));
+            if ( ! abla_config_opt) {
+                return {};
+            }
+            data.abla_state = *abla_config_opt;
+        }
+    } else {
+        data.abla_state = abla::state(settings_.abla_config, block->serialized_size(1));
+    }
+
     return std::make_shared<chain_state>(
         std::move(data)
         , configured_forks_
@@ -305,6 +338,7 @@ chain_state::ptr populate_chain_state::populate(chain_state::ptr pool, branch::c
 #if defined(KTH_CURRENCY_BCH)
         , pool->assert_anchor_block_info()
         , settings_.asert_half_life
+        , settings_.abla_config
         // , settings_.pythagoras_activation_time
         // , settings_.euclid_activation_time
         // , settings_.pisano_activation_time

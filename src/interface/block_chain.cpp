@@ -190,6 +190,10 @@ bool block_chain::get_header(domain::chain::header& out_header, size_t height) c
     return out_header.is_valid();
 }
 
+std::optional<database::header_with_abla_state_t> block_chain::get_header_and_abla_state(size_t height) const {
+    return database_.internal_db().get_header_and_abla_state(height);
+}
+
 domain::chain::header::list block_chain::get_headers(size_t from, size_t to) const {
     return database_.internal_db().get_headers(from, to);
 }
@@ -224,7 +228,7 @@ bool block_chain::get_version(uint32_t& out_version, size_t height) const {
 
 bool block_chain::get_last_height(size_t& out_height) const {
     uint32_t temp;
-    auto res = database_.internal_db().get_last_height(temp);
+    auto const res = database_.internal_db().get_last_height(temp);
     out_height = temp;
     return succeed(res);
 }

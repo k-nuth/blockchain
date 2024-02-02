@@ -76,6 +76,9 @@ public:
     /// Get the header of the block at the given height.
     bool get_header(domain::chain::header& out_header, size_t height) const override;
 
+    /// Get the header of the block with the given height, also the ABLA state.
+    std::optional<database::header_with_abla_state_t> get_header_and_abla_state(size_t height) const override;
+
     /// Get a sequence of block headers [from, to].
     domain::chain::header::list get_headers(size_t from, size_t to) const override;
 

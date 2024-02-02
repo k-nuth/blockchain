@@ -109,6 +109,10 @@ public:
     // The half life for the ASERTi3-2d DAA. For every (asert_half_life) seconds behind schedule the blockchain gets, difficulty is cut in half.
     // Doubled if blocks are ahead of schedule.
     uint64_t asert_half_life = 2ull * 24 * 60 * 60;   //two days
+
+    uint64_t default_consensus_block_size;
+    kth::domain::chain::abla::config abla_config {};
+
 #else
     // Just for Segwit coins
     bool bip141 = true;

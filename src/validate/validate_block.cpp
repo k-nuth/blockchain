@@ -112,7 +112,7 @@ void validate_block::handle_checked(code const& ec, block_const_ptr block, resul
     }
 
     // Run context free checks, sets time internally.
-    handler(block->check(get_max_block_size(network_)));
+    handler(block->check());
 }
 
 // Accept sequence.
@@ -336,7 +336,8 @@ void validate_block::connect_inputs(block_const_ptr block, size_t bucket, size_t
 
 #if defined(KTH_CURRENCY_BCH)
             block_sigchecks += sigchecks;
-            if (block_sigchecks > get_max_block_sigchecks(network_)) {
+            // if (block_sigchecks > get_max_block_sigchecks(network_)) {
+            if (block_sigchecks > block->validation.state->dynamic_max_block_sigchecks()) {
                 ec = error::block_sigchecks_limit;
                 break;
             }

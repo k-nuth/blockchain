@@ -14,10 +14,13 @@
 namespace kth::blockchain {
 
 settings::settings(domain::config::network net) {
+    namespace abla = kth::domain::chain::abla;
     switch (net) {
         case domain::config::network::mainnet: {
 #if defined(KTH_CURRENCY_BCH)
             asert_half_life = 2ull * 24 * 60 * 60;   // two days
+            default_consensus_block_size = max_block_size::mainnet_new;
+            abla_config = abla::default_config(default_consensus_block_size, false);
 #endif
             break;
         }
@@ -25,6 +28,8 @@ settings::settings(domain::config::network net) {
             easy_blocks = true;
 #if defined(KTH_CURRENCY_BCH)
             asert_half_life = 60ull * 60;   // one hour
+            default_consensus_block_size = max_block_size::testnet3;
+            abla_config = abla::default_config(default_consensus_block_size, true);
 #endif
             break;
         }
@@ -34,6 +39,8 @@ settings::settings(domain::config::network net) {
 
 #if defined(KTH_CURRENCY_BCH)
             asert_half_life = 2ull * 24 * 60 * 60;   // two days
+            default_consensus_block_size = max_block_size::regtest;
+            abla_config = abla::default_config(default_consensus_block_size, false);
 #endif
             break;
         }
@@ -41,16 +48,22 @@ settings::settings(domain::config::network net) {
         case domain::config::network::testnet4: {
             easy_blocks = true;
             asert_half_life = 60ull * 60;   // one hour
+            default_consensus_block_size = max_block_size::testnet4;
+            abla_config = abla::default_config(default_consensus_block_size, true);
             break;
         }
         case domain::config::network::scalenet: {
             easy_blocks = true;
             asert_half_life = 2ull * 24 * 60 * 60;   // two days
+            default_consensus_block_size = max_block_size::scalenet;
+            abla_config = abla::default_config(default_consensus_block_size, false);
             break;
         }
         case domain::config::network::chipnet: {
             easy_blocks = true;
             asert_half_life = 60ull * 60;   // one hour
+            default_consensus_block_size = max_block_size::chipnet;
+            abla_config = abla::default_config(default_consensus_block_size, false);
             break;
         }
 #endif
