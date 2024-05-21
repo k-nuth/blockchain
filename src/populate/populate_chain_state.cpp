@@ -289,8 +289,9 @@ chain_state::ptr populate_chain_state::populate() const {
         // , euler_t(settings_.euler_activation_time)
         // , gauss_t(settings_.gauss_activation_time)
         // , descartes_t(settings_.descartes_activation_time)
-        , lobachevski_t(settings_.lobachevski_activation_time)
+        // , lobachevski_t(settings_.lobachevski_activation_time)
         , galois_t(settings_.galois_activation_time)
+        , leibniz_t(settings_.leibniz_activation_time)
 #endif //KTH_CURRENCY_BCH
     );
 
@@ -306,16 +307,20 @@ chain_state::ptr populate_chain_state::populate(chain_state::ptr pool, branch::c
         return chain_state::from_pool_ptr(*pool, *block);
     }
 
+    auto const height = branch->top_height();
     chain_state::data data;
     data.hash = block->hash();
-    data.height = branch->top_height();
+    data.height = height;
 
     // Caller must test result.
     if ( ! populate_all(data, branch)) {
         return {};
     }
 
-    auto const is_lobachevski_enabled = chain_state::is_mtp_activated(chain_state::median_time_past(data), settings_.lobachevski_activation_time);
+    // Before activating lobachevski, we need to check if it is enabled using the median time past.
+    // auto const is_lobachevski_enabled = chain_state::is_mtp_activated(chain_state::median_time_past(data), settings_.lobachevski_activation_time);
+    // After activating lobachevski, we need to check if it is enabled using the height.
+    auto const is_lobachevski_enabled = chain_state::is_lobachevski_enabled(height, network_);
     if (is_lobachevski_enabled) {
         if ( ! pool->is_lobachevski_enabled()) {
             data.abla_state = abla::state(settings_.abla_config, block->serialized_size(1));
@@ -347,8 +352,9 @@ chain_state::ptr populate_chain_state::populate(chain_state::ptr pool, branch::c
         // , euler_t(settings_.euler_activation_time)
         // , gauss_t(settings_.gauss_activation_time)
         // , descartes_t(settings_.descartes_activation_time)
-        , lobachevski_t(settings_.lobachevski_activation_time)
+        // , lobachevski_t(settings_.lobachevski_activation_time)
         , galois_t(settings_.galois_activation_time)
+        , leibniz_t(settings_.leibniz_activation_time)
 #endif //KTH_CURRENCY_BCH
     );
 }
