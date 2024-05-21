@@ -60,10 +60,11 @@ public:
                                      // 2021-May (no HF)
     bool bch_gauss = true;           // 2022-May
     bool bch_descartes = true;       // 2023-May
-    // bool bch_lobachevski = false; // 2024-May
+    bool bch_lobachevski = true;     // 2024-May
     // bool bch_galois = false;      // 2025-May
+    // bool bch_leibniz = false;     // 2026-May
 
-    // bool bch_unnamed = false;     // 2026-May
+    // bool bch_unnamed = false;     // 2027-May
 
     ////2017-Aug-01 hard fork, defaults to 478559 (Mainnet)
     // size_t uahf_height = 478559;
@@ -97,11 +98,14 @@ public:
     // //2023-May-15 hard fork, defaults to 1684152000: May 15, 2023 12:00:00 UTC protocol upgrade
     // uint64_t descartes_activation_time = to_underlying(bch_descartes_activation_time);
 
-    //2024-May-15 hard fork, defaults to 1715774400: May 15, 2024 12:00:00 UTC protocol upgrade
-    uint64_t lobachevski_activation_time = to_underlying(bch_lobachevski_activation_time);
+    // //2024-May-15 hard fork, defaults to 1715774400: May 15, 2024 12:00:00 UTC protocol upgrade
+    // uint64_t lobachevski_activation_time = to_underlying(bch_lobachevski_activation_time);
 
     //2025-May-15 hard fork, defaults to 1747310400: May 15, 2025 12:00:00 UTC protocol upgrade
     uint64_t galois_activation_time = to_underlying(bch_galois_activation_time);
+
+    // 2026-May-15 hard fork, defaults to 1778846400: May 15, 2026 12:00:00 UTC protocol upgrade
+    uint64_t leibniz_activation_time = to_underlying(bch_leibniz_activation_time);
 
     // //????-???-?? hard fork, defaults to 9999999999: ??? ??, ???? 12:00:00 UTC protocol upgrade
     // uint64_t unnamed_activation_time = to_underlying(bch_unnamed_activation_time);
