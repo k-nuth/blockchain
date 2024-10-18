@@ -6,11 +6,7 @@
 
 namespace kth::blockchain {
 
-void block_chain::for_each_transaction(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const {
-#if defined(KTH_CURRENCY_BCH)
-    witness = false;    //TODO(fernando): see what to do with those things!
-#endif
-
+void block_chain::for_each_transaction(size_t from, size_t to, for_each_tx_handler const& handler) const {
     while (from <= to) {
 
         if (stopped()) {
@@ -29,16 +25,13 @@ void block_chain::for_each_transaction(size_t from, size_t to, bool witness, for
         //auto const tx_hashes = block_result.transaction_hashes();
 
         for_each_tx_valid(block_result.transactions().begin(),
-                         block_result.transactions().end(), from, witness, handler);
+                         block_result.transactions().end(), from, handler);
 
         ++from;
     }
 }
 
-void block_chain::for_each_transaction_non_coinbase(size_t from, size_t to, bool witness, for_each_tx_handler const& handler) const {
-#if defined(KTH_CURRENCY_BCH)
-    witness = false;    //TODO(fernando): see what to do with those things!
-#endif
+void block_chain::for_each_transaction_non_coinbase(size_t from, size_t to, for_each_tx_handler const& handler) const {
     //auto const& tx_store = database_.transactions();
 
     while (from <= to) {
@@ -58,7 +51,7 @@ void block_chain::for_each_transaction_non_coinbase(size_t from, size_t to, bool
         auto const tx_hashes = block_result.transactions();
 
         for_each_tx_valid(std::next(tx_hashes.begin()),
-                         tx_hashes.end(), from, witness, handler);
+                         tx_hashes.end(), from, handler);
 
         ++from;
     }

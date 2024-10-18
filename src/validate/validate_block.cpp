@@ -382,7 +382,7 @@ void validate_block::dump(code const& ec, transaction const& tx, uint32_t input_
         " inpoint      : {}:{}\n"
         " transaction  : {}",
         LOG_BLOCKCHAIN, height, ec.message(), forks, hash, prevout.index(), encode_base16(script)
-        , prevout.validation.cache.value(), tx_hash, input_index, encode_base16(tx.to_data(true, true)));
+        , prevout.validation.cache.value(), tx_hash, input_index, encode_base16(tx.to_data(true)));
 }
 
 } // namespace kth::blockchain
