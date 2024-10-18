@@ -17,6 +17,7 @@ class KnuthBlockchainConan(KnuthConanFileV2):
     url = "https://github.com/k-nuth/blockchain/blob/conan-build/conanfile.py"
     description = "Knuth Blockchain Library"
     settings = "os", "compiler", "build_type", "arch"
+    package_type = "library"
 
     options = {
         "shared": [True, False],
