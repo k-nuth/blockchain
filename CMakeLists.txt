@@ -13,7 +13,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option(ENABLE_SHARED "" OFF)
 option(ENABLE_POSITION_INDEPENDENT_CODE "Enable POSITION_INDEPENDENT_CODE property" ON)
-option(WITH_CONSENSUS "Link consensus and use for consensus checks." ON)
+option(WITH_CONSENSUS "Link consensus and use for consensus checks." OFF)
 option(WITH_TESTS "Compile with unit tests." ON)
 option(WITH_TOOLS "Compile with tools." OFF)
 option(WITH_MEMPOOL "Mempool enabled." OFF)

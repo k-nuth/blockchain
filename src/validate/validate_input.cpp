@@ -240,7 +240,7 @@ std::pair<code, size_t> validate_input::verify_script(transaction const& tx, uin
 
 #else //WITH_CONSENSUS
 
-#error Not supported, build using -o consensus=True
+// #error Not supported, build using -o consensus=True
 
 std::pair<code, size_t> validate_input::verify_script(transaction const& tx, uint32_t input_index, uint32_t forks) {
     return {script::verify(tx, input_index, forks), 0};
