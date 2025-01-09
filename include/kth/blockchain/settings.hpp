@@ -61,9 +61,10 @@ public:
     bool bch_gauss = true;           // 2022-May
     bool bch_descartes = true;       // 2023-May
     bool bch_lobachevski = true;     // 2024-May
+
+    // Those are post-upgrade constants, change them to true when the time comes
     // bool bch_galois = false;      // 2025-May
     // bool bch_leibniz = false;     // 2026-May
-
     // bool bch_unnamed = false;     // 2027-May
 
     ////2017-Aug-01 hard fork, defaults to 478559 (Mainnet)

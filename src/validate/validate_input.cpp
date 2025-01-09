@@ -77,6 +77,11 @@ uint32_t validate_input::convert_flags(uint32_t forks) {
         flags |= verify_flags_enable_tokens;
     }
 
+    if (script::is_enabled(forks, domain::machine::rule_fork::bch_galois)) {
+        flags |= verify_flags_enable_may2025;
+        // Note: this flag is used just for mempool
+        // flags |= verify_flags_enable_vm_limits_standard;
+    }
 
     // // We make sure this node will have replay protection during the next hard fork.
     // if (script::is_enabled(forks, domain::machine::rule_fork::bch_replay_protection)) {
