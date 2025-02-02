@@ -112,6 +112,13 @@ if (_has_pedantic_warning_flag)
   _add_c_compile_flag(-pedantic _has_pedantic_flag)
 endif()
 
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
+    # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -matomics -mbulk-memory")
+    _add_cxx_compile_flag(-matomics _has_matomics_flag)
+    _add_cxx_compile_flag(-mbulk-memory _has_mbulk_memory_flag)
+endif()
+
 _add_cxx_compile_flag(-Wno-missing-braces _has_no_missing_braces_warning_flag)
 _add_cxx_compile_flag(-Wno-mismatched-tags _has_no_mismatched_tags_warning_flag)
 _add_c_compile_flag(-Wno-deprecated-declarations _has_no_deprecated_declarations_warning_flag)
