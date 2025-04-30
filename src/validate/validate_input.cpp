@@ -211,36 +211,35 @@ coins_t create_context_data(transaction const& tx, bool should_create_context) {
 }
 
 std::pair<code, size_t> validate_input::verify_script(transaction const& tx, uint32_t input_index, uint32_t forks) {
-#if defined(KTH_CURRENCY_BCH)
-    bool witness = false;
-#else
-    bool witness = true;
-#endif
+    constexpr bool prefix = false;
 
     KTH_ASSERT(input_index < tx.inputs().size());
     auto const& prevout = tx.inputs()[input_index].previous_output().validation;
-    auto const script_data = prevout.cache.script().to_data(false);
+    auto const locking_script_data = prevout.cache.script().to_data(false);
     auto const token_data = prevout.cache.token_data();
     auto const amount = prevout.cache.value();
-    auto const tx_data = tx.to_data(true, witness);
+    auto const tx_data = tx.to_data(true);
 
-#if defined(KTH_CURRENCY_BCH)
     size_t sig_checks;
     bool const should_create_context = script::is_enabled(forks, domain::machine::rule_fork::bch_gauss);
     auto const coins = create_context_data(tx, should_create_context);
+    auto const unlock_script_data = tx.inputs()[input_index].script().to_data(prefix);
 
-    auto res = consensus::verify_script(tx_data.data(),
-        tx_data.size(), script_data.data(), script_data.size(), input_index,
-        convert_flags(forks), sig_checks, amount, coins);
+    auto res = consensus::verify_script(
+        tx_data.data(),
+        tx_data.size(),
+        locking_script_data.data(),
+        locking_script_data.size(),
+        unlock_script_data.data(),
+        unlock_script_data.size(),
+        input_index,
+        convert_flags(forks),
+        sig_checks,
+        amount,
+        coins
+    );
 
     return {convert_result(res), sig_checks};
-#else
-    auto res = consensus::verify_script(tx_data.data(),
-        tx_data.size(), script_data.data(), script_data.size(), amount,
-        input_index, convert_flags(forks));
-
-    return {convert_result(res), 0};
-#endif // KTH_CURRENCY_BCH
 }
 
 #else //WITH_CONSENSUS
