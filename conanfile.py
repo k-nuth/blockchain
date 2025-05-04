@@ -42,7 +42,7 @@ class KnuthBlockchainConan(KnuthConanFileV2):
     default_options = {
         "shared": False,
         "fPIC": True,
-        "consensus": False,
+        "consensus": True,
         "tests": False,
         "tools": False,
         "currency": "BCH",
