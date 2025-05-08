@@ -14,6 +14,7 @@
 #include <kth/blockchain/pools/branch.hpp>
 #include <kth/blockchain/settings.hpp>
 #include <kth/blockchain/validate/validate_input.hpp>
+#include <kth/consensus.hpp>
 #include <kth/domain.hpp>
 #include <kth/domain/multi_crypto_support.hpp>
 
@@ -134,8 +135,16 @@ void validate_block::accept(branch::const_ptr branch, result_handler handler) co
         return;
     }
 
+    // if (block->validation.state->is_under_checkpoint()) {
+    //     handler(error::success);
+    //     return;
+    // }
+
     // Populate block state for the top block (others are valid).
-    block_populator_.populate(branch, std::bind(&validate_block::handle_populated, this, _1, block, handler));
+    block_populator_.populate(
+        branch,
+        std::bind(&validate_block::handle_populated, this, _1, block, handler)
+    );
 }
 
 void validate_block::handle_populated(code const& ec, block_const_ptr block, result_handler handler) const {
@@ -162,12 +171,7 @@ void validate_block::handle_populated(code const& ec, block_const_ptr block, res
     auto const sigops = std::make_shared<atomic_counter>(0);
     auto const state = block->validation.state;
     KTH_ASSERT(state);
-#if defined(KTH_CURRENCY_BCH)
     bool const bip141 = false;
-#else
-    auto const bip141 = state->is_enabled(domain::machine::rule_fork::bip141_rule);
-#endif
-
     result_handler complete_handler = std::bind(&validate_block::handle_accepted, this, _1, block, sigops, bip141, handler);
 
     if (state->is_under_checkpoint()) {
@@ -324,6 +328,7 @@ void validate_block::connect_inputs(block_const_ptr block, size_t bucket, size_t
             auto const& prevout = inputs[input_index].previous_output();
 
             if ( ! prevout.validation.cache.is_valid()) {
+                LOG_INFO(LOG_BLOCKCHAIN, "error::missing_previous_output - 1");
                 ec = error::missing_previous_output;
                 break;
             }
@@ -369,20 +374,40 @@ void validate_block::handle_connected(code const& ec, block_const_ptr block, res
 //-----------------------------------------------------------------------------
 
 void validate_block::dump(code const& ec, transaction const& tx, uint32_t input_index, uint32_t forks, size_t height) {
+    constexpr bool prefix = false;
     auto const& prevout = tx.inputs()[input_index].previous_output();
-    auto const script = prevout.validation.cache.script().to_data(false);
-    auto const hash = encode_hash(prevout.hash());
+    auto const locking_script = prevout.validation.cache.script().to_data(prefix);
+    auto const unlocking_script = tx.inputs()[input_index].script().to_data(prefix);
+    auto const prevout_hash = encode_hash(prevout.hash());
     auto const tx_hash = encode_hash(tx.hash());
+    auto const kth_flags = validate_input::convert_flags(forks);
+    auto const consensus_flags = kth::consensus::verify_flags_to_script_flags(kth_flags);
 
     spdlog::debug("[{}] Verify failed [{}] : {}\n"
-        " forks        : {}\n"
-        " outpoint     : {}:{}\n"
-        " script       : {}\n"
-        " value        : {}\n"
-        " inpoint      : {}:{}\n"
-        " transaction  : {}",
-        LOG_BLOCKCHAIN, height, ec.message(), forks, hash, prevout.index(), encode_base16(script)
-        , prevout.validation.cache.value(), tx_hash, input_index, encode_base16(tx.to_data(true)));
+        " forks                      : {}\n"
+        " kth flags                  : {}\n"
+        " consensus flags            : {}\n"
+        " tx hash                    : {}\n"
+        " input index                : {}\n"
+        " prevout                    : {}:{}\n"
+        " locking script (unsized)   : {}\n"
+        " unlocking script (unsized) : {}\n"
+        " value                      : {}\n"
+        " tx serialized              : {}",
+        LOG_BLOCKCHAIN,
+        height,
+        ec.message(),
+        forks,
+        kth_flags,
+        consensus_flags,
+        tx_hash,
+        input_index,
+        prevout_hash, prevout.index(),
+        encode_base16(locking_script),
+        encode_base16(unlocking_script),
+        prevout.validation.cache.value(),
+        encode_base16(tx.to_data(true))
+    );
 }
 
 } // namespace kth::blockchain

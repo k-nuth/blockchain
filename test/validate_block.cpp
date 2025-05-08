@@ -38,7 +38,10 @@ TEST_CASE("validate block  native  block 438513 tx  valid", "[validate block tes
     auto& prevout = input.previous_output().validation.cache;
 
     prevout.set_value(0);
-    prevout.set_script(kd::create<script>(decoded_script, false));
+
+    auto script = script::from_data(decoded_script, false);
+    REQUIRE(script.is_valid());
+    prevout.set_script(script);
 
     REQUIRE(prevout.script().is_valid());
 
@@ -82,7 +85,9 @@ TEST_CASE("validate block  native  block 520679 tx  valid", "[validate block tes
     auto& prevout = input.previous_output().validation.cache;
 
     prevout.set_value(25533210);
-    prevout.set_script(kd::create<script>(decoded_script, false));
+    auto script = script::from_data(decoded_script, false);
+    REQUIRE(script.has_value());
+    prevout.set_script(*script);
     REQUIRE(prevout.script().is_valid());
 
     auto const result = validate_input::verify_script(tx, index, native_forks);
@@ -131,7 +136,9 @@ TEST_CASE("validate block  2018NOV  block 520679 tx  valid", "[validate block te
     auto& prevout = input.previous_output().validation.cache;
 
     prevout.set_value(value);
-    prevout.set_script(kd::create<script>(decoded_script, false));
+    auto script = script::from_data(decoded_script, false);
+    REQUIRE(script.has_value());
+    prevout.set_script(*script);
     REQUIRE(prevout.script().is_valid());
 
     auto const result = validate_input::verify_script(tx, index, native_forks);
