@@ -290,8 +290,9 @@ chain_state::ptr populate_chain_state::populate() const {
         // , gauss_t(settings_.gauss_activation_time)
         // , descartes_t(settings_.descartes_activation_time)
         // , lobachevski_t(settings_.lobachevski_activation_time)
-        , galois_t(settings_.galois_activation_time)
+        // , galois_t(settings_.galois_activation_time)
         , leibniz_t(settings_.leibniz_activation_time)
+        , cantor_t(settings_.cantor_activation_time)
 #endif //KTH_CURRENCY_BCH
     );
 
@@ -353,8 +354,9 @@ chain_state::ptr populate_chain_state::populate(chain_state::ptr pool, branch::c
         // , gauss_t(settings_.gauss_activation_time)
         // , descartes_t(settings_.descartes_activation_time)
         // , lobachevski_t(settings_.lobachevski_activation_time)
-        , galois_t(settings_.galois_activation_time)
+        // , galois_t(settings_.galois_activation_time)
         , leibniz_t(settings_.leibniz_activation_time)
+        , cantor_t(settings_.cantor_activation_time)
 #endif //KTH_CURRENCY_BCH
     );
 }

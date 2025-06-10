@@ -61,11 +61,12 @@ public:
     bool bch_gauss = true;           // 2022-May
     bool bch_descartes = true;       // 2023-May
     bool bch_lobachevski = true;     // 2024-May
+    bool bch_galois = true;          // 2025-May
 
     // Those are post-upgrade constants, change them to true when the time comes
-    // bool bch_galois = false;      // 2025-May
     // bool bch_leibniz = false;     // 2026-May
-    // bool bch_unnamed = false;     // 2027-May
+    // bool bch_cantor = false;      // 2027-May
+    // bool bch_unnamed = false;     // ????-May
 
     ////2017-Aug-01 hard fork, defaults to 478559 (Mainnet)
     // size_t uahf_height = 478559;
@@ -102,11 +103,14 @@ public:
     // //2024-May-15 hard fork, defaults to 1715774400: May 15, 2024 12:00:00 UTC protocol upgrade
     // uint64_t lobachevski_activation_time = std::to_underlying(bch_lobachevski_activation_time);
 
-    // 2025-May-15 hard fork, defaults to 1747310400: May 15, 2025 12:00:00 UTC protocol upgrade
-    uint64_t galois_activation_time = std::to_underlying(bch_galois_activation_time);
+    // // 2025-May-15 hard fork, defaults to 1747310400: May 15, 2025 12:00:00 UTC protocol upgrade
+    // uint64_t galois_activation_time = std::to_underlying(bch_galois_activation_time);
 
     // 2026-May-15 hard fork, defaults to 1778846400: May 15, 2026 12:00:00 UTC protocol upgrade
     uint64_t leibniz_activation_time = std::to_underlying(bch_leibniz_activation_time);
+
+    // 2027-May-15 hard fork, defaults to xxxxxxxxxx: May 15, 2027 12:00:00 UTC protocol upgrade
+    uint64_t cantor_activation_time = std::to_underlying(bch_cantor_activation_time);
 
     // //????-???-?? hard fork, defaults to 9999999999: ??? ??, ???? 12:00:00 UTC protocol upgrade
     // uint64_t unnamed_activation_time = std::to_underlying(bch_unnamed_activation_time);
