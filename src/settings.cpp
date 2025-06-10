@@ -101,7 +101,8 @@ uint32_t settings::enabled_forks() const {
     forks |= (bch_descartes   ? rule_fork::bch_descartes : 0);
     forks |= (bch_lobachevski ? rule_fork::bch_lobachevski : 0);
     forks |= (bch_galois      ? rule_fork::bch_galois : 0);
-    // forks |= (bch_leibniz     ? rule_fork::bch_leibniz : 0);
+    forks |= (bch_leibniz     ? rule_fork::bch_leibniz : 0);
+    // forks |= (bch_cantor     ? rule_fork::bch_cantor : 0);
     // forks |= (bch_unnamed     ? rule_fork::bch_unnamed : 0);
 #else
     forks |= (bip141 ? rule_fork::bip141_rule : 0);
