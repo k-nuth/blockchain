@@ -132,7 +132,6 @@ populate_block::utxo_pool_t populate_block::get_reorg_subset_conditionally(size_
     return std::move(p.second);
 }
 
-
 void populate_block::populate_transaction_inputs(branch::const_ptr branch, domain::chain::input::list const& inputs, size_t bucket, size_t buckets, size_t input_position, local_utxo_set_t const& branch_utxo, size_t first_height, size_t chain_top, utxo_pool_t const& reorg_subset) const {
     auto const branch_height = branch->height();
 
@@ -231,6 +230,7 @@ void populate_block::populate_from_reorg_subset(output_point const& outpoint, ut
         return;
     }
 
+    LOG_INFO(LOG_BLOCKCHAIN, "populate_from_reorg_subset() - UTXO Set related - 1");
     auto it = reorg_subset.find(outpoint);
     if (it != reorg_subset.end()) {
         auto& val = outpoint.validation;
@@ -240,7 +240,6 @@ void populate_block::populate_from_reorg_subset(output_point const& outpoint, ut
         val.cache = entry.output();
         val.coinbase = entry.coinbase();
     }
-
 }
 
 void populate_block::populate_prevout(branch::const_ptr branch, output_point const& outpoint, local_utxo_set_t const& branch_utxo) const {

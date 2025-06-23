@@ -150,6 +150,7 @@ void validate_transaction::connect_inputs(transaction_const_ptr tx, size_t bucke
         auto const& prevout = inputs[input_index].previous_output();
 
         if ( ! prevout.validation.cache.is_valid()) {
+            LOG_INFO(LOG_BLOCKCHAIN, "error::missing_previous_output - 2");
             handler(error::missing_previous_output);
             return;
         }

@@ -67,6 +67,7 @@ void populate_base::populate_prevout(size_t branch_height, output_point const& o
         return;
     }
 
+    // LOG_INFO(LOG_BLOCKCHAIN, "populate_base::populate_prevout - 1");
     //TODO(fernando): check the value of the parameters: branch_height and require_confirmed
     if ( ! fast_chain_.get_utxo(prevout.cache, prevout.height, prevout.median_time_past, prevout.coinbase, outpoint, branch_height)) {
         return;

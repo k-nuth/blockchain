@@ -239,12 +239,12 @@ chain_state::ptr populate_chain_state::populate() const {
     }
     auto opt = fast_chain_.get_header_and_abla_state(top);
     if ( ! opt) {
-        LOG_ERROR(LOG_BLOCKCHAIN, "Failed to populate chain state, last header.");
+        LOG_ERROR(LOG_BLOCKCHAIN, "Failed to populate chain state, last header - 1.");
         return {};
     }
     auto [last_header, block_size, control_block_size, elastic_buffer_size] = *opt;
     if ( ! last_header.is_valid()) {
-        LOG_ERROR(LOG_BLOCKCHAIN, "Failed to populate chain state, last header.");
+        LOG_ERROR(LOG_BLOCKCHAIN, "Failed to populate chain state, last header - 2.");
         return {};
     }
 

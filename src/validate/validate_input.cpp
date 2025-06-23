@@ -21,7 +21,6 @@ using namespace kd::machine;
 
 using namespace kth::consensus;
 
-//TODO(legacy): map bc policy flags.
 uint32_t validate_input::convert_flags(uint32_t forks) {
     uint32_t flags = verify_flags_none;
 
@@ -40,8 +39,6 @@ uint32_t validate_input::convert_flags(uint32_t forks) {
     if (script::is_enabled(forks, domain::machine::rule_fork::bip112_rule)) {
         flags |= verify_flags_checksequenceverify;
     }
-
-#if defined(KTH_CURRENCY_BCH)
 
     if (script::is_enabled(forks, domain::machine::rule_fork::bch_uahf)) {
         flags |= verify_flags_strictenc;
@@ -88,15 +85,6 @@ uint32_t validate_input::convert_flags(uint32_t forks) {
     //     flags |= verify_flags_enable_replay_protection;
     // }
 
-#else
-    if (script::is_enabled(forks, domain::machine::rule_fork::bip141_rule)) {
-        flags |= verify_flags_witness;
-    }
-
-    if (script::is_enabled(forks, domain::machine::rule_fork::bip147_rule)) {
-        flags |= verify_flags_nulldummy;
-    }
-#endif
     return flags;
 }
 
@@ -139,23 +127,13 @@ code validate_input::convert_result(verify_result_type result) {
         // Softfork safeness (should not see).
         case verify_result_type::verify_result_discourage_upgradable_nops:
             return error::operation_failed;
-#if ! defined(KTH_CURRENCY_BCH)
-        case verify_result_type::verify_result_discourage_upgradable_witness_program:
-            return error::operation_failed;
 
-        // BIP66 errors (also BIP62, which is undeployed).
-        case verify_result_type::verify_result_sig_der:
-            return error::invalid_signature_encoding;
-#endif
         // BIP62 errors (should not see).
         case verify_result_type::verify_result_sig_hashtype:
         case verify_result_type::verify_result_minimaldata:
         case verify_result_type::verify_result_sig_pushonly:
         case verify_result_type::verify_result_sig_high_s:
 
-#if ! defined(KTH_CURRENCY_BCH)
-        case verify_result_type::verify_result_sig_nulldummy:
-#endif
 
         case verify_result_type::verify_result_pubkeytype:
         case verify_result_type::verify_result_cleanstack:
@@ -170,18 +148,6 @@ code validate_input::convert_result(verify_result_type result) {
         case verify_result_type::verify_result_op_return:
         case verify_result_type::verify_result_unknown_error:
             return error::invalid_script;
-
-#if ! defined(KTH_CURRENCY_BCH)
-        // Segregated witness.
-        case verify_result_type::verify_result_witness_program_wrong_length:
-        case verify_result_type::verify_result_witness_program_empty_witness:
-        case verify_result_type::verify_result_witness_program_mismatch:
-        case verify_result_type::verify_result_witness_malleated:
-        case verify_result_type::verify_result_witness_malleated_p2sh:
-        case verify_result_type::verify_result_witness_unexpected:
-        case verify_result_type::verify_result_witness_pubkeytype:
-            return error::invalid_script;
-#endif
 
         // Augmention codes for tx deserialization.
         case verify_result_type::verify_result_tx_invalid:
@@ -198,7 +164,7 @@ using coins_t = std::vector<std::vector<uint8_t>>;
 
 inline
 coins_t create_context_data(transaction const& tx, bool should_create_context) {
-    if ( ! should_create_context) return {};
+    // if ( ! should_create_context) return {};
 
     coins_t coins;
     coins.reserve(tx.inputs().size());
@@ -212,10 +178,9 @@ coins_t create_context_data(transaction const& tx, bool should_create_context) {
 
 std::pair<code, size_t> validate_input::verify_script(transaction const& tx, uint32_t input_index, uint32_t forks) {
     constexpr bool prefix = false;
-
     KTH_ASSERT(input_index < tx.inputs().size());
     auto const& prevout = tx.inputs()[input_index].previous_output().validation;
-    auto const locking_script_data = prevout.cache.script().to_data(false);
+    auto const locking_script_data = prevout.cache.script().to_data(prefix);
     auto const token_data = prevout.cache.token_data();
     auto const amount = prevout.cache.value();
     auto const tx_data = tx.to_data(true);

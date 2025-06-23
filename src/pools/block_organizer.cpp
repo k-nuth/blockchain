@@ -229,6 +229,7 @@ void block_organizer::populate_prevout_1(branch::const_ptr branch, domain::chain
         return;
     }
 
+    LOG_INFO(LOG_BLOCKCHAIN, "block_organizer::populate_prevout_1 - 1");
     //TODO(fernando): check the value of the parameters: branch_height and require_confirmed
     if ( ! fast_chain_.get_utxo(prevout.cache, prevout.height, prevout.median_time_past, prevout.coinbase, outpoint, branch_height)) {
         // std::cout << "outpoint not found in UTXO: " << encode_hash(outpoint.hash()) << " - " << outpoint.index() << std::endl;
